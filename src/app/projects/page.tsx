@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { PlusCircle, Calendar as CalendarIcon, CircleDollarSign } from 'lucide-react';
+import { PlusCircle, Calendar as CalendarIcon, CircleDollarSign, Wallet, TrendingUp } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -35,15 +35,17 @@ type Project = {
   name: string;
   client: string;
   value: number;
+  cost: number;
+  invoiced: number;
   period: string;
   duration: string;
   progress: number;
 };
 
 const initialProjects: Project[] = [
-  { id: 1, contractNumber: 'CN-001', name: 'Corporate Website Revamp', client: 'Acme Inc.', value: 2500000000, period: '2024-2025', duration: '12 Months', progress: 75 },
-  { id: 2, contractNumber: 'CN-002', name: 'Mobile App Development', client: 'Stark Industries', value: 5000000000, period: '2024-2026', duration: '24 Months', progress: 40 },
-  { id: 3, contractNumber: 'CN-003', name: 'Data Analytics Platform', client: 'Wayne Enterprises', value: 3200000000, period: '2023-2024', duration: '18 Months', progress: 90 },
+  { id: 1, contractNumber: 'CN-001', name: 'Corporate Website Revamp', client: 'Acme Inc.', value: 2500000000, cost: 1800000000, invoiced: 2000000000, period: '2024-2025', duration: '12 Months', progress: 75 },
+  { id: 2, contractNumber: 'CN-002', name: 'Mobile App Development', client: 'Stark Industries', value: 5000000000, cost: 3500000000, invoiced: 4000000000, period: '2024-2026', duration: '24 Months', progress: 40 },
+  { id: 3, contractNumber: 'CN-003', name: 'Data Analytics Platform', client: 'Wayne Enterprises', value: 3200000000, cost: 2800000000, invoiced: 3000000000, period: '2023-2024', duration: '18 Months', progress: 90 },
 ];
 
 export default function ProjectsPage() {
@@ -61,6 +63,8 @@ export default function ProjectsPage() {
   const [date, setDate] = useState<DateRange | undefined>(undefined);
 
   const totalProjectValue = projects.reduce((acc, project) => acc + project.value, 0);
+  const totalCost = projects.reduce((acc, project) => acc + project.cost, 0);
+  const totalInvoiced = projects.reduce((acc, project) => acc + project.invoiced, 0);
 
   useEffect(() => {
     if (date?.from && date?.to) {
@@ -92,7 +96,7 @@ export default function ProjectsPage() {
   const handleAddProject = () => {
     if (newProject.name && newProject.client && newProject.value > 0 && newProject.contractNumber && newProject.period && newProject.duration) {
       const newId = projects.length > 0 ? Math.max(...projects.map((p) => p.id)) + 1 : 1;
-      setProjects([...projects, { ...newProject, id: newId }]);
+      setProjects([...projects, { ...newProject, id: newId, cost: 0, invoiced: 0 }]);
       setNewProject({ contractNumber: '', name: '', client: '', value: 0, period: '', duration: '', progress: 0 });
       setDate(undefined);
       setIsDialogOpen(false);
@@ -119,6 +123,46 @@ export default function ProjectsPage() {
             </div>
             <p className="text-xs text-muted-foreground">
               Across {projects.length} projects
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Total Cost
+            </CardTitle>
+            <Wallet className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold font-headline">
+               {new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0,
+              }).format(totalCost)}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Total costs realized across all projects
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Total Invoiced
+            </CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold font-headline">
+               {new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0,
+              }).format(totalInvoiced)}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Total invoiced across all projects
             </p>
           </CardContent>
         </Card>
