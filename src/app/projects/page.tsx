@@ -86,6 +86,10 @@ export default function ProjectsPage() {
             </div>
           </div>
           <div className="space-y-2">
+            <Label htmlFor="project-value">Project Value (IDR)</Label>
+            <Input id="project-value" type="number" defaultValue="2500000000" />
+          </div>
+          <div className="space-y-2">
             <Label htmlFor="contract-period">Contract Period</Label>
             <Popover>
               <PopoverTrigger asChild>
