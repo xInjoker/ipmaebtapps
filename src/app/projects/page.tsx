@@ -77,17 +77,21 @@ export default function ProjectsPage() {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-2">
+              <Label htmlFor="project-name">Project Name</Label>
+              <Input id="project-name" defaultValue="Corporate Website Revamp" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="client-name">Client Name</Label>
+              <Input id="client-name" defaultValue="Acme Inc." />
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="contract-number">Contract Number</Label>
               <Input id="contract-number" defaultValue="PRJ-2024-001" />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="project-name">Project Name</Label>
-              <Input id="project-name" defaultValue="Corporate Website Revamp" />
+              <Label htmlFor="project-value">Project Value (IDR)</Label>
+              <Input id="project-value" type="number" defaultValue="2500000000" />
             </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="project-value">Project Value (IDR)</Label>
-            <Input id="project-value" type="number" defaultValue="2500000000" />
           </div>
           <div className="space-y-2">
             <Label htmlFor="contract-period">Contract Period</Label>
