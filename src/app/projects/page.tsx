@@ -10,198 +10,140 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { CalendarIcon, PlusCircle, Trash2 } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
-import type { DateRange } from 'react-day-picker';
+import { PlusCircle } from 'lucide-react';
 
-type Invoice = {
+type Project = {
   id: number;
-  month: string;
+  name: string;
+  client: string;
   value: number;
-  status: 'Document Preparation' | 'PAD' | 'Invoice' | 'Paid';
 };
 
-const initialInvoices: Invoice[] = [
-  { id: 1, month: 'January 2024', value: 186000000, status: 'Paid' },
-  { id: 2, month: 'February 2024', value: 305000000, status: 'Paid' },
-  { id: 3, month: 'March 2024', value: 237000000, status: 'Invoice' },
-  { id: 4, month: 'April 2024', value: 73000000, status: 'PAD' },
+const initialProjects: Project[] = [
+  { id: 1, name: 'Corporate Website Revamp', client: 'Acme Inc.', value: 2500000000 },
+  { id: 2, name: 'Mobile App Development', client: 'Stark Industries', value: 5000000000 },
+  { id: 3, name: 'Data Analytics Platform', client: 'Wayne Enterprises', value: 3200000000 },
 ];
 
 export default function ProjectsPage() {
-  const [invoices, setInvoices] = useState<Invoice[]>(initialInvoices);
-  const [date, setDate] = useState<DateRange | undefined>();
+  const [projects, setProjects] = useState<Project[]>(initialProjects);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [newProject, setNewProject] = useState({ name: '', client: '', value: 0 });
 
-  const handleAddInvoice = () => {
-    const newId = invoices.length > 0 ? Math.max(...invoices.map(inv => inv.id)) + 1 : 1;
-    setInvoices([
-      ...invoices,
-      { id: newId, month: 'New Month', value: 0, status: 'Document Preparation' },
-    ]);
+  const handleAddProject = () => {
+    if (newProject.name && newProject.client && newProject.value > 0) {
+      const newId = projects.length > 0 ? Math.max(...projects.map((p) => p.id)) + 1 : 1;
+      setProjects([...projects, { ...newProject, id: newId }]);
+      setNewProject({ name: '', client: '', value: 0 });
+      setIsDialogOpen(false);
+    }
   };
-  
-  const handleRemoveInvoice = (id: number) => {
-    setInvoices(invoices.filter(inv => inv.id !== id));
-  };
-
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="font-headline">Project Details</CardTitle>
-          <CardDescription>
-            Manage core project information and contract details.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="project-name">Project Name</Label>
-              <Input id="project-name" defaultValue="Corporate Website Revamp" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="client-name">Client Name</Label>
-              <Input id="client-name" defaultValue="Acme Inc." />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="contract-number">Contract Number</Label>
-              <Input id="contract-number" defaultValue="PRJ-2024-001" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="project-value">Project Value (IDR)</Label>
-              <Input id="project-value" type="number" defaultValue="2500000000" />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="contract-period">Contract Period</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  id="contract-period"
-                  variant={'outline'}
-                  className={cn(
-                    'w-full justify-start text-left font-normal',
-                    !date && 'text-muted-foreground'
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {date?.from ? (
-                    date.to ? (
-                      <>
-                        {format(date.from, 'LLL dd, y')} -{' '}
-                        {format(date.to, 'LLL dd, y')}
-                      </>
-                    ) : (
-                      format(date.from, 'LLL dd, y')
-                    )
-                  ) : (
-                    <span>Pick a date range</span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  initialFocus
-                  mode="range"
-                  defaultMonth={date?.from}
-                  selected={date}
-                  onSelect={setDate}
-                  numberOfMonths={2}
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-        </CardContent>
-        <CardFooter>
-          <Button>Save Project Details</Button>
-        </CardFooter>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="font-headline">Invoice Management</CardTitle>
-          <CardDescription>
-            Input and track monthly invoice values and their statuses.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Month</TableHead>
-                <TableHead>Invoice Value (Rp)</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {invoices.map((invoice) => (
-                <TableRow key={invoice.id}>
-                  <TableCell>
-                    <Input defaultValue={invoice.month} className="max-w-[150px]" />
-                  </TableCell>
-                  <TableCell>
-                    <Input
-                      type="number"
-                      defaultValue={invoice.value}
-                      className="max-w-[200px]"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Select defaultValue={invoice.status}>
-                      <SelectTrigger className="w-[200px]">
-                        <SelectValue placeholder="Select status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Document Preparation">
-                          Document Preparation
-                        </SelectItem>
-                        <SelectItem value="PAD">PAD</SelectItem>
-                        <SelectItem value="Invoice">Invoice</SelectItem>
-                        <SelectItem value="Paid">Paid</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" onClick={() => handleRemoveInvoice(invoice.id)}>
-                        <Trash2 className="h-4 w-4" />
-                        <span className="sr-only">Delete</span>
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-        <CardFooter className="justify-between border-t px-6 py-4">
-            <Button onClick={handleAddInvoice} variant="outline">
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Add Invoice
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold font-headline">Projects</h1>
+          <p className="text-muted-foreground">A list of all your projects.</p>
+        </div>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Add New Project
             </Button>
-            <Button>Save Invoices</Button>
-        </CardFooter>
-      </Card>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Add New Project</DialogTitle>
+              <DialogDescription>
+                Fill in the details below to add a new project.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="name" className="text-right">
+                  Name
+                </Label>
+                <Input
+                  id="name"
+                  value={newProject.name}
+                  onChange={(e) => setNewProject({ ...newProject, name: e.target.value })}
+                  className="col-span-3"
+                  placeholder="Project name"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="client" className="text-right">
+                  Client
+                </Label>
+                <Input
+                  id="client"
+                  value={newProject.client}
+                  onChange={(e) => setNewProject({ ...newProject, client: e.target.value })}
+                  className="col-span-3"
+                  placeholder="Client name"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="value" className="text-right">
+                  Value (IDR)
+                </Label>
+                <Input
+                  id="value"
+                  type="number"
+                  value={newProject.value || ''}
+                  onChange={(e) => setNewProject({ ...newProject, value: parseInt(e.target.value) || 0 })}
+                  className="col-span-3"
+                  placeholder="Project value"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="submit" onClick={handleAddProject}>
+                Add Project
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {projects.map((project) => (
+          <Card key={project.id}>
+            <CardHeader>
+              <CardTitle className="font-headline">{project.name}</CardTitle>
+              <CardDescription>{project.client}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-lg font-semibold">Project Value</div>
+              <p className="text-2xl font-bold text-primary">
+                {new Intl.NumberFormat('id-ID', {
+                  style: 'currency',
+                  currency: 'IDR',
+                  minimumFractionDigits: 0,
+                }).format(project.value)}
+              </p>
+            </CardContent>
+            <CardFooter>
+              <Button variant="outline" className="w-full">
+                View Details
+              </Button>
+            </CardFooter>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 }
