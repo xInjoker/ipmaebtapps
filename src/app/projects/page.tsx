@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { PlusCircle, Calendar as CalendarIcon, CircleDollarSign, Wallet, TrendingUp } from 'lucide-react';
+import { PlusCircle, Calendar as CalendarIcon, CircleDollarSign, Wallet, TrendingUp, Landmark } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -65,6 +65,7 @@ export default function ProjectsPage() {
   const totalProjectValue = projects.reduce((acc, project) => acc + project.value, 0);
   const totalCost = projects.reduce((acc, project) => acc + project.cost, 0);
   const totalInvoiced = projects.reduce((acc, project) => acc + project.invoiced, 0);
+  const totalPad = 0;
 
   useEffect(() => {
     if (date?.from && date?.to) {
@@ -163,6 +164,26 @@ export default function ProjectsPage() {
             </div>
             <p className="text-xs text-muted-foreground">
               Total invoiced across all projects
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Total PAD
+            </CardTitle>
+            <Landmark className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold font-headline">
+               {new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0,
+              }).format(totalPad)}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Total PAD across all projects
             </p>
           </CardContent>
         </Card>
