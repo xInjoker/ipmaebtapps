@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -21,8 +21,13 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, Calendar as CalendarIcon } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
+import { cn } from '@/lib/utils';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { format } from 'date-fns';
+import { DateRange } from 'react-day-picker';
 
 type Project = {
   id: number;
@@ -53,12 +58,41 @@ export default function ProjectsPage() {
     duration: '',
     progress: 0
   });
+  const [date, setDate] = useState<DateRange | undefined>(undefined);
+
+  useEffect(() => {
+    if (date?.from && date?.to) {
+      const fromDate = date.from;
+      const toDate = date.to;
+      const periodString = `${format(fromDate, "yyyy")}-${format(toDate, "yyyy")}`;
+      
+      let months = (toDate.getFullYear() - fromDate.getFullYear()) * 12;
+      months -= fromDate.getMonth();
+      months += toDate.getMonth();
+      const duration = months <= 0 ? 1 : months + 1;
+      const durationString = `${duration} Months`;
+
+      setNewProject(prev => ({
+        ...prev,
+        period: periodString,
+        duration: durationString,
+      }));
+    } else {
+       setNewProject(prev => ({
+        ...prev,
+        period: '',
+        duration: '',
+      }));
+    }
+  }, [date]);
+
 
   const handleAddProject = () => {
     if (newProject.name && newProject.client && newProject.value > 0 && newProject.contractNumber && newProject.period && newProject.duration) {
       const newId = projects.length > 0 ? Math.max(...projects.map((p) => p.id)) + 1 : 1;
       setProjects([...projects, { ...newProject, id: newId }]);
       setNewProject({ contractNumber: '', name: '', client: '', value: 0, period: '', duration: '', progress: 0 });
+      setDate(undefined);
       setIsDialogOpen(false);
     }
   };
@@ -138,13 +172,42 @@ export default function ProjectsPage() {
                 <Label htmlFor="period" className="text-right">
                   Period
                 </Label>
-                <Input
-                  id="period"
-                  value={newProject.period}
-                  onChange={(e) => setNewProject({ ...newProject, period: e.target.value })}
-                  className="col-span-3"
-                  placeholder="e.g. 2024-2025"
-                />
+                 <Popover>
+                    <PopoverTrigger asChild>
+                        <Button
+                            id="period"
+                            variant={"outline"}
+                            className={cn(
+                                "col-span-3 justify-start text-left font-normal",
+                                !date && "text-muted-foreground"
+                            )}
+                        >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {date?.from ? (
+                                date.to ? (
+                                    <>
+                                        {format(date.from, "LLL dd, y")} -{" "}
+                                        {format(date.to, "LLL dd, y")}
+                                    </>
+                                ) : (
+                                    format(date.from, "LLL dd, y")
+                                )
+                            ) : (
+                                <span>Pick a date range</span>
+                            )}
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                            initialFocus
+                            mode="range"
+                            defaultMonth={date?.from}
+                            selected={date}
+                            onSelect={setDate}
+                            numberOfMonths={2}
+                        />
+                    </PopoverContent>
+                </Popover>
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="duration" className="text-right">
@@ -153,9 +216,9 @@ export default function ProjectsPage() {
                 <Input
                   id="duration"
                   value={newProject.duration}
-                  onChange={(e) => setNewProject({ ...newProject, duration: e.target.value })}
                   className="col-span-3"
-                  placeholder="e.g. 12 Months"
+                  placeholder="Calculated automatically"
+                  readOnly
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
