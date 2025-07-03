@@ -87,13 +87,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem('roles', JSON.stringify(initialRoles));
       }
 
-      const storedBranches = localStorage.getItem('branches');
-      if (storedBranches) {
-        setBranches(JSON.parse(storedBranches));
-      } else {
-        setBranches(initialBranches);
-        localStorage.setItem('branches', JSON.stringify(initialBranches));
-      }
+      // Always set branches from initialBranches to ensure it's up to date.
+      setBranches(initialBranches);
+      localStorage.setItem('branches', JSON.stringify(initialBranches));
+
     } catch (error) {
       console.error('Failed to parse from localStorage', error);
       localStorage.removeItem('user');
