@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Camera } from 'lucide-react';
+import { Badge } from '@/components/ui/badge'; // Import Badge
 
 export default function ProfilePage() {
   const { user } = useAuth();
@@ -60,6 +61,9 @@ export default function ProfilePage() {
             <div className="text-center sm:text-left">
               <h2 className="text-2xl font-bold">{user.name}</h2>
               <p className="text-muted-foreground">{user.email}</p>
+              <Badge variant={user.role === 'super-user' ? 'destructive' : 'secondary'} className="mt-2">
+                {user.role.replace('-', ' ')}
+              </Badge>
             </div>
           </div>
         </CardContent>

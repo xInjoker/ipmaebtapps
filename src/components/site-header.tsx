@@ -12,6 +12,7 @@ const getPageTitle = (pathname: string) => {
   if (pathname.startsWith('/sanity-checker')) return 'AI Report Sanity Checker';
   if (pathname.startsWith('/profile')) return 'Profile';
   if (pathname.startsWith('/settings')) return 'Settings';
+  if (pathname.startsWith('/user-management')) return 'User Management';
   if (pathname === '/') return 'Dashboard';
   return 'ProTrack';
 };

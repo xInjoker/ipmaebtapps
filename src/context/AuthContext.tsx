@@ -13,6 +13,7 @@ type User = {
   name: string;
   email: string;
   avatarUrl?: string;
+  role: 'super-user' | 'project-manager';
 };
 
 type AuthContextType = {
@@ -47,7 +48,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = (email: string, pass: string) => {
     // Mock login logic
     if (email && pass) {
-      const userData = { name: 'Project Manager', email, avatarUrl: 'https://placehold.co/40x40.png' };
+      // For demonstration, all logins are treated as super-user
+      const userData: User = { 
+        name: 'Super User', 
+        email, 
+        avatarUrl: 'https://placehold.co/40x40.png',
+        role: 'super-user',
+      };
       localStorage.setItem('user', JSON.stringify(userData));
       setUser(userData);
       router.push('/');

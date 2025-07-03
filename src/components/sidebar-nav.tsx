@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   Settings,
   User,
+  Users, // Import Users icon
 } from 'lucide-react';
 import {
   SidebarMenu,
@@ -18,12 +19,14 @@ import {
   SidebarMenuSubButton,
 } from '@/components/ui/sidebar';
 import { useProjects } from '@/context/ProjectContext';
+import { useAuth } from '@/context/AuthContext'; // Import useAuth
 
 export function SidebarNav() {
   const pathname = usePathname();
   const { projects } = useProjects();
+  const { user } = useAuth(); // Get user from auth context
 
-  const menuItems = [
+  const menuItems: any[] = [
     { href: '/', label: 'Dashboard', icon: LayoutDashboard },
     {
       href: '/projects',
@@ -35,9 +38,22 @@ export function SidebarNav() {
       })),
     },
     { href: '/sanity-checker', label: 'AI Sanity Check', icon: BrainCircuit },
-    { href: '/settings', label: 'Settings', icon: Settings },
-    { href: '/profile', label: 'Profile', icon: User },
   ];
+
+  // Conditionally add User Management link
+  if (user?.role === 'super-user') {
+    menuItems.push({
+      href: '/user-management',
+      label: 'User Management',
+      icon: Users,
+    });
+  }
+
+  // Add settings and profile at the end
+  menuItems.push(
+    { href: '/settings', label: 'Settings', icon: Settings },
+    { href: '/profile', label: 'Profile', icon: User }
+  );
 
   return (
     <SidebarMenu>
@@ -45,7 +61,7 @@ export function SidebarNav() {
         const isMainActive =
           item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
         const areSubItemsActive =
-          item.subItems?.some((sub) => pathname === sub.href) ?? false;
+          item.subItems?.some((sub: { href: string; }) => pathname === sub.href) ?? false;
         const isActive = isMainActive || areSubItemsActive;
 
         return (
@@ -63,7 +79,7 @@ export function SidebarNav() {
 
             {item.subItems && (
               <SidebarMenuSub>
-                {item.subItems.map((subItem) => (
+                {item.subItems.map((subItem: { href: string, label: string }) => (
                   <SidebarMenuSubItem key={subItem.href}>
                     <SidebarMenuSubButton
                       asChild
