@@ -41,10 +41,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { type Project } from '@/lib/data';
 import { useProjects } from '@/context/ProjectContext';
 import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 export default function ProjectsPage() {
   const { projects, setProjects } = useProjects();
   const { user, isHqUser, branches } = useAuth();
+  const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newProject, setNewProject] = useState({
     contractNumber: '',
@@ -52,7 +54,6 @@ export default function ProjectsPage() {
     client: '',
     description: '',
     value: 0,
-    branchId: '',
   });
   const [date, setDate] = useState<DateRange | undefined>(undefined);
 
@@ -64,7 +65,6 @@ export default function ProjectsPage() {
         client: '',
         description: '',
         value: 0,
-        branchId: '',
       });
       setDate(undefined);
     }
@@ -121,19 +121,39 @@ export default function ProjectsPage() {
 
 
   const handleAddProject = () => {
-    const projectData = { ...newProject };
+    const assignedBranchId = isHqUser ? 'hq' : user?.branchId;
 
-    if (isHqUser) {
-        projectData.branchId = 'hq';
-    } else if (user) {
-        projectData.branchId = user.branchId;
+    if (!newProject.contractNumber || !newProject.name || !newProject.client || !newProject.description || !newProject.value || !period || !duration || !assignedBranchId) {
+      toast({
+          variant: "destructive",
+          title: "Missing Information",
+          description: "Please fill out all project details, including the period.",
+      });
+      return;
     }
+
+    const newId = projects.length > 0 ? Math.max(...projects.map((p) => p.id)) + 1 : 1;
     
-    if (projectData.name && projectData.client && projectData.description && projectData.value > 0 && projectData.contractNumber && period && duration && projectData.branchId) {
-      const newId = projects.length > 0 ? Math.max(...projects.map((p) => p.id)) + 1 : 1;
-      setProjects([...projects, { ...projectData, period, duration, id: newId, cost: 0, invoiced: 0, progress: 0, invoices: [], budgets: {}, expenditures: [] }]);
-      setIsDialogOpen(false);
-    }
+    const projectToAdd: Omit<Project, 'branchId'> & { branchId: string } = {
+        ...newProject,
+        id: newId,
+        branchId: assignedBranchId,
+        period,
+        duration,
+        cost: 0,
+        invoiced: 0,
+        progress: 0,
+        invoices: [],
+        budgets: {},
+        expenditures: [],
+    };
+
+    setProjects([...projects, projectToAdd]);
+    setIsDialogOpen(false);
+    toast({
+        title: "Project Added",
+        description: `Project "${projectToAdd.name}" has been successfully created.`,
+    });
   };
 
   return (
