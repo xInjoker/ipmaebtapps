@@ -67,6 +67,7 @@ import {
   TabsTrigger,
 } from '@/components/ui/tabs';
 import { useProjects } from '@/context/ProjectContext';
+import { ProjectMonthlyRecapChart } from '@/components/project-monthly-recap-chart';
 
 
 function formatCurrency(value: number) {
@@ -187,6 +188,58 @@ export default function ProjectDetailsPage() {
     return project.invoices
       .filter((inv) => inv.status === 'PAD')
       .reduce((acc, inv) => acc + inv.value, 0);
+  }, [project]);
+
+  const monthlyRecapData = useMemo(() => {
+    if (!project) return [];
+
+    const dataMap: { [key: string]: { month: string, invoicedAndPaid: number, pad: number, expenditure: number } } = {};
+    const monthOrder: { [key:string]: number } = {
+      'January': 1, 'February': 2, 'March': 3, 'April': 4, 'May': 5, 'June': 6,
+      'July': 7, 'August': 8, 'September': 9, 'October': 10, 'November': 11, 'December': 12
+    };
+
+    const processPeriod = (period: string) => {
+      const [month, year] = period.split(' ');
+      if (!month || !year || !monthOrder[month]) return null;
+      const sortKey = `${year}-${String(monthOrder[month]).padStart(2, '0')}`;
+      const displayMonth = `${month.slice(0, 3)} '${year.slice(2)}`;
+      return { sortKey, displayMonth };
+    };
+
+    project.invoices.forEach(invoice => {
+      const periodInfo = processPeriod(invoice.period);
+      if (!periodInfo) return;
+      const { sortKey, displayMonth } = periodInfo;
+
+      if (!dataMap[sortKey]) {
+        dataMap[sortKey] = { month: displayMonth, invoicedAndPaid: 0, pad: 0, expenditure: 0 };
+      }
+
+      if (invoice.status === 'Invoiced' || invoice.status === 'Paid') {
+        dataMap[sortKey].invoicedAndPaid += invoice.value;
+      } else if (invoice.status === 'PAD') {
+        dataMap[sortKey].pad += invoice.value;
+      }
+    });
+
+    project.expenditures.forEach(exp => {
+      if (exp.status !== 'Approved') return;
+      
+      const periodInfo = processPeriod(exp.period);
+      if (!periodInfo) return;
+      const { sortKey, displayMonth } = periodInfo;
+
+      if (!dataMap[sortKey]) {
+        dataMap[sortKey] = { month: displayMonth, invoicedAndPaid: 0, pad: 0, expenditure: 0 };
+      }
+      dataMap[sortKey].expenditure += exp.amount;
+    });
+
+    return Object.keys(dataMap)
+      .sort()
+      .map(key => dataMap[key]);
+
   }, [project]);
 
 
@@ -442,96 +495,111 @@ export default function ProjectDetailsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Project Details</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-6 md:grid-cols-2">
-              <div className="space-y-6">
-                <div className="flex items-start gap-3">
-                  <User className="mt-0.5 h-5 w-5 flex-shrink-0 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Client</p>
-                    <p className="font-medium">{project.client}</p>
-                  </div>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+        <div className="lg:col-span-3">
+            <Card>
+            <CardHeader>
+                <CardTitle>Project Details</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <div className="grid gap-6 md:grid-cols-2">
+                <div className="space-y-6">
+                    <div className="flex items-start gap-3">
+                    <User className="mt-0.5 h-5 w-5 flex-shrink-0 text-muted-foreground" />
+                    <div>
+                        <p className="text-sm text-muted-foreground">Client</p>
+                        <p className="font-medium">{project.client}</p>
+                    </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                    <Briefcase className="mt-0.5 h-5 w-5 flex-shrink-0 text-muted-foreground" />
+                    <div>
+                        <p className="text-sm text-muted-foreground">
+                        Contract No.
+                        </p>
+                        <p className="font-medium">{project.contractNumber}</p>
+                    </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                    <Calendar className="mt-0.5 h-5 w-5 flex-shrink-0 text-muted-foreground" />
+                    <div>
+                        <p className="text-sm text-muted-foreground">Period</p>
+                        <p className="font-medium">{project.period}</p>
+                    </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                    <Clock className="mt-0.5 h-5 w-5 flex-shrink-0 text-muted-foreground" />
+                    <div>
+                        <p className="text-sm text-muted-foreground">Duration</p>
+                        <p className="font-medium">{project.duration}</p>
+                    </div>
+                    </div>
                 </div>
-                <div className="flex items-start gap-3">
-                  <Briefcase className="mt-0.5 h-5 w-5 flex-shrink-0 text-muted-foreground" />
-                  <div>
+                <div className="space-y-6">
+                    <div className="flex items-start gap-3">
+                    <CircleDollarSign className="mt-0.5 h-5 w-5 flex-shrink-0 text-muted-foreground" />
+                    <div>
+                        <p className="text-sm text-muted-foreground">
+                        Contract Value
+                        </p>
+                        <p className="font-medium">{formatCurrency(project.value)}</p>
+                    </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                    <CircleDollarSign className="mt-0.5 h-5 w-5 flex-shrink-0 text-muted-foreground" />
+                    <div>
+                        <p className="text-sm text-muted-foreground">Total Cost</p>
+                        <p className="font-medium">{formatCurrency(totalCost)}</p>
+                    </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                    <CircleDollarSign className="mt-0.5 h-5 w-5 flex-shrink-0 text-muted-foreground" />
+                    <div>
+                        <p className="text-sm text-muted-foreground">
+                        Total Invoiced
+                        </p>
+                        <p className="font-medium">
+                        {formatCurrency(totalInvoiced)}
+                        </p>
+                    </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                    <CircleDollarSign className="mt-0.5 h-5 w-5 flex-shrink-0 text-muted-foreground" />
+                    <div>
+                        <p className="text-sm text-muted-foreground">
+                        Total PAD
+                        </p>
+                        <p className="font-medium">{formatCurrency(totalPad)}</p>
+                    </div>
+                    </div>
+                </div>
+                </div>
+                <Separator className="my-6" />
+                <div>
+                <div className="mb-2 flex items-baseline justify-between">
                     <p className="text-sm text-muted-foreground">
-                      Contract No.
+                    Progress (by Invoiced Amount)
                     </p>
-                    <p className="font-medium">{project.contractNumber}</p>
-                  </div>
+                    <p className="text-lg font-semibold">{progress}%</p>
                 </div>
-                <div className="flex items-start gap-3">
-                  <Calendar className="mt-0.5 h-5 w-5 flex-shrink-0 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Period</p>
-                    <p className="font-medium">{project.period}</p>
-                  </div>
+                <Progress value={progress} className="h-6" />
                 </div>
-                <div className="flex items-start gap-3">
-                  <Clock className="mt-0.5 h-5 w-5 flex-shrink-0 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Duration</p>
-                    <p className="font-medium">{project.duration}</p>
-                  </div>
-                </div>
-              </div>
-              <div className="space-y-6">
-                <div className="flex items-start gap-3">
-                  <CircleDollarSign className="mt-0.5 h-5 w-5 flex-shrink-0 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">
-                      Contract Value
-                    </p>
-                    <p className="font-medium">{formatCurrency(project.value)}</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <CircleDollarSign className="mt-0.5 h-5 w-5 flex-shrink-0 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Total Cost</p>
-                    <p className="font-medium">{formatCurrency(totalCost)}</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <CircleDollarSign className="mt-0.5 h-5 w-5 flex-shrink-0 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">
-                      Total Invoiced
-                    </p>
-                    <p className="font-medium">
-                      {formatCurrency(totalInvoiced)}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <CircleDollarSign className="mt-0.5 h-5 w-5 flex-shrink-0 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">
-                      Total PAD
-                    </p>
-                    <p className="font-medium">{formatCurrency(totalPad)}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <Separator className="my-6" />
-            <div>
-              <div className="mb-2 flex items-baseline justify-between">
-                <p className="text-sm text-muted-foreground">
-                  Progress (by Invoiced Amount)
-                </p>
-                <p className="text-lg font-semibold">{progress}%</p>
-              </div>
-              <Progress value={progress} className="h-6" />
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+            </Card>
+        </div>
+        <div className="lg:col-span-2">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Monthly Recap</CardTitle>
+                    <CardDescription>
+                        Recapitulation of Invoiced, PAD, and Expenditures.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <ProjectMonthlyRecapChart data={monthlyRecapData} />
+                </CardContent>
+            </Card>
+        </div>
       </div>
 
       <Tabs defaultValue="invoices" className="w-full">
