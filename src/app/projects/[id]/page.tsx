@@ -164,7 +164,7 @@ export default function ProjectDetailsPage() {
     month: '',
     year: '',
     amount: 0,
-    status: 'Pending' as 'Approved' | 'Pending' | 'Rejected',
+    status: 'Approved' as 'Approved' | 'Pending' | 'Rejected',
   });
 
   const project = projects.find((p) => p.id === parseInt(params.id as string, 10));
@@ -391,7 +391,7 @@ export default function ProjectDetailsPage() {
           description: newExpenditure.description,
           period: period,
           amount: newExpenditure.amount,
-          status: 'Pending'
+          status: 'Approved'
       };
 
       const updatedExpenditures = [...project.expenditures, newExpenditureItem];
@@ -399,7 +399,7 @@ export default function ProjectDetailsPage() {
         p.id === project.id ? { ...p, expenditures: updatedExpenditures } : p
       );
       setProjects(updatedProjects);
-      setNewExpenditure({ category: '', coa: '', description: '', month: '', year: '', amount: 0, status: 'Pending' });
+      setNewExpenditure({ category: '', coa: '', description: '', month: '', year: '', amount: 0, status: 'Approved' });
       setIsAddExpenditureDialogOpen(false);
     }
   };
