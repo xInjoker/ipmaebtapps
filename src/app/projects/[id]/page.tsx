@@ -591,9 +591,9 @@ export default function ProjectDetailsPage({
                   <TableHead>ID</TableHead>
                   <TableHead>SPK Number</TableHead>
                   <TableHead>Service Category</TableHead>
-                  <TableHead>Status</TableHead>
                   <TableHead>Period</TableHead>
                   <TableHead className="text-right">Value</TableHead>
+                  <TableHead>Status</TableHead>
                   <TableHead className="text-right">Action</TableHead>
                 </TableRow>
               </TableHeader>
@@ -606,6 +606,10 @@ export default function ProjectDetailsPage({
                     </TableCell>
                     <TableCell className="font-medium">
                       {invoice.serviceCategory}
+                    </TableCell>
+                    <TableCell>{invoice.period}</TableCell>
+                    <TableCell className="text-right">
+                      {formatCurrency(invoice.value)}
                     </TableCell>
                     <TableCell>
                       <Badge
@@ -621,10 +625,6 @@ export default function ProjectDetailsPage({
                       >
                         {invoice.status}
                       </Badge>
-                    </TableCell>
-                    <TableCell>{invoice.period}</TableCell>
-                    <TableCell className="text-right">
-                      {formatCurrency(invoice.value)}
                     </TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
