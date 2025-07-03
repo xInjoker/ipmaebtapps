@@ -166,6 +166,20 @@ export default function ProjectDetailsPage({
 
   const project = projects.find((p) => p.id === parseInt(params.id, 10));
 
+  const totalCost = useMemo(() => {
+    if (!project) return 0;
+    return project.expenditures
+      .filter((exp) => exp.status === 'Approved')
+      .reduce((acc, exp) => acc + exp.amount, 0);
+  }, [project]);
+
+  const totalInvoiced = useMemo(() => {
+    if (!project) return 0;
+    return project.invoices
+      .filter((inv) => inv.status === 'Invoiced' || inv.status === 'Paid')
+      .reduce((acc, inv) => acc + inv.value, 0);
+  }, [project]);
+
   useEffect(() => {
     if (invoiceToEdit) {
       const [periodMonth, periodYear] = invoiceToEdit.period.split(' ');
@@ -395,7 +409,7 @@ export default function ProjectDetailsPage({
 
   const progress =
     project.value > 0
-      ? Math.round((project.invoiced / project.value) * 100)
+      ? Math.round((totalInvoiced / project.value) * 100)
       : 0;
 
   const totalPad = project.invoices
@@ -470,7 +484,7 @@ export default function ProjectDetailsPage({
                   <CircleDollarSign className="mt-0.5 h-5 w-5 flex-shrink-0 text-muted-foreground" />
                   <div>
                     <p className="text-sm text-muted-foreground">Total Cost</p>
-                    <p className="font-medium">{formatCurrency(project.cost)}</p>
+                    <p className="font-medium">{formatCurrency(totalCost)}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
@@ -480,7 +494,7 @@ export default function ProjectDetailsPage({
                       Total Invoiced
                     </p>
                     <p className="font-medium">
-                      {formatCurrency(project.invoiced)}
+                      {formatCurrency(totalInvoiced)}
                     </p>
                   </div>
                 </div>
