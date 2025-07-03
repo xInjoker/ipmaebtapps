@@ -1,6 +1,7 @@
 'use client';
 
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -36,7 +37,7 @@ function SubmitButton() {
 }
 
 export function SanityCheckForm() {
-  const [state, formAction] = useFormState(checkReportSanity, initialState);
+  const [state, formAction] = useActionState(checkReportSanity, initialState);
   const { pending } = useFormStatus();
 
   return (
