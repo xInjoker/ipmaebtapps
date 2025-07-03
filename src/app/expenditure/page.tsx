@@ -88,15 +88,29 @@ export default function ExpenditurePage() {
     amount: 0,
     status: 'Pending' as 'Approved' | 'Pending' | 'Rejected',
   });
+  const [customCategory, setCustomCategory] = useState('');
 
   const handleAddExpenditure = () => {
-    if (newExpenditure.project && newExpenditure.category && newExpenditure.date && newExpenditure.amount > 0) {
+    const finalCategory = customCategory.trim() || newExpenditure.category;
+    if (newExpenditure.project && finalCategory && newExpenditure.date && newExpenditure.amount > 0) {
       const newId = `EXP-${String(expenditureData.length + 1).padStart(3, '0')}`;
-      setExpenditureData([...expenditureData, { ...newExpenditure, id: newId }]);
+      setExpenditureData([...expenditureData, { ...newExpenditure, id: newId, category: finalCategory }]);
       setNewExpenditure({ project: '', category: '', date: '', amount: 0, status: 'Pending' });
+      setCustomCategory('');
       setIsDialogOpen(false);
     }
   };
+
+  const handleCategorySelect = (value: string) => {
+    setNewExpenditure({ ...newExpenditure, category: value });
+    setCustomCategory('');
+  };
+
+  const handleCustomCategoryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCustomCategory(e.target.value);
+    setNewExpenditure({ ...newExpenditure, category: '' });
+  };
+
 
   return (
     <Card>
@@ -150,9 +164,7 @@ export default function ExpenditurePage() {
                 </Label>
                 <Select
                   value={newExpenditure.category}
-                  onValueChange={(value) =>
-                    setNewExpenditure({ ...newExpenditure, category: value })
-                  }
+                  onValueChange={handleCategorySelect}
                 >
                   <SelectTrigger className="col-span-3">
                     <SelectValue placeholder="Select a category" />
@@ -165,6 +177,18 @@ export default function ExpenditurePage() {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="customCategory" className="text-right">
+                  Or Custom
+                </Label>
+                <Input
+                  id="customCategory"
+                  placeholder="Enter custom category"
+                  value={customCategory}
+                  onChange={handleCustomCategoryChange}
+                  className="col-span-3"
+                />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="date" className="text-right">
