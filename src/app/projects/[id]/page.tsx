@@ -87,6 +87,7 @@ const expenditureCategories = [
     'Kantor dan Diklat',
     'Promosi',
     'Umum',
+    'Other',
 ];
 
 const coaToCategoryMap: { [key: number]: string } = {
@@ -113,10 +114,11 @@ const categoryToCoaMap: { [key: string]: string } = {
     'Kantor dan Diklat': '4700',
     'Promosi': '4800',
     'Umum': '4900',
+    'Other': '',
 };
 
 export default function ProjectDetailsPage() {
-  const params = useParams<{ id: string }>();
+  const params = useParams();
   const [projects, setProjects] = useState(initialProjects);
   const [isAddInvoiceDialogOpen, setIsAddInvoiceDialogOpen] = useState(false);
   const [isEditInvoiceDialogOpen, setIsEditInvoiceDialogOpen] = useState(false);
@@ -163,7 +165,7 @@ export default function ProjectDetailsPage() {
     status: 'Pending' as 'Approved' | 'Pending' | 'Rejected',
   });
 
-  const project = projects.find((p) => p.id === parseInt(params.id, 10));
+  const project = projects.find((p) => p.id === parseInt(params.id as string, 10));
 
   const totalCost = useMemo(() => {
     if (!project) return 0;
@@ -178,6 +180,14 @@ export default function ProjectDetailsPage() {
       .filter((inv) => inv.status === 'Invoiced' || inv.status === 'Paid')
       .reduce((acc, inv) => acc + inv.value, 0);
   }, [project]);
+  
+  const totalPad = useMemo(() => {
+    if (!project) return 0;
+    return project.invoices
+      .filter((inv) => inv.status === 'PAD')
+      .reduce((acc, inv) => acc + inv.value, 0);
+  }, [project]);
+
 
   useEffect(() => {
     if (invoiceToEdit) {
@@ -327,7 +337,7 @@ export default function ProjectDetailsPage() {
           description: newExpenditure.description,
           period: period,
           amount: newExpenditure.amount,
-          status: newExpenditure.status
+          status: 'Pending'
       };
 
       const updatedExpenditures = [...project.expenditures, newExpenditureItem];
@@ -355,9 +365,13 @@ export default function ProjectDetailsPage() {
       const truncatedCoa = Math.floor(coaNumber / 100) * 100;
       const category = coaToCategoryMap[truncatedCoa];
 
-      if (category && expenditureCategories.includes(category) && (project.budgets[category] ?? 0) > 0) {
-          categoryToSet = category;
+      if (category && (project.budgets[category] ?? 0) > 0) {
+        categoryToSet = category;
+      } else {
+        categoryToSet = 'Other';
       }
+    } else {
+      categoryToSet = 'Other'
     }
     setNewExpenditure(prev => ({ ...prev, coa: coaValue, category: categoryToSet }));
   };
@@ -379,7 +393,7 @@ export default function ProjectDetailsPage() {
     );
   }
 
-  const budgetedCategories = expenditureCategories.filter(category => (project.budgets[category] ?? 0) > 0);
+  const budgetedCategories = expenditureCategories.filter(category => (project.budgets[category] ?? 0) > 0 || category === 'Other');
 
   const spentByCategory = useMemo(() => {
     return project.expenditures.reduce((acc, item) => {
@@ -411,10 +425,6 @@ export default function ProjectDetailsPage() {
     project.value > 0
       ? Math.round((totalInvoiced / project.value) * 100)
       : 0;
-
-  const totalPad = project.invoices
-    .filter((invoice) => invoice.status === 'PAD')
-    .reduce((acc, invoice) => acc + invoice.value, 0);
 
   return (
     <div className="space-y-6">
@@ -802,6 +812,7 @@ export default function ProjectDetailsPage() {
                             onChange={(e) => handleBudgetChange(category, parseInt(e.target.value) || 0)}
                             className="ml-auto max-w-xs text-right"
                             placeholder="Enter budget"
+                            disabled={category === 'Other'}
                           />
                         </TableCell>
                       </TableRow>
@@ -873,7 +884,7 @@ export default function ProjectDetailsPage() {
                             <SelectContent>
                               {budgetedCategories.length > 0 ? (
                                 budgetedCategories.map((category) => (
-                                  <SelectItem key={category} value={category}>
+                                  <SelectItem key={category} value={category} disabled={category === 'Other'}>
                                     {category}
                                   </SelectItem>
                                 ))
@@ -983,7 +994,6 @@ export default function ProjectDetailsPage() {
                       <TableHead>Description</TableHead>
                       <TableHead>COA</TableHead>
                       <TableHead>Period</TableHead>
-                      <TableHead>Status</TableHead>
                       <TableHead className="text-right">Amount</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -995,19 +1005,12 @@ export default function ProjectDetailsPage() {
                         <TableCell>{item.description}</TableCell>
                         <TableCell>{item.coa}</TableCell>
                         <TableCell>{item.period}</TableCell>
-                        <TableCell>
-                            <Badge variant={
-                                item.status === 'Approved' ? 'green' : item.status === 'Pending' ? 'yellow' : 'destructive'
-                            }>
-                                {item.status}
-                            </Badge>
-                        </TableCell>
                         <TableCell className="text-right">{formatCurrency(item.amount)}</TableCell>
                       </TableRow>
                     ))}
                     {!project.expenditures?.length && (
                       <TableRow>
-                        <TableCell colSpan={7} className="text-center">
+                        <TableCell colSpan={6} className="text-center">
                           No expenditures found.
                         </TableCell>
                       </TableRow>
