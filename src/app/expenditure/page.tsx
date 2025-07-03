@@ -116,19 +116,35 @@ export default function ExpenditurePage() {
     amount: 0,
     status: 'Pending' as 'Approved' | 'Pending' | 'Rejected',
   });
-  const [customCategory, setCustomCategory] = useState('');
+  const [budgets, setBudgets] = useState<{ [category: string]: number }>({
+    'PT dan PTT': 50000000,
+    'PTT Project': 0,
+    'Tenaga Ahli dan Labour Supply': 200000000,
+    'Perjalanan Dinas': 75000000,
+    'Operasional': 150000000,
+    'Fasilitas dan Interen': 50000000,
+    'Amortisasi': 0,
+    'Kantor dan Diklat': 0,
+    'Promosi': 100000000,
+    'Umum': 0,
+  });
+
+  const budgetedCategories = expenditureCategories.filter(category => (budgets[category] ?? 0) > 0);
+
+  const handleBudgetChange = (category: string, value: number) => {
+    setBudgets(prev => ({ ...prev, [category]: value }));
+  };
 
   const handleAddExpenditure = () => {
-    const finalCategory = customCategory.trim() || newExpenditure.category;
     const period = newExpenditure.month && newExpenditure.year ? `${newExpenditure.month} ${newExpenditure.year}` : '';
 
-    if (newExpenditure.project && finalCategory && period && newExpenditure.coa && newExpenditure.amount > 0) {
+    if (newExpenditure.project && newExpenditure.category && period && newExpenditure.coa && newExpenditure.amount > 0) {
       const newId = `EXP-${String(expenditureData.length + 1).padStart(3, '0')}`;
       
       const newExpenditureItem: ExpenditureItem = {
           id: newId,
           project: newExpenditure.project,
-          category: finalCategory,
+          category: newExpenditure.category,
           coa: newExpenditure.coa,
           period: period,
           amount: newExpenditure.amount,
@@ -137,7 +153,6 @@ export default function ExpenditurePage() {
 
       setExpenditureData([...expenditureData, newExpenditureItem]);
       setNewExpenditure({ project: '', category: '', coa: '', month: '', year: '', amount: 0, status: 'Pending' });
-      setCustomCategory('');
       setIsDialogOpen(false);
     }
   };
@@ -145,243 +160,261 @@ export default function ExpenditurePage() {
   const handleCategorySelect = (value: string) => {
     const coa = categoryToCoaMap[value] || '';
     setNewExpenditure(prev => ({ ...prev, category: value, coa: coa }));
-    setCustomCategory('');
-  };
-
-  const handleCustomCategoryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCustomCategory(e.target.value);
-    setNewExpenditure({ ...newExpenditure, category: '' });
   };
 
   const handleCoaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const coaValue = e.target.value;
     const coaNumber = parseInt(coaValue, 10);
+    let categoryToSet = '';
 
     if (!isNaN(coaNumber) && coaValue.length >= 4) {
       const truncatedCoa = Math.floor(coaNumber / 100) * 100;
       const category = coaToCategoryMap[truncatedCoa];
 
-      if (category && expenditureCategories.includes(category)) {
-        setNewExpenditure(prev => ({ ...prev, coa: coaValue, category: category }));
-        setCustomCategory('');
-      } else {
-        setNewExpenditure(prev => ({ ...prev, coa: coaValue, category: '' }));
-        setCustomCategory('Other');
+      if (category && expenditureCategories.includes(category) && (budgets[category] ?? 0) > 0) {
+          categoryToSet = category;
       }
-    } else {
-      // If COA is not valid, just update the COA value and clear categories
-      setNewExpenditure(prev => ({ ...prev, coa: coaValue, category: '' }));
-      setCustomCategory('');
     }
+    setNewExpenditure(prev => ({ ...prev, coa: coaValue, category: categoryToSet }));
   };
 
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <div>
-          <CardTitle className="font-headline">Project Expenditure</CardTitle>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="font-headline">Set Category Budgets</CardTitle>
           <CardDescription>
-            Track and manage all project-related expenditures.
+            Before adding expenditures, please set a budget for each category. Expenditures can only be added to categories with a budget.
           </CardDescription>
-        </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Add Expenditure
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-lg">
-            <DialogHeader>
-              <DialogTitle>Add New Expenditure</DialogTitle>
-              <DialogDescription>
-                Fill in the details for the new expenditure.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="project" className="text-right">
-                  Project
-                </Label>
-                <Select
-                  value={newExpenditure.project}
-                  onValueChange={(value) =>
-                    setNewExpenditure({ ...newExpenditure, project: value })
-                  }
-                >
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Select a project" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {initialProjects.map((project) => (
-                      <SelectItem key={project.id} value={project.name}>
-                        {project.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="coa" className="text-right">
-                  COA
-                </Label>
-                <Input
-                  id="coa"
-                  value={newExpenditure.coa}
-                  onChange={handleCoaChange}
-                  className="col-span-3"
-                  placeholder="Enter COA to auto-fill category"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="category" className="text-right">
-                  Category
-                </Label>
-                <Select
-                  value={newExpenditure.category}
-                  onValueChange={handleCategorySelect}
-                >
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Select a category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {expenditureCategories.map((category) => (
-                      <SelectItem key={category} value={category}>
-                        {category}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="customCategory" className="text-right">
-                  Or Custom
-                </Label>
-                <Input
-                  id="customCategory"
-                  placeholder="Enter custom category"
-                  value={customCategory}
-                  onChange={handleCustomCategoryChange}
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="periodMonth" className="text-right">
-                  Period
-                </Label>
-                <div className="col-span-3 grid grid-cols-2 gap-2">
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Category</TableHead>
+                <TableHead className="text-right">Budget (IDR)</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {expenditureCategories.map((category) => (
+                <TableRow key={category}>
+                  <TableCell className="font-medium">{category}</TableCell>
+                  <TableCell className="text-right">
+                    <Input
+                      type="number"
+                      value={budgets[category] || 0}
+                      onChange={(e) => handleBudgetChange(category, parseInt(e.target.value) || 0)}
+                      className="ml-auto max-w-xs text-right"
+                      placeholder="Enter budget"
+                    />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle className="font-headline">Project Expenditure</CardTitle>
+            <CardDescription>
+              Track and manage all project-related expenditures.
+            </CardDescription>
+          </div>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add Expenditure
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-lg">
+              <DialogHeader>
+                <DialogTitle>Add New Expenditure</DialogTitle>
+                <DialogDescription>
+                  Fill in the details for the new expenditure.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="project" className="text-right">
+                    Project
+                  </Label>
                   <Select
-                    value={newExpenditure.month}
+                    value={newExpenditure.project}
                     onValueChange={(value) =>
-                      setNewExpenditure({ ...newExpenditure, month: value })
+                      setNewExpenditure({ ...newExpenditure, project: value })
                     }
                   >
-                    <SelectTrigger id="periodMonth">
-                      <SelectValue placeholder="Month" />
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue placeholder="Select a project" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="January">January</SelectItem>
-                      <SelectItem value="February">February</SelectItem>
-                      <SelectItem value="March">March</SelectItem>
-                      <SelectItem value="April">April</SelectItem>
-                      <SelectItem value="May">May</SelectItem>
-                      <SelectItem value="June">June</SelectItem>
-                      <SelectItem value="July">July</SelectItem>
-                      <SelectItem value="August">August</SelectItem>
-                      <SelectItem value="September">September</SelectItem>
-                      <SelectItem value="October">October</SelectItem>
-                      <SelectItem value="November">November</SelectItem>
-                      <SelectItem value="December">December</SelectItem>
+                      {initialProjects.map((project) => (
+                        <SelectItem key={project.id} value={project.name}>
+                          {project.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="coa" className="text-right">
+                    COA
+                  </Label>
                   <Input
-                    id="periodYear"
-                    type="number"
-                    placeholder="Year"
-                    value={newExpenditure.year}
-                    onChange={(e) =>
-                      setNewExpenditure({
-                        ...newExpenditure,
-                        year: e.target.value,
-                      })
-                    }
+                    id="coa"
+                    value={newExpenditure.coa}
+                    onChange={handleCoaChange}
+                    className="col-span-3"
+                    placeholder="Enter COA to auto-fill category"
                   />
                 </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="category" className="text-right">
+                    Category
+                  </Label>
+                  <Select
+                    value={newExpenditure.category}
+                    onValueChange={handleCategorySelect}
+                  >
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue placeholder="Select a category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {budgetedCategories.length > 0 ? (
+                        budgetedCategories.map((category) => (
+                          <SelectItem key={category} value={category}>
+                            {category}
+                          </SelectItem>
+                        ))
+                      ) : (
+                         <div className="p-4 text-center text-sm text-muted-foreground">
+                            No categories with a budget set.
+                          </div>
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="periodMonth" className="text-right">
+                    Period
+                  </Label>
+                  <div className="col-span-3 grid grid-cols-2 gap-2">
+                    <Select
+                      value={newExpenditure.month}
+                      onValueChange={(value) =>
+                        setNewExpenditure({ ...newExpenditure, month: value })
+                      }
+                    >
+                      <SelectTrigger id="periodMonth">
+                        <SelectValue placeholder="Month" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="January">January</SelectItem>
+                        <SelectItem value="February">February</SelectItem>
+                        <SelectItem value="March">March</SelectItem>
+                        <SelectItem value="April">April</SelectItem>
+                        <SelectItem value="May">May</SelectItem>
+                        <SelectItem value="June">June</SelectItem>
+                        <SelectItem value="July">July</SelectItem>
+                        <SelectItem value="August">August</SelectItem>
+                        <SelectItem value="September">September</SelectItem>
+                        <SelectItem value="October">October</SelectItem>
+                        <SelectItem value="November">November</SelectItem>
+                        <SelectItem value="December">December</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Input
+                      id="periodYear"
+                      type="number"
+                      placeholder="Year"
+                      value={newExpenditure.year}
+                      onChange={(e) =>
+                        setNewExpenditure({
+                          ...newExpenditure,
+                          year: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="amount" className="text-right">
+                    Amount (IDR)
+                  </Label>
+                  <Input
+                    id="amount"
+                    type="number"
+                    value={newExpenditure.amount || ''}
+                    onChange={(e) => setNewExpenditure({ ...newExpenditure, amount: parseInt(e.target.value) || 0 })}
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="status" className="text-right">
+                    Status
+                  </Label>
+                  <Select
+                    value={newExpenditure.status}
+                    onValueChange={(value: 'Approved' | 'Pending' | 'Rejected') =>
+                      setNewExpenditure({ ...newExpenditure, status: value })
+                    }
+                  >
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Approved">Approved</SelectItem>
+                      <SelectItem value="Pending">Pending</SelectItem>
+                      <SelectItem value="Rejected">Rejected</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="amount" className="text-right">
-                  Amount (IDR)
-                </Label>
-                <Input
-                  id="amount"
-                  type="number"
-                  value={newExpenditure.amount || ''}
-                  onChange={(e) => setNewExpenditure({ ...newExpenditure, amount: parseInt(e.target.value) || 0 })}
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="status" className="text-right">
-                  Status
-                </Label>
-                <Select
-                  value={newExpenditure.status}
-                  onValueChange={(value: 'Approved' | 'Pending' | 'Rejected') =>
-                    setNewExpenditure({ ...newExpenditure, status: value })
-                  }
-                >
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Approved">Approved</SelectItem>
-                    <SelectItem value="Pending">Pending</SelectItem>
-                    <SelectItem value="Rejected">Rejected</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button onClick={handleAddExpenditure}>Add Expenditure</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>ID</TableHead>
-              <TableHead>Project</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>COA</TableHead>
-              <TableHead>Period</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Amount</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {expenditureData.map((item) => (
-              <TableRow key={item.id}>
-                <TableCell className="font-medium">{item.id}</TableCell>
-                <TableCell>{item.project}</TableCell>
-                <TableCell>{item.category}</TableCell>
-                <TableCell>{item.coa}</TableCell>
-                <TableCell>{item.period}</TableCell>
-                <TableCell>
-                    <Badge variant={
-                        item.status === 'Approved' ? 'green' : item.status === 'Pending' ? 'yellow' : 'destructive'
-                    }>
-                        {item.status}
-                    </Badge>
-                </TableCell>
-                <TableCell className="text-right">{formatCurrency(item.amount)}</TableCell>
+              <DialogFooter>
+                <Button onClick={handleAddExpenditure}>Add Expenditure</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>ID</TableHead>
+                <TableHead>Project</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>COA</TableHead>
+                <TableHead>Period</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Amount</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+            </TableHeader>
+            <TableBody>
+              {expenditureData.map((item) => (
+                <TableRow key={item.id}>
+                  <TableCell className="font-medium">{item.id}</TableCell>
+                  <TableCell>{item.project}</TableCell>
+                  <TableCell>{item.category}</TableCell>
+                  <TableCell>{item.coa}</TableCell>
+                  <TableCell>{item.period}</TableCell>
+                  <TableCell>
+                      <Badge variant={
+                          item.status === 'Approved' ? 'green' : item.status === 'Pending' ? 'yellow' : 'destructive'
+                      }>
+                          {item.status}
+                      </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">{formatCurrency(item.amount)}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
