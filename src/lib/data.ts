@@ -34,6 +34,7 @@ export type Project = {
   budgets: { [category: string]: number };
   expenditures: ExpenditureItem[];
   branchId: string;
+  contractExecutor: string;
 };
 
 export const initialProjects: Project[] = [
@@ -105,6 +106,7 @@ export const initialProjects: Project[] = [
       { id: 'EXP-PROJ1-002', category: 'Promosi', coa: '4800', description: 'Social media campaign.', period: 'July 2024', amount: 50000000, status: 'Approved' },
     ],
     branchId: 'jakarta',
+    contractExecutor: 'Cabang Jakarta',
   },
   {
     id: 2,
@@ -174,6 +176,7 @@ export const initialProjects: Project[] = [
         { id: 'EXP-PROJ2-002', category: 'Fasilitas dan Interen', coa: '4500', description: 'Office supplies.', period: 'July 2024', amount: 25000000, status: 'Rejected' },
     ],
     branchId: 'surabaya',
+    contractExecutor: 'Cabang Surabaya',
   },
   {
     id: 3,
@@ -242,5 +245,6 @@ export const initialProjects: Project[] = [
       { id: 'EXP-PROJ3-001', category: 'Perjalanan Dinas', coa: '4300', description: 'Flight tickets for meeting.', period: 'July 2024', amount: 7500000, status: 'Pending' },
     ],
     branchId: 'jakarta',
+    contractExecutor: 'Cabang Jakarta',
   },
 ];

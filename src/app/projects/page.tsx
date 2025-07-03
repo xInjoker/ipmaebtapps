@@ -54,6 +54,7 @@ export default function ProjectsPage() {
     client: '',
     description: '',
     value: 0,
+    contractExecutor: '',
   });
   const [date, setDate] = useState<DateRange | undefined>(undefined);
 
@@ -65,10 +66,11 @@ export default function ProjectsPage() {
         client: '',
         description: '',
         value: 0,
+        contractExecutor: isHqUser ? '' : user?.branchId || '',
       });
       setDate(undefined);
     }
-  }, [isDialogOpen]);
+  }, [isDialogOpen, isHqUser, user?.branchId]);
 
   const visibleProjects = useMemo(() => {
     if (isHqUser) return projects;
@@ -121,13 +123,14 @@ export default function ProjectsPage() {
 
 
   const handleAddProject = () => {
-    const assignedBranchId = isHqUser ? 'hq' : user?.branchId;
+    const assignedBranchId = isHqUser ? newProject.contractExecutor : user?.branchId;
 
     if (
       !newProject.contractNumber ||
       !newProject.name ||
       !newProject.client ||
       !newProject.description ||
+      !assignedBranchId ||
       newProject.value <= 0 ||
       !date?.from ||
       !date.to
@@ -136,27 +139,41 @@ export default function ProjectsPage() {
         variant: 'destructive',
         title: 'Missing Information',
         description:
-          'Please fill out all fields, including a positive value and a complete date range.',
+          'Please fill out all fields, including executor, a positive value and a complete date range.',
       });
       return;
     }
 
-    if (!assignedBranchId) {
+    if (!user) {
       toast({
         variant: 'destructive',
         title: 'Authentication Error',
-        description: 'Could not determine user branch. Please try logging in again.',
+        description: 'Could not determine user. Please try logging in again.',
       });
       return;
     }
+
+    const executorName = branches.find(b => b.id === assignedBranchId)?.name;
+    if (!executorName) {
+        toast({
+            variant: 'destructive',
+            title: 'Invalid Branch',
+            description: 'The selected contract executor branch is not valid.',
+        });
+        return;
+    }
+
 
     const newId =
       projects.length > 0 ? Math.max(...projects.map((p) => p.id)) + 1 : 1;
 
-    const projectToAdd: Omit<Project, 'branchId'> & { branchId: string } = {
-      ...newProject,
+    const { contractExecutor, ...restOfNewProject } = newProject;
+
+    const projectToAdd: Project = {
+      ...restOfNewProject,
       id: newId,
       branchId: assignedBranchId,
+      contractExecutor: executorName,
       period,
       duration,
       cost: 0,
@@ -315,6 +332,37 @@ export default function ProjectsPage() {
                   placeholder="Client name"
                 />
               </div>
+               <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="contractExecutor" className="text-right">
+                  Contract Executor
+                </Label>
+                {isHqUser ? (
+                  <Select
+                    value={newProject.contractExecutor}
+                    onValueChange={(value) =>
+                      setNewProject({ ...newProject, contractExecutor: value })
+                    }
+                  >
+                    <SelectTrigger className="col-span-3" id="contractExecutor">
+                      <SelectValue placeholder="Select a branch" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {branches.map((branch) => (
+                        <SelectItem key={branch.id} value={branch.id}>
+                          {branch.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <Input
+                    id="contractExecutor"
+                    value={branches.find((b) => b.id === user?.branchId)?.name || ''}
+                    className="col-span-3"
+                    disabled
+                  />
+                )}
+              </div>
               <div className="grid grid-cols-4 items-start gap-4">
                 <Label htmlFor="description" className="text-right pt-2">
                   Description
@@ -422,6 +470,10 @@ export default function ProjectsPage() {
                    <div className="flex justify-between text-sm">
                       <p className="text-muted-foreground">Contract No.</p>
                       <p className="font-medium">{project.contractNumber}</p>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <p className="text-muted-foreground">Contract Executor</p>
+                    <p className="font-medium">{project.contractExecutor}</p>
                   </div>
                    <div className="flex justify-between text-sm">
                       <p className="text-muted-foreground">Period</p>

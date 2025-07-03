@@ -22,6 +22,7 @@ import {
   MoreHorizontal,
   PlusCircle,
   FileDown,
+  Building,
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
@@ -564,6 +565,15 @@ export default function ProjectDetailsPage() {
                         <p className="text-sm text-muted-foreground">Client</p>
                         <p className="font-medium">{project.client}</p>
                     </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <Building className="mt-0.5 h-5 w-5 flex-shrink-0 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">
+                          Contract Executor
+                        </p>
+                        <p className="font-medium">{project.contractExecutor}</p>
+                      </div>
                     </div>
                     <div className="flex items-start gap-3">
                     <Briefcase className="mt-0.5 h-5 w-5 flex-shrink-0 text-muted-foreground" />
