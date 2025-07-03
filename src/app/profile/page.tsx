@@ -17,13 +17,14 @@ import { Camera } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 export default function ProfilePage() {
-  const { user, roles } = useAuth();
+  const { user, roles, branches } = useAuth();
 
   if (!user) {
     return null; // Or a loading state
   }
   
   const userRole = roles.find(r => r.id === user.roleId);
+  const userBranch = branches.find(b => b.id === user.branchId);
 
   const getInitials = (name: string) => {
     return name
@@ -87,6 +88,14 @@ export default function ProfilePage() {
             <div className="space-y-2">
               <Label htmlFor="email">Email Address</Label>
               <Input id="email" type="email" defaultValue={user.email} disabled />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="role">Role</Label>
+              <Input id="role" defaultValue={userRole?.name} disabled />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="officeLocation">Office Location</Label>
+              <Input id="officeLocation" defaultValue={userBranch?.name} disabled />
             </div>
             <div className="space-y-2">
               <Label htmlFor="bio">Bio</Label>
