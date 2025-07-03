@@ -7,7 +7,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
 import {
   Table,
   TableBody,
@@ -24,8 +23,9 @@ import {
   ChartConfig,
 } from '@/components/ui/chart';
 import { Bar, BarChart, CartesianGrid, XAxis, Pie, PieChart, Cell } from 'recharts';
-import { TrendingUp, CircleDollarSign, ListTodo, Wallet, Receipt } from 'lucide-react';
+import { TrendingUp, CircleDollarSign, ListTodo, Receipt } from 'lucide-react';
 import { useMemo } from 'react';
+import { useProjects } from '@/context/ProjectContext';
 
 const chartData = [
   { month: 'January', invoiced: 186000000, paid: 80000000 },
@@ -47,13 +47,6 @@ const chartConfig: ChartConfig = {
   },
 };
 
-const costData = [
-    { name: 'PT & PTT', value: 400000000, color: 'hsl(var(--chart-1))' },
-    { name: 'TA & LS', value: 300000000, color: 'hsl(var(--chart-2))' },
-    { name: 'Operational', value: 200000000, color: 'hsl(var(--chart-3))' },
-    { name: 'Other', value: 278000000, color: 'hsl(var(--chart-4))' },
-]
-
 const upcomingTasks = [
   { task: 'Prepare Q3 Financial Report', dueDate: '2024-07-15', status: 'In Progress' },
   { task: 'Client Meeting for Project Alpha', dueDate: '2024-07-10', status: 'Pending' },
@@ -61,9 +54,57 @@ const upcomingTasks = [
   { task: 'Finalize Milestone 2 Deliverables', dueDate: '2024-07-20', status: 'Todo' },
 ];
 
-export default function DashboardPage() {
+function formatCurrency(value: number) {
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0,
+  }).format(value);
+}
 
-    const totalCost = useMemo(() => costData.reduce((acc, curr) => acc + curr.value, 0), []);
+
+export default function DashboardPage() {
+  const { projects } = useProjects();
+
+  const { totalProjectValue, totalPaid, totalExpenditure, costBreakdownData } = useMemo(() => {
+    const totalProjectValue = projects.reduce(
+        (acc, project) => acc + project.value,
+        0
+    );
+    
+    const totalPaid = projects.reduce((acc, project) => {
+        const projectPaid = project.invoices
+            .filter((invoice) => invoice.status === 'Paid' || invoice.status === 'PAD')
+            .reduce((invoiceAcc, invoice) => invoiceAcc + invoice.value, 0);
+        return acc + projectPaid;
+    }, 0);
+
+    const allExpenditures = projects.flatMap(p => p.expenditures.filter(e => e.status === 'Approved'));
+    
+    const totalExpenditure = allExpenditures.reduce((acc, exp) => acc + exp.amount, 0);
+
+    const costByCategory = allExpenditures.reduce((acc, item) => {
+        acc[item.category] = (acc[item.category] || 0) + item.amount;
+        return acc;
+    }, {} as { [category: string]: number });
+
+    const chartColors = [
+        'hsl(var(--chart-1))',
+        'hsl(var(--chart-2))',
+        'hsl(var(--chart-3))',
+        'hsl(var(--chart-4))',
+        'hsl(var(--chart-5))',
+    ];
+    let colorIndex = 0;
+    const costBreakdownData = Object.entries(costByCategory).map(([name, value]) => {
+        const color = chartColors[colorIndex % chartColors.length];
+        colorIndex++;
+        return { name, value, color };
+    });
+
+    return { totalProjectValue, totalPaid, totalExpenditure, costBreakdownData };
+  }, [projects]);
+
 
   return (
     <div className="space-y-6">
@@ -76,9 +117,9 @@ export default function DashboardPage() {
             <CircleDollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold font-headline">Rp 2,500,000,000</div>
+            <div className="text-2xl font-bold font-headline">{formatCurrency(totalProjectValue)}</div>
             <p className="text-xs text-muted-foreground">
-              +5.2% from last month
+              Across {projects.length} projects
             </p>
           </CardContent>
         </Card>
@@ -88,21 +129,9 @@ export default function DashboardPage() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold font-headline">Rp 1,231,500,000</div>
+            <div className="text-2xl font-bold font-headline">{formatCurrency(totalPaid)}</div>
             <p className="text-xs text-muted-foreground">
               Total invoices paid to date
-            </p>
-          </CardContent>
-        </Card>
-         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Cost Realization</CardTitle>
-            <Wallet className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold font-headline">Rp 1,178,000,000</div>
-            <p className="text-xs text-muted-foreground">
-              Total costs realized
             </p>
           </CardContent>
         </Card>
@@ -124,9 +153,9 @@ export default function DashboardPage() {
             <Receipt className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold font-headline">Rp 950,000,000</div>
+            <div className="text-2xl font-bold font-headline">{formatCurrency(totalExpenditure)}</div>
             <p className="text-xs text-muted-foreground">
-              -2.1% from last month
+              Total expenditure across all projects
             </p>
           </CardContent>
         </Card>
@@ -169,8 +198,8 @@ export default function DashboardPage() {
              <ChartContainer config={{}} className="h-[300px] w-full">
                  <PieChart>
                     <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
-                    <Pie data={costData} dataKey="value" nameKey="name" innerRadius={80} outerRadius={120} startAngle={90} endAngle={450}>
-                         {costData.map((entry, index) => (
+                    <Pie data={costBreakdownData} dataKey="value" nameKey="name" innerRadius={80} outerRadius={120} startAngle={90} endAngle={450}>
+                         {costBreakdownData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                     </Pie>
