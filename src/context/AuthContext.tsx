@@ -12,6 +12,7 @@ import { useRouter } from 'next/navigation';
 type User = {
   name: string;
   email: string;
+  avatarUrl?: string;
 };
 
 type AuthContextType = {
@@ -46,7 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = (email: string, pass: string) => {
     // Mock login logic
     if (email && pass) {
-      const userData = { name: 'Project Manager', email };
+      const userData = { name: 'Project Manager', email, avatarUrl: 'https://placehold.co/40x40.png' };
       localStorage.setItem('user', JSON.stringify(userData));
       setUser(userData);
       router.push('/');

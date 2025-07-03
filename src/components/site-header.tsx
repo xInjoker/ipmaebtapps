@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { UserNav } from '@/components/user-nav';
+import { NotificationNav } from './notification-nav';
 
 const getPageTitle = (pathname: string) => {
   if (pathname.startsWith('/projects')) return 'Projects';
@@ -24,7 +25,8 @@ export function SiteHeader() {
           {title}
         </h1>
       </div>
-      <div className="flex flex-1 items-center justify-end space-x-4">
+      <div className="flex flex-1 items-center justify-end space-x-2">
+        <NotificationNav />
         <UserNav />
       </div>
     </header>
