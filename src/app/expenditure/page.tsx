@@ -44,17 +44,17 @@ type ExpenditureItem = {
   project: string;
   category: string;
   coa: string;
-  date: string;
+  period: string;
   amount: number;
   status: 'Approved' | 'Pending' | 'Rejected';
 };
 
 const initialExpenditureData: ExpenditureItem[] = [
-    { id: 'EXP-001', project: 'Corporate Website Revamp', category: 'Tenaga Ahli dan Labour Supply', coa: '502.103', date: 'July 2024', amount: 15000000, status: 'Approved' },
-    { id: 'EXP-002', project: 'Mobile App Development', category: 'Operasional', coa: '502.105', date: 'July 2024', amount: 35000000, status: 'Approved' },
-    { id: 'EXP-003', project: 'Data Analytics Platform', category: 'Perjalanan Dinas', coa: '502.104', date: 'July 2024', amount: 7500000, status: 'Pending' },
-    { id: 'EXP-004', project: 'Corporate Website Revamp', category: 'Promosi', coa: '502.109', date: 'July 2024', amount: 50000000, status: 'Approved' },
-    { id: 'EXP-005', project: 'Mobile App Development', category: 'Fasilitas dan Interen', coa: '502.106', date: 'July 2024', amount: 25000000, status: 'Rejected' },
+    { id: 'EXP-001', project: 'Corporate Website Revamp', category: 'Tenaga Ahli dan Labour Supply', coa: '502.103', period: 'July 2024', amount: 15000000, status: 'Approved' },
+    { id: 'EXP-002', project: 'Mobile App Development', category: 'Operasional', coa: '502.105', period: 'July 2024', amount: 35000000, status: 'Approved' },
+    { id: 'EXP-003', project: 'Data Analytics Platform', category: 'Perjalanan Dinas', coa: '502.104', period: 'July 2024', amount: 7500000, status: 'Pending' },
+    { id: 'EXP-004', project: 'Corporate Website Revamp', category: 'Promosi', coa: '502.109', period: 'July 2024', amount: 50000000, status: 'Approved' },
+    { id: 'EXP-005', project: 'Mobile App Development', category: 'Fasilitas dan Interen', coa: '502.106', period: 'July 2024', amount: 25000000, status: 'Rejected' },
 ];
 
 const expenditureCategories = [
@@ -95,9 +95,9 @@ export default function ExpenditurePage() {
 
   const handleAddExpenditure = () => {
     const finalCategory = customCategory.trim() || newExpenditure.category;
-    const date = newExpenditure.month && newExpenditure.year ? `${newExpenditure.month} ${newExpenditure.year}` : '';
+    const period = newExpenditure.month && newExpenditure.year ? `${newExpenditure.month} ${newExpenditure.year}` : '';
 
-    if (newExpenditure.project && finalCategory && date && newExpenditure.coa && newExpenditure.amount > 0) {
+    if (newExpenditure.project && finalCategory && period && newExpenditure.coa && newExpenditure.amount > 0) {
       const newId = `EXP-${String(expenditureData.length + 1).padStart(3, '0')}`;
       
       const newExpenditureItem: ExpenditureItem = {
@@ -105,7 +105,7 @@ export default function ExpenditurePage() {
           project: newExpenditure.project,
           category: finalCategory,
           coa: newExpenditure.coa,
-          date: date,
+          period: period,
           amount: newExpenditure.amount,
           status: newExpenditure.status
       };
@@ -221,8 +221,8 @@ export default function ExpenditurePage() {
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="dateMonth" className="text-right">
-                  Date
+                <Label htmlFor="periodMonth" className="text-right">
+                  Period
                 </Label>
                 <div className="col-span-3 grid grid-cols-2 gap-2">
                   <Select
@@ -231,7 +231,7 @@ export default function ExpenditurePage() {
                       setNewExpenditure({ ...newExpenditure, month: value })
                     }
                   >
-                    <SelectTrigger id="dateMonth">
+                    <SelectTrigger id="periodMonth">
                       <SelectValue placeholder="Month" />
                     </SelectTrigger>
                     <SelectContent>
@@ -250,7 +250,7 @@ export default function ExpenditurePage() {
                     </SelectContent>
                   </Select>
                   <Input
-                    id="dateYear"
+                    id="periodYear"
                     type="number"
                     placeholder="Year"
                     value={newExpenditure.year}
@@ -310,7 +310,7 @@ export default function ExpenditurePage() {
               <TableHead>Project</TableHead>
               <TableHead>Category</TableHead>
               <TableHead>COA</TableHead>
-              <TableHead>Date</TableHead>
+              <TableHead>Period</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Amount</TableHead>
             </TableRow>
@@ -322,7 +322,7 @@ export default function ExpenditurePage() {
                 <TableCell>{item.project}</TableCell>
                 <TableCell>{item.category}</TableCell>
                 <TableCell>{item.coa}</TableCell>
-                <TableCell>{item.date}</TableCell>
+                <TableCell>{item.period}</TableCell>
                 <TableCell>
                     <Badge variant={
                         item.status === 'Approved' ? 'green' : item.status === 'Pending' ? 'yellow' : 'destructive'
