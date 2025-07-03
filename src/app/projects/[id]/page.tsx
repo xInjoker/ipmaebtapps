@@ -141,7 +141,7 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
                     <p className="text-sm text-muted-foreground">Progress (by Invoiced Amount)</p>
                     <p className="text-lg font-semibold">{progress}%</p>
                   </div>
-                  <Progress value={progress} className="h-3" />
+                  <Progress value={progress} className="h-6" />
                 </div>
             </CardContent>
           </Card>
