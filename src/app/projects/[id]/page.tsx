@@ -56,11 +56,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 
 type InvoiceItem = {
   id: number;
   spkNumber: string;
   serviceCategory: string;
+  description: string;
   status: 'Paid' | 'Invoiced' | 'Cancel' | 'Re-invoiced' | 'PAD';
   period: string;
   value: number;
@@ -100,6 +102,7 @@ const initialProjects: Project[] = [
         id: 1,
         spkNumber: 'SPK-001',
         serviceCategory: 'Design Phase',
+        description: 'Initial design mockups and wireframes.',
         status: 'Paid',
         period: 'January 2024',
         value: 500000000,
@@ -108,6 +111,7 @@ const initialProjects: Project[] = [
         id: 2,
         spkNumber: 'SPK-002',
         serviceCategory: 'Development - Sprint 1',
+        description: 'Development work for the first sprint.',
         status: 'Paid',
         period: 'April 2024',
         value: 750000000,
@@ -116,6 +120,7 @@ const initialProjects: Project[] = [
         id: 3,
         spkNumber: 'SPK-003',
         serviceCategory: 'Development - Sprint 2',
+        description: 'Development work for the second sprint.',
         status: 'Invoiced',
         period: 'July 2024',
         value: 750000000,
@@ -124,6 +129,7 @@ const initialProjects: Project[] = [
         id: 4,
         spkNumber: 'SPK-004',
         serviceCategory: 'Final Deployment',
+        description: 'Final deployment and server setup.',
         status: 'Invoiced',
         period: 'October 2024',
         value: 500000000,
@@ -148,6 +154,7 @@ const initialProjects: Project[] = [
         id: 1,
         spkNumber: 'SPK-005',
         serviceCategory: 'Discovery & Planning',
+        description: 'Discovery and project planning phase.',
         status: 'Paid',
         period: 'February 2024',
         value: 1000000000,
@@ -156,6 +163,7 @@ const initialProjects: Project[] = [
         id: 2,
         spkNumber: 'SPK-006',
         serviceCategory: 'UI/UX Design',
+        description: 'UI/UX design for the mobile application.',
         status: 'Invoiced',
         period: 'May 2024',
         value: 1500000000,
@@ -164,6 +172,7 @@ const initialProjects: Project[] = [
         id: 3,
         spkNumber: 'SPK-007',
         serviceCategory: 'Backend Development',
+        description: 'Backend development for core features.',
         status: 'Invoiced',
         period: 'August 2024',
         value: 1500000000,
@@ -172,6 +181,7 @@ const initialProjects: Project[] = [
         id: 4,
         spkNumber: 'SPK-008',
         serviceCategory: 'Frontend Development',
+        description: 'Frontend development for the user interface.',
         status: 'Cancel',
         period: 'November 2024',
         value: 1000000000,
@@ -196,6 +206,7 @@ const initialProjects: Project[] = [
         id: 1,
         spkNumber: 'SPK-009',
         serviceCategory: 'Infrastructure Setup',
+        description: 'Setup of cloud infrastructure.',
         status: 'Paid',
         period: 'December 2023',
         value: 1000000000,
@@ -204,6 +215,7 @@ const initialProjects: Project[] = [
         id: 2,
         spkNumber: 'SPK-010',
         serviceCategory: 'Data Pipeline',
+        description: 'Implementation of data ingestion pipelines.',
         status: 'Paid',
         period: 'March 2024',
         value: 1500000000,
@@ -212,6 +224,7 @@ const initialProjects: Project[] = [
         id: 3,
         spkNumber: 'SPK-011',
         serviceCategory: 'Dashboard Development',
+        description: 'Development of user-facing dashboards.',
         status: 'Re-invoiced',
         period: 'June 2024',
         value: 500000000,
@@ -220,6 +233,7 @@ const initialProjects: Project[] = [
         id: 4,
         spkNumber: 'SPK-012',
         serviceCategory: 'User Training',
+        description: 'Training sessions for end-users.',
         status: 'Cancel',
         period: 'June 2024',
         value: 200000000,
@@ -246,12 +260,14 @@ export default function ProjectDetailsPage({
   const [newInvoice, setNewInvoice] = useState<{
     spkNumber: string;
     serviceCategory: string;
+    description: string;
     status: 'Paid' | 'Invoiced' | 'Cancel' | 'Re-invoiced' | 'PAD';
     period: string;
     value: number;
   }>({
     spkNumber: '',
     serviceCategory: '',
+    description: '',
     status: 'Invoiced',
     period: '',
     value: 0,
@@ -264,6 +280,7 @@ export default function ProjectDetailsPage({
       project &&
       newInvoice.spkNumber &&
       newInvoice.serviceCategory &&
+      newInvoice.description &&
       newInvoice.period &&
       newInvoice.value > 0
     ) {
@@ -281,6 +298,7 @@ export default function ProjectDetailsPage({
       setNewInvoice({
         spkNumber: '',
         serviceCategory: '',
+        description: '',
         status: 'Invoiced',
         period: '',
         value: 0,
@@ -296,6 +314,7 @@ export default function ProjectDetailsPage({
       'ID',
       'SPK Number',
       'Service Category',
+      'Description',
       'Status',
       'Period',
       'Value (IDR)',
@@ -306,11 +325,13 @@ export default function ProjectDetailsPage({
       // Escape commas and quotes in string fields
       const spkNumber = `"${invoice.spkNumber.replace(/"/g, '""')}"`;
       const serviceCategory = `"${invoice.serviceCategory.replace(/"/g, '""')}"`;
+      const description = `"${invoice.description.replace(/"/g, '""')}"`;
 
       const row = [
         invoice.id,
         spkNumber,
         serviceCategory,
+        description,
         invoice.status,
         invoice.period,
         invoice.value,
@@ -486,7 +507,7 @@ export default function ProjectDetailsPage({
                     Add Invoice
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-md">
+                <DialogContent className="sm:max-w-lg">
                   <DialogHeader>
                     <DialogTitle>Add New Invoice</DialogTitle>
                     <DialogDescription>
@@ -521,6 +542,24 @@ export default function ProjectDetailsPage({
                           })
                         }
                         className="col-span-3"
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-start gap-4">
+                      <Label htmlFor="description" className="text-right pt-2">
+                        Description
+                      </Label>
+                      <Textarea
+                        id="description"
+                        value={newInvoice.description}
+                        onChange={(e) =>
+                          setNewInvoice({
+                            ...newInvoice,
+                            description: e.target.value,
+                          })
+                        }
+                        className="col-span-3"
+                        placeholder="Detailed description of the service."
+                        rows={3}
                       />
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
@@ -591,6 +630,7 @@ export default function ProjectDetailsPage({
                   <TableHead>ID</TableHead>
                   <TableHead>SPK Number</TableHead>
                   <TableHead>Service Category</TableHead>
+                  <TableHead>Description</TableHead>
                   <TableHead>Period</TableHead>
                   <TableHead className="text-right">Value</TableHead>
                   <TableHead>Status</TableHead>
@@ -607,6 +647,7 @@ export default function ProjectDetailsPage({
                     <TableCell className="font-medium">
                       {invoice.serviceCategory}
                     </TableCell>
+                    <TableCell>{invoice.description}</TableCell>
                     <TableCell>{invoice.period}</TableCell>
                     <TableCell className="text-right">
                       {formatCurrency(invoice.value)}
@@ -645,7 +686,7 @@ export default function ProjectDetailsPage({
                 ))}
                 {!project.invoices?.length && (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center">
+                    <TableCell colSpan={8} className="text-center">
                       No invoices found.
                     </TableCell>
                   </TableRow>
