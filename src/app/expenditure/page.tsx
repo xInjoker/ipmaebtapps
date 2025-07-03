@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Card,
   CardContent,
@@ -133,6 +133,16 @@ export default function ExpenditurePage() {
 
   const budgetedCategories = expenditureCategories.filter(category => (budgets[category] ?? 0) > 0);
 
+  const spentByCategory = useMemo(() => {
+    return expenditureData.reduce((acc, item) => {
+      if (item.status === 'Approved') {
+        acc[item.category] = (acc[item.category] || 0) + item.amount;
+      }
+      return acc;
+    }, {} as { [category: string]: number });
+  }, [expenditureData]);
+
+
   const handleBudgetChange = (category: string, value: number) => {
     setBudgets(prev => ({ ...prev, [category]: value }));
   };
@@ -179,6 +189,23 @@ export default function ExpenditurePage() {
     }
     setNewExpenditure(prev => ({ ...prev, coa: coaValue, category: categoryToSet }));
   };
+  
+  const selectedCategory = newExpenditure.category;
+  const totalBudgetForCategory = budgets[selectedCategory] ?? 0;
+  const spentAmountForCategory = spentByCategory[selectedCategory] || 0;
+  const remainingBudget = totalBudgetForCategory - spentAmountForCategory;
+
+  let budgetStatus: { variant: 'green' | 'yellow' | 'orange' | 'destructive'; text: string } = { variant: 'green', text: 'Safe' };
+  if (selectedCategory && totalBudgetForCategory > 0) {
+    const remainingPercentage = (remainingBudget / totalBudgetForCategory) * 100;
+    if (remainingPercentage <= 0) {
+      budgetStatus = { variant: 'destructive', text: 'Over Budget' };
+    } else if (remainingPercentage <= 10) {
+      budgetStatus = { variant: 'orange', text: 'Low' };
+    } else if (remainingPercentage <= 30) {
+      budgetStatus = { variant: 'yellow', text: 'Warning' };
+    }
+  }
 
 
   return (
@@ -309,6 +336,17 @@ export default function ExpenditurePage() {
                         </SelectContent>
                       </Select>
                     </div>
+                    {newExpenditure.category && (
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="remainingBudget" className="text-right">
+                          Remaining
+                        </Label>
+                        <div className="col-span-3 flex items-center gap-2 text-sm font-medium">
+                          <span>{formatCurrency(remainingBudget)}</span>
+                          <Badge variant={budgetStatus.variant}>{budgetStatus.text}</Badge>
+                        </div>
+                      </div>
+                    )}
                     <div className="grid grid-cols-4 items-center gap-4">
                       <Label htmlFor="periodMonth" className="text-right">
                         Period
