@@ -156,6 +156,7 @@ export default function ProjectDetailsPage() {
   const [newExpenditure, setNewExpenditure] = useState({
     category: '',
     coa: '',
+    description: '',
     month: '',
     year: '',
     amount: 0,
@@ -323,6 +324,7 @@ export default function ProjectDetailsPage() {
           id: newId,
           category: newExpenditure.category,
           coa: newExpenditure.coa,
+          description: newExpenditure.description,
           period: period,
           amount: newExpenditure.amount,
           status: newExpenditure.status
@@ -333,7 +335,7 @@ export default function ProjectDetailsPage() {
         p.id === project.id ? { ...p, expenditures: updatedExpenditures } : p
       );
       setProjects(updatedProjects);
-      setNewExpenditure({ category: '', coa: '', month: '', year: '', amount: 0, status: 'Pending' });
+      setNewExpenditure({ category: '', coa: '', description: '', month: '', year: '', amount: 0, status: 'Pending' });
       setIsAddExpenditureDialogOpen(false);
     }
   };
@@ -937,6 +939,21 @@ export default function ProjectDetailsPage() {
                             />
                           </div>
                         </div>
+                        <div className="grid grid-cols-4 items-start gap-4">
+                            <Label htmlFor="exp-description" className="text-right pt-2">
+                                Description
+                            </Label>
+                            <Textarea
+                                id="exp-description"
+                                value={newExpenditure.description}
+                                onChange={(e) =>
+                                setNewExpenditure({ ...newExpenditure, description: e.target.value })
+                                }
+                                className="col-span-3"
+                                placeholder="Detailed description of the expenditure."
+                                rows={3}
+                            />
+                        </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                           <Label htmlFor="amount" className="text-right">
                             Amount (IDR)
@@ -948,26 +965,6 @@ export default function ProjectDetailsPage() {
                             onChange={(e) => setNewExpenditure({ ...newExpenditure, amount: parseInt(e.target.value) || 0 })}
                             className="col-span-3"
                           />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                          <Label htmlFor="status" className="text-right">
-                            Status
-                          </Label>
-                          <Select
-                            value={newExpenditure.status}
-                            onValueChange={(value: 'Approved' | 'Pending' | 'Rejected') =>
-                              setNewExpenditure({ ...newExpenditure, status: value })
-                            }
-                          >
-                            <SelectTrigger className="col-span-3">
-                              <SelectValue placeholder="Select status" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="Approved">Approved</SelectItem>
-                              <SelectItem value="Pending">Pending</SelectItem>
-                              <SelectItem value="Rejected">Rejected</SelectItem>
-                            </SelectContent>
-                          </Select>
                         </div>
                       </div>
                       <DialogFooter>
@@ -983,6 +980,7 @@ export default function ProjectDetailsPage() {
                     <TableRow>
                       <TableHead>ID</TableHead>
                       <TableHead>Category</TableHead>
+                      <TableHead>Description</TableHead>
                       <TableHead>COA</TableHead>
                       <TableHead>Period</TableHead>
                       <TableHead>Status</TableHead>
@@ -994,6 +992,7 @@ export default function ProjectDetailsPage() {
                       <TableRow key={item.id}>
                         <TableCell className="font-medium">{item.id}</TableCell>
                         <TableCell>{item.category}</TableCell>
+                        <TableCell>{item.description}</TableCell>
                         <TableCell>{item.coa}</TableCell>
                         <TableCell>{item.period}</TableCell>
                         <TableCell>
@@ -1006,6 +1005,13 @@ export default function ProjectDetailsPage() {
                         <TableCell className="text-right">{formatCurrency(item.amount)}</TableCell>
                       </TableRow>
                     ))}
+                    {!project.expenditures?.length && (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center">
+                          No expenditures found.
+                        </TableCell>
+                      </TableRow>
+                    )}
                   </TableBody>
                 </Table>
               </CardContent>
