@@ -655,13 +655,17 @@ export default function ProjectDetailsPage({
                     <TableCell>
                       <Badge
                         variant={
-                          invoice.status === 'Paid' || invoice.status === 'PAD'
-                            ? 'default'
+                          invoice.status === 'Paid'
+                            ? 'green'
+                            : invoice.status === 'PAD'
+                            ? 'yellow'
                             : invoice.status === 'Invoiced'
-                            ? 'secondary'
+                            ? 'orange'
                             : invoice.status === 'Cancel'
                             ? 'destructive'
-                            : 'outline'
+                            : invoice.status === 'Re-invoiced'
+                            ? 'blue'
+                            : 'secondary'
                         }
                       >
                         {invoice.status}
