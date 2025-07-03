@@ -41,7 +41,7 @@ type AuthContextType = {
   isHqUser: boolean;
   isInitializing: boolean;
   login: (email: string, pass: string) => void;
-  register: (name: string, email: string, pass: string) => void;
+  register: (name: string, email: string, pass: string, branchId: string) => void;
   logout: () => void;
 };
 
@@ -103,8 +103,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       // Branches
-      setBranches(initialBranches);
-      localStorage.setItem('branches', JSON.stringify(initialBranches));
+      const storedBranchesString = localStorage.getItem('branches');
+      if (storedBranchesString) {
+          setBranches(JSON.parse(storedBranchesString));
+      } else {
+          setBranches(initialBranches);
+          localStorage.setItem('branches', JSON.stringify(initialBranches));
+      }
 
     } catch (error) {
       console.error('Failed to initialize from localStorage', error);
@@ -144,7 +149,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const register = (name: string, email: string, pass: string) => {
+  const register = (name: string, email: string, pass: string, branchId: string) => {
+     if (!branchId) {
+      toast({
+        variant: 'destructive',
+        title: 'Registration Failed',
+        description: 'Please select an office location.',
+      });
+      return;
+    }
+    
     if (users.some((u) => u.email === email)) {
       toast({
         variant: 'destructive',
@@ -158,8 +172,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       id: users.length > 0 ? Math.max(...users.map((u) => u.id)) + 1 : 1,
       name,
       email,
-      roleId: 'project-manager',
-      branchId: 'jakarta', // Default new users to jakarta branch
+      roleId: 'staff',
+      branchId: branchId,
       avatarUrl: '',
     };
 
