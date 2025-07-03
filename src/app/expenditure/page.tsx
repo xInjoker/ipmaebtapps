@@ -43,17 +43,18 @@ type ExpenditureItem = {
   id: string;
   project: string;
   category: string;
+  coa: string;
   date: string;
   amount: number;
   status: 'Approved' | 'Pending' | 'Rejected';
 };
 
 const initialExpenditureData: ExpenditureItem[] = [
-    { id: 'EXP-001', project: 'Corporate Website Revamp', category: 'Tenaga Ahli dan Labour Supply', date: '2024-07-15', amount: 15000000, status: 'Approved' },
-    { id: 'EXP-002', project: 'Mobile App Development', category: 'Operasional', date: '2024-07-14', amount: 35000000, status: 'Approved' },
-    { id: 'EXP-003', project: 'Data Analytics Platform', category: 'Perjalanan Dinas', date: '2024-07-13', amount: 7500000, status: 'Pending' },
-    { id: 'EXP-004', project: 'Corporate Website Revamp', category: 'Promosi', date: '2024-07-12', amount: 50000000, status: 'Approved' },
-    { id: 'EXP-005', project: 'Mobile App Development', category: 'Fasilitas dan Interen', date: '2024-07-11', amount: 25000000, status: 'Rejected' },
+    { id: 'EXP-001', project: 'Corporate Website Revamp', category: 'Tenaga Ahli dan Labour Supply', coa: '502.103', date: 'July 2024', amount: 15000000, status: 'Approved' },
+    { id: 'EXP-002', project: 'Mobile App Development', category: 'Operasional', coa: '502.105', date: 'July 2024', amount: 35000000, status: 'Approved' },
+    { id: 'EXP-003', project: 'Data Analytics Platform', category: 'Perjalanan Dinas', coa: '502.104', date: 'July 2024', amount: 7500000, status: 'Pending' },
+    { id: 'EXP-004', project: 'Corporate Website Revamp', category: 'Promosi', coa: '502.109', date: 'July 2024', amount: 50000000, status: 'Approved' },
+    { id: 'EXP-005', project: 'Mobile App Development', category: 'Fasilitas dan Interen', coa: '502.106', date: 'July 2024', amount: 25000000, status: 'Rejected' },
 ];
 
 const expenditureCategories = [
@@ -84,7 +85,9 @@ export default function ExpenditurePage() {
   const [newExpenditure, setNewExpenditure] = useState({
     project: '',
     category: '',
-    date: '',
+    coa: '',
+    month: '',
+    year: '',
     amount: 0,
     status: 'Pending' as 'Approved' | 'Pending' | 'Rejected',
   });
@@ -92,10 +95,23 @@ export default function ExpenditurePage() {
 
   const handleAddExpenditure = () => {
     const finalCategory = customCategory.trim() || newExpenditure.category;
-    if (newExpenditure.project && finalCategory && newExpenditure.date && newExpenditure.amount > 0) {
+    const date = newExpenditure.month && newExpenditure.year ? `${newExpenditure.month} ${newExpenditure.year}` : '';
+
+    if (newExpenditure.project && finalCategory && date && newExpenditure.coa && newExpenditure.amount > 0) {
       const newId = `EXP-${String(expenditureData.length + 1).padStart(3, '0')}`;
-      setExpenditureData([...expenditureData, { ...newExpenditure, id: newId, category: finalCategory }]);
-      setNewExpenditure({ project: '', category: '', date: '', amount: 0, status: 'Pending' });
+      
+      const newExpenditureItem: ExpenditureItem = {
+          id: newId,
+          project: newExpenditure.project,
+          category: finalCategory,
+          coa: newExpenditure.coa,
+          date: date,
+          amount: newExpenditure.amount,
+          status: newExpenditure.status
+      };
+
+      setExpenditureData([...expenditureData, newExpenditureItem]);
+      setNewExpenditure({ project: '', category: '', coa: '', month: '', year: '', amount: 0, status: 'Pending' });
       setCustomCategory('');
       setIsDialogOpen(false);
     }
@@ -191,16 +207,61 @@ export default function ExpenditurePage() {
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="date" className="text-right">
-                  Date
+                <Label htmlFor="coa" className="text-right">
+                  COA
                 </Label>
                 <Input
-                  id="date"
-                  type="date"
-                  value={newExpenditure.date}
-                  onChange={(e) => setNewExpenditure({ ...newExpenditure, date: e.target.value })}
+                  id="coa"
+                  value={newExpenditure.coa}
+                  onChange={(e) =>
+                    setNewExpenditure({ ...newExpenditure, coa: e.target.value })
+                  }
                   className="col-span-3"
+                  placeholder="Enter COA"
                 />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="dateMonth" className="text-right">
+                  Date
+                </Label>
+                <div className="col-span-3 grid grid-cols-2 gap-2">
+                  <Select
+                    value={newExpenditure.month}
+                    onValueChange={(value) =>
+                      setNewExpenditure({ ...newExpenditure, month: value })
+                    }
+                  >
+                    <SelectTrigger id="dateMonth">
+                      <SelectValue placeholder="Month" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="January">January</SelectItem>
+                      <SelectItem value="February">February</SelectItem>
+                      <SelectItem value="March">March</SelectItem>
+                      <SelectItem value="April">April</SelectItem>
+                      <SelectItem value="May">May</SelectItem>
+                      <SelectItem value="June">June</SelectItem>
+                      <SelectItem value="July">July</SelectItem>
+                      <SelectItem value="August">August</SelectItem>
+                      <SelectItem value="September">September</SelectItem>
+                      <SelectItem value="October">October</SelectItem>
+                      <SelectItem value="November">November</SelectItem>
+                      <SelectItem value="December">December</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    id="dateYear"
+                    type="number"
+                    placeholder="Year"
+                    value={newExpenditure.year}
+                    onChange={(e) =>
+                      setNewExpenditure({
+                        ...newExpenditure,
+                        year: e.target.value,
+                      })
+                    }
+                  />
+                </div>
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="amount" className="text-right">
@@ -248,6 +309,7 @@ export default function ExpenditurePage() {
               <TableHead>ID</TableHead>
               <TableHead>Project</TableHead>
               <TableHead>Category</TableHead>
+              <TableHead>COA</TableHead>
               <TableHead>Date</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Amount</TableHead>
@@ -259,6 +321,7 @@ export default function ExpenditurePage() {
                 <TableCell className="font-medium">{item.id}</TableCell>
                 <TableCell>{item.project}</TableCell>
                 <TableCell>{item.category}</TableCell>
+                <TableCell>{item.coa}</TableCell>
                 <TableCell>{item.date}</TableCell>
                 <TableCell>
                     <Badge variant={
