@@ -2,13 +2,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BrainCircuit, Briefcase, DollarSign, LayoutDashboard } from 'lucide-react';
+import { BrainCircuit, Briefcase, DollarSign, LayoutDashboard, Receipt } from 'lucide-react';
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
 
 const menuItems = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/projects', label: 'Projects', icon: Briefcase },
   { href: '/finances', label: 'Finances', icon: DollarSign },
+  { href: '/expenditure', label: 'Expenditure', icon: Receipt },
   { href: '/sanity-checker', label: 'AI Sanity Check', icon: BrainCircuit },
 ];
 
