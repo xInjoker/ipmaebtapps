@@ -20,6 +20,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+  } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PlusCircle, Calendar as CalendarIcon, CircleDollarSign, Wallet, TrendingUp, Landmark } from 'lucide-react';
@@ -32,9 +39,11 @@ import { DateRange } from 'react-day-picker';
 import { Textarea } from '@/components/ui/textarea';
 import { type Project } from '@/lib/data';
 import { useProjects } from '@/context/ProjectContext';
+import { useAuth } from '@/context/AuthContext';
 
 export default function ProjectsPage() {
   const { projects, setProjects } = useProjects();
+  const { user, isHqUser, branches } = useAuth();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newProject, setNewProject] = useState({
     contractNumber: '',
@@ -42,20 +51,27 @@ export default function ProjectsPage() {
     client: '',
     description: '',
     value: 0,
+    branchId: user?.branchId || '',
   });
   const [date, setDate] = useState<DateRange | undefined>(undefined);
 
+  const visibleProjects = useMemo(() => {
+    if (isHqUser) return projects;
+    if (!user) return [];
+    return projects.filter(p => p.branchId === user.branchId);
+  }, [projects, user, isHqUser]);
+
   const { totalProjectValue, totalCost, totalInvoiced, totalPaid } = useMemo(() => {
-    const totalProjectValue = projects.reduce(
+    const totalProjectValue = visibleProjects.reduce(
       (acc, project) => acc + project.value,
       0
     );
-    const totalCost = projects.reduce((acc, project) => acc + project.cost, 0);
-    const totalInvoiced = projects.reduce(
+    const totalCost = visibleProjects.reduce((acc, project) => acc + project.cost, 0);
+    const totalInvoiced = visibleProjects.reduce(
       (acc, project) => acc + project.invoiced,
       0
     );
-    const totalPaid = projects.reduce((acc, project) => {
+    const totalPaid = visibleProjects.reduce((acc, project) => {
       const projectPaid = project.invoices
         .filter((invoice) => invoice.status === 'Paid' || invoice.status === 'PAD')
         .reduce((invoiceAcc, invoice) => invoiceAcc + invoice.value, 0);
@@ -63,7 +79,7 @@ export default function ProjectsPage() {
     }, 0);
 
     return { totalProjectValue, totalCost, totalInvoiced, totalPaid };
-  }, [projects]);
+  }, [visibleProjects]);
 
 
   const { period, duration } = useMemo(() => {
@@ -90,10 +106,10 @@ export default function ProjectsPage() {
 
 
   const handleAddProject = () => {
-    if (newProject.name && newProject.client && newProject.description && newProject.value > 0 && newProject.contractNumber && period && duration) {
+    if (newProject.name && newProject.client && newProject.description && newProject.value > 0 && newProject.contractNumber && period && duration && newProject.branchId) {
       const newId = projects.length > 0 ? Math.max(...projects.map((p) => p.id)) + 1 : 1;
       setProjects([...projects, { ...newProject, period, duration, id: newId, cost: 0, invoiced: 0, progress: 0, invoices: [], budgets: {}, expenditures: [] }]);
-      setNewProject({ contractNumber: '', name: '', client: '', description: '', value: 0 });
+      setNewProject({ contractNumber: '', name: '', client: '', description: '', value: 0, branchId: user?.branchId || '' });
       setDate(undefined);
       setIsDialogOpen(false);
     }
@@ -118,7 +134,7 @@ export default function ProjectsPage() {
               }).format(totalProjectValue)}
             </div>
             <p className="text-xs text-muted-foreground">
-              Across {projects.length} projects
+              Across {visibleProjects.length} projects
             </p>
           </CardContent>
         </Card>
@@ -203,6 +219,28 @@ export default function ProjectsPage() {
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
+              {isHqUser && (
+                 <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="branch" className="text-right">
+                        Branch
+                    </Label>
+                    <Select
+                        value={newProject.branchId}
+                        onValueChange={(value) => setNewProject({ ...newProject, branchId: value })}
+                    >
+                        <SelectTrigger className="col-span-3">
+                        <SelectValue placeholder="Select a branch" />
+                        </SelectTrigger>
+                        <SelectContent>
+                        {branches.filter(b => b.id !== 'hq').map((branch) => (
+                            <SelectItem key={branch.id} value={branch.id}>
+                            {branch.name}
+                            </SelectItem>
+                        ))}
+                        </SelectContent>
+                    </Select>
+                 </div>
+              )}
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="contractNumber" className="text-right">
                   Contract No.
@@ -329,7 +367,7 @@ export default function ProjectsPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {projects.map((project) => {
+        {visibleProjects.map((project) => {
           const progress = project.value > 0 ? Math.round((project.invoiced / project.value) * 100) : 0;
           return (
             <Card key={project.id}>

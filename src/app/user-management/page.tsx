@@ -137,7 +137,7 @@ function RoleFormDialog({
 
 
 export default function UserManagementPage() {
-  const { user, users, roles, updateUserRole, deleteRole, userHasPermission } = useAuth();
+  const { user, users, roles, updateUser, branches, deleteRole, userHasPermission } = useAuth();
   const router = useRouter();
 
   const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
@@ -183,7 +183,7 @@ export default function UserManagementPage() {
           <CardHeader>
             <CardTitle className="font-headline">User Assignments</CardTitle>
             <CardDescription>
-              Assign roles to users. Changes are saved automatically.
+              Assign roles and branches to users. Changes are saved automatically.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -194,12 +194,15 @@ export default function UserManagementPage() {
                     <TableHead>User</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Role</TableHead>
-                    <TableHead className="text-right">Change Role</TableHead>
+                    <TableHead>Branch</TableHead>
+                    <TableHead className="text-right w-[190px]">Change Role</TableHead>
+                    <TableHead className="text-right w-[190px]">Change Branch</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {users.map((managedUser: User) => {
                     const userRole = roles.find(r => r.id === managedUser.roleId);
+                    const userBranch = branches.find(b => b.id === managedUser.branchId);
                     return (
                     <TableRow key={managedUser.id}>
                       <TableCell>
@@ -217,11 +220,16 @@ export default function UserManagementPage() {
                           {userRole?.name || 'Unknown Role'}
                         </Badge>
                       </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">
+                          {userBranch?.name || 'Unknown Branch'}
+                        </Badge>
+                      </TableCell>
                       <TableCell className="text-right">
                         <Select
                           value={managedUser.roleId}
-                          onValueChange={(value: string) => updateUserRole(managedUser.id, value)}
-                          disabled={managedUser.id === user.id} // Super user can't change their own role
+                          onValueChange={(value: string) => updateUser(managedUser.id, { roleId: value })}
+                          disabled={managedUser.id === user.id}
                         >
                           <SelectTrigger className="w-[180px] ml-auto">
                             <SelectValue placeholder="Change role" />
@@ -229,6 +237,22 @@ export default function UserManagementPage() {
                           <SelectContent>
                             {roles.map(role => (
                               <SelectItem key={role.id} value={role.id}>{role.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                       <TableCell className="text-right">
+                        <Select
+                          value={managedUser.branchId}
+                          onValueChange={(value: string) => updateUser(managedUser.id, { branchId: value })}
+                          disabled={managedUser.id === user.id}
+                        >
+                          <SelectTrigger className="w-[180px] ml-auto">
+                            <SelectValue placeholder="Change branch" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {branches.map(branch => (
+                              <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>

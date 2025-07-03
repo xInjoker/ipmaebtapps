@@ -9,7 +9,7 @@ import {
   useCallback,
 } from 'react';
 import { useRouter } from 'next/navigation';
-import { initialUsers, initialRoles, type User, type Role, type Permission, permissions } from '@/lib/users';
+import { initialUsers, initialRoles, type User, type Role, type Permission, permissions, type Branch, initialBranches } from '@/lib/users';
 import { useToast } from '@/hooks/use-toast';
 
 type AuthContextType = {
@@ -17,12 +17,15 @@ type AuthContextType = {
   user: User | null;
   users: User[];
   roles: Role[];
+  branches: Branch[];
   permissions: readonly Permission[];
+  updateUser: (userId: number, data: Partial<User>) => void;
   updateUserRole: (userId: number, newRoleId: string) => void;
   addRole: (roleData: { name: string; permissions: Permission[] }) => void;
   updateRole: (roleId: string, roleData: { name: string; permissions: Permission[] }) => void;
   deleteRole: (roleId: string) => void;
   userHasPermission: (permission: Permission) => boolean;
+  isHqUser: boolean;
   isInitializing: boolean;
   login: (email: string, pass: string) => void;
   register: (name: string, email: string, pass: string) => void;
@@ -35,6 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
+  const [branches, setBranches] = useState<Branch[]>([]);
   const [isInitializing, setIsInitializing] = useState(true);
   const router = useRouter();
   const { toast } = useToast();
@@ -69,12 +73,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setRoles(initialRoles);
         localStorage.setItem('roles', JSON.stringify(initialRoles));
       }
+      
+      const storedBranches = localStorage.getItem('branches');
+      if (storedBranches) {
+        setBranches(JSON.parse(storedBranches));
+      } else {
+        setBranches(initialBranches);
+        localStorage.setItem('branches', JSON.stringify(initialBranches));
+      }
 
     } catch (error) {
       console.error('Failed to parse from localStorage', error);
       localStorage.removeItem('user');
       localStorage.removeItem('users');
       localStorage.removeItem('roles');
+      localStorage.removeItem('branches');
     } finally {
       setIsInitializing(false);
     }
@@ -112,6 +125,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         name,
         email,
         roleId: 'project-manager',
+        branchId: 'branch-1', // Default new users to branch 1
         avatarUrl: `https://placehold.co/40x40.png`,
     };
 
@@ -130,10 +144,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.push('/login');
   };
 
-  const updateUserRole = (userId: number, newRoleId: string) => {
-    const updatedUsers = users.map(u => u.id === userId ? { ...u, roleId: newRoleId } : u);
+  const updateUser = (userId: number, data: Partial<User>) => {
+    const updatedUsers = users.map(u => (u.id === userId ? { ...u, ...data } : u));
     setUsers(updatedUsers);
     localStorage.setItem('users', JSON.stringify(updatedUsers));
+    // If the updated user is the current user, update the user state as well
+    if (user && user.id === userId) {
+      const updatedCurrentUser = { ...user, ...data };
+      setUser(updatedCurrentUser);
+      localStorage.setItem('user', JSON.stringify(updatedCurrentUser));
+    }
+  };
+
+  const updateUserRole = (userId: number, newRoleId: string) => {
+    updateUser(userId, { roleId: newRoleId });
   };
 
   const addRole = (roleData: { name: string; permissions: Permission[] }) => {
@@ -173,12 +197,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const userHasPermission = useCallback((permission: Permission): boolean => {
-    // Temporarily grant all permissions to any logged-in user to unblock UI.
     if (!user) return false;
     return true;
   }, [user]);
 
   const isAuthenticated = !isInitializing && !!user;
+  const isHqUser = user?.branchId === 'hq';
 
   return (
     <AuthContext.Provider
@@ -187,12 +211,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user, 
         users, 
         roles,
+        branches,
         permissions,
+        updateUser,
         updateUserRole,
         addRole,
         updateRole,
         deleteRole,
         userHasPermission,
+        isHqUser,
         isInitializing, 
         login, 
         register, 

@@ -21,6 +21,7 @@ import {
 import { useProjects } from '@/context/ProjectContext';
 import { useAuth } from '@/context/AuthContext';
 import { type Permission } from '@/lib/users';
+import { useMemo } from 'react';
 
 interface MenuItem {
     href: string;
@@ -33,7 +34,13 @@ interface MenuItem {
 export function SidebarNav() {
   const pathname = usePathname();
   const { projects } = useProjects();
-  const { userHasPermission } = useAuth();
+  const { user, isHqUser, userHasPermission } = useAuth();
+
+  const visibleProjects = useMemo(() => {
+    if (isHqUser) return projects;
+    if (!user) return [];
+    return projects.filter(p => p.branchId === user.branchId);
+  }, [projects, user, isHqUser]);
 
   const menuItems: MenuItem[] = [
     { href: '/', label: 'Dashboard', icon: LayoutDashboard, permission: 'view-dashboard' },
@@ -42,7 +49,7 @@ export function SidebarNav() {
       label: 'Projects',
       icon: Briefcase,
       permission: 'manage-projects',
-      subItems: projects.map((project) => ({
+      subItems: visibleProjects.map((project) => ({
         href: `/projects/${project.id}`,
         label: project.contractNumber,
       })),
@@ -83,7 +90,7 @@ export function SidebarNav() {
               </Link>
             </SidebarMenuButton>
 
-            {item.subItems && (
+            {item.subItems && item.subItems.length > 0 && (
               <SidebarMenuSub>
                 {item.subItems.map((subItem: { href: string, label: string }) => (
                   <SidebarMenuSubItem key={subItem.href}>

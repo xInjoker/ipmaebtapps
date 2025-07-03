@@ -26,6 +26,7 @@ import { Bar, BarChart, CartesianGrid, XAxis, Pie, PieChart, Cell } from 'rechar
 import { TrendingUp, CircleDollarSign, ListTodo, Receipt } from 'lucide-react';
 import { useMemo } from 'react';
 import { useProjects } from '@/context/ProjectContext';
+import { useAuth } from '@/context/AuthContext';
 
 const chartData = [
   { month: 'January', invoiced: 186000000, paid: 80000000 },
@@ -65,21 +66,28 @@ function formatCurrency(value: number) {
 
 export default function DashboardPage() {
   const { projects } = useProjects();
+  const { user, isHqUser } = useAuth();
+  
+  const visibleProjects = useMemo(() => {
+    if (isHqUser) return projects;
+    if (!user) return [];
+    return projects.filter(p => p.branchId === user.branchId);
+  }, [projects, user, isHqUser]);
 
   const { totalProjectValue, totalPaid, totalExpenditure, costBreakdownData } = useMemo(() => {
-    const totalProjectValue = projects.reduce(
+    const totalProjectValue = visibleProjects.reduce(
         (acc, project) => acc + project.value,
         0
     );
     
-    const totalPaid = projects.reduce((acc, project) => {
+    const totalPaid = visibleProjects.reduce((acc, project) => {
         const projectPaid = project.invoices
             .filter((invoice) => invoice.status === 'Paid' || invoice.status === 'PAD')
             .reduce((invoiceAcc, invoice) => invoiceAcc + invoice.value, 0);
         return acc + projectPaid;
     }, 0);
 
-    const allExpenditures = projects.flatMap(p => p.expenditures.filter(e => e.status === 'Approved'));
+    const allExpenditures = visibleProjects.flatMap(p => p.expenditures.filter(e => e.status === 'Approved'));
     
     const totalExpenditure = allExpenditures.reduce((acc, exp) => acc + exp.amount, 0);
 
@@ -103,7 +111,7 @@ export default function DashboardPage() {
     });
 
     return { totalProjectValue, totalPaid, totalExpenditure, costBreakdownData };
-  }, [projects]);
+  }, [visibleProjects]);
 
 
   return (
@@ -119,7 +127,7 @@ export default function DashboardPage() {
           <CardContent>
             <div className="text-2xl font-bold font-headline">{formatCurrency(totalProjectValue)}</div>
             <p className="text-xs text-muted-foreground">
-              Across {projects.length} projects
+              Across {visibleProjects.length} projects
             </p>
           </CardContent>
         </Card>

@@ -33,6 +33,7 @@ export type Project = {
   invoices: InvoiceItem[];
   budgets: { [category: string]: number };
   expenditures: ExpenditureItem[];
+  branchId: string;
 };
 
 export const initialProjects: Project[] = [
@@ -103,6 +104,7 @@ export const initialProjects: Project[] = [
       { id: 'EXP-PROJ1-001', category: 'Tenaga Ahli dan Labour Supply', coa: '4200', description: 'Monthly salary for consultant.', period: 'July 2024', amount: 15000000, status: 'Approved' },
       { id: 'EXP-PROJ1-002', category: 'Promosi', coa: '4800', description: 'Social media campaign.', period: 'July 2024', amount: 50000000, status: 'Approved' },
     ],
+    branchId: 'branch-1',
   },
   {
     id: 2,
@@ -171,6 +173,7 @@ export const initialProjects: Project[] = [
         { id: 'EXP-PROJ2-001', category: 'Operasional', coa: '4400', description: 'Server hosting fees.', period: 'July 2024', amount: 35000000, status: 'Approved' },
         { id: 'EXP-PROJ2-002', category: 'Fasilitas dan Interen', coa: '4500', description: 'Office supplies.', period: 'July 2024', amount: 25000000, status: 'Rejected' },
     ],
+    branchId: 'branch-2',
   },
   {
     id: 3,
@@ -238,5 +241,6 @@ export const initialProjects: Project[] = [
     expenditures: [
       { id: 'EXP-PROJ3-001', category: 'Perjalanan Dinas', coa: '4300', description: 'Flight tickets for meeting.', period: 'July 2024', amount: 7500000, status: 'Pending' },
     ],
+    branchId: 'branch-1',
   },
 ];
