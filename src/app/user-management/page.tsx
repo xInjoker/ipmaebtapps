@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -173,19 +174,51 @@ export default function UserManagementPage() {
     userHasPermission,
   } = useAuth();
   const router = useRouter();
+  const { toast } = useToast();
 
+  const [managedUsers, setManagedUsers] = useState<User[]>([]);
   const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
   const [roleToEdit, setRoleToEdit] = useState<Role | null>(null);
 
   useEffect(() => {
-    if (!userHasPermission('manage-users')) {
-      router.push('/');
-    }
-  }, [user, userHasPermission, router]);
+    setManagedUsers(users);
+  }, [users]);
 
-  if (!user || !userHasPermission('manage-users')) {
-    return null;
-  }
+  const hasChanges = useMemo(() => {
+    if (!users || !managedUsers || users.length !== managedUsers.length) return false;
+    return JSON.stringify(users) !== JSON.stringify(managedUsers);
+  }, [users, managedUsers]);
+
+  const handleUserChange = (
+    userId: number,
+    field: 'roleId' | 'branchId',
+    value: string
+  ) => {
+    setManagedUsers((currentUsers) =>
+      currentUsers.map((u) => (u.id === userId ? { ...u, [field]: value } : u))
+    );
+  };
+
+  const handleSaveChanges = () => {
+    managedUsers.forEach((mu) => {
+      const originalUser = users.find((u) => u.id === mu.id);
+      if (
+        originalUser &&
+        (originalUser.roleId !== mu.roleId ||
+          originalUser.branchId !== mu.branchId)
+      ) {
+        updateUser(mu.id, { roleId: mu.roleId, branchId: mu.branchId });
+      }
+    });
+    toast({
+      title: 'Changes Saved',
+      description: 'User assignments have been successfully updated.',
+    });
+  };
+
+  const handleDiscardChanges = () => {
+    setManagedUsers(users);
+  };
 
   const handleEditRole = (role: Role) => {
     setRoleToEdit(role);
@@ -196,6 +229,16 @@ export default function UserManagementPage() {
     setRoleToEdit(null);
     setIsRoleDialogOpen(true);
   };
+
+  useEffect(() => {
+    if (!userHasPermission('manage-users')) {
+      router.push('/');
+    }
+  }, [user, userHasPermission, router]);
+
+  if (!user || !userHasPermission('manage-users')) {
+    return null;
+  }
 
   return (
     <>
@@ -209,8 +252,8 @@ export default function UserManagementPage() {
             <CardHeader>
               <CardTitle className="font-headline">User Assignments</CardTitle>
               <CardDescription>
-                Assign roles and branches to users. Changes are saved
-                automatically.
+                Assign roles and branches to users. Click "Save Changes" to
+                apply your modifications.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -231,7 +274,7 @@ export default function UserManagementPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {users.map((managedUser: User) => {
+                    {managedUsers.map((managedUser: User) => {
                       const userRole = roles.find(
                         (r) => r.id === managedUser.roleId
                       );
@@ -285,7 +328,11 @@ export default function UserManagementPage() {
                             <Select
                               value={managedUser.roleId}
                               onValueChange={(value: string) =>
-                                updateUser(managedUser.id, { roleId: value })
+                                handleUserChange(
+                                  managedUser.id,
+                                  'roleId',
+                                  value
+                                )
                               }
                               disabled={managedUser.id === user.id}
                             >
@@ -305,7 +352,11 @@ export default function UserManagementPage() {
                             <Select
                               value={managedUser.branchId}
                               onValueChange={(value: string) =>
-                                updateUser(managedUser.id, { branchId: value })
+                                handleUserChange(
+                                  managedUser.id,
+                                  'branchId',
+                                  value
+                                )
                               }
                               disabled={managedUser.id === user.id}
                             >
@@ -328,6 +379,14 @@ export default function UserManagementPage() {
                 </Table>
               </div>
             </CardContent>
+            {hasChanges && (
+              <CardFooter className="flex justify-end gap-2 border-t bg-muted/50 px-6 py-4">
+                <Button variant="outline" onClick={handleDiscardChanges}>
+                  Discard
+                </Button>
+                <Button onClick={handleSaveChanges}>Save Changes</Button>
+              </CardFooter>
+            )}
           </Card>
         </TabsContent>
         <TabsContent value="roles">
