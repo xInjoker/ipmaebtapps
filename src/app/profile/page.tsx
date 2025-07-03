@@ -63,7 +63,7 @@ export default function ProfilePage() {
             <div className="text-center sm:text-left">
               <h2 className="text-2xl font-bold">{user.name}</h2>
               <p className="text-muted-foreground">{user.email}</p>
-              {userRole && <Badge variant={userRole.id === 'super-user' ? 'destructive' : 'secondary'} className="mt-2">
+              {userRole && <Badge variant={userRole.id === 'super-admin' ? 'destructive' : 'secondary'} className="mt-2">
                 {userRole.name}
               </Badge>}
             </div>

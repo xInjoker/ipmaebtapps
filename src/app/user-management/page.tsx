@@ -216,7 +216,7 @@ export default function UserManagementPage() {
                       </TableCell>
                       <TableCell>{managedUser.email}</TableCell>
                       <TableCell>
-                        <Badge variant={managedUser.roleId === 'super-user' ? 'destructive' : 'secondary'}>
+                        <Badge variant={managedUser.roleId === 'super-admin' ? 'destructive' : 'secondary'}>
                           {userRole?.name || 'Unknown Role'}
                         </Badge>
                       </TableCell>
@@ -298,7 +298,7 @@ export default function UserManagementPage() {
                           {role.permissions.length > 0 ? role.permissions.map(p => (
                             <Badge variant="outline" key={p}>{formatPermissionName(p as Permission)}</Badge>
                           )) : <span className="text-muted-foreground">No permissions</span>}
-                           {role.id === 'super-user' && <Badge variant="outline">All</Badge>}
+                           {role.id === 'super-admin' && <Badge variant="outline">All</Badge>}
                         </div>
                       </TableCell>
                       <TableCell className="text-right">

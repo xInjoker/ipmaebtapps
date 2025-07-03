@@ -47,8 +47,8 @@ export const initialBranches: Branch[] = [
 
 export const initialRoles: Role[] = [
   { 
-    id: 'super-user', 
-    name: 'Super User', 
+    id: 'super-admin', 
+    name: 'Super Admin', 
     permissions: [...permissions],
     isEditable: false 
   },
@@ -67,7 +67,7 @@ export const initialRoles: Role[] = [
 ];
 
 export const initialUsers: User[] = [
-  { id: 1, name: 'Super User', email: 'superuser@example.com', roleId: 'super-user', branchId: 'hq', avatarUrl: 'https://placehold.co/40x40.png' },
+  { id: 1, name: 'Super Admin', email: 'superuser@example.com', roleId: 'super-admin', branchId: 'hq', avatarUrl: 'https://placehold.co/40x40.png' },
   { id: 2, name: 'Project Manager', email: 'pm@example.com', roleId: 'project-manager', branchId: 'branch-1', avatarUrl: 'https://placehold.co/40x40.png' },
   { id: 3, name: 'Jane Doe', email: 'jane.doe@example.com', roleId: 'project-manager', branchId: 'branch-1', avatarUrl: 'https://placehold.co/40x40.png' },
   { id: 4, name: 'John Smith', email: 'john.smith@example.com', roleId: 'project-manager', branchId: 'branch-2', avatarUrl: 'https://placehold.co/40x40.png' },
