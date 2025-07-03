@@ -123,36 +123,55 @@ export default function ProjectsPage() {
   const handleAddProject = () => {
     const assignedBranchId = isHqUser ? 'hq' : user?.branchId;
 
-    if (!newProject.contractNumber || !newProject.name || !newProject.client || !newProject.description || !newProject.value || !period || !duration || !assignedBranchId) {
+    if (
+      !newProject.contractNumber ||
+      !newProject.name ||
+      !newProject.client ||
+      !newProject.description ||
+      newProject.value <= 0 ||
+      !date?.from ||
+      !date.to
+    ) {
       toast({
-          variant: "destructive",
-          title: "Missing Information",
-          description: "Please fill out all project details, including the period.",
+        variant: 'destructive',
+        title: 'Missing Information',
+        description:
+          'Please fill out all fields, including a positive value and a complete date range.',
       });
       return;
     }
 
-    const newId = projects.length > 0 ? Math.max(...projects.map((p) => p.id)) + 1 : 1;
-    
+    if (!assignedBranchId) {
+      toast({
+        variant: 'destructive',
+        title: 'Authentication Error',
+        description: 'Could not determine user branch. Please try logging in again.',
+      });
+      return;
+    }
+
+    const newId =
+      projects.length > 0 ? Math.max(...projects.map((p) => p.id)) + 1 : 1;
+
     const projectToAdd: Omit<Project, 'branchId'> & { branchId: string } = {
-        ...newProject,
-        id: newId,
-        branchId: assignedBranchId,
-        period,
-        duration,
-        cost: 0,
-        invoiced: 0,
-        progress: 0,
-        invoices: [],
-        budgets: {},
-        expenditures: [],
+      ...newProject,
+      id: newId,
+      branchId: assignedBranchId,
+      period,
+      duration,
+      cost: 0,
+      invoiced: 0,
+      progress: 0,
+      invoices: [],
+      budgets: {},
+      expenditures: [],
     };
 
     setProjects([...projects, projectToAdd]);
     setIsDialogOpen(false);
     toast({
-        title: "Project Added",
-        description: `Project "${projectToAdd.name}" has been successfully created.`,
+      title: 'Project Added',
+      description: `Project "${projectToAdd.name}" has been successfully created.`,
     });
   };
 
