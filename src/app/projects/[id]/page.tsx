@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { use, useState } from 'react';
 import {
   Card,
   CardContent,
@@ -256,7 +256,7 @@ export default function ProjectDetailsPage({
     value: 0,
   });
 
-  const project = projects.find((p) => p.id === parseInt(params.id, 10));
+  const project = projects.find((p) => p.id === parseInt(use(params).id, 10));
 
   const handleAddInvoice = () => {
     if (
