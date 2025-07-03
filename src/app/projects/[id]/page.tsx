@@ -262,14 +262,16 @@ export default function ProjectDetailsPage({
     serviceCategory: string;
     description: string;
     status: 'Paid' | 'Invoiced' | 'Cancel' | 'Re-invoiced' | 'PAD';
-    period: string;
+    periodMonth: string;
+    periodYear: string;
     value: number;
   }>({
     spkNumber: '',
     serviceCategory: '',
     description: '',
     status: 'Invoiced',
-    period: '',
+    periodMonth: '',
+    periodYear: '',
     value: 0,
   });
 
@@ -281,14 +283,22 @@ export default function ProjectDetailsPage({
       newInvoice.spkNumber &&
       newInvoice.serviceCategory &&
       newInvoice.description &&
-      newInvoice.period &&
+      newInvoice.periodMonth &&
+      newInvoice.periodYear &&
       newInvoice.value > 0
     ) {
       const newId =
         project.invoices.length > 0
           ? Math.max(...project.invoices.map((i) => i.id)) + 1
           : 1;
-      const updatedInvoices = [...project.invoices, { ...newInvoice, id: newId }];
+
+      const { periodMonth, periodYear, ...restOfInvoice } = newInvoice;
+      const period = `${periodMonth} ${periodYear}`;
+
+      const updatedInvoices = [
+        ...project.invoices,
+        { ...restOfInvoice, id: newId, period },
+      ];
 
       const updatedProjects = projects.map((p) =>
         p.id === project.id ? { ...p, invoices: updatedInvoices } : p
@@ -300,7 +310,8 @@ export default function ProjectDetailsPage({
         serviceCategory: '',
         description: '',
         status: 'Invoiced',
-        period: '',
+        periodMonth: '',
+        periodYear: '',
         value: 0,
       });
       setIsDialogOpen(false);
@@ -585,18 +596,47 @@ export default function ProjectDetailsPage({
                       </Select>
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="period" className="text-right">
+                      <Label htmlFor="periodMonth" className="text-right">
                         Period
                       </Label>
-                      <Input
-                        id="period"
-                        value={newInvoice.period}
-                        onChange={(e) =>
-                          setNewInvoice({ ...newInvoice, period: e.target.value })
-                        }
-                        className="col-span-3"
-                        placeholder="e.g. January 2024"
-                      />
+                      <div className="col-span-3 grid grid-cols-2 gap-2">
+                        <Select
+                          value={newInvoice.periodMonth}
+                          onValueChange={(value) =>
+                            setNewInvoice({ ...newInvoice, periodMonth: value })
+                          }
+                        >
+                          <SelectTrigger id="periodMonth">
+                            <SelectValue placeholder="Select month" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="January">January</SelectItem>
+                            <SelectItem value="February">February</SelectItem>
+                            <SelectItem value="March">March</SelectItem>
+                            <SelectItem value="April">April</SelectItem>
+                            <SelectItem value="May">May</SelectItem>
+                            <SelectItem value="June">June</SelectItem>
+                            <SelectItem value="July">July</SelectItem>
+                            <SelectItem value="August">August</SelectItem>
+                            <SelectItem value="September">September</SelectItem>
+                            <SelectItem value="October">October</SelectItem>
+                            <SelectItem value="November">November</SelectItem>
+                            <SelectItem value="December">December</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Input
+                          id="periodYear"
+                          type="number"
+                          value={newInvoice.periodYear}
+                          onChange={(e) =>
+                            setNewInvoice({
+                              ...newInvoice,
+                              periodYear: e.target.value,
+                            })
+                          }
+                          placeholder="Year"
+                        />
+                      </div>
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                       <Label htmlFor="value" className="text-right">
