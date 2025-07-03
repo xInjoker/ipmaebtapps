@@ -8,7 +8,6 @@ import {
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Briefcase, Calendar, CircleDollarSign, Clock, User, MoreHorizontal } from 'lucide-react';
-import { ProjectFinancialsChart } from '@/components/project-financials-chart';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
@@ -29,6 +28,7 @@ import {
 
 type InvoiceItem = {
   id: number;
+  spkNumber: string;
   serviceCategory: string;
   status: 'Paid' | 'Invoiced' | 'Cancel' | 'Re-invoiced';
   period: string;
@@ -52,22 +52,22 @@ type Project = {
 
 const initialProjects: Project[] = [
     { id: 1, contractNumber: 'CN-001', name: 'Corporate Website Revamp', client: 'Acme Inc.', description: 'A complete overhaul of the corporate website to improve user experience and modernize the design.', value: 2500000000, cost: 1800000000, invoiced: 2000000000, period: '2024-2025', duration: '12 Months', progress: 75, invoices: [
-        { id: 1, serviceCategory: 'Design Phase', status: 'Paid', period: 'January 2024', value: 500000000 },
-        { id: 2, serviceCategory: 'Development - Sprint 1', status: 'Paid', period: 'April 2024', value: 750000000 },
-        { id: 3, serviceCategory: 'Development - Sprint 2', status: 'Invoiced', period: 'July 2024', value: 750000000 },
-        { id: 4, serviceCategory: 'Final Deployment', status: 'Invoiced', period: 'October 2024', value: 500000000 },
+        { id: 1, spkNumber: 'SPK-001', serviceCategory: 'Design Phase', status: 'Paid', period: 'January 2024', value: 500000000 },
+        { id: 2, spkNumber: 'SPK-002', serviceCategory: 'Development - Sprint 1', status: 'Paid', period: 'April 2024', value: 750000000 },
+        { id: 3, spkNumber: 'SPK-003', serviceCategory: 'Development - Sprint 2', status: 'Invoiced', period: 'July 2024', value: 750000000 },
+        { id: 4, spkNumber: 'SPK-004', serviceCategory: 'Final Deployment', status: 'Invoiced', period: 'October 2024', value: 500000000 },
     ]},
     { id: 2, contractNumber: 'CN-002', name: 'Mobile App Development', client: 'Stark Industries', description: 'Development of a new cross-platform mobile application for internal use.', value: 5000000000, cost: 3500000000, invoiced: 2500000000, period: '2024-2026', duration: '24 Months', progress: 40, invoices: [
-        { id: 1, serviceCategory: 'Discovery & Planning', status: 'Paid', period: 'February 2024', value: 1000000000 },
-        { id: 2, serviceCategory: 'UI/UX Design', status: 'Invoiced', period: 'May 2024', value: 1500000000 },
-        { id: 3, serviceCategory: 'Backend Development', status: 'Invoiced', period: 'August 2024', value: 1500000000 },
-        { id: 4, serviceCategory: 'Frontend Development', status: 'Cancel', period: 'November 2024', value: 1000000000 },
+        { id: 1, spkNumber: 'SPK-005', serviceCategory: 'Discovery & Planning', status: 'Paid', period: 'February 2024', value: 1000000000 },
+        { id: 2, spkNumber: 'SPK-006', serviceCategory: 'UI/UX Design', status: 'Invoiced', period: 'May 2024', value: 1500000000 },
+        { id: 3, spkNumber: 'SPK-007', serviceCategory: 'Backend Development', status: 'Invoiced', period: 'August 2024', value: 1500000000 },
+        { id: 4, spkNumber: 'SPK-008', serviceCategory: 'Frontend Development', status: 'Cancel', period: 'November 2024', value: 1000000000 },
     ]},
     { id: 3, contractNumber: 'CN-003', name: 'Data Analytics Platform', client: 'Wayne Enterprises', description: 'Building a scalable data platform to provide business intelligence insights.', value: 3200000000, cost: 2800000000, invoiced: 3000000000, period: '2023-2024', duration: '18 Months', progress: 90, invoices: [
-        { id: 1, serviceCategory: 'Infrastructure Setup', status: 'Paid', period: 'December 2023', value: 1000000000 },
-        { id: 2, serviceCategory: 'Data Pipeline', status: 'Paid', period: 'March 2024', value: 1500000000 },
-        { id: 3, serviceCategory: 'Dashboard Development', status: 'Re-invoiced', period: 'June 2024', value: 500000000 },
-        { id: 4, serviceCategory: 'User Training', status: 'Cancel', period: 'June 2024', value: 200000000 },
+        { id: 1, spkNumber: 'SPK-009', serviceCategory: 'Infrastructure Setup', status: 'Paid', period: 'December 2023', value: 1000000000 },
+        { id: 2, spkNumber: 'SPK-010', serviceCategory: 'Data Pipeline', status: 'Paid', period: 'March 2024', value: 1500000000 },
+        { id: 3, spkNumber: 'SPK-011', serviceCategory: 'Dashboard Development', status: 'Re-invoiced', period: 'June 2024', value: 500000000 },
+        { id: 4, spkNumber: 'SPK-012', serviceCategory: 'User Training', status: 'Cancel', period: 'June 2024', value: 200000000 },
     ]},
 ];
 
@@ -114,8 +114,8 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
             </div>
         </div>
         
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <Card className="lg:col-span-2">
+        <div className="grid grid-cols-1 gap-6">
+          <Card>
             <CardHeader>
                 <CardTitle>Project Details</CardTitle>
             </CardHeader>
@@ -185,14 +185,6 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
                 </div>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>Financials Overview</CardTitle>
-            </CardHeader>
-            <CardContent className="pt-4">
-              <ProjectFinancialsChart data={project} />
-            </CardContent>
-          </Card>
         </div>
 
         <div className="grid grid-cols-1 gap-6">
@@ -207,6 +199,8 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
                     <Table>
                       <TableHeader>
                         <TableRow>
+                          <TableHead>ID</TableHead>
+                          <TableHead>SPK Number</TableHead>
                           <TableHead>Service Category</TableHead>
                           <TableHead>Status</TableHead>
                           <TableHead>Period</TableHead>
@@ -217,6 +211,8 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
                       <TableBody>
                         {project.invoices?.map((invoice) => (
                           <TableRow key={invoice.id}>
+                            <TableCell>{invoice.id}</TableCell>
+                            <TableCell className="font-medium">{invoice.spkNumber}</TableCell>
                             <TableCell className="font-medium">{invoice.serviceCategory}</TableCell>
                             <TableCell>
                               <Badge
@@ -254,7 +250,7 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
                         ))}
                         {!project.invoices?.length && (
                           <TableRow>
-                            <TableCell colSpan={5} className="text-center">
+                            <TableCell colSpan={7} className="text-center">
                               No invoices found.
                             </TableCell>
                           </TableRow>
