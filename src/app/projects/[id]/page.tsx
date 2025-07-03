@@ -158,7 +158,7 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <Card>
                 <CardHeader>
-                    <CardTitle>Additional Details</CardTitle>
+                    <CardTitle>Invoicing Progress</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <p>This is a new container for additional project details.</p>
