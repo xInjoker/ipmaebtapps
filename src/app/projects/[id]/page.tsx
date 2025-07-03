@@ -127,7 +127,7 @@ export default function ProjectDetailsPage() {
     spkNumber: string;
     serviceCategory: string;
     description: string;
-    status: 'Paid' | 'Invoiced' | 'Cancel' | 'Re-invoiced' | 'PAD';
+    status: 'Paid' | 'Invoiced' | 'Cancel' | 'Re-invoiced' | 'PAD' | 'Document Preparation';
     periodMonth: string;
     periodYear: string;
     value: number;
@@ -137,7 +137,7 @@ export default function ProjectDetailsPage() {
     spkNumber: string;
     serviceCategory: string;
     description: string;
-    status: 'Paid' | 'Invoiced' | 'Cancel' | 'Re-invoiced' | 'PAD';
+    status: 'Paid' | 'Invoiced' | 'Cancel' | 'Re-invoiced' | 'PAD' | 'Document Preparation';
     periodMonth: string;
     periodYear: string;
     value: number;
@@ -609,13 +609,14 @@ export default function ProjectDetailsPage() {
                         <Select
                           value={newInvoice.status}
                           onValueChange={(
-                            value: 'Paid' | 'Invoiced' | 'Cancel' | 'Re-invoiced' | 'PAD'
+                            value: 'Paid' | 'Invoiced' | 'Cancel' | 'Re-invoiced' | 'PAD' | 'Document Preparation'
                           ) => setNewInvoice({ ...newInvoice, status: value })}
                         >
                           <SelectTrigger className="col-span-3">
                             <SelectValue placeholder="Select status" />
                           </SelectTrigger>
                           <SelectContent>
+                            <SelectItem value="Document Preparation">Document Preparation</SelectItem>
                             <SelectItem value="Paid">Paid</SelectItem>
                             <SelectItem value="PAD">PAD</SelectItem>
                             <SelectItem value="Invoiced">Invoiced</SelectItem>
@@ -734,6 +735,8 @@ export default function ProjectDetailsPage() {
                               ? 'destructive'
                               : invoice.status === 'Re-invoiced'
                               ? 'blue'
+                              : invoice.status === 'Document Preparation'
+                              ? 'purple'
                               : 'secondary'
                           }
                         >
@@ -1077,13 +1080,14 @@ export default function ProjectDetailsPage() {
                   <Select
                     value={editedInvoice.status}
                     onValueChange={(
-                      value: 'Paid' | 'Invoiced' | 'Cancel' | 'Re-invoiced' | 'PAD'
+                      value: 'Paid' | 'Invoiced' | 'Cancel' | 'Re-invoiced' | 'PAD' | 'Document Preparation'
                     ) => setEditedInvoice({ ...editedInvoice, status: value })}
                   >
                     <SelectTrigger className="col-span-3">
                       <SelectValue placeholder="Select status" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="Document Preparation">Document Preparation</SelectItem>
                       <SelectItem value="Paid">Paid</SelectItem>
                       <SelectItem value="PAD">PAD</SelectItem>
                       <SelectItem value="Invoiced">Invoiced</SelectItem>

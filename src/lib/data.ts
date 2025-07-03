@@ -3,7 +3,7 @@ export type InvoiceItem = {
   spkNumber: string;
   serviceCategory: string;
   description: string;
-  status: 'Paid' | 'Invoiced' | 'Cancel' | 'Re-invoiced' | 'PAD';
+  status: 'Paid' | 'Invoiced' | 'Cancel' | 'Re-invoiced' | 'PAD' | 'Document Preparation';
   period: string;
   value: number;
 };
