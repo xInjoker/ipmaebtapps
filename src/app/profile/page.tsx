@@ -61,9 +61,9 @@ export default function ProfilePage() {
             <div className="text-center sm:text-left">
               <h2 className="text-2xl font-bold">{user.name}</h2>
               <p className="text-muted-foreground">{user.email}</p>
-              <Badge variant={user.role === 'super-user' ? 'destructive' : 'secondary'} className="mt-2">
+              {user.role && <Badge variant={user.role === 'super-user' ? 'destructive' : 'secondary'} className="mt-2">
                 {user.role.replace('-', ' ')}
-              </Badge>
+              </Badge>}
             </div>
           </div>
         </CardContent>
