@@ -70,6 +70,18 @@ const expenditureCategories = [
     'Umum',
 ];
 
+const coaToCategoryMap: { [key: number]: string } = {
+    4000: 'PT dan PTT',
+    4100: 'PTT Project',
+    4200: 'Tenaga Ahli dan Labour Supply',
+    4300: 'Perjalanan Dinas',
+    4400: 'Operasional',
+    4500: 'Fasilitas dan Interen',
+    4600: 'Amortisasi',
+    4700: 'Kantor dan Diklat',
+    4800: 'Promosi',
+    4900: 'Umum',
+};
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat('id-ID', {
@@ -127,6 +139,22 @@ export default function ExpenditurePage() {
     setNewExpenditure({ ...newExpenditure, category: '' });
   };
 
+  const handleCoaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const coaValue = e.target.value;
+    const coaNumber = parseInt(coaValue, 10);
+
+    setNewExpenditure(prev => ({ ...prev, coa: coaValue }));
+
+    if (!isNaN(coaNumber) && coaValue.length >= 4) {
+      const truncatedCoa = Math.floor(coaNumber / 100) * 100;
+      const category = coaToCategoryMap[truncatedCoa];
+      if (category && expenditureCategories.includes(category)) {
+        setNewExpenditure(prev => ({ ...prev, coa: coaValue, category: category }));
+        setCustomCategory('');
+      }
+    }
+  };
+
 
   return (
     <Card>
@@ -175,6 +203,18 @@ export default function ExpenditurePage() {
                 </Select>
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="coa" className="text-right">
+                  COA
+                </Label>
+                <Input
+                  id="coa"
+                  value={newExpenditure.coa}
+                  onChange={handleCoaChange}
+                  className="col-span-3"
+                  placeholder="Enter COA to auto-fill category"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="category" className="text-right">
                   Category
                 </Label>
@@ -204,20 +244,6 @@ export default function ExpenditurePage() {
                   value={customCategory}
                   onChange={handleCustomCategoryChange}
                   className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="coa" className="text-right">
-                  COA
-                </Label>
-                <Input
-                  id="coa"
-                  value={newExpenditure.coa}
-                  onChange={(e) =>
-                    setNewExpenditure({ ...newExpenditure, coa: e.target.value })
-                  }
-                  className="col-span-3"
-                  placeholder="Enter COA"
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
