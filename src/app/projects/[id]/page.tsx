@@ -19,6 +19,7 @@ import {
   User,
   MoreHorizontal,
   PlusCircle,
+  FileDown,
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
@@ -288,6 +289,49 @@ export default function ProjectDetailsPage({
     }
   };
 
+  const handleExport = () => {
+    if (!project || !project.invoices) return;
+
+    const headers = [
+      'ID',
+      'SPK Number',
+      'Service Category',
+      'Status',
+      'Period',
+      'Value (IDR)',
+    ];
+    const csvRows = [headers.join(',')];
+
+    project.invoices.forEach((invoice) => {
+      // Escape commas and quotes in string fields
+      const spkNumber = `"${invoice.spkNumber.replace(/"/g, '""')}"`;
+      const serviceCategory = `"${invoice.serviceCategory.replace(/"/g, '""')}"`;
+
+      const row = [
+        invoice.id,
+        spkNumber,
+        serviceCategory,
+        invoice.status,
+        invoice.period,
+        invoice.value,
+      ].join(',');
+      csvRows.push(row);
+    });
+
+    const csvString = csvRows.join('\n');
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `invoices-${project.contractNumber}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   if (!project) {
     return (
       <div className="flex h-[calc(100vh-10rem)] flex-col items-center justify-center text-center">
@@ -430,109 +474,115 @@ export default function ProjectDetailsPage({
                 A detailed breakdown of all invoices for this project.
               </CardDescription>
             </div>
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  Add Invoice
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-md">
-                <DialogHeader>
-                  <DialogTitle>Add New Invoice</DialogTitle>
-                  <DialogDescription>
-                    Fill in the details for the new invoice.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="spkNumber" className="text-right">
-                      SPK Number
-                    </Label>
-                    <Input
-                      id="spkNumber"
-                      value={newInvoice.spkNumber}
-                      onChange={(e) =>
-                        setNewInvoice({ ...newInvoice, spkNumber: e.target.value })
-                      }
-                      className="col-span-3"
-                    />
+            <div className="flex items-center gap-2">
+              <Button variant="outline" onClick={handleExport}>
+                <FileDown className="mr-2 h-4 w-4" />
+                Export
+              </Button>
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Add Invoice
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Add New Invoice</DialogTitle>
+                    <DialogDescription>
+                      Fill in the details for the new invoice.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="spkNumber" className="text-right">
+                        SPK Number
+                      </Label>
+                      <Input
+                        id="spkNumber"
+                        value={newInvoice.spkNumber}
+                        onChange={(e) =>
+                          setNewInvoice({ ...newInvoice, spkNumber: e.target.value })
+                        }
+                        className="col-span-3"
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="serviceCategory" className="text-right">
+                        Service
+                      </Label>
+                      <Input
+                        id="serviceCategory"
+                        value={newInvoice.serviceCategory}
+                        onChange={(e) =>
+                          setNewInvoice({
+                            ...newInvoice,
+                            serviceCategory: e.target.value,
+                          })
+                        }
+                        className="col-span-3"
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="status" className="text-right">
+                        Status
+                      </Label>
+                      <Select
+                        value={newInvoice.status}
+                        onValueChange={(
+                          value: 'Paid' | 'Invoiced' | 'Cancel' | 'Re-invoiced' | 'PAD'
+                        ) => setNewInvoice({ ...newInvoice, status: value })}
+                      >
+                        <SelectTrigger className="col-span-3">
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Paid">Paid</SelectItem>
+                          <SelectItem value="PAD">PAD</SelectItem>
+                          <SelectItem value="Invoiced">Invoiced</SelectItem>
+                          <SelectItem value="Cancel">Cancel</SelectItem>
+                          <SelectItem value="Re-invoiced">Re-invoiced</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="period" className="text-right">
+                        Period
+                      </Label>
+                      <Input
+                        id="period"
+                        value={newInvoice.period}
+                        onChange={(e) =>
+                          setNewInvoice({ ...newInvoice, period: e.target.value })
+                        }
+                        className="col-span-3"
+                        placeholder="e.g. January 2024"
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="value" className="text-right">
+                        Value (IDR)
+                      </Label>
+                      <Input
+                        id="value"
+                        type="number"
+                        value={newInvoice.value || ''}
+                        onChange={(e) =>
+                          setNewInvoice({
+                            ...newInvoice,
+                            value: parseInt(e.target.value) || 0,
+                          })
+                        }
+                        className="col-span-3"
+                      />
+                    </div>
                   </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="serviceCategory" className="text-right">
-                      Service
-                    </Label>
-                    <Input
-                      id="serviceCategory"
-                      value={newInvoice.serviceCategory}
-                      onChange={(e) =>
-                        setNewInvoice({
-                          ...newInvoice,
-                          serviceCategory: e.target.value,
-                        })
-                      }
-                      className="col-span-3"
-                    />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="status" className="text-right">
-                      Status
-                    </Label>
-                    <Select
-                      value={newInvoice.status}
-                      onValueChange={(
-                        value: 'Paid' | 'Invoiced' | 'Cancel' | 'Re-invoiced' | 'PAD'
-                      ) => setNewInvoice({ ...newInvoice, status: value })}
-                    >
-                      <SelectTrigger className="col-span-3">
-                        <SelectValue placeholder="Select status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Paid">Paid</SelectItem>
-                        <SelectItem value="PAD">PAD</SelectItem>
-                        <SelectItem value="Invoiced">Invoiced</SelectItem>
-                        <SelectItem value="Cancel">Cancel</SelectItem>
-                        <SelectItem value="Re-invoiced">Re-invoiced</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="period" className="text-right">
-                      Period
-                    </Label>
-                    <Input
-                      id="period"
-                      value={newInvoice.period}
-                      onChange={(e) =>
-                        setNewInvoice({ ...newInvoice, period: e.target.value })
-                      }
-                      className="col-span-3"
-                      placeholder="e.g. January 2024"
-                    />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="value" className="text-right">
-                      Value (IDR)
-                    </Label>
-                    <Input
-                      id="value"
-                      type="number"
-                      value={newInvoice.value || ''}
-                      onChange={(e) =>
-                        setNewInvoice({
-                          ...newInvoice,
-                          value: parseInt(e.target.value) || 0,
-                        })
-                      }
-                      className="col-span-3"
-                    />
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button onClick={handleAddInvoice}>Add Invoice</Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+                  <DialogFooter>
+                    <Button onClick={handleAddInvoice}>Add Invoice</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
           </CardHeader>
           <CardContent>
             <Table>
