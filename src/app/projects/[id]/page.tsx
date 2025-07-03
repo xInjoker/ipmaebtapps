@@ -413,7 +413,7 @@ export default function ProjectDetailsPage({
       : 0;
 
   const totalPad = project.invoices
-    .filter((invoice) => invoice.status === 'Paid' || invoice.status === 'PAD')
+    .filter((invoice) => invoice.status === 'PAD')
     .reduce((acc, invoice) => acc + invoice.value, 0);
 
   return (
