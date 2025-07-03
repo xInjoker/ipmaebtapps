@@ -9,8 +9,7 @@ import {
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Briefcase, Calendar, CircleDollarSign, Clock, User } from 'lucide-react';
-import { PieChart, Pie, Cell } from 'recharts';
-import { ChartContainer } from '@/components/ui/chart';
+import { ProjectProgressChart } from '@/components/project-progress-chart';
 
 type Project = {
   id: number;
@@ -57,11 +56,6 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
       </div>
     );
   }
-
-  const progressData = [
-    { name: 'Completed', value: project.progress, color: 'hsl(var(--primary))' },
-    { name: 'Remaining', value: 100 - project.progress, color: 'hsl(var(--secondary))' },
-  ];
 
   return (
     <div className="space-y-6">
@@ -139,30 +133,7 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
                             </div>
                         </div>
                         <div className="flex items-center justify-center pt-6">
-                            <div className="relative flex h-[160px] w-[160px] items-center justify-center">
-                                <ChartContainer config={{}} className="absolute inset-0">
-                                    <PieChart>
-                                        <Pie
-                                            data={progressData}
-                                            dataKey="value"
-                                            nameKey="name"
-                                            innerRadius={65}
-                                            outerRadius={75}
-                                            startAngle={90}
-                                            endAngle={450}
-                                            strokeWidth={0}
-                                        >
-                                            {progressData.map((entry, index) => (
-                                                <Cell key={`cell-${index}`} fill={entry.color} />
-                                            ))}
-                                        </Pie>
-                                    </PieChart>
-                                </ChartContainer>
-                                <div className="flex flex-col items-center">
-                                    <span className="text-3xl font-bold font-headline">{project.progress}%</span>
-                                    <span className="text-sm text-muted-foreground">Completed</span>
-                                </div>
-                            </div>
+                            <ProjectProgressChart progress={project.progress} />
                         </div>
                     </div>
                 </div>
