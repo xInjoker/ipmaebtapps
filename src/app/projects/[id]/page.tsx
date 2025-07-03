@@ -189,7 +189,7 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6">
             <Card>
                 <CardHeader>
                     <CardTitle>Invoicing Progress</CardTitle>
@@ -237,14 +237,6 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
                         )}
                       </TableBody>
                     </Table>
-                </CardContent>
-            </Card>
-            <Card>
-                <CardHeader>
-                    <CardTitle>New Placeholder</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <p>This is another new container for more details.</p>
                 </CardContent>
             </Card>
         </div>
