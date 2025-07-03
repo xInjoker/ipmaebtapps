@@ -166,6 +166,20 @@ export default function ProjectDetailsPage() {
     amount: 0,
     status: 'Approved' as 'Approved' | 'Pending' | 'Rejected',
   });
+  
+  const [isEditExpenditureDialogOpen, setIsEditExpenditureDialogOpen] = useState(false);
+  const [expenditureToEdit, setExpenditureToEdit] = useState<ExpenditureItem | null>(null);
+  const [editedExpenditure, setEditedExpenditure] = useState<{
+    id: string;
+    category: string;
+    coa: string;
+    description: string;
+    month: string;
+    year: string;
+    amount: number;
+    status: 'Approved' | 'Pending' | 'Rejected';
+  } | null>(null);
+
 
   const project = projects.find((p) => p.id === parseInt(params.id as string, 10));
 
@@ -255,6 +269,19 @@ export default function ProjectDetailsPage() {
       setEditedInvoice(null);
     }
   }, [invoiceToEdit]);
+  
+  useEffect(() => {
+    if (expenditureToEdit) {
+      const [month, year] = expenditureToEdit.period.split(' ');
+      setEditedExpenditure({
+        ...expenditureToEdit,
+        month: month || '',
+        year: year || '',
+      });
+    } else {
+      setEditedExpenditure(null);
+    }
+  }, [expenditureToEdit]);
 
   const handleAddInvoice = () => {
     if (
@@ -429,6 +456,33 @@ export default function ProjectDetailsPage() {
     }
     setNewExpenditure(prev => ({ ...prev, coa: coaValue, category: categoryToSet }));
   };
+  
+  const handleEditExpenditureClick = (expenditure: ExpenditureItem) => {
+    setExpenditureToEdit(expenditure);
+    setIsEditExpenditureDialogOpen(true);
+  };
+  
+  const handleUpdateExpenditure = () => {
+    if (!project || !editedExpenditure) return;
+
+    const { month, year, ...restOfExpenditure } = editedExpenditure;
+    const period = `${month} ${year}`;
+    
+    const updatedExpenditureData = { ...restOfExpenditure, period };
+
+    const updatedExpenditures = project.expenditures.map((exp) =>
+      exp.id === editedExpenditure.id ? updatedExpenditureData : exp
+    );
+
+    const updatedProjects = projects.map((p) =>
+      p.id === project.id ? { ...p, expenditures: updatedExpenditures } : p
+    );
+
+    setProjects(updatedProjects);
+    setIsEditExpenditureDialogOpen(false);
+    setExpenditureToEdit(null);
+  };
+
 
   if (!project) {
     return (
@@ -1064,6 +1118,7 @@ export default function ProjectDetailsPage() {
                       <TableHead>COA</TableHead>
                       <TableHead>Period</TableHead>
                       <TableHead className="text-right">Amount</TableHead>
+                      <TableHead className="text-right">Action</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -1075,11 +1130,24 @@ export default function ProjectDetailsPage() {
                         <TableCell>{item.coa}</TableCell>
                         <TableCell>{item.period}</TableCell>
                         <TableCell className="text-right">{formatCurrency(item.amount)}</TableCell>
+                        <TableCell className="text-right">
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="h-8 w-8 p-0">
+                                    <span className="sr-only">Open menu</span>
+                                    <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                <DropdownMenuItem onSelect={() => handleEditExpenditureClick(item)}>Edit</DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </TableCell>
                       </TableRow>
                     ))}
                     {!project.expenditures?.length && (
                       <TableRow>
-                        <TableCell colSpan={6} className="text-center">
+                        <TableCell colSpan={7} className="text-center">
                           No expenditures found.
                         </TableCell>
                       </TableRow>
@@ -1240,6 +1308,145 @@ export default function ProjectDetailsPage() {
               </DialogFooter>
             </>
           )}
+        </DialogContent>
+      </Dialog>
+      
+      {/* Edit Expenditure Dialog */}
+      <Dialog open={isEditExpenditureDialogOpen} onOpenChange={setIsEditExpenditureDialogOpen}>
+        <DialogContent className="sm:max-w-lg">
+        {editedExpenditure && project && (
+            <>
+            <DialogHeader>
+                <DialogTitle>Edit Expenditure</DialogTitle>
+                <DialogDescription>
+                Update the details for this expenditure.
+                </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="editExpProjectName" className="text-right">
+                        Project
+                    </Label>
+                    <Input id="editExpProjectName" value={project.name} disabled className="col-span-3" />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="editExpCoa" className="text-right">
+                    COA
+                    </Label>
+                    <Input
+                    id="editExpCoa"
+                    value={editedExpenditure.coa}
+                    onChange={(e) => setEditedExpenditure({ ...editedExpenditure, coa: e.target.value })}
+                    className="col-span-3"
+                    placeholder="Enter COA"
+                    />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="editExpCategory" className="text-right">
+                    Category
+                    </Label>
+                    <Select
+                        value={editedExpenditure.category}
+                        onValueChange={(value) => setEditedExpenditure({ ...editedExpenditure, category: value })}
+                    >
+                        <SelectTrigger className="col-span-3">
+                            <SelectValue placeholder="Select a category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                        {budgetedCategories.map((category) => (
+                            <SelectItem key={category} value={category}>
+                            {category}
+                            </SelectItem>
+                        ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="editExpPeriodMonth" className="text-right">
+                    Period
+                    </Label>
+                    <div className="col-span-3 grid grid-cols-2 gap-2">
+                        <Select
+                            value={editedExpenditure.month}
+                            onValueChange={(value) => setEditedExpenditure({ ...editedExpenditure, month: value })}
+                        >
+                            <SelectTrigger id="editExpPeriodMonth">
+                            <SelectValue placeholder="Month" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="January">January</SelectItem>
+                                <SelectItem value="February">February</SelectItem>
+                                <SelectItem value="March">March</SelectItem>
+                                <SelectItem value="April">April</SelectItem>
+                                <SelectItem value="May">May</SelectItem>
+                                <SelectItem value="June">June</SelectItem>
+                                <SelectItem value="July">July</SelectItem>
+                                <SelectItem value="August">August</SelectItem>
+                                <SelectItem value="September">September</SelectItem>
+                                <SelectItem value="October">October</SelectItem>
+                                <SelectItem value="November">November</SelectItem>
+                                <SelectItem value="December">December</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <Input
+                            id="editExpPeriodYear"
+                            type="number"
+                            placeholder="Year"
+                            value={editedExpenditure.year}
+                            onChange={(e) => setEditedExpenditure({ ...editedExpenditure, year: e.target.value })}
+                        />
+                    </div>
+                </div>
+                <div className="grid grid-cols-4 items-start gap-4">
+                    <Label htmlFor="editExpDescription" className="text-right pt-2">
+                        Description
+                    </Label>
+                    <Textarea
+                        id="editExpDescription"
+                        value={editedExpenditure.description}
+                        onChange={(e) => setEditedExpenditure({ ...editedExpenditure, description: e.target.value })}
+                        className="col-span-3"
+                        rows={3}
+                    />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="editExpAmount" className="text-right">
+                    Amount (IDR)
+                    </Label>
+                    <Input
+                    id="editExpAmount"
+                    type="number"
+                    value={editedExpenditure.amount || ''}
+                    onChange={(e) => setEditedExpenditure({ ...editedExpenditure, amount: parseInt(e.target.value) || 0 })}
+                    className="col-span-3"
+                    />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="editExpStatus" className="text-right">
+                    Status
+                    </Label>
+                    <Select
+                        value={editedExpenditure.status}
+                        onValueChange={(value: 'Approved' | 'Pending' | 'Rejected') =>
+                            setEditedExpenditure({ ...editedExpenditure, status: value })
+                        }
+                    >
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Approved">Approved</SelectItem>
+                      <SelectItem value="Pending">Pending</SelectItem>
+                      <SelectItem value="Rejected">Rejected</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+            </div>
+            <DialogFooter>
+                <Button onClick={handleUpdateExpenditure}>Save Changes</Button>
+            </DialogFooter>
+            </>
+        )}
         </DialogContent>
       </Dialog>
     </div>
