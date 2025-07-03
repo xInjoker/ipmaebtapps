@@ -67,6 +67,12 @@ export const initialRoles: Role[] = [
     ],
     isEditable: true,
   },
+  {
+    id: 'staff',
+    name: 'Staff',
+    permissions: ['view-dashboard', 'view-profile'],
+    isEditable: true,
+  },
 ];
 
 export const initialUsers: User[] = [

@@ -58,45 +58,65 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     try {
+      // Roles
+      const storedRolesString = localStorage.getItem('roles');
+      let loadedRoles: Role[] = storedRolesString ? JSON.parse(storedRolesString) : initialRoles;
+
+      // Ensure default roles exist, preserving custom roles.
+      initialRoles.forEach(initialRole => {
+        if (!loadedRoles.some(loadedRole => loadedRole.id === initialRole.id)) {
+          loadedRoles.push(initialRole);
+        }
+      });
+      setRoles(loadedRoles);
+      localStorage.setItem('roles', JSON.stringify(loadedRoles));
+      
+      const validRoleIds = new Set(loadedRoles.map(r => r.id));
+
+      // Users
+      const storedUsersString = localStorage.getItem('users');
+      let loadedUsers: User[] = storedUsersString ? JSON.parse(storedUsersString) : initialUsers;
+      
+      let usersDataWasUpdated = false;
+      const validatedUsers = loadedUsers.map(u => {
+        if (!validRoleIds.has(u.roleId)) {
+          usersDataWasUpdated = true;
+          return { ...u, roleId: 'staff' };
+        }
+        return u;
+      });
+
+      if (usersDataWasUpdated) {
+        localStorage.setItem('users', JSON.stringify(validatedUsers));
+      }
+      setUsers(validatedUsers);
+
+      // Current User
       const storedUserString = localStorage.getItem('user');
       if (storedUserString) {
-        const userObject = JSON.parse(storedUserString);
-        // Check for new schema with roleId to prevent issues with stale localStorage data
-        if (userObject.roleId) {
-          setUser(userObject);
-        } else {
-          // If roleId doesn't exist, it's an old schema. Force re-login.
-          localStorage.removeItem('user');
-          setUser(null);
+        let userObject: User = JSON.parse(storedUserString);
+        if (!validRoleIds.has(userObject.roleId)) {
+          userObject.roleId = 'staff';
+          localStorage.setItem('user', JSON.stringify(userObject));
         }
+        setUser(userObject);
       }
 
-      const storedUsers = localStorage.getItem('users');
-      if (storedUsers) {
-        setUsers(JSON.parse(storedUsers));
-      } else {
-        setUsers(initialUsers);
-        localStorage.setItem('users', JSON.stringify(initialUsers));
-      }
-
-      const storedRoles = localStorage.getItem('roles');
-      if (storedRoles) {
-        setRoles(JSON.parse(storedRoles));
-      } else {
-        setRoles(initialRoles);
-        localStorage.setItem('roles', JSON.stringify(initialRoles));
-      }
-
-      // Always set branches from initialBranches to ensure it's up to date.
+      // Branches
       setBranches(initialBranches);
       localStorage.setItem('branches', JSON.stringify(initialBranches));
 
     } catch (error) {
-      console.error('Failed to parse from localStorage', error);
+      console.error('Failed to initialize from localStorage', error);
+      // Reset to defaults on parsing error
+      localStorage.setItem('roles', JSON.stringify(initialRoles));
+      setRoles(initialRoles);
+      localStorage.setItem('users', JSON.stringify(initialUsers));
+      setUsers(initialUsers);
       localStorage.removeItem('user');
-      localStorage.removeItem('users');
-      localStorage.removeItem('roles');
-      localStorage.removeItem('branches');
+      setUser(null);
+      localStorage.setItem('branches', JSON.stringify(initialBranches));
+      setBranches(initialBranches);
     } finally {
       setIsInitializing(false);
     }
@@ -107,6 +127,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const userToLogin = allUsers.find((u) => u.email === email);
 
     if (userToLogin && pass) {
+      const userRoleExists = roles.some(r => r.id === userToLogin.roleId);
+      if (!userRoleExists) {
+        userToLogin.roleId = 'staff';
+      }
+      
       localStorage.setItem('user', JSON.stringify(userToLogin));
       setUser(userToLogin);
       router.push('/');
