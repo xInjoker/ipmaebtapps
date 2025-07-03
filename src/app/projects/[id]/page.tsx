@@ -7,7 +7,7 @@ import {
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Briefcase, Calendar, CircleDollarSign, Clock, User } from 'lucide-react';
-import { ProjectProgressChart } from '@/components/project-progress-chart';
+import { ProjectFinancialsChart } from '@/components/project-financials-chart';
 
 type Project = {
   id: number;
@@ -135,10 +135,10 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle>Project Progress</CardTitle>
+              <CardTitle>Financials Overview</CardTitle>
             </CardHeader>
-            <CardContent className="flex h-full items-center justify-center pt-6">
-              <ProjectProgressChart progress={project.progress} />
+            <CardContent className="pt-4">
+              <ProjectFinancialsChart data={project} />
             </CardContent>
           </Card>
         </div>
