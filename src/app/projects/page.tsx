@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -396,8 +397,8 @@ export default function ProjectsPage() {
               </div>
             </CardContent>
             <CardFooter>
-              <Button variant="outline" className="w-full">
-                View Details
+               <Button variant="outline" className="w-full" asChild>
+                <Link href={`/projects/${project.id}`}>View Details</Link>
               </Button>
             </CardFooter>
           </Card>
