@@ -143,14 +143,24 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
             </CardContent>
         </Card>
 
-        <Card>
-            <CardHeader>
-                <CardTitle>Additional Details</CardTitle>
-            </CardHeader>
-            <CardContent>
-                <p>This is a new container for additional project details.</p>
-            </CardContent>
-        </Card>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Additional Details</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p>This is a new container for additional project details.</p>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader>
+                    <CardTitle>New Placeholder</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p>This is another new container for more details.</p>
+                </CardContent>
+            </Card>
+        </div>
     </div>
   );
 }
