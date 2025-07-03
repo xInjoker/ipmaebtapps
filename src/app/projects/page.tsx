@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import {
@@ -47,15 +47,26 @@ export default function ProjectsPage() {
   });
   const [date, setDate] = useState<DateRange | undefined>(undefined);
 
-  const totalProjectValue = projects.reduce((acc, project) => acc + project.value, 0);
-  const totalCost = projects.reduce((acc, project) => acc + project.cost, 0);
-  const totalInvoiced = projects.reduce((acc, project) => acc + project.invoiced, 0);
-  const totalPaid = projects.reduce((acc, project) => {
-    const projectPaid = project.invoices
-      .filter((invoice) => invoice.status === 'Paid' || invoice.status === 'PAD')
-      .reduce((invoiceAcc, invoice) => invoiceAcc + invoice.value, 0);
-    return acc + projectPaid;
-  }, 0);
+  const { totalProjectValue, totalCost, totalInvoiced, totalPaid } = useMemo(() => {
+    const totalProjectValue = projects.reduce(
+      (acc, project) => acc + project.value,
+      0
+    );
+    const totalCost = projects.reduce((acc, project) => acc + project.cost, 0);
+    const totalInvoiced = projects.reduce(
+      (acc, project) => acc + project.invoiced,
+      0
+    );
+    const totalPaid = projects.reduce((acc, project) => {
+      const projectPaid = project.invoices
+        .filter((invoice) => invoice.status === 'Paid' || invoice.status === 'PAD')
+        .reduce((invoiceAcc, invoice) => invoiceAcc + invoice.value, 0);
+      return acc + projectPaid;
+    }, 0);
+
+    return { totalProjectValue, totalCost, totalInvoiced, totalPaid };
+  }, [projects]);
+
 
   useEffect(() => {
     if (date?.from && date?.to) {
