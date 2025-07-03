@@ -12,6 +12,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
+import { getInitials, getAvatarColor } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 
 export function UserNav() {
   const { user, logout } = useAuth();
@@ -20,25 +22,21 @@ export function UserNav() {
     return null;
   }
 
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map((n) => n[0])
-      .join('')
-      .toUpperCase();
-  };
+  const avatarColor = getAvatarColor(user.name);
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-9 w-9 rounded-full">
           <Avatar className="h-9 w-9">
-            <AvatarImage
-              src={user.avatarUrl}
-              alt="User avatar"
-              data-ai-hint="user avatar"
-            />
-            <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+            {user.avatarUrl ? (
+              <AvatarImage src={user.avatarUrl} alt={user.name} />
+            ) : null}
+            <AvatarFallback
+              className={cn(avatarColor.background, avatarColor.text)}
+            >
+              {getInitials(user.name)}
+            </AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>

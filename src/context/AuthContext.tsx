@@ -9,7 +9,16 @@ import {
   useCallback,
 } from 'react';
 import { useRouter } from 'next/navigation';
-import { initialUsers, initialRoles, type User, type Role, type Permission, permissions, type Branch, initialBranches } from '@/lib/users';
+import {
+  initialUsers,
+  initialRoles,
+  type User,
+  type Role,
+  type Permission,
+  permissions,
+  type Branch,
+  initialBranches,
+} from '@/lib/users';
 import { useToast } from '@/hooks/use-toast';
 
 type AuthContextType = {
@@ -22,7 +31,10 @@ type AuthContextType = {
   updateUser: (userId: number, data: Partial<User>) => void;
   updateUserRole: (userId: number, newRoleId: string) => void;
   addRole: (roleData: { name: string; permissions: Permission[] }) => void;
-  updateRole: (roleId: string, roleData: { name: string; permissions: Permission[] }) => void;
+  updateRole: (
+    roleId: string,
+    roleData: { name: string; permissions: Permission[] }
+  ) => void;
   deleteRole: (roleId: string) => void;
   userHasPermission: (permission: Permission) => boolean;
   isHqUser: boolean;
@@ -73,7 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setRoles(initialRoles);
         localStorage.setItem('roles', JSON.stringify(initialRoles));
       }
-      
+
       const storedBranches = localStorage.getItem('branches');
       if (storedBranches) {
         setBranches(JSON.parse(storedBranches));
@@ -81,7 +93,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setBranches(initialBranches);
         localStorage.setItem('branches', JSON.stringify(initialBranches));
       }
-
     } catch (error) {
       console.error('Failed to parse from localStorage', error);
       localStorage.removeItem('user');
@@ -95,44 +106,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = (email: string, pass: string) => {
     const allUsers = users.length > 0 ? users : initialUsers;
-    const userToLogin = allUsers.find(u => u.email === email);
+    const userToLogin = allUsers.find((u) => u.email === email);
 
-    if (userToLogin && pass) { 
+    if (userToLogin && pass) {
       localStorage.setItem('user', JSON.stringify(userToLogin));
       setUser(userToLogin);
       router.push('/');
     } else {
       toast({
-        variant: "destructive",
-        title: "Login Failed",
-        description: "Invalid email or password.",
+        variant: 'destructive',
+        title: 'Login Failed',
+        description: 'Invalid email or password.',
       });
     }
   };
-  
+
   const register = (name: string, email: string, pass: string) => {
-    if (users.some(u => u.email === email)) {
+    if (users.some((u) => u.email === email)) {
       toast({
-        variant: "destructive",
-        title: "Registration Failed",
-        description: "A user with this email already exists.",
+        variant: 'destructive',
+        title: 'Registration Failed',
+        description: 'A user with this email already exists.',
       });
       return;
     }
 
     const newUser: User = {
-        id: users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 1,
-        name,
-        email,
-        roleId: 'project-manager',
-        branchId: 'branch-1', // Default new users to branch 1
-        avatarUrl: `https://placehold.co/40x40.png`,
+      id: users.length > 0 ? Math.max(...users.map((u) => u.id)) + 1 : 1,
+      name,
+      email,
+      roleId: 'project-manager',
+      branchId: 'branch-1', // Default new users to branch 1
+      avatarUrl: '',
     };
 
     const updatedUsers = [...users, newUser];
     setUsers(updatedUsers);
     localStorage.setItem('users', JSON.stringify(updatedUsers));
-    
+
     localStorage.setItem('user', JSON.stringify(newUser));
     setUser(newUser);
     router.push('/');
@@ -145,7 +156,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const updateUser = (userId: number, data: Partial<User>) => {
-    const updatedUsers = users.map(u => (u.id === userId ? { ...u, ...data } : u));
+    const updatedUsers = users.map((u) =>
+      u.id === userId ? { ...u, ...data } : u
+    );
     setUsers(updatedUsers);
     localStorage.setItem('users', JSON.stringify(updatedUsers));
     // If the updated user is the current user, update the user state as well
@@ -172,44 +185,56 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('roles', JSON.stringify(updatedRoles));
   };
 
-  const updateRole = (roleId: string, roleData: { name: string; permissions: Permission[] }) => {
-    const updatedRoles = roles.map(r => r.id === roleId ? { ...r, ...roleData } : r);
+  const updateRole = (
+    roleId: string,
+    roleData: { name: string; permissions: Permission[] }
+  ) => {
+    const updatedRoles = roles.map((r) =>
+      r.id === roleId ? { ...r, ...roleData } : r
+    );
     setRoles(updatedRoles);
     localStorage.setItem('roles', JSON.stringify(updatedRoles));
   };
 
   const deleteRole = (roleId: string) => {
-    const roleToDelete = roles.find(r => r.id === roleId);
+    const roleToDelete = roles.find((r) => r.id === roleId);
     if (!roleToDelete || !roleToDelete.isEditable) {
       toast({ variant: 'destructive', title: 'Cannot delete this role.' });
       return;
     }
 
-    const isRoleInUse = users.some(u => u.roleId === roleId);
+    const isRoleInUse = users.some((u) => u.roleId === roleId);
     if (isRoleInUse) {
-      toast({ variant: 'destructive', title: 'Cannot delete role', description: 'This role is currently assigned to one or more users.' });
+      toast({
+        variant: 'destructive',
+        title: 'Cannot delete role',
+        description: 'This role is currently assigned to one or more users.',
+      });
       return;
     }
 
-    const updatedRoles = roles.filter(r => r.id !== roleId);
+    const updatedRoles = roles.filter((r) => r.id !== roleId);
     setRoles(updatedRoles);
     localStorage.setItem('roles', JSON.stringify(updatedRoles));
   };
 
-  const userHasPermission = useCallback((permission: Permission): boolean => {
-    if (!user) return false;
-    return true;
-  }, [user]);
+  const userHasPermission = useCallback(
+    (permission: Permission): boolean => {
+      if (!user) return false;
+      return true;
+    },
+    [user]
+  );
 
   const isAuthenticated = !isInitializing && !!user;
   const isHqUser = user?.branchId === 'hq';
 
   return (
     <AuthContext.Provider
-      value={{ 
-        isAuthenticated, 
-        user, 
-        users, 
+      value={{
+        isAuthenticated,
+        user,
+        users,
         roles,
         branches,
         permissions,
@@ -220,10 +245,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         deleteRole,
         userHasPermission,
         isHqUser,
-        isInitializing, 
-        login, 
-        register, 
-        logout 
+        isInitializing,
+        login,
+        register,
+        logout,
       }}
     >
       {children}

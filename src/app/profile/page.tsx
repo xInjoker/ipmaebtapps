@@ -15,6 +15,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Camera } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { getInitials, getAvatarColor } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 
 export default function ProfilePage() {
   const { user, roles, branches } = useAuth();
@@ -22,17 +24,11 @@ export default function ProfilePage() {
   if (!user) {
     return null; // Or a loading state
   }
-  
-  const userRole = roles.find(r => r.id === user.roleId);
-  const userBranch = branches.find(b => b.id === user.branchId);
 
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map((n) => n[0])
-      .join('')
-      .toUpperCase();
-  };
+  const userRole = roles.find((r) => r.id === user.roleId);
+  const userBranch = branches.find((b) => b.id === user.branchId);
+
+  const avatarColor = getAvatarColor(user.name);
 
   return (
     <div className="space-y-6">
@@ -47,8 +43,16 @@ export default function ProfilePage() {
           <div className="flex flex-col items-center gap-4 sm:flex-row">
             <div className="relative">
               <Avatar className="h-24 w-24">
-                <AvatarImage src={user.avatarUrl} alt={user.name} data-ai-hint="user avatar" />
-                <AvatarFallback className="text-3xl">
+                {user.avatarUrl ? (
+                  <AvatarImage src={user.avatarUrl} alt={user.name} />
+                ) : null}
+                <AvatarFallback
+                  className={cn(
+                    'text-3xl',
+                    avatarColor.background,
+                    avatarColor.text
+                  )}
+                >
                   {getInitials(user.name)}
                 </AvatarFallback>
               </Avatar>
@@ -64,9 +68,16 @@ export default function ProfilePage() {
             <div className="text-center sm:text-left">
               <h2 className="text-2xl font-bold">{user.name}</h2>
               <p className="text-muted-foreground">{user.email}</p>
-              {userRole && <Badge variant={userRole.id === 'super-admin' ? 'destructive' : 'secondary'} className="mt-2">
-                {userRole.name}
-              </Badge>}
+              {userRole && (
+                <Badge
+                  variant={
+                    userRole.id === 'super-admin' ? 'destructive' : 'secondary'
+                  }
+                  className="mt-2"
+                >
+                  {userRole.name}
+                </Badge>
+              )}
             </div>
           </div>
         </CardContent>
@@ -87,7 +98,12 @@ export default function ProfilePage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email Address</Label>
-              <Input id="email" type="email" defaultValue={user.email} disabled />
+              <Input
+                id="email"
+                type="email"
+                defaultValue={user.email}
+                disabled
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="role">Role</Label>
@@ -95,7 +111,11 @@ export default function ProfilePage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="officeLocation">Office Location</Label>
-              <Input id="officeLocation" defaultValue={userBranch?.name} disabled />
+              <Input
+                id="officeLocation"
+                defaultValue={userBranch?.name}
+                disabled
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="bio">Bio</Label>
@@ -106,8 +126,8 @@ export default function ProfilePage() {
                 defaultValue="I am a Project Manager with over 5 years of experience in the tech industry."
               />
             </div>
-             <div className="flex justify-end">
-                <Button>Save Changes</Button>
+            <div className="flex justify-end">
+              <Button>Save Changes</Button>
             </div>
           </CardContent>
         </Card>
@@ -132,8 +152,8 @@ export default function ProfilePage() {
               <Label htmlFor="confirmPassword">Confirm New Password</Label>
               <Input id="confirmPassword" type="password" />
             </div>
-             <div className="flex justify-end">
-                <Button variant="secondary">Update Password</Button>
+            <div className="flex justify-end">
+              <Button variant="secondary">Update Password</Button>
             </div>
           </CardContent>
         </Card>
