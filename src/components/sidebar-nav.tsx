@@ -11,26 +11,31 @@ import {
   SidebarMenuSubItem,
   SidebarMenuSubButton,
 } from '@/components/ui/sidebar';
-
-const menuItems = [
-  { href: '/', label: 'Dashboard', icon: LayoutDashboard },
-  {
-    href: '/projects',
-    label: 'Projects',
-    icon: Briefcase,
-  },
-  { href: '/finances', label: 'Finances', icon: DollarSign },
-  { href: '/sanity-checker', label: 'AI Sanity Check', icon: BrainCircuit },
-];
+import { initialProjects } from '@/lib/data';
 
 export function SidebarNav() {
   const pathname = usePathname();
+
+  const menuItems = [
+    { href: '/', label: 'Dashboard', icon: LayoutDashboard },
+    {
+      href: '/projects',
+      label: 'Projects',
+      icon: Briefcase,
+      subItems: initialProjects.map((project) => ({
+        href: `/projects/${project.id}`,
+        label: project.contractNumber,
+      })),
+    },
+    { href: '/finances', label: 'Finances', icon: DollarSign },
+    { href: '/sanity-checker', label: 'AI Sanity Check', icon: BrainCircuit },
+  ];
 
   return (
     <SidebarMenu>
       {menuItems.map((item) => {
         const isMainActive = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
-        const areSubItemsActive = item.subItems?.some((sub) => pathname.startsWith(sub.href)) ?? false;
+        const areSubItemsActive = item.subItems?.some((sub) => pathname === sub.href) ?? false;
         const isActive = isMainActive || areSubItemsActive;
 
         return (
@@ -52,7 +57,7 @@ export function SidebarNav() {
                   <SidebarMenuSubItem key={subItem.href}>
                     <SidebarMenuSubButton
                       asChild
-                      isActive={pathname.startsWith(subItem.href)}
+                      isActive={pathname === subItem.href}
                     >
                       <Link href={subItem.href}>
                         <span>{subItem.label}</span>
