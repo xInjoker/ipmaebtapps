@@ -310,6 +310,10 @@ export default function ProjectDetailsPage({
       ? Math.round((project.invoiced / project.value) * 100)
       : 0;
 
+  const totalPad = project.invoices
+    .filter((invoice) => invoice.status === 'Paid' || invoice.status === 'PAD')
+    .reduce((acc, invoice) => acc + invoice.value, 0);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
@@ -390,6 +394,15 @@ export default function ProjectDetailsPage({
                     <p className="font-medium">
                       {formatCurrency(project.invoiced)}
                     </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <CircleDollarSign className="mt-0.5 h-5 w-5 flex-shrink-0 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">
+                      Total PAD
+                    </p>
+                    <p className="font-medium">{formatCurrency(totalPad)}</p>
                   </div>
                 </div>
               </div>
