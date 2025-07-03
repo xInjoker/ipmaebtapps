@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BrainCircuit, Briefcase, LayoutDashboard } from 'lucide-react';
+import { BrainCircuit, Briefcase, LayoutDashboard, User } from 'lucide-react';
 import {
   SidebarMenu,
   SidebarMenuItem,
@@ -29,6 +29,7 @@ export function SidebarNav() {
       })),
     },
     { href: '/sanity-checker', label: 'AI Sanity Check', icon: BrainCircuit },
+    { href: '/profile', label: 'Profile', icon: User },
   ];
 
   return (
