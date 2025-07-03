@@ -257,10 +257,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const userHasPermission = useCallback(
     (permission: Permission): boolean => {
-      if (!user) return false;
-      return true;
+      if (!user) {
+        return false;
+      }
+      const userRole = roles.find((r) => r.id === user.roleId);
+      if (!userRole) {
+        return false;
+      }
+      if (userRole.id === 'super-admin') {
+        return true;
+      }
+      return userRole.permissions.includes(permission);
     },
-    [user]
+    [user, roles]
   );
 
   const isAuthenticated = !isInitializing && !!user;
