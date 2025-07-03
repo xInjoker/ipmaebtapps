@@ -87,7 +87,6 @@ export default function ProjectsPage() {
     value: 0,
     period: '',
     duration: '',
-    progress: 0,
   });
   const [date, setDate] = useState<DateRange | undefined>(undefined);
 
@@ -131,8 +130,8 @@ export default function ProjectsPage() {
   const handleAddProject = () => {
     if (newProject.name && newProject.client && newProject.description && newProject.value > 0 && newProject.contractNumber && newProject.period && newProject.duration) {
       const newId = projects.length > 0 ? Math.max(...projects.map((p) => p.id)) + 1 : 1;
-      setProjects([...projects, { ...newProject, id: newId, cost: 0, invoiced: 0, invoices: [] }]);
-      setNewProject({ contractNumber: '', name: '', client: '', description: '', value: 0, period: '', duration: '', progress: 0 });
+      setProjects([...projects, { ...newProject, id: newId, cost: 0, invoiced: 0, progress: 0, invoices: [] }]);
+      setNewProject({ contractNumber: '', name: '', client: '', description: '', value: 0, period: '', duration: '' });
       setDate(undefined);
       setIsDialogOpen(false);
     }
@@ -355,21 +354,6 @@ export default function ProjectsPage() {
                   className="col-span-3"
                   placeholder="Calculated automatically"
                   readOnly
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="progress" className="text-right">
-                  Progress (%)
-                </Label>
-                <Input
-                  id="progress"
-                  type="number"
-                  value={newProject.progress || ''}
-                  onChange={(e) => setNewProject({ ...newProject, progress: parseInt(e.target.value) || 0 })}
-                  className="col-span-3"
-                  placeholder="e.g. 75"
-                  min="0"
-                  max="100"
                 />
               </div>
             </div>
