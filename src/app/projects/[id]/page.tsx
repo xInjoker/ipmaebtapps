@@ -60,7 +60,7 @@ type InvoiceItem = {
   id: number;
   spkNumber: string;
   serviceCategory: string;
-  status: 'Paid' | 'Invoiced' | 'Cancel' | 'Re-invoiced';
+  status: 'Paid' | 'Invoiced' | 'Cancel' | 'Re-invoiced' | 'PAD';
   period: string;
   value: number;
 };
@@ -245,7 +245,7 @@ export default function ProjectDetailsPage({
   const [newInvoice, setNewInvoice] = useState<{
     spkNumber: string;
     serviceCategory: string;
-    status: 'Paid' | 'Invoiced' | 'Cancel' | 'Re-invoiced';
+    status: 'Paid' | 'Invoiced' | 'Cancel' | 'Re-invoiced' | 'PAD';
     period: string;
     value: number;
   }>({
@@ -468,7 +468,7 @@ export default function ProjectDetailsPage({
                     <Select
                       value={newInvoice.status}
                       onValueChange={(
-                        value: 'Paid' | 'Invoiced' | 'Cancel' | 'Re-invoiced'
+                        value: 'Paid' | 'Invoiced' | 'Cancel' | 'Re-invoiced' | 'PAD'
                       ) => setNewInvoice({ ...newInvoice, status: value })}
                     >
                       <SelectTrigger className="col-span-3">
@@ -476,6 +476,7 @@ export default function ProjectDetailsPage({
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="Paid">Paid</SelectItem>
+                        <SelectItem value="PAD">PAD</SelectItem>
                         <SelectItem value="Invoiced">Invoiced</SelectItem>
                         <SelectItem value="Cancel">Cancel</SelectItem>
                         <SelectItem value="Re-invoiced">Re-invoiced</SelectItem>
@@ -546,7 +547,7 @@ export default function ProjectDetailsPage({
                     <TableCell>
                       <Badge
                         variant={
-                          invoice.status === 'Paid'
+                          invoice.status === 'Paid' || invoice.status === 'PAD'
                             ? 'default'
                             : invoice.status === 'Invoiced'
                             ? 'secondary'

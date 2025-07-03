@@ -35,7 +35,7 @@ type InvoiceItem = {
   id: number;
   spkNumber: string;
   serviceCategory: string;
-  status: 'Paid' | 'Invoiced' | 'Cancel' | 'Re-invoiced';
+  status: 'Paid' | 'Invoiced' | 'Cancel' | 'Re-invoiced' | 'PAD';
   period: string;
   value: number;
 };
@@ -96,7 +96,7 @@ export default function ProjectsPage() {
   const totalInvoiced = projects.reduce((acc, project) => acc + project.invoiced, 0);
   const totalPaid = projects.reduce((acc, project) => {
     const projectPaid = project.invoices
-      .filter((invoice) => invoice.status === 'Paid')
+      .filter((invoice) => invoice.status === 'Paid' || invoice.status === 'PAD')
       .reduce((invoiceAcc, invoice) => invoiceAcc + invoice.value, 0);
     return acc + projectPaid;
   }, 0);
