@@ -6,6 +6,7 @@ import {
   useContext,
   ReactNode,
   useEffect,
+  useCallback,
 } from 'react';
 import { useRouter } from 'next/navigation';
 import { initialUsers, initialRoles, type User, type Role, type Permission, permissions } from '@/lib/users';
@@ -40,9 +41,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     try {
-      const storedUser = localStorage.getItem('user');
-      if (storedUser) {
-        setUser(JSON.parse(storedUser));
+      const storedUserString = localStorage.getItem('user');
+      if (storedUserString) {
+        const userObject = JSON.parse(storedUserString);
+        // Check for new schema with roleId to prevent issues with stale localStorage data
+        if (userObject.roleId) {
+          setUser(userObject);
+        } else {
+          // If roleId doesn't exist, it's an old schema. Force re-login.
+          localStorage.removeItem('user');
+          setUser(null);
+        }
       }
 
       const storedUsers = localStorage.getItem('users');
@@ -163,7 +172,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('roles', JSON.stringify(updatedRoles));
   };
 
-  const userHasPermission = (permission: Permission): boolean => {
+  const userHasPermission = useCallback((permission: Permission): boolean => {
     if (!user) return false;
     if (user.roleId === 'super-user') return true;
 
@@ -171,7 +180,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!userRole) return false;
 
     return userRole.permissions.includes(permission);
-  };
+  }, [user, roles]);
 
   const isAuthenticated = !isInitializing && !!user;
 
