@@ -123,8 +123,10 @@ export default function ProjectsPage() {
   const handleAddProject = () => {
     const projectData = { ...newProject };
 
-    if (!isHqUser && user) {
-      projectData.branchId = user.branchId;
+    if (isHqUser) {
+        projectData.branchId = 'hq';
+    } else if (user) {
+        projectData.branchId = user.branchId;
     }
     
     if (projectData.name && projectData.client && projectData.description && projectData.value > 0 && projectData.contractNumber && period && duration && projectData.branchId) {
@@ -238,28 +240,6 @@ export default function ProjectsPage() {
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
-              {isHqUser && (
-                 <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="branch" className="text-right">
-                        Branch
-                    </Label>
-                    <Select
-                        value={newProject.branchId}
-                        onValueChange={(value) => setNewProject({ ...newProject, branchId: value })}
-                    >
-                        <SelectTrigger className="col-span-3">
-                        <SelectValue placeholder="Select a branch" />
-                        </SelectTrigger>
-                        <SelectContent>
-                        {branches.filter(b => b.id !== 'hq').map((branch) => (
-                            <SelectItem key={branch.id} value={branch.id}>
-                            {branch.name}
-                            </SelectItem>
-                        ))}
-                        </SelectContent>
-                    </Select>
-                 </div>
-              )}
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="contractNumber" className="text-right">
                   Contract No.
@@ -443,5 +423,3 @@ export default function ProjectsPage() {
     </div>
   );
 }
-
-    
