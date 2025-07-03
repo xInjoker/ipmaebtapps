@@ -353,56 +353,59 @@ export default function ProjectsPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {projects.map((project) => (
-          <Card key={project.id}>
-            <CardHeader>
-              <CardTitle className="font-headline">{project.name}</CardTitle>
-              <CardDescription>{project.description}</CardDescription>
-            </CardHeader>
-            <CardContent className="pt-4">
-              <div className="space-y-4">
-                <div className="flex justify-between text-sm">
-                    <p className="text-muted-foreground">Client</p>
-                    <p className="font-medium">{project.client}</p>
-                </div>
-                 <div className="flex justify-between text-sm">
-                    <p className="text-muted-foreground">Contract No.</p>
-                    <p className="font-medium">{project.contractNumber}</p>
-                </div>
-                 <div className="flex justify-between text-sm">
-                    <p className="text-muted-foreground">Period</p>
-                    <p className="font-medium">{project.period}</p>
-                </div>
-                 <div className="flex justify-between text-sm">
-                    <p className="text-muted-foreground">Duration</p>
-                    <p className="font-medium">{project.duration}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Contract Value</p>
-                  <p className="text-2xl font-bold text-primary">
-                    {new Intl.NumberFormat('id-ID', {
-                      style: 'currency',
-                      currency: 'IDR',
-                      minimumFractionDigits: 0,
-                    }).format(project.value)}
-                  </p>
-                </div>
-                <div>
-                  <div className="flex justify-between items-baseline mb-1">
-                    <p className="text-sm text-muted-foreground">Progress</p>
-                    <p className="text-sm font-semibold">{project.progress}%</p>
+        {projects.map((project) => {
+          const progress = project.value > 0 ? Math.round((project.invoiced / project.value) * 100) : 0;
+          return (
+            <Card key={project.id}>
+              <CardHeader>
+                <CardTitle className="font-headline">{project.name}</CardTitle>
+                <CardDescription>{project.description}</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-4">
+                <div className="space-y-4">
+                  <div className="flex justify-between text-sm">
+                      <p className="text-muted-foreground">Client</p>
+                      <p className="font-medium">{project.client}</p>
                   </div>
-                  <Progress value={project.progress} className="h-2" />
+                   <div className="flex justify-between text-sm">
+                      <p className="text-muted-foreground">Contract No.</p>
+                      <p className="font-medium">{project.contractNumber}</p>
+                  </div>
+                   <div className="flex justify-between text-sm">
+                      <p className="text-muted-foreground">Period</p>
+                      <p className="font-medium">{project.period}</p>
+                  </div>
+                   <div className="flex justify-between text-sm">
+                      <p className="text-muted-foreground">Duration</p>
+                      <p className="font-medium">{project.duration}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Contract Value</p>
+                    <p className="text-2xl font-bold text-primary">
+                      {new Intl.NumberFormat('id-ID', {
+                        style: 'currency',
+                        currency: 'IDR',
+                        minimumFractionDigits: 0,
+                      }).format(project.value)}
+                    </p>
+                  </div>
+                  <div>
+                    <div className="flex justify-between items-baseline mb-1">
+                      <p className="text-sm text-muted-foreground">Progress</p>
+                      <p className="text-sm font-semibold">{progress}%</p>
+                    </div>
+                    <Progress value={progress} className="h-2" />
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-            <CardFooter>
-               <Button variant="outline" className="w-full" asChild>
-                <Link href={`/projects/${project.id}`}>View Details</Link>
-              </Button>
-            </CardFooter>
-          </Card>
-        ))}
+              </CardContent>
+              <CardFooter>
+                 <Button variant="outline" className="w-full" asChild>
+                  <Link href={`/projects/${project.id}`}>View Details</Link>
+                </Button>
+              </CardFooter>
+            </Card>
+          );
+        })}
       </div>
     </div>
   );

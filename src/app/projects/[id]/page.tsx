@@ -8,6 +8,8 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Briefcase, Calendar, CircleDollarSign, Clock, User } from 'lucide-react';
 import { ProjectFinancialsChart } from '@/components/project-financials-chart';
+import { Progress } from '@/components/ui/progress';
+import { Separator } from '@/components/ui/separator';
 
 type Project = {
   id: number;
@@ -54,6 +56,8 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
       </div>
     );
   }
+
+  const progress = project.value > 0 ? Math.round((project.invoiced / project.value) * 100) : 0;
 
   return (
     <div className="space-y-6">
@@ -130,6 +134,14 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
                             </div>
                         </div>
                     </div>
+                </div>
+                <Separator className="my-6" />
+                <div>
+                  <div className="flex justify-between items-baseline mb-2">
+                    <p className="text-sm text-muted-foreground">Progress (by Invoiced Amount)</p>
+                    <p className="text-lg font-semibold">{progress}%</p>
+                  </div>
+                  <Progress value={progress} className="h-3" />
                 </div>
             </CardContent>
           </Card>
