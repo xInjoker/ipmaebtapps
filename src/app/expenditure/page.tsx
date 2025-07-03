@@ -49,12 +49,26 @@ type ExpenditureItem = {
 };
 
 const initialExpenditureData: ExpenditureItem[] = [
-    { id: 'EXP-001', project: 'Corporate Website Revamp', category: 'Marketing', date: '2024-07-15', amount: 15000000, status: 'Approved' },
-    { id: 'EXP-002', project: 'Mobile App Development', category: 'Software Licensing', date: '2024-07-14', amount: 35000000, status: 'Approved' },
-    { id: 'EXP-003', project: 'Data Analytics Platform', category: 'Hardware', date: '2024-07-13', amount: 75000000, status: 'Pending' },
-    { id: 'EXP-004', project: 'Corporate Website Revamp', category: 'Consulting Fees', date: '2024-07-12', amount: 50000000, status: 'Approved' },
-    { id: 'EXP-005', project: 'Mobile App Development', category: 'Cloud Services', date: '2024-07-11', amount: 25000000, status: 'Rejected' },
+    { id: 'EXP-001', project: 'Corporate Website Revamp', category: 'Tenaga Ahli dan Labour Supply', date: '2024-07-15', amount: 15000000, status: 'Approved' },
+    { id: 'EXP-002', project: 'Mobile App Development', category: 'Operasional', date: '2024-07-14', amount: 35000000, status: 'Approved' },
+    { id: 'EXP-003', project: 'Data Analytics Platform', category: 'Perjalanan Dinas', date: '2024-07-13', amount: 7500000, status: 'Pending' },
+    { id: 'EXP-004', project: 'Corporate Website Revamp', category: 'Promosi', date: '2024-07-12', amount: 50000000, status: 'Approved' },
+    { id: 'EXP-005', project: 'Mobile App Development', category: 'Fasilitas dan Interen', date: '2024-07-11', amount: 25000000, status: 'Rejected' },
 ];
+
+const expenditureCategories = [
+    'PT dan PTT',
+    'PTT Project',
+    'Tenaga Ahli dan Labour Supply',
+    'Perjalanan Dinas',
+    'Operasional',
+    'Fasilitas dan Interen',
+    'Amortisasi',
+    'Kantor dan Diklat',
+    'Promosi',
+    'Umum',
+];
+
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat('id-ID', {
@@ -134,13 +148,23 @@ export default function ExpenditurePage() {
                 <Label htmlFor="category" className="text-right">
                   Category
                 </Label>
-                <Input
-                  id="category"
+                <Select
                   value={newExpenditure.category}
-                  onChange={(e) => setNewExpenditure({ ...newExpenditure, category: e.target.value })}
-                  className="col-span-3"
-                  placeholder="e.g., Software Licensing"
-                />
+                  onValueChange={(value) =>
+                    setNewExpenditure({ ...newExpenditure, category: value })
+                  }
+                >
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Select a category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {expenditureCategories.map((category) => (
+                      <SelectItem key={category} value={category}>
+                        {category}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="date" className="text-right">
