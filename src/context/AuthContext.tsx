@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -136,7 +137,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       name,
       email,
       roleId: 'project-manager',
-      branchId: 'branch-1', // Default new users to branch 1
+      branchId: 'jakarta', // Default new users to jakarta branch
       avatarUrl: '',
     };
 

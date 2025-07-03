@@ -41,8 +41,11 @@ export type Branch = {
 
 export const initialBranches: Branch[] = [
   { id: 'hq', name: 'Headquarters' },
-  { id: 'branch-1', name: 'Branch Office 1' },
-  { id: 'branch-2', name: 'Branch Office 2' },
+  { id: 'samarinda', name: 'Cabang Samarinda' },
+  { id: 'balikpapan', name: 'Cabang Balikpapan' },
+  { id: 'jakarta', name: 'Cabang Jakarta' },
+  { id: 'surabaya', name: 'Cabang Surabaya' },
+  { id: 'pekanbaru', name: 'Cabang Pekanbaru' },
 ];
 
 export const initialRoles: Role[] = [
@@ -68,7 +71,7 @@ export const initialRoles: Role[] = [
 
 export const initialUsers: User[] = [
   { id: 1, name: 'Super Admin', email: 'superuser@example.com', roleId: 'super-admin', branchId: 'hq', avatarUrl: '' },
-  { id: 2, name: 'Project Manager', email: 'pm@example.com', roleId: 'project-manager', branchId: 'branch-1', avatarUrl: '' },
-  { id: 3, name: 'Jane Doe', email: 'jane.doe@example.com', roleId: 'project-manager', branchId: 'branch-1', avatarUrl: '' },
-  { id: 4, name: 'John Smith', email: 'john.smith@example.com', roleId: 'project-manager', branchId: 'branch-2', avatarUrl: '' },
+  { id: 2, name: 'Project Manager', email: 'pm@example.com', roleId: 'project-manager', branchId: 'jakarta', avatarUrl: '' },
+  { id: 3, name: 'Jane Doe', email: 'jane.doe@example.com', roleId: 'project-manager', branchId: 'jakarta', avatarUrl: '' },
+  { id: 4, name: 'John Smith', email: 'john.smith@example.com', roleId: 'project-manager', branchId: 'surabaya', avatarUrl: '' },
 ];

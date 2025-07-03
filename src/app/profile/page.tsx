@@ -1,5 +1,7 @@
+
 'use client';
 
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -17,17 +19,48 @@ import { Camera } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { getInitials, getAvatarColor } from '@/lib/utils';
 import { cn } from '@/lib/utils';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
 
 export default function ProfilePage() {
-  const { user, roles, branches } = useAuth();
+  const { user, roles, branches, updateUser } = useAuth();
+  const { toast } = useToast();
+
+  const [fullName, setFullName] = useState(user?.name || '');
+  const [selectedBranch, setSelectedBranch] = useState(user?.branchId || '');
+  const [bio, setBio] = useState(
+    'I am a Project Manager with over 5 years of experience in the tech industry.'
+  );
+
+  useEffect(() => {
+    if (user) {
+      setFullName(user.name);
+      setSelectedBranch(user.branchId);
+    }
+  }, [user]);
 
   if (!user) {
     return null; // Or a loading state
   }
 
-  const userRole = roles.find((r) => r.id === user.roleId);
-  const userBranch = branches.find((b) => b.id === user.branchId);
+  const handleSaveChanges = () => {
+    if (user) {
+      updateUser(user.id, { name: fullName, branchId: selectedBranch });
+      // Note: 'bio' is not part of the User model in AuthContext, so changes to it are not persisted.
+      toast({
+        title: 'Profile Updated',
+        description: 'Your personal information has been saved.',
+      });
+    }
+  };
 
+  const userRole = roles.find((r) => r.id === user.roleId);
   const avatarColor = getAvatarColor(user.name);
 
   return (
@@ -94,7 +127,11 @@ export default function ProfilePage() {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="fullName">Full Name</Label>
-              <Input id="fullName" defaultValue={user.name} />
+              <Input
+                id="fullName"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email Address</Label>
@@ -111,11 +148,18 @@ export default function ProfilePage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="officeLocation">Office Location</Label>
-              <Input
-                id="officeLocation"
-                defaultValue={userBranch?.name}
-                disabled
-              />
+              <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+                <SelectTrigger id="officeLocation">
+                  <SelectValue placeholder="Select your branch" />
+                </SelectTrigger>
+                <SelectContent>
+                  {branches.map((branch) => (
+                    <SelectItem key={branch.id} value={branch.id}>
+                      {branch.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="bio">Bio</Label>
@@ -123,11 +167,12 @@ export default function ProfilePage() {
                 id="bio"
                 placeholder="Tell us a little about yourself."
                 rows={4}
-                defaultValue="I am a Project Manager with over 5 years of experience in the tech industry."
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
               />
             </div>
             <div className="flex justify-end">
-              <Button>Save Changes</Button>
+              <Button onClick={handleSaveChanges}>Save Changes</Button>
             </div>
           </CardContent>
         </Card>
