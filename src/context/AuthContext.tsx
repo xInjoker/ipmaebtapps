@@ -8,14 +8,20 @@ import {
   useEffect,
 } from 'react';
 import { useRouter } from 'next/navigation';
-import { initialUsers, type User, type UserRole } from '@/lib/users';
+import { initialUsers, initialRoles, type User, type Role, type Permission, permissions } from '@/lib/users';
 import { useToast } from '@/hooks/use-toast';
 
 type AuthContextType = {
   isAuthenticated: boolean;
   user: User | null;
   users: User[];
-  updateUserRole: (userId: number, newRole: UserRole) => void;
+  roles: Role[];
+  permissions: readonly Permission[];
+  updateUserRole: (userId: number, newRoleId: string) => void;
+  addRole: (roleData: { name: string; permissions: Permission[] }) => void;
+  updateRole: (roleId: string, roleData: { name: string; permissions: Permission[] }) => void;
+  deleteRole: (roleId: string) => void;
+  userHasPermission: (permission: Permission) => boolean;
   isInitializing: boolean;
   login: (email: string, pass: string) => void;
   register: (name: string, email: string, pass: string) => void;
@@ -27,6 +33,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [users, setUsers] = useState<User[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
   const [isInitializing, setIsInitializing] = useState(true);
   const router = useRouter();
   const { toast } = useToast();
@@ -37,6 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (storedUser) {
         setUser(JSON.parse(storedUser));
       }
+
       const storedUsers = localStorage.getItem('users');
       if (storedUsers) {
         setUsers(JSON.parse(storedUsers));
@@ -44,20 +52,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUsers(initialUsers);
         localStorage.setItem('users', JSON.stringify(initialUsers));
       }
+
+      const storedRoles = localStorage.getItem('roles');
+      if (storedRoles) {
+        setRoles(JSON.parse(storedRoles));
+      } else {
+        setRoles(initialRoles);
+        localStorage.setItem('roles', JSON.stringify(initialRoles));
+      }
+
     } catch (error) {
       console.error('Failed to parse from localStorage', error);
       localStorage.removeItem('user');
       localStorage.removeItem('users');
+      localStorage.removeItem('roles');
     } finally {
       setIsInitializing(false);
     }
   }, []);
 
   const login = (email: string, pass: string) => {
-    // Mock login logic, find user by email from the managed list
-    const userToLogin = users.find(u => u.email === email);
+    const allUsers = users.length > 0 ? users : initialUsers;
+    const userToLogin = allUsers.find(u => u.email === email);
 
-    if (userToLogin && pass) { // In real app, you'd check password hash
+    if (userToLogin && pass) { 
       localStorage.setItem('user', JSON.stringify(userToLogin));
       setUser(userToLogin);
       router.push('/');
@@ -84,7 +102,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         id: users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 1,
         name,
         email,
-        role: 'project-manager', // New users are project managers by default
+        roleId: 'project-manager',
         avatarUrl: `https://placehold.co/40x40.png`,
     };
 
@@ -92,8 +110,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUsers(updatedUsers);
     localStorage.setItem('users', JSON.stringify(updatedUsers));
     
-    // In a real app you'd store the password hash.
-    // For this mock, we just log them in after registration.
     localStorage.setItem('user', JSON.stringify(newUser));
     setUser(newUser);
     router.push('/');
@@ -105,17 +121,78 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.push('/login');
   };
 
-  const updateUserRole = (userId: number, newRole: UserRole) => {
-    const updatedUsers = users.map(u => u.id === userId ? { ...u, role: newRole } : u);
+  const updateUserRole = (userId: number, newRoleId: string) => {
+    const updatedUsers = users.map(u => u.id === userId ? { ...u, roleId: newRoleId } : u);
     setUsers(updatedUsers);
     localStorage.setItem('users', JSON.stringify(updatedUsers));
+  };
+
+  const addRole = (roleData: { name: string; permissions: Permission[] }) => {
+    const newRole: Role = {
+      id: `custom-role-${Date.now()}`,
+      name: roleData.name,
+      permissions: roleData.permissions,
+      isEditable: true,
+    };
+    const updatedRoles = [...roles, newRole];
+    setRoles(updatedRoles);
+    localStorage.setItem('roles', JSON.stringify(updatedRoles));
+  };
+
+  const updateRole = (roleId: string, roleData: { name: string; permissions: Permission[] }) => {
+    const updatedRoles = roles.map(r => r.id === roleId ? { ...r, ...roleData } : r);
+    setRoles(updatedRoles);
+    localStorage.setItem('roles', JSON.stringify(updatedRoles));
+  };
+
+  const deleteRole = (roleId: string) => {
+    const roleToDelete = roles.find(r => r.id === roleId);
+    if (!roleToDelete || !roleToDelete.isEditable) {
+      toast({ variant: 'destructive', title: 'Cannot delete this role.' });
+      return;
+    }
+
+    const isRoleInUse = users.some(u => u.roleId === roleId);
+    if (isRoleInUse) {
+      toast({ variant: 'destructive', title: 'Cannot delete role', description: 'This role is currently assigned to one or more users.' });
+      return;
+    }
+
+    const updatedRoles = roles.filter(r => r.id !== roleId);
+    setRoles(updatedRoles);
+    localStorage.setItem('roles', JSON.stringify(updatedRoles));
+  };
+
+  const userHasPermission = (permission: Permission): boolean => {
+    if (!user) return false;
+    if (user.roleId === 'super-user') return true;
+
+    const userRole = roles.find(r => r.id === user.roleId);
+    if (!userRole) return false;
+
+    return userRole.permissions.includes(permission);
   };
 
   const isAuthenticated = !isInitializing && !!user;
 
   return (
     <AuthContext.Provider
-      value={{ isAuthenticated, user, users, updateUserRole, isInitializing, login, register, logout }}
+      value={{ 
+        isAuthenticated, 
+        user, 
+        users, 
+        roles,
+        permissions,
+        updateUserRole,
+        addRole,
+        updateRole,
+        deleteRole,
+        userHasPermission,
+        isInitializing, 
+        login, 
+        register, 
+        logout 
+      }}
     >
       {children}
     </AuthContext.Provider>

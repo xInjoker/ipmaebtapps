@@ -14,14 +14,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Camera } from 'lucide-react';
-import { Badge } from '@/components/ui/badge'; // Import Badge
+import { Badge } from '@/components/ui/badge';
 
 export default function ProfilePage() {
-  const { user } = useAuth();
+  const { user, roles } = useAuth();
 
   if (!user) {
     return null; // Or a loading state
   }
+  
+  const userRole = roles.find(r => r.id === user.roleId);
 
   const getInitials = (name: string) => {
     return name
@@ -61,8 +63,8 @@ export default function ProfilePage() {
             <div className="text-center sm:text-left">
               <h2 className="text-2xl font-bold">{user.name}</h2>
               <p className="text-muted-foreground">{user.email}</p>
-              {user.role && <Badge variant={user.role === 'super-user' ? 'destructive' : 'secondary'} className="mt-2">
-                {user.role.replace('-', ' ')}
+              {userRole && <Badge variant={userRole.id === 'super-user' ? 'destructive' : 'secondary'} className="mt-2">
+                {userRole.name}
               </Badge>}
             </div>
           </div>

@@ -8,7 +8,7 @@ import {
   LayoutDashboard,
   Settings,
   User,
-  Users, // Import Users icon
+  Users,
 } from 'lucide-react';
 import {
   SidebarMenu,
@@ -19,45 +19,51 @@ import {
   SidebarMenuSubButton,
 } from '@/components/ui/sidebar';
 import { useProjects } from '@/context/ProjectContext';
-import { useAuth } from '@/context/AuthContext'; // Import useAuth
+import { useAuth } from '@/context/AuthContext';
+import { type Permission } from '@/lib/users';
+
+interface MenuItem {
+    href: string;
+    label: string;
+    icon: React.ElementType;
+    permission: Permission;
+    subItems?: { href: string; label: string; }[];
+}
 
 export function SidebarNav() {
   const pathname = usePathname();
   const { projects } = useProjects();
-  const { user } = useAuth(); // Get user from auth context
+  const { userHasPermission } = useAuth();
 
-  const menuItems: any[] = [
-    { href: '/', label: 'Dashboard', icon: LayoutDashboard },
+  const menuItems: MenuItem[] = [
+    { href: '/', label: 'Dashboard', icon: LayoutDashboard, permission: 'view-dashboard' },
     {
       href: '/projects',
       label: 'Projects',
       icon: Briefcase,
+      permission: 'manage-projects',
       subItems: projects.map((project) => ({
         href: `/projects/${project.id}`,
         label: project.contractNumber,
       })),
     },
-    { href: '/sanity-checker', label: 'AI Sanity Check', icon: BrainCircuit },
-  ];
-
-  // Conditionally add User Management link
-  if (user?.role === 'super-user') {
-    menuItems.push({
+    { href: '/sanity-checker', label: 'AI Sanity Check', icon: BrainCircuit, permission: 'view-ai-sanity-check' },
+    {
       href: '/user-management',
       label: 'User Management',
       icon: Users,
-    });
-  }
+      permission: 'manage-users',
+    },
+    { href: '/settings', label: 'Settings', icon: Settings, permission: 'view-settings' },
+    { href: '/profile', label: 'Profile', icon: User, permission: 'view-profile' }
+  ];
 
-  // Add settings and profile at the end
-  menuItems.push(
-    { href: '/settings', label: 'Settings', icon: Settings },
-    { href: '/profile', label: 'Profile', icon: User }
-  );
+  const accessibleMenuItems = menuItems.filter(item => userHasPermission(item.permission));
+
 
   return (
     <SidebarMenu>
-      {menuItems.map((item) => {
+      {accessibleMenuItems.map((item) => {
         const isMainActive =
           item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
         const areSubItemsActive =
