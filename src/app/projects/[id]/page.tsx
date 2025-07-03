@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import { useParams } from 'next/navigation';
 import {
   Card,
   CardContent,
@@ -114,11 +115,8 @@ const categoryToCoaMap: { [key: string]: string } = {
     'Umum': '4900',
 };
 
-export default function ProjectDetailsPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+export default function ProjectDetailsPage() {
+  const params = useParams<{ id: string }>();
   const [projects, setProjects] = useState(initialProjects);
   const [isAddInvoiceDialogOpen, setIsAddInvoiceDialogOpen] = useState(false);
   const [isEditInvoiceDialogOpen, setIsEditInvoiceDialogOpen] = useState(false);
