@@ -31,6 +31,14 @@ import { format } from 'date-fns';
 import { DateRange } from 'react-day-picker';
 import { Textarea } from '@/components/ui/textarea';
 
+type InvoiceItem = {
+  id: number;
+  serviceCategory: string;
+  status: 'Paid' | 'Pending' | 'Overdue';
+  period: string;
+  value: number;
+};
+
 type Project = {
   id: number;
   contractNumber: string;
@@ -43,12 +51,28 @@ type Project = {
   period: string;
   duration: string;
   progress: number;
+  invoices: InvoiceItem[];
 };
 
 const initialProjects: Project[] = [
-  { id: 1, contractNumber: 'CN-001', name: 'Corporate Website Revamp', client: 'Acme Inc.', description: 'A complete overhaul of the corporate website to improve user experience and modernize the design.', value: 2500000000, cost: 1800000000, invoiced: 2000000000, period: '2024-2025', duration: '12 Months', progress: 75 },
-  { id: 2, contractNumber: 'CN-002', name: 'Mobile App Development', client: 'Stark Industries', description: 'Development of a new cross-platform mobile application for internal use.', value: 5000000000, cost: 3500000000, invoiced: 4000000000, period: '2024-2026', duration: '24 Months', progress: 40 },
-  { id: 3, contractNumber: 'CN-003', name: 'Data Analytics Platform', client: 'Wayne Enterprises', description: 'Building a scalable data platform to provide business intelligence insights.', value: 3200000000, cost: 2800000000, invoiced: 3000000000, period: '2023-2024', duration: '18 Months', progress: 90 },
+  { id: 1, contractNumber: 'CN-001', name: 'Corporate Website Revamp', client: 'Acme Inc.', description: 'A complete overhaul of the corporate website to improve user experience and modernize the design.', value: 2500000000, cost: 1800000000, invoiced: 2000000000, period: '2024-2025', duration: '12 Months', progress: 75, invoices: [
+      { id: 1, serviceCategory: 'Design Phase', status: 'Paid', period: 'Q1 2024', value: 500000000 },
+      { id: 2, serviceCategory: 'Development - Sprint 1', status: 'Paid', period: 'Q2 2024', value: 750000000 },
+      { id: 3, serviceCategory: 'Development - Sprint 2', status: 'Paid', period: 'Q3 2024', value: 750000000 },
+      { id: 4, serviceCategory: 'Final Deployment', status: 'Pending', period: 'Q4 2024', value: 500000000 },
+  ]},
+  { id: 2, contractNumber: 'CN-002', name: 'Mobile App Development', client: 'Stark Industries', description: 'Development of a new cross-platform mobile application for internal use.', value: 5000000000, cost: 3500000000, invoiced: 2500000000, period: '2024-2026', duration: '24 Months', progress: 40, invoices: [
+      { id: 1, serviceCategory: 'Discovery & Planning', status: 'Paid', period: 'Q1 2024', value: 1000000000 },
+      { id: 2, serviceCategory: 'UI/UX Design', status: 'Paid', period: 'Q2 2024', value: 1500000000 },
+      { id: 3, serviceCategory: 'Backend Development', status: 'Pending', period: 'Q3 2024', value: 1500000000 },
+      { id: 4, serviceCategory: 'Frontend Development', status: 'Pending', period: 'Q4 2024', value: 1000000000 },
+  ]},
+  { id: 3, contractNumber: 'CN-003', name: 'Data Analytics Platform', client: 'Wayne Enterprises', description: 'Building a scalable data platform to provide business intelligence insights.', value: 3200000000, cost: 2800000000, invoiced: 3000000000, period: '2023-2024', duration: '18 Months', progress: 90, invoices: [
+      { id: 1, serviceCategory: 'Infrastructure Setup', status: 'Paid', period: 'Q4 2023', value: 1000000000 },
+      { id: 2, serviceCategory: 'Data Pipeline', status: 'Paid', period: 'Q1 2024', value: 1500000000 },
+      { id: 3, serviceCategory: 'Dashboard Development', status: 'Paid', period: 'Q2 2024', value: 500000000 },
+      { id: 4, serviceCategory: 'User Training', status: 'Overdue', period: 'Q2 2024', value: 200000000 },
+  ]},
 ];
 
 export default function ProjectsPage() {
@@ -62,7 +86,7 @@ export default function ProjectsPage() {
     value: 0,
     period: '',
     duration: '',
-    progress: 0
+    progress: 0,
   });
   const [date, setDate] = useState<DateRange | undefined>(undefined);
 
@@ -101,7 +125,7 @@ export default function ProjectsPage() {
   const handleAddProject = () => {
     if (newProject.name && newProject.client && newProject.description && newProject.value > 0 && newProject.contractNumber && newProject.period && newProject.duration) {
       const newId = projects.length > 0 ? Math.max(...projects.map((p) => p.id)) + 1 : 1;
-      setProjects([...projects, { ...newProject, id: newId, cost: 0, invoiced: 0 }]);
+      setProjects([...projects, { ...newProject, id: newId, cost: 0, invoiced: 0, invoices: [] }]);
       setNewProject({ contractNumber: '', name: '', client: '', description: '', value: 0, period: '', duration: '', progress: 0 });
       setDate(undefined);
       setIsDialogOpen(false);
