@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useState } from 'react';
+import { use, useState, useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -256,7 +256,21 @@ export default function ProjectDetailsPage({
   params: { id: string };
 }) {
   const [projects, setProjects] = useState(initialProjects);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [invoiceToEdit, setInvoiceToEdit] = useState<InvoiceItem | null>(null);
+
+  const [editedInvoice, setEditedInvoice] = useState<{
+    id: number;
+    spkNumber: string;
+    serviceCategory: string;
+    description: string;
+    status: 'Paid' | 'Invoiced' | 'Cancel' | 'Re-invoiced' | 'PAD';
+    periodMonth: string;
+    periodYear: string;
+    value: number;
+  } | null>(null);
+
   const [newInvoice, setNewInvoice] = useState<{
     spkNumber: string;
     serviceCategory: string;
@@ -276,6 +290,19 @@ export default function ProjectDetailsPage({
   });
 
   const project = projects.find((p) => p.id === parseInt(use(params).id, 10));
+
+  useEffect(() => {
+    if (invoiceToEdit) {
+      const [periodMonth, periodYear] = invoiceToEdit.period.split(' ');
+      setEditedInvoice({
+        ...invoiceToEdit,
+        periodMonth: periodMonth || '',
+        periodYear: periodYear || '',
+      });
+    } else {
+      setEditedInvoice(null);
+    }
+  }, [invoiceToEdit]);
 
   const handleAddInvoice = () => {
     if (
@@ -314,8 +341,34 @@ export default function ProjectDetailsPage({
         periodYear: '',
         value: 0,
       });
-      setIsDialogOpen(false);
+      setIsAddDialogOpen(false);
     }
+  };
+
+  const handleUpdateInvoice = () => {
+    if (!project || !editedInvoice) return;
+
+    const { periodMonth, periodYear, ...restOfInvoice } = editedInvoice;
+    const period = `${periodMonth} ${periodYear}`;
+    
+    const updatedInvoiceData = { ...restOfInvoice, period };
+
+    const updatedInvoices = project.invoices.map((inv) =>
+      inv.id === editedInvoice.id ? updatedInvoiceData : inv
+    );
+
+    const updatedProjects = projects.map((p) =>
+      p.id === project.id ? { ...p, invoices: updatedInvoices } : p
+    );
+
+    setProjects(updatedProjects);
+    setIsEditDialogOpen(false);
+    setInvoiceToEdit(null);
+  };
+
+  const handleEditClick = (invoice: InvoiceItem) => {
+    setInvoiceToEdit(invoice);
+    setIsEditDialogOpen(true);
   };
 
   const handleExport = () => {
@@ -511,7 +564,7 @@ export default function ProjectDetailsPage({
                 <FileDown className="mr-2 h-4 w-4" />
                 Export
               </Button>
-              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                 <DialogTrigger asChild>
                   <Button>
                     <PlusCircle className="mr-2 h-4 w-4" />
@@ -720,7 +773,7 @@ export default function ProjectDetailsPage({
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem>Edit</DropdownMenuItem>
+                          <DropdownMenuItem onSelect={() => handleEditClick(invoice)}>Edit</DropdownMenuItem>
                           <DropdownMenuItem>Cancel Invoice</DropdownMenuItem>
                           <DropdownMenuItem>View Details</DropdownMenuItem>
                         </DropdownMenuContent>
@@ -740,6 +793,155 @@ export default function ProjectDetailsPage({
           </CardContent>
         </Card>
       </div>
+
+      {/* Edit Invoice Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-lg">
+          {editedInvoice && (
+            <>
+              <DialogHeader>
+                <DialogTitle>Edit Invoice</DialogTitle>
+                <DialogDescription>
+                  Update the details for this invoice.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="editSpkNumber" className="text-right">
+                    SPK Number
+                  </Label>
+                  <Input
+                    id="editSpkNumber"
+                    value={editedInvoice.spkNumber}
+                    onChange={(e) =>
+                      setEditedInvoice({ ...editedInvoice, spkNumber: e.target.value })
+                    }
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="editServiceCategory" className="text-right">
+                    Service
+                  </Label>
+                  <Input
+                    id="editServiceCategory"
+                    value={editedInvoice.serviceCategory}
+                    onChange={(e) =>
+                      setEditedInvoice({
+                        ...editedInvoice,
+                        serviceCategory: e.target.value,
+                      })
+                    }
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-start gap-4">
+                  <Label htmlFor="editDescription" className="text-right pt-2">
+                    Description
+                  </Label>
+                  <Textarea
+                    id="editDescription"
+                    value={editedInvoice.description}
+                    onChange={(e) =>
+                      setEditedInvoice({
+                        ...editedInvoice,
+                        description: e.target.value,
+                      })
+                    }
+                    className="col-span-3"
+                    rows={3}
+                  />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="editStatus" className="text-right">
+                    Status
+                  </Label>
+                  <Select
+                    value={editedInvoice.status}
+                    onValueChange={(
+                      value: 'Paid' | 'Invoiced' | 'Cancel' | 'Re-invoiced' | 'PAD'
+                    ) => setEditedInvoice({ ...editedInvoice, status: value })}
+                  >
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Paid">Paid</SelectItem>
+                      <SelectItem value="PAD">PAD</SelectItem>
+                      <SelectItem value="Invoiced">Invoiced</SelectItem>
+                      <SelectItem value="Cancel">Cancel</SelectItem>
+                      <SelectItem value="Re-invoiced">Re-invoiced</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="editPeriodMonth" className="text-right">
+                    Period
+                  </Label>
+                  <div className="col-span-3 grid grid-cols-2 gap-2">
+                    <Select
+                      value={editedInvoice.periodMonth}
+                      onValueChange={(value) =>
+                        setEditedInvoice({ ...editedInvoice, periodMonth: value })
+                      }
+                    >
+                      <SelectTrigger id="editPeriodMonth">
+                        <SelectValue placeholder="Select month" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="January">January</SelectItem>
+                        <SelectItem value="February">February</SelectItem>
+                        <SelectItem value="March">March</SelectItem>
+                        <SelectItem value="April">April</SelectItem>
+                        <SelectItem value="May">May</SelectItem>
+                        <SelectItem value="June">June</SelectItem>
+                        <SelectItem value="July">July</SelectItem>
+                        <SelectItem value="August">August</SelectItem>
+                        <SelectItem value="September">September</SelectItem>
+                        <SelectItem value="October">October</SelectItem>
+                        <SelectItem value="November">November</SelectItem>
+                        <SelectItem value="December">December</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Input
+                      id="editPeriodYear"
+                      type="number"
+                      value={editedInvoice.periodYear}
+                      onChange={(e) =>
+                        setEditedInvoice({
+                          ...editedInvoice,
+                          periodYear: e.target.value,
+                        })
+                      }
+                      placeholder="Year"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="editValue" className="text-right">
+                    Value (IDR)
+                  </Label>
+                  <Input
+                    id="editValue"
+                    type="number"
+                    value={editedInvoice.value || ''}
+                    onChange={(e) =>
+                      setEditedInvoice({
+                        ...editedInvoice,
+                        value: parseInt(e.target.value) || 0,
+                      })
+                    }
+                    className="col-span-3"
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button onClick={handleUpdateInvoice}>Save Changes</Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
