@@ -21,7 +21,7 @@ export function ProjectProgressChart({ progress }: ProjectProgressChartProps) {
                         data={progressData}
                         dataKey="value"
                         nameKey="name"
-                        innerRadius={60}
+                        innerRadius={36}
                         outerRadius={80}
                         startAngle={90}
                         endAngle={450}
