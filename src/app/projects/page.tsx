@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import {
@@ -51,9 +51,23 @@ export default function ProjectsPage() {
     client: '',
     description: '',
     value: 0,
-    branchId: isHqUser ? '' : (user?.branchId || ''),
+    branchId: '',
   });
   const [date, setDate] = useState<DateRange | undefined>(undefined);
+
+  useEffect(() => {
+    if (isDialogOpen) {
+      setNewProject({
+        contractNumber: '',
+        name: '',
+        client: '',
+        description: '',
+        value: 0,
+        branchId: isHqUser ? '' : (user?.branchId || ''),
+      });
+      setDate(undefined);
+    }
+  }, [isDialogOpen, isHqUser, user]);
 
   const visibleProjects = useMemo(() => {
     if (isHqUser) return projects;
@@ -109,8 +123,6 @@ export default function ProjectsPage() {
     if (newProject.name && newProject.client && newProject.description && newProject.value > 0 && newProject.contractNumber && period && duration && newProject.branchId) {
       const newId = projects.length > 0 ? Math.max(...projects.map((p) => p.id)) + 1 : 1;
       setProjects([...projects, { ...newProject, period, duration, id: newId, cost: 0, invoiced: 0, progress: 0, invoices: [], budgets: {}, expenditures: [] }]);
-      setNewProject({ contractNumber: '', name: '', client: '', description: '', value: 0, branchId: isHqUser ? '' : (user?.branchId || '') });
-      setDate(undefined);
       setIsDialogOpen(false);
     }
   };
