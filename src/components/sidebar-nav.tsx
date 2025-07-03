@@ -2,7 +2,13 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BrainCircuit, Briefcase, LayoutDashboard, User } from 'lucide-react';
+import {
+  BrainCircuit,
+  Briefcase,
+  LayoutDashboard,
+  Settings,
+  User,
+} from 'lucide-react';
 import {
   SidebarMenu,
   SidebarMenuItem,
@@ -29,14 +35,17 @@ export function SidebarNav() {
       })),
     },
     { href: '/sanity-checker', label: 'AI Sanity Check', icon: BrainCircuit },
+    { href: '/settings', label: 'Settings', icon: Settings },
     { href: '/profile', label: 'Profile', icon: User },
   ];
 
   return (
     <SidebarMenu>
       {menuItems.map((item) => {
-        const isMainActive = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
-        const areSubItemsActive = item.subItems?.some((sub) => pathname === sub.href) ?? false;
+        const isMainActive =
+          item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
+        const areSubItemsActive =
+          item.subItems?.some((sub) => pathname === sub.href) ?? false;
         const isActive = isMainActive || areSubItemsActive;
 
         return (
