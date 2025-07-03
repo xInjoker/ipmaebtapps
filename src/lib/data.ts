@@ -8,6 +8,15 @@ export type InvoiceItem = {
   value: number;
 };
 
+export type ExpenditureItem = {
+  id: string;
+  category: string;
+  coa: string;
+  period: string;
+  amount: number;
+  status: 'Approved' | 'Pending' | 'Rejected';
+};
+
 export type Project = {
   id: number;
   contractNumber: string;
@@ -21,6 +30,8 @@ export type Project = {
   duration: string;
   progress: number;
   invoices: InvoiceItem[];
+  budgets: { [category: string]: number };
+  expenditures: ExpenditureItem[];
 };
 
 export const initialProjects: Project[] = [
@@ -75,6 +86,22 @@ export const initialProjects: Project[] = [
         value: 500000000,
       },
     ],
+    budgets: {
+      'PT dan PTT': 0,
+      'PTT Project': 0,
+      'Tenaga Ahli dan Labour Supply': 200000000,
+      'Perjalanan Dinas': 75000000,
+      'Operasional': 150000000,
+      'Fasilitas dan Interen': 0,
+      'Amortisasi': 0,
+      'Kantor dan Diklat': 0,
+      'Promosi': 100000000,
+      'Umum': 0,
+    },
+    expenditures: [
+      { id: 'EXP-PROJ1-001', category: 'Tenaga Ahli dan Labour Supply', coa: '4200', period: 'July 2024', amount: 15000000, status: 'Approved' },
+      { id: 'EXP-PROJ1-002', category: 'Promosi', coa: '4800', period: 'July 2024', amount: 50000000, status: 'Approved' },
+    ],
   },
   {
     id: 2,
@@ -108,7 +135,7 @@ export const initialProjects: Project[] = [
         period: 'May 2024',
         value: 1500000000,
       },
-      {
+       {
         id: 3,
         spkNumber: 'SPK-007',
         serviceCategory: 'Backend Development',
@@ -126,6 +153,22 @@ export const initialProjects: Project[] = [
         period: 'November 2024',
         value: 1000000000,
       },
+    ],
+    budgets: {
+      'PT dan PTT': 0,
+      'PTT Project': 0,
+      'Tenaga Ahli dan Labour Supply': 500000000,
+      'Perjalanan Dinas': 0,
+      'Operasional': 250000000,
+      'Fasilitas dan Interen': 100000000,
+      'Amortisasi': 0,
+      'Kantor dan Diklat': 0,
+      'Promosi': 0,
+      'Umum': 0,
+    },
+    expenditures: [
+        { id: 'EXP-PROJ2-001', category: 'Operasional', coa: '4400', period: 'July 2024', amount: 35000000, status: 'Approved' },
+        { id: 'EXP-PROJ2-002', category: 'Fasilitas dan Interen', coa: '4500', period: 'July 2024', amount: 25000000, status: 'Rejected' },
     ],
   },
   {
@@ -178,6 +221,21 @@ export const initialProjects: Project[] = [
         period: 'June 2024',
         value: 200000000,
       },
+    ],
+    budgets: {
+       'PT dan PTT': 0,
+       'PTT Project': 0,
+       'Tenaga Ahli dan Labour Supply': 0,
+       'Perjalanan Dinas': 50000000,
+       'Operasional': 0,
+       'Fasilitas dan Interen': 0,
+       'Amortisasi': 0,
+       'Kantor dan Diklat': 0,
+       'Promosi': 0,
+       'Umum': 0,
+    },
+    expenditures: [
+      { id: 'EXP-PROJ3-001', category: 'Perjalanan Dinas', coa: '4300', period: 'July 2024', amount: 7500000, status: 'Pending' },
     ],
   },
 ];

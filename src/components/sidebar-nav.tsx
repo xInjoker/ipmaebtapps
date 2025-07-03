@@ -18,7 +18,6 @@ const menuItems = [
     href: '/projects',
     label: 'Projects',
     icon: Briefcase,
-    subItems: [{ href: '/expenditure', label: 'Expenditure' }],
   },
   { href: '/finances', label: 'Finances', icon: DollarSign },
   { href: '/sanity-checker', label: 'AI Sanity Check', icon: BrainCircuit },
