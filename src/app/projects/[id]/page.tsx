@@ -142,6 +142,15 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
                 </div>
             </CardContent>
         </Card>
+
+        <Card>
+            <CardHeader>
+                <CardTitle>Additional Details</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <p>This is a new container for additional project details.</p>
+            </CardContent>
+        </Card>
     </div>
   );
 }
