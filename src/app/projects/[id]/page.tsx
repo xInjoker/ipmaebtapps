@@ -495,8 +495,8 @@ export default function ProjectDetailsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
-        <div className="lg:col-span-3">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="lg:col-span-1">
             <Card className="flex h-full flex-col">
             <CardHeader>
                 <CardTitle>Project Details</CardTitle>
@@ -587,7 +587,7 @@ export default function ProjectDetailsPage() {
             </CardContent>
             </Card>
         </div>
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-1">
             <Card className="flex h-full flex-col">
                 <CardHeader>
                     <CardTitle>Monthly Recap</CardTitle>
