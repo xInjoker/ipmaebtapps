@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import {
@@ -42,8 +42,6 @@ export default function ProjectsPage() {
     client: '',
     description: '',
     value: 0,
-    period: '',
-    duration: '',
   });
   const [date, setDate] = useState<DateRange | undefined>(undefined);
 
@@ -68,38 +66,34 @@ export default function ProjectsPage() {
   }, [projects]);
 
 
-  useEffect(() => {
+  const { period, duration } = useMemo(() => {
     if (date?.from && date?.to) {
       const fromDate = date.from;
       const toDate = date.to;
-      const periodString = `${format(fromDate, "yyyy")}-${format(toDate, "yyyy")}`;
-      
+      const periodString =
+        format(fromDate, 'yyyy') === format(toDate, 'yyyy')
+          ? format(fromDate, 'yyyy')
+          : `${format(fromDate, 'yyyy')}-${format(toDate, 'yyyy')}`;
+
       let months = (toDate.getFullYear() - fromDate.getFullYear()) * 12;
       months -= fromDate.getMonth();
       months += toDate.getMonth();
-      const duration = months <= 0 ? 1 : months + 1;
-      const durationString = `${duration} Months`;
+      const durationValue = months <= 0 ? 1 : months + 1;
+      const durationString = `${durationValue} ${
+        durationValue > 1 ? 'Months' : 'Month'
+      }`;
 
-      setNewProject(prev => ({
-        ...prev,
-        period: periodString,
-        duration: durationString,
-      }));
-    } else {
-       setNewProject(prev => ({
-        ...prev,
-        period: '',
-        duration: '',
-      }));
+      return { period: periodString, duration: durationString };
     }
+    return { period: '', duration: '' };
   }, [date]);
 
 
   const handleAddProject = () => {
-    if (newProject.name && newProject.client && newProject.description && newProject.value > 0 && newProject.contractNumber && newProject.period && newProject.duration) {
+    if (newProject.name && newProject.client && newProject.description && newProject.value > 0 && newProject.contractNumber && period && duration) {
       const newId = projects.length > 0 ? Math.max(...projects.map((p) => p.id)) + 1 : 1;
-      setProjects([...projects, { ...newProject, id: newId, cost: 0, invoiced: 0, progress: 0, invoices: [], budgets: {}, expenditures: [] }]);
-      setNewProject({ contractNumber: '', name: '', client: '', description: '', value: 0, period: '', duration: '' });
+      setProjects([...projects, { ...newProject, period, duration, id: newId, cost: 0, invoiced: 0, progress: 0, invoices: [], budgets: {}, expenditures: [] }]);
+      setNewProject({ contractNumber: '', name: '', client: '', description: '', value: 0 });
       setDate(undefined);
       setIsDialogOpen(false);
     }
@@ -318,7 +312,7 @@ export default function ProjectsPage() {
                 </Label>
                 <Input
                   id="duration"
-                  value={newProject.duration}
+                  value={duration}
                   className="col-span-3"
                   placeholder="Calculated automatically"
                   readOnly
