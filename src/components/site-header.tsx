@@ -9,7 +9,6 @@ import { Search } from 'lucide-react';
 
 const getPageTitle = (pathname: string) => {
   if (pathname.startsWith('/projects')) return 'Projects';
-  if (pathname.startsWith('/finances')) return 'Financial Management';
   if (pathname.startsWith('/sanity-checker')) return 'AI Report Sanity Checker';
   if (pathname === '/') return 'Dashboard';
   return 'ProTrack';

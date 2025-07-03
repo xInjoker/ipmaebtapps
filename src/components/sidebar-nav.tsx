@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BrainCircuit, Briefcase, DollarSign, LayoutDashboard } from 'lucide-react';
+import { BrainCircuit, Briefcase, LayoutDashboard } from 'lucide-react';
 import {
   SidebarMenu,
   SidebarMenuItem,
@@ -28,7 +28,6 @@ export function SidebarNav() {
         label: project.contractNumber,
       })),
     },
-    { href: '/finances', label: 'Finances', icon: DollarSign },
     { href: '/sanity-checker', label: 'AI Sanity Check', icon: BrainCircuit },
   ];
 
