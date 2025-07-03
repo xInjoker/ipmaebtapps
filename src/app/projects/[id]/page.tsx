@@ -70,7 +70,8 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
             </div>
         </div>
         
-        <Card>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <Card className="lg:col-span-2">
             <CardHeader>
                 <CardTitle>Project Details</CardTitle>
             </CardHeader>
@@ -106,37 +107,41 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
                             </div>
                         </div>
                     </div>
-                    <div className="flex flex-col justify-between">
-                        <div className="space-y-6">
-                            <div className="flex items-start gap-3">
-                                <CircleDollarSign className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
-                                <div>
-                                    <p className="text-sm text-muted-foreground">Contract Value</p>
-                                    <p className="font-medium">{formatCurrency(project.value)}</p>
-                                </div>
-                            </div>
-                            <div className="flex items-start gap-3">
-                                <CircleDollarSign className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
-                                <div>
-                                    <p className="text-sm text-muted-foreground">Total Cost</p>
-                                    <p className="font-medium">{formatCurrency(project.cost)}</p>
-                                </div>
-                            </div>
-                            <div className="flex items-start gap-3">
-                                <CircleDollarSign className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
-                                <div>
-                                    <p className="text-sm text-muted-foreground">Total Invoiced</p>
-                                    <p className="font-medium">{formatCurrency(project.invoiced)}</p>
-                                </div>
+                    <div className="space-y-6">
+                        <div className="flex items-start gap-3">
+                            <CircleDollarSign className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+                            <div>
+                                <p className="text-sm text-muted-foreground">Contract Value</p>
+                                <p className="font-medium">{formatCurrency(project.value)}</p>
                             </div>
                         </div>
-                        <div className="flex items-center justify-center pt-6">
-                            <ProjectProgressChart progress={project.progress} />
+                        <div className="flex items-start gap-3">
+                            <CircleDollarSign className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+                            <div>
+                                <p className="text-sm text-muted-foreground">Total Cost</p>
+                                <p className="font-medium">{formatCurrency(project.cost)}</p>
+                            </div>
+                        </div>
+                        <div className="flex items-start gap-3">
+                            <CircleDollarSign className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
+                            <div>
+                                <p className="text-sm text-muted-foreground">Total Invoiced</p>
+                                <p className="font-medium">{formatCurrency(project.invoiced)}</p>
+                            </div>
                         </div>
                     </div>
                 </div>
             </CardContent>
-        </Card>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Project Progress</CardTitle>
+            </CardHeader>
+            <CardContent className="flex h-full items-center justify-center pt-6">
+              <ProjectProgressChart progress={project.progress} />
+            </CardContent>
+          </Card>
+        </div>
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <Card>
