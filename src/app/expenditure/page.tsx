@@ -83,6 +83,19 @@ const coaToCategoryMap: { [key: number]: string } = {
     4900: 'Umum',
 };
 
+const categoryToCoaMap: { [key: string]: string } = {
+    'PT dan PTT': '4000',
+    'PTT Project': '4100',
+    'Tenaga Ahli dan Labour Supply': '4200',
+    'Perjalanan Dinas': '4300',
+    'Operasional': '4400',
+    'Fasilitas dan Interen': '4500',
+    'Amortisasi': '4600',
+    'Kantor dan Diklat': '4700',
+    'Promosi': '4800',
+    'Umum': '4900',
+};
+
 function formatCurrency(value: number) {
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
@@ -130,7 +143,8 @@ export default function ExpenditurePage() {
   };
 
   const handleCategorySelect = (value: string) => {
-    setNewExpenditure({ ...newExpenditure, category: value });
+    const coa = categoryToCoaMap[value] || '';
+    setNewExpenditure(prev => ({ ...prev, category: value, coa: coa }));
     setCustomCategory('');
   };
 
@@ -143,15 +157,21 @@ export default function ExpenditurePage() {
     const coaValue = e.target.value;
     const coaNumber = parseInt(coaValue, 10);
 
-    setNewExpenditure(prev => ({ ...prev, coa: coaValue }));
-
     if (!isNaN(coaNumber) && coaValue.length >= 4) {
       const truncatedCoa = Math.floor(coaNumber / 100) * 100;
       const category = coaToCategoryMap[truncatedCoa];
+
       if (category && expenditureCategories.includes(category)) {
         setNewExpenditure(prev => ({ ...prev, coa: coaValue, category: category }));
         setCustomCategory('');
+      } else {
+        setNewExpenditure(prev => ({ ...prev, coa: coaValue, category: '' }));
+        setCustomCategory('Other');
       }
+    } else {
+      // If COA is not valid, just update the COA value and clear categories
+      setNewExpenditure(prev => ({ ...prev, coa: coaValue, category: '' }));
+      setCustomCategory('');
     }
   };
 
