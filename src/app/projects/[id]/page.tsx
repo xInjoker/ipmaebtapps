@@ -497,11 +497,11 @@ export default function ProjectDetailsPage() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
         <div className="lg:col-span-3">
-            <Card>
+            <Card className="flex h-full flex-col">
             <CardHeader>
                 <CardTitle>Project Details</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex flex-1 flex-col">
                 <div className="grid gap-6 md:grid-cols-2">
                 <div className="space-y-6">
                     <div className="flex items-start gap-3">
@@ -575,7 +575,7 @@ export default function ProjectDetailsPage() {
                 </div>
                 </div>
                 <Separator className="my-6" />
-                <div>
+                <div className="mt-auto">
                 <div className="mb-2 flex items-baseline justify-between">
                     <p className="text-sm text-muted-foreground">
                     Progress (by Invoiced Amount)
@@ -588,14 +588,14 @@ export default function ProjectDetailsPage() {
             </Card>
         </div>
         <div className="lg:col-span-2">
-            <Card>
+            <Card className="flex h-full flex-col">
                 <CardHeader>
                     <CardTitle>Monthly Recap</CardTitle>
                     <CardDescription>
                         Recapitulation of Invoiced, PAD, and Expenditures.
                     </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="flex-1">
                     <ProjectMonthlyRecapChart data={monthlyRecapData} />
                 </CardContent>
             </Card>
@@ -953,7 +953,7 @@ export default function ProjectDetailsPage() {
                             <SelectContent>
                               {budgetedCategories.length > 0 ? (
                                 budgetedCategories.map((category) => (
-                                  <SelectItem key={category} value={category} disabled={category === 'Other'}>
+                                  <SelectItem key={category} value={category}>
                                     {category}
                                   </SelectItem>
                                 ))
