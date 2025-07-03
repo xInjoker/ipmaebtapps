@@ -7,7 +7,7 @@ import {
 } from '@/components/ui/card';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Briefcase, Calendar, CircleDollarSign, Clock, User } from 'lucide-react';
+import { ArrowLeft, Briefcase, Calendar, CircleDollarSign, Clock, User, MoreHorizontal } from 'lucide-react';
 import { ProjectFinancialsChart } from '@/components/project-financials-chart';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
@@ -20,11 +20,17 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 type InvoiceItem = {
   id: number;
   serviceCategory: string;
-  status: 'Paid' | 'Pending' | 'Overdue';
+  status: 'PAD' | 'Invoiced' | 'Cancel' | 'Re-invoiced';
   period: string;
   value: number;
 };
@@ -46,22 +52,22 @@ type Project = {
 
 const initialProjects: Project[] = [
     { id: 1, contractNumber: 'CN-001', name: 'Corporate Website Revamp', client: 'Acme Inc.', description: 'A complete overhaul of the corporate website to improve user experience and modernize the design.', value: 2500000000, cost: 1800000000, invoiced: 2000000000, period: '2024-2025', duration: '12 Months', progress: 75, invoices: [
-        { id: 1, serviceCategory: 'Design Phase', status: 'Paid', period: 'January 2024', value: 500000000 },
-        { id: 2, serviceCategory: 'Development - Sprint 1', status: 'Paid', period: 'April 2024', value: 750000000 },
-        { id: 3, serviceCategory: 'Development - Sprint 2', status: 'Paid', period: 'July 2024', value: 750000000 },
-        { id: 4, serviceCategory: 'Final Deployment', status: 'Pending', period: 'October 2024', value: 500000000 },
+        { id: 1, serviceCategory: 'Design Phase', status: 'PAD', period: 'January 2024', value: 500000000 },
+        { id: 2, serviceCategory: 'Development - Sprint 1', status: 'PAD', period: 'April 2024', value: 750000000 },
+        { id: 3, serviceCategory: 'Development - Sprint 2', status: 'Invoiced', period: 'July 2024', value: 750000000 },
+        { id: 4, serviceCategory: 'Final Deployment', status: 'Invoiced', period: 'October 2024', value: 500000000 },
     ]},
     { id: 2, contractNumber: 'CN-002', name: 'Mobile App Development', client: 'Stark Industries', description: 'Development of a new cross-platform mobile application for internal use.', value: 5000000000, cost: 3500000000, invoiced: 2500000000, period: '2024-2026', duration: '24 Months', progress: 40, invoices: [
-        { id: 1, serviceCategory: 'Discovery & Planning', status: 'Paid', period: 'February 2024', value: 1000000000 },
-        { id: 2, serviceCategory: 'UI/UX Design', status: 'Paid', period: 'May 2024', value: 1500000000 },
-        { id: 3, serviceCategory: 'Backend Development', status: 'Pending', period: 'August 2024', value: 1500000000 },
-        { id: 4, serviceCategory: 'Frontend Development', status: 'Pending', period: 'November 2024', value: 1000000000 },
+        { id: 1, serviceCategory: 'Discovery & Planning', status: 'PAD', period: 'February 2024', value: 1000000000 },
+        { id: 2, serviceCategory: 'UI/UX Design', status: 'Invoiced', period: 'May 2024', value: 1500000000 },
+        { id: 3, serviceCategory: 'Backend Development', status: 'Invoiced', period: 'August 2024', value: 1500000000 },
+        { id: 4, serviceCategory: 'Frontend Development', status: 'Cancel', period: 'November 2024', value: 1000000000 },
     ]},
     { id: 3, contractNumber: 'CN-003', name: 'Data Analytics Platform', client: 'Wayne Enterprises', description: 'Building a scalable data platform to provide business intelligence insights.', value: 3200000000, cost: 2800000000, invoiced: 3000000000, period: '2023-2024', duration: '18 Months', progress: 90, invoices: [
-        { id: 1, serviceCategory: 'Infrastructure Setup', status: 'Paid', period: 'December 2023', value: 1000000000 },
-        { id: 2, serviceCategory: 'Data Pipeline', status: 'Paid', period: 'March 2024', value: 1500000000 },
-        { id: 3, serviceCategory: 'Dashboard Development', status: 'Paid', period: 'June 2024', value: 500000000 },
-        { id: 4, serviceCategory: 'User Training', status: 'Overdue', period: 'June 2024', value: 200000000 },
+        { id: 1, serviceCategory: 'Infrastructure Setup', status: 'PAD', period: 'December 2023', value: 1000000000 },
+        { id: 2, serviceCategory: 'Data Pipeline', status: 'PAD', period: 'March 2024', value: 1500000000 },
+        { id: 3, serviceCategory: 'Dashboard Development', status: 'Re-invoiced', period: 'June 2024', value: 500000000 },
+        { id: 4, serviceCategory: 'User Training', status: 'Cancel', period: 'June 2024', value: 200000000 },
     ]},
 ];
 
@@ -205,6 +211,7 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
                           <TableHead>Status</TableHead>
                           <TableHead>Period</TableHead>
                           <TableHead className="text-right">Value</TableHead>
+                          <TableHead className="text-right">Action</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -214,11 +221,13 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
                             <TableCell>
                               <Badge
                                 variant={
-                                  invoice.status === 'Paid'
+                                  invoice.status === 'PAD'
                                     ? 'default'
-                                    : invoice.status === 'Pending'
+                                    : invoice.status === 'Invoiced'
                                     ? 'secondary'
-                                    : 'destructive'
+                                    : invoice.status === 'Cancel'
+                                    ? 'destructive'
+                                    : 'outline'
                                 }
                               >
                                 {invoice.status}
@@ -226,11 +235,26 @@ export default function ProjectDetailsPage({ params }: { params: { id: string } 
                             </TableCell>
                             <TableCell>{invoice.period}</TableCell>
                             <TableCell className="text-right">{formatCurrency(invoice.value)}</TableCell>
+                            <TableCell className="text-right">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" className="h-8 w-8 p-0">
+                                    <span className="sr-only">Open menu</span>
+                                    <MoreHorizontal className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem>Edit</DropdownMenuItem>
+                                  <DropdownMenuItem>Cancel Invoice</DropdownMenuItem>
+                                  <DropdownMenuItem>View Details</DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
                           </TableRow>
                         ))}
                         {!project.invoices?.length && (
                           <TableRow>
-                            <TableCell colSpan={4} className="text-center">
+                            <TableCell colSpan={5} className="text-center">
                               No invoices found.
                             </TableCell>
                           </TableRow>
