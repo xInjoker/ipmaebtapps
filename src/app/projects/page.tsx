@@ -28,12 +28,14 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { DateRange } from 'react-day-picker';
+import { Textarea } from '@/components/ui/textarea';
 
 type Project = {
   id: number;
   contractNumber: string;
   name: string;
   client: string;
+  description: string;
   value: number;
   cost: number;
   invoiced: number;
@@ -43,9 +45,9 @@ type Project = {
 };
 
 const initialProjects: Project[] = [
-  { id: 1, contractNumber: 'CN-001', name: 'Corporate Website Revamp', client: 'Acme Inc.', value: 2500000000, cost: 1800000000, invoiced: 2000000000, period: '2024-2025', duration: '12 Months', progress: 75 },
-  { id: 2, contractNumber: 'CN-002', name: 'Mobile App Development', client: 'Stark Industries', value: 5000000000, cost: 3500000000, invoiced: 4000000000, period: '2024-2026', duration: '24 Months', progress: 40 },
-  { id: 3, contractNumber: 'CN-003', name: 'Data Analytics Platform', client: 'Wayne Enterprises', value: 3200000000, cost: 2800000000, invoiced: 3000000000, period: '2023-2024', duration: '18 Months', progress: 90 },
+  { id: 1, contractNumber: 'CN-001', name: 'Corporate Website Revamp', client: 'Acme Inc.', description: 'A complete overhaul of the corporate website to improve user experience and modernize the design.', value: 2500000000, cost: 1800000000, invoiced: 2000000000, period: '2024-2025', duration: '12 Months', progress: 75 },
+  { id: 2, contractNumber: 'CN-002', name: 'Mobile App Development', client: 'Stark Industries', description: 'Development of a new cross-platform mobile application for internal use.', value: 5000000000, cost: 3500000000, invoiced: 4000000000, period: '2024-2026', duration: '24 Months', progress: 40 },
+  { id: 3, contractNumber: 'CN-003', name: 'Data Analytics Platform', client: 'Wayne Enterprises', description: 'Building a scalable data platform to provide business intelligence insights.', value: 3200000000, cost: 2800000000, invoiced: 3000000000, period: '2023-2024', duration: '18 Months', progress: 90 },
 ];
 
 export default function ProjectsPage() {
@@ -55,6 +57,7 @@ export default function ProjectsPage() {
     contractNumber: '',
     name: '',
     client: '',
+    description: '',
     value: 0,
     period: '',
     duration: '',
@@ -95,10 +98,10 @@ export default function ProjectsPage() {
 
 
   const handleAddProject = () => {
-    if (newProject.name && newProject.client && newProject.value > 0 && newProject.contractNumber && newProject.period && newProject.duration) {
+    if (newProject.name && newProject.client && newProject.description && newProject.value > 0 && newProject.contractNumber && newProject.period && newProject.duration) {
       const newId = projects.length > 0 ? Math.max(...projects.map((p) => p.id)) + 1 : 1;
       setProjects([...projects, { ...newProject, id: newId, cost: 0, invoiced: 0 }]);
-      setNewProject({ contractNumber: '', name: '', client: '', value: 0, period: '', duration: '', progress: 0 });
+      setNewProject({ contractNumber: '', name: '', client: '', description: '', value: 0, period: '', duration: '', progress: 0 });
       setDate(undefined);
       setIsDialogOpen(false);
     }
@@ -200,7 +203,7 @@ export default function ProjectsPage() {
               Add New Project
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="sm:max-w-lg">
             <DialogHeader>
               <DialogTitle>Add New Project</DialogTitle>
               <DialogDescription>
@@ -242,6 +245,19 @@ export default function ProjectsPage() {
                   onChange={(e) => setNewProject({ ...newProject, client: e.target.value })}
                   className="col-span-3"
                   placeholder="Client name"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-start gap-4">
+                <Label htmlFor="description" className="text-right pt-2">
+                  Description
+                </Label>
+                <Textarea
+                  id="description"
+                  value={newProject.description}
+                  onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
+                  className="col-span-3"
+                  placeholder="A short description of the project."
+                  rows={3}
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
@@ -340,10 +356,14 @@ export default function ProjectsPage() {
           <Card key={project.id}>
             <CardHeader>
               <CardTitle className="font-headline">{project.name}</CardTitle>
-              <CardDescription>{project.client}</CardDescription>
+              <CardDescription>{project.description}</CardDescription>
             </CardHeader>
             <CardContent className="pt-4">
               <div className="space-y-4">
+                <div className="flex justify-between text-sm">
+                    <p className="text-muted-foreground">Client</p>
+                    <p className="font-medium">{project.client}</p>
+                </div>
                  <div className="flex justify-between text-sm">
                     <p className="text-muted-foreground">Contract No.</p>
                     <p className="font-medium">{project.contractNumber}</p>
