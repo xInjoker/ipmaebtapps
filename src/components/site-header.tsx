@@ -4,6 +4,8 @@ import { usePathname } from 'next/navigation';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { UserNav } from '@/components/user-nav';
 import { NotificationNav } from './notification-nav';
+import { Input } from '@/components/ui/input';
+import { Search } from 'lucide-react';
 
 const getPageTitle = (pathname: string) => {
   if (pathname.startsWith('/projects')) return 'Projects';
@@ -26,6 +28,16 @@ export function SiteHeader() {
         </h1>
       </div>
       <div className="flex flex-1 items-center justify-end space-x-2">
+        <form className="hidden sm:block">
+          <div className="relative">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Search..."
+              className="pl-8 md:w-[200px] lg:w-[300px]"
+            />
+          </div>
+        </form>
         <NotificationNav />
         <UserNav />
       </div>
