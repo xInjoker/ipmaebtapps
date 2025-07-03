@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import {
@@ -25,31 +25,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-
-type UserRole = 'super-user' | 'project-manager';
-
-type ManagedUser = {
-  id: number;
-  name: string;
-  email: string;
-  role: UserRole;
-  avatarUrl: string;
-};
-
-const initialUsers: ManagedUser[] = [
-  { id: 1, name: 'Super User', email: 'superuser@example.com', role: 'super-user', avatarUrl: 'https://placehold.co/40x40.png' },
-  { id: 2, name: 'Project Manager', email: 'pm@example.com', role: 'project-manager', avatarUrl: 'https://placehold.co/40x40.png' },
-  { id: 3, name: 'Jane Doe', email: 'jane.doe@example.com', role: 'project-manager', avatarUrl: 'https://placehold.co/40x40.png' },
-  { id: 4, name: 'John Smith', email: 'john.smith@example.com', role: 'project-manager', avatarUrl: 'https://placehold.co/40x40.png' },
-];
+import { type User, type UserRole } from '@/lib/users';
 
 export default function UserManagementPage() {
-  const { user } = useAuth();
+  const { user, users, updateUserRole } = useAuth();
   const router = useRouter();
-  const [users, setUsers] = useState<ManagedUser[]>(initialUsers);
 
   useEffect(() => {
     // Protect this route for super-users only
@@ -58,10 +40,6 @@ export default function UserManagementPage() {
     }
   }, [user, router]);
   
-  const handleRoleChange = (userId: number, newRole: UserRole) => {
-    setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u));
-  };
-
   if (!user || user.role !== 'super-user') {
     // Render nothing or a loading state while redirecting
     return null;
@@ -80,7 +58,7 @@ export default function UserManagementPage() {
       <CardHeader>
         <CardTitle className="font-headline">User Management</CardTitle>
         <CardDescription>
-          Assign roles and manage user permissions.
+          Assign roles and manage user permissions. Changes are saved automatically.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -91,11 +69,11 @@ export default function UserManagementPage() {
                 <TableHead>User</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Role</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className="text-right">Change Role</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {users.map((managedUser) => (
+              {users.map((managedUser: User) => (
                 <TableRow key={managedUser.id}>
                   <TableCell>
                     <div className="flex items-center gap-3">
@@ -115,10 +93,10 @@ export default function UserManagementPage() {
                   <TableCell className="text-right">
                     <Select
                       value={managedUser.role}
-                      onValueChange={(value: UserRole) => handleRoleChange(managedUser.id, value)}
-                      disabled={managedUser.email === user.email} // Super user can't change their own role
+                      onValueChange={(value: UserRole) => updateUserRole(managedUser.id, value)}
+                      disabled={managedUser.id === user.id} // Super user can't change their own role
                     >
-                      <SelectTrigger className="w-[180px]">
+                      <SelectTrigger className="w-[180px] ml-auto">
                         <SelectValue placeholder="Change role" />
                       </SelectTrigger>
                       <SelectContent>
@@ -131,9 +109,6 @@ export default function UserManagementPage() {
               ))}
             </TableBody>
           </Table>
-        </div>
-        <div className="flex justify-end mt-6">
-            <Button>Save Changes</Button>
         </div>
       </CardContent>
     </Card>
