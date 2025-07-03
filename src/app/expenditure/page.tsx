@@ -336,17 +336,17 @@ export default function ExpenditurePage() {
                         </SelectContent>
                       </Select>
                     </div>
-                    {newExpenditure.category && (
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="remainingBudget" className="text-right">
-                          Remaining
-                        </Label>
-                        <div className="col-span-3 flex items-center gap-2 text-sm font-medium">
-                          <span>{formatCurrency(remainingBudget)}</span>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="remainingBudget" className="text-right">
+                        Remaining
+                      </Label>
+                      <div className="col-span-3 flex items-center gap-2 text-sm font-medium">
+                        <span>{formatCurrency(remainingBudget)}</span>
+                        {newExpenditure.category && (
                           <Badge variant={budgetStatus.variant}>{budgetStatus.text}</Badge>
-                        </div>
+                        )}
                       </div>
-                    )}
+                    </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                       <Label htmlFor="periodMonth" className="text-right">
                         Period
