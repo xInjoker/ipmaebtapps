@@ -59,13 +59,14 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { initialProjects, type InvoiceItem, type ExpenditureItem } from '@/lib/data';
+import { type InvoiceItem, type ExpenditureItem } from '@/lib/data';
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';
+import { useProjects } from '@/context/ProjectContext';
 
 
 function formatCurrency(value: number) {
@@ -119,7 +120,7 @@ const categoryToCoaMap: { [key: string]: string } = {
 
 export default function ProjectDetailsPage() {
   const params = useParams();
-  const [projects, setProjects] = useState(initialProjects);
+  const { projects, setProjects } = useProjects();
   const [isAddInvoiceDialogOpen, setIsAddInvoiceDialogOpen] = useState(false);
   const [isEditInvoiceDialogOpen, setIsEditInvoiceDialogOpen] = useState(false);
   const [invoiceToEdit, setInvoiceToEdit] = useState<InvoiceItem | null>(null);

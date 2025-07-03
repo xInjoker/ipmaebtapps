@@ -11,10 +11,11 @@ import {
   SidebarMenuSubItem,
   SidebarMenuSubButton,
 } from '@/components/ui/sidebar';
-import { initialProjects } from '@/lib/data';
+import { useProjects } from '@/context/ProjectContext';
 
 export function SidebarNav() {
   const pathname = usePathname();
+  const { projects } = useProjects();
 
   const menuItems = [
     { href: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -22,7 +23,7 @@ export function SidebarNav() {
       href: '/projects',
       label: 'Projects',
       icon: Briefcase,
-      subItems: initialProjects.map((project) => ({
+      subItems: projects.map((project) => ({
         href: `/projects/${project.id}`,
         label: project.contractNumber,
       })),

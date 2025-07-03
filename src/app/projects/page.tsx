@@ -30,10 +30,11 @@ import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { DateRange } from 'react-day-picker';
 import { Textarea } from '@/components/ui/textarea';
-import { initialProjects, type Project } from '@/lib/data';
+import { type Project } from '@/lib/data';
+import { useProjects } from '@/context/ProjectContext';
 
 export default function ProjectsPage() {
-  const [projects, setProjects] = useState<Project[]>(initialProjects);
+  const { projects, setProjects } = useProjects();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newProject, setNewProject] = useState({
     contractNumber: '',

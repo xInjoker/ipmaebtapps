@@ -7,6 +7,7 @@ import { SiteHeader } from '@/components/site-header';
 import Link from 'next/link';
 import { GanttChart } from 'lucide-react';
 import { UserNav } from '@/components/user-nav';
+import { Providers } from '@/components/providers';
 
 export const metadata: Metadata = {
   title: 'ProTrack',
@@ -33,28 +34,30 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
-        <div className="relative flex min-h-screen flex-col">
-            <SidebarProvider>
-              <Sidebar>
-                <SidebarHeader>
-                  <Link href="/" className="flex items-center gap-2.5 px-2">
-                    <GanttChart className="h-6 w-6 text-primary" />
-                    <h1 className="text-xl font-headline font-semibold text-primary">
-                      ProTrack
-                    </h1>
-                  </Link>
-                </SidebarHeader>
-                <SidebarContent>
-                  <SidebarNav />
-                </SidebarContent>
-              </Sidebar>
-              <SidebarInset>
-                <SiteHeader />
-                <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
-              </SidebarInset>
-            </SidebarProvider>
-        </div>
-        <Toaster />
+        <Providers>
+          <div className="relative flex min-h-screen flex-col">
+              <SidebarProvider>
+                <Sidebar>
+                  <SidebarHeader>
+                    <Link href="/" className="flex items-center gap-2.5 px-2">
+                      <GanttChart className="h-6 w-6 text-primary" />
+                      <h1 className="text-xl font-headline font-semibold text-primary">
+                        ProTrack
+                      </h1>
+                    </Link>
+                  </SidebarHeader>
+                  <SidebarContent>
+                    <SidebarNav />
+                  </SidebarContent>
+                </Sidebar>
+                <SidebarInset>
+                  <SiteHeader />
+                  <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
+                </SidebarInset>
+              </SidebarProvider>
+          </div>
+          <Toaster />
+        </Providers>
       </body>
     </html>
   );
