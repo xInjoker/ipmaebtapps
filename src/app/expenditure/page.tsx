@@ -37,6 +37,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { PlusCircle } from 'lucide-react';
+import { initialProjects } from '@/lib/data';
 
 type ExpenditureItem = {
   id: string;
@@ -111,13 +112,23 @@ export default function ExpenditurePage() {
                 <Label htmlFor="project" className="text-right">
                   Project
                 </Label>
-                <Input
-                  id="project"
+                <Select
                   value={newExpenditure.project}
-                  onChange={(e) => setNewExpenditure({ ...newExpenditure, project: e.target.value })}
-                  className="col-span-3"
-                  placeholder="e.g., Mobile App Development"
-                />
+                  onValueChange={(value) =>
+                    setNewExpenditure({ ...newExpenditure, project: value })
+                  }
+                >
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Select a project" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {initialProjects.map((project) => (
+                      <SelectItem key={project.id} value={project.name}>
+                        {project.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="category" className="text-right">
