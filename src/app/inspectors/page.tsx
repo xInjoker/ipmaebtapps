@@ -11,11 +11,21 @@ import { PlusCircle, Search, X } from 'lucide-react';
 import { useInspectors } from '@/context/InspectorContext';
 import { inspectorPositions } from '@/lib/inspectors';
 import { InspectorCard } from '@/components/inspector-card';
+import { useAuth } from '@/context/AuthContext';
 
 export default function InspectorsPage() {
   const { inspectors } = useInspectors();
+  const { branches } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [positionFilter, setPositionFilter] = useState('all');
+  const [branchFilter, setBranchFilter] = useState('all');
+
+  const branchMap = useMemo(() => {
+    return branches.reduce((acc, branch) => {
+      acc[branch.id] = branch.name;
+      return acc;
+    }, {} as Record<string, string>);
+  }, [branches]);
 
   const filteredInspectors = useMemo(() => {
     return inspectors.filter(inspector => {
@@ -24,14 +34,16 @@ export default function InspectorsPage() {
                           inspector.email.toLowerCase().includes(searchTerm.toLowerCase());
       
       const positionMatch = positionFilter === 'all' || inspector.position === positionFilter;
+      const branchMatch = branchFilter === 'all' || inspector.branchId === branchFilter;
 
-      return searchMatch && positionMatch;
+      return searchMatch && positionMatch && branchMatch;
     });
-  }, [inspectors, searchTerm, positionFilter]);
+  }, [inspectors, searchTerm, positionFilter, branchFilter]);
 
   const handleClearFilters = () => {
     setSearchTerm('');
     setPositionFilter('all');
+    setBranchFilter('all');
   };
 
   return (
@@ -72,6 +84,15 @@ export default function InspectorsPage() {
                   {inspectorPositions.map(pos => <SelectItem key={pos} value={pos}>{pos}</SelectItem>)}
                 </SelectContent>
               </Select>
+               <Select value={branchFilter} onValueChange={setBranchFilter}>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectValue placeholder="Filter by branch" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Branches</SelectItem>
+                  {branches.map(branch => <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
               <Button variant="ghost" onClick={handleClearFilters} className="w-full sm:w-auto">
                 <X className="mr-2 h-4 w-4" /> Clear
               </Button>
@@ -83,7 +104,7 @@ export default function InspectorsPage() {
       {filteredInspectors.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredInspectors.map((inspector) => (
-            <InspectorCard key={inspector.id} inspector={inspector} />
+            <InspectorCard key={inspector.id} inspector={inspector} branchMap={branchMap} />
           ))}
         </div>
       ) : (

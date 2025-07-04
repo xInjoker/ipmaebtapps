@@ -17,6 +17,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/context/AuthContext';
 
 type UploadableDocument = {
   file: File;
@@ -27,6 +28,7 @@ export default function NewInspectorPage() {
   const router = useRouter();
   const { addInspector } = useInspectors();
   const { toast } = useToast();
+  const { branches } = useAuth();
 
   const [cvFile, setCvFile] = useState<File | null>(null);
   const [qualifications, setQualifications] = useState<UploadableDocument[]>([]);
@@ -37,6 +39,7 @@ export default function NewInspectorPage() {
     email: '',
     phone: '',
     position: '' as Inspector['position'] | '',
+    branchId: '',
   });
 
   const handleFileChange = (setter: React.Dispatch<React.SetStateAction<UploadableDocument[]>>, e: React.ChangeEvent<HTMLInputElement>) => {
@@ -65,11 +68,11 @@ export default function NewInspectorPage() {
   };
 
   const handleSave = () => {
-    if (!newInspector.name || !newInspector.email || !newInspector.position) {
+    if (!newInspector.name || !newInspector.email || !newInspector.position || !newInspector.branchId) {
       toast({
         variant: 'destructive',
         title: 'Missing Information',
-        description: 'Please fill out all required fields (Name, Email, Position).',
+        description: 'Please fill out all required fields (Name, Email, Position, Branch).',
       });
       return;
     }
@@ -137,6 +140,15 @@ export default function NewInspectorPage() {
                     <SelectTrigger id="position"><SelectValue placeholder="Select position" /></SelectTrigger>
                     <SelectContent>
                         {inspectorPositions.map(pos => <SelectItem key={pos} value={pos}>{pos}</SelectItem>)}
+                    </SelectContent>
+                </Select>
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="branch">Branch</Label>
+                <Select value={newInspector.branchId} onValueChange={(value) => setNewInspector({...newInspector, branchId: value})}>
+                    <SelectTrigger id="branch"><SelectValue placeholder="Select branch" /></SelectTrigger>
+                    <SelectContent>
+                        {branches.map(branch => <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>)}
                     </SelectContent>
                 </Select>
             </div>

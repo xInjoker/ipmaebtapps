@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useInspectors } from '@/context/InspectorContext';
@@ -9,12 +9,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, Edit, Mail, Phone, FileText, Download, Award, Paperclip, CalendarDays } from 'lucide-react';
+import { ArrowLeft, Edit, Mail, Phone, FileText, Download, Award, Paperclip, CalendarDays, MapPin } from 'lucide-react';
 import { type Inspector } from '@/lib/inspectors';
 import { getInitials, getAvatarColor } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { format, isPast, differenceInDays } from 'date-fns';
+import { useAuth } from '@/context/AuthContext';
 
 const getDocumentStatus = (dueDateString?: string) => {
     if (!dueDateString) {
@@ -47,6 +48,7 @@ export default function InspectorDetailsPage() {
   const router = useRouter();
   const params = useParams();
   const { getInspectorById } = useInspectors();
+  const { branches } = useAuth();
   const [inspector, setInspector] = useState<Inspector | null>(null);
 
   useEffect(() => {
@@ -56,6 +58,13 @@ export default function InspectorDetailsPage() {
       setInspector(item || null);
     }
   }, [params.id, getInspectorById]);
+
+  const branchMap = useMemo(() => {
+    return branches.reduce((acc, branch) => {
+        acc[branch.id] = branch.name;
+        return acc;
+    }, {} as Record<string, string>);
+  }, [branches]);
   
   if (!inspector) {
     return (
@@ -122,6 +131,13 @@ export default function InspectorDetailsPage() {
                     <div>
                         <p className="text-sm text-muted-foreground">Phone</p>
                         <p className="font-medium">{inspector.phone}</p>
+                    </div>
+                </div>
+                <div className="flex items-start gap-3">
+                    <MapPin className="mt-1 h-5 w-5 flex-shrink-0 text-muted-foreground" />
+                    <div>
+                        <p className="text-sm text-muted-foreground">Location</p>
+                        <p className="font-medium">{branchMap[inspector.branchId] || 'Unknown Branch'}</p>
                     </div>
                 </div>
             </div>

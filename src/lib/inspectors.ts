@@ -15,6 +15,7 @@ export type Inspector = {
   cvUrl: string; // URL for a single CV file
   qualifications: InspectorDocument[];
   otherDocuments: InspectorDocument[];
+  branchId: string;
 };
 
 export const inspectorPositions: Inspector['position'][] = ['Lead Inspector', 'Inspector', 'Trainee Inspector'];
@@ -35,6 +36,7 @@ export const initialInspectors: Inspector[] = [
     otherDocuments: [
       { name: 'Safety_Training_Cert.pdf', url: 'Safety_Training_Cert.pdf', expirationDate: '2024-08-01' },
     ],
+    branchId: 'jakarta',
   },
   {
     id: 'INSP-002',
@@ -49,6 +51,7 @@ export const initialInspectors: Inspector[] = [
       { name: 'ASNT_Level_II_MT.pdf', url: 'ASNT_Level_II_MT.pdf', expirationDate: '2026-02-15' },
     ],
     otherDocuments: [],
+    branchId: 'surabaya',
   },
   {
     id: 'INSP-003',
@@ -62,5 +65,6 @@ export const initialInspectors: Inspector[] = [
     otherDocuments: [
       { name: 'First_Aid_Cert.pdf', url: 'First_Aid_Cert.pdf' }, // No expiration date
     ],
+    branchId: 'pekanbaru',
   },
 ];

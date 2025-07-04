@@ -18,6 +18,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/context/AuthContext';
 
 type NewUploadableDocument = {
   file: File;
@@ -29,6 +30,7 @@ export default function EditInspectorPage() {
   const params = useParams();
   const { getInspectorById, updateInspector } = useInspectors();
   const { toast } = useToast();
+  const { branches } = useAuth();
 
   const [inspector, setInspector] = useState<Inspector | null>(null);
   const [newCvFile, setNewCvFile] = useState<File | null>(null);
@@ -93,7 +95,7 @@ export default function EditInspectorPage() {
 
   const handleSave = () => {
     if (!inspector) return;
-    if (!inspector.name || !inspector.email || !inspector.position) {
+    if (!inspector.name || !inspector.email || !inspector.position || !inspector.branchId) {
       toast({
         variant: 'destructive',
         title: 'Missing Information',
@@ -177,6 +179,15 @@ export default function EditInspectorPage() {
                     <SelectTrigger id="position"><SelectValue placeholder="Select position" /></SelectTrigger>
                     <SelectContent>
                         {inspectorPositions.map(pos => <SelectItem key={pos} value={pos}>{pos}</SelectItem>)}
+                    </SelectContent>
+                </Select>
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="branch">Branch</Label>
+                <Select value={inspector.branchId} onValueChange={(value) => setInspector(inspector ? {...inspector, branchId: value} : null)}>
+                    <SelectTrigger id="branch"><SelectValue placeholder="Select branch" /></SelectTrigger>
+                    <SelectContent>
+                        {branches.map(branch => <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>)}
                     </SelectContent>
                 </Select>
             </div>
