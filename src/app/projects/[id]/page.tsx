@@ -64,6 +64,11 @@ export default function ProjectDetailsPage() {
       .reduce((acc, inv) => acc + inv.value, 0);
   }, [project]);
 
+  const totalServiceOrderValue = useMemo(() => {
+    if (!project) return 0;
+    return project.serviceOrders.reduce((acc, so) => acc + so.value, 0);
+  }, [project]);
+
   const monthlyRecapData = useMemo(() => {
     if (!project) return [];
 
@@ -223,11 +228,13 @@ export default function ProjectDetailsPage() {
                     </div>
                     </div>
                     <div className="flex items-start gap-3">
-                    <CircleDollarSign className="mt-0.5 h-5 w-5 flex-shrink-0 text-muted-foreground" />
-                    <div>
-                        <p className="text-sm text-muted-foreground">Total Cost</p>
-                        <p className="font-medium">{formatCurrency(totalCost)}</p>
-                    </div>
+                      <FileSpreadsheet className="mt-0.5 h-5 w-5 flex-shrink-0 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">
+                          Total Service Order
+                        </p>
+                        <p className="font-medium">{formatCurrency(totalServiceOrderValue)}</p>
+                      </div>
                     </div>
                     <div className="flex items-start gap-3">
                     <CircleDollarSign className="mt-0.5 h-5 w-5 flex-shrink-0 text-muted-foreground" />
@@ -247,6 +254,13 @@ export default function ProjectDetailsPage() {
                         Total PAD
                         </p>
                         <p className="font-medium">{formatCurrency(totalPad)}</p>
+                    </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                    <CircleDollarSign className="mt-0.5 h-5 w-5 flex-shrink-0 text-muted-foreground" />
+                    <div>
+                        <p className="text-sm text-muted-foreground">Total Cost</p>
+                        <p className="font-medium">{formatCurrency(totalCost)}</p>
                     </div>
                     </div>
                 </div>
