@@ -10,7 +10,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
@@ -24,26 +23,22 @@ type ProjectServiceOrderTabProps = {
     setProjects: (updateFn: (projects: Project[]) => Project[]) => void;
 };
 
-const serviceOrderStatuses: ServiceOrderItem['status'][] = ['Open', 'In Progress', 'Closed'];
-
 export function ProjectServiceOrderTab({ project, setProjects }: ProjectServiceOrderTabProps) {
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
-    const [itemToEdit, setItemToEdit] = useState<ServiceOrderItem & { date?: Date } | null>(null);
+    const [itemToEdit, setItemToEdit] = useState<Omit<ServiceOrderItem, 'status'> & { date?: Date } | null>(null);
 
     const [newItem, setNewItem] = useState<{
         soNumber: string;
         description: string;
         date: Date | undefined;
         value: number;
-        status: ServiceOrderItem['status'];
     }>({
         soNumber: '',
         description: '',
         date: undefined,
         value: 0,
-        status: 'Open',
     });
 
     const invoicedAmountsBySO = useMemo(() => {
@@ -66,14 +61,13 @@ export function ProjectServiceOrderTab({ project, setProjects }: ProjectServiceO
                 description: newItem.description,
                 date: format(newItem.date, 'yyyy-MM-dd'),
                 value: newItem.value,
-                status: newItem.status,
             };
 
             setProjects(projects => projects.map(p =>
                 p.id === project.id ? { ...p, serviceOrders: [...(p.serviceOrders || []), newItemData] } : p
             ));
 
-            setNewItem({ soNumber: '', description: '', date: undefined, value: 0, status: 'Open' });
+            setNewItem({ soNumber: '', description: '', date: undefined, value: 0 });
             setIsAddDialogOpen(false);
         }
     };
@@ -113,7 +107,19 @@ export function ProjectServiceOrderTab({ project, setProjects }: ProjectServiceO
         project.serviceOrders.forEach((item) => {
             const soNumber = `"${item.soNumber.replace(/"/g, '""')}"`;
             const description = `"${item.description.replace(/"/g, '""')}"`;
-            const row = [item.id, soNumber, description, item.date, item.value, item.status].join(',');
+            
+            const invoicedAmount = invoicedAmountsBySO[item.soNumber] || 0;
+            const remainingValue = item.value - invoicedAmount;
+            let status: 'Open' | 'In Progress' | 'Closed';
+            if (remainingValue <= 0) {
+                status = 'Closed';
+            } else if (remainingValue === item.value) {
+                status = 'Open';
+            } else {
+                status = 'In Progress';
+            }
+
+            const row = [item.id, soNumber, description, item.date, item.value, status].join(',');
             csvRows.push(row);
         });
 
@@ -174,15 +180,6 @@ export function ProjectServiceOrderTab({ project, setProjects }: ProjectServiceO
                 <Label htmlFor="value" className="text-right">Value (IDR)</Label>
                 <Input id="value" type="number" value={state.value || ''} onChange={(e) => setter({ ...state, value: parseInt(e.target.value) || 0 })} className="col-span-3" />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="status" className="text-right">Status</Label>
-                <Select value={state.status} onValueChange={(value: any) => setter({ ...state, status: value })}>
-                    <SelectTrigger className="col-span-3"><SelectValue placeholder="Select status" /></SelectTrigger>
-                    <SelectContent>
-                        {serviceOrderStatuses.map(status => <SelectItem key={status} value={status}>{status}</SelectItem>)}
-                    </SelectContent>
-                </Select>
-            </div>
         </div>
     );
 
@@ -236,6 +233,16 @@ export function ProjectServiceOrderTab({ project, setProjects }: ProjectServiceO
                             {project.serviceOrders?.map((item) => {
                                 const invoicedAmount = invoicedAmountsBySO[item.soNumber] || 0;
                                 const remainingValue = item.value - invoicedAmount;
+                                
+                                let status: 'Open' | 'In Progress' | 'Closed';
+                                if (remainingValue <= 0) {
+                                    status = 'Closed';
+                                } else if (remainingValue === item.value) {
+                                    status = 'Open';
+                                } else {
+                                    status = 'In Progress';
+                                }
+
                                 return (
                                 <TableRow key={item.id}>
                                     <TableCell className="font-medium">{item.soNumber}</TableCell>
@@ -244,7 +251,7 @@ export function ProjectServiceOrderTab({ project, setProjects }: ProjectServiceO
                                     <TableCell className="text-right">{formatCurrency(item.value)}</TableCell>
                                     <TableCell className="text-right">{formatCurrency(remainingValue)}</TableCell>
                                     <TableCell>
-                                        <Badge variant={item.status === 'Closed' ? 'green' : item.status === 'In Progress' ? 'blue' : 'secondary'}>{item.status}</Badge>
+                                        <Badge variant={status === 'Closed' ? 'green' : status === 'In Progress' ? 'blue' : 'secondary'}>{status}</Badge>
                                     </TableCell>
                                     <TableCell className="text-right">
                                         <DropdownMenu>

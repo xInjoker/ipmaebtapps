@@ -5,7 +5,6 @@ export type ServiceOrderItem = {
   description: string;
   date: string;
   value: number;
-  status: 'Open' | 'In Progress' | 'Closed';
 };
 
 export type InvoiceItem = {
@@ -65,9 +64,9 @@ export const initialProjects: Project[] = [
     duration: '12 Months',
     progress: 75,
     serviceOrders: [
-      { id: 1, soNumber: 'SO-001-A', description: 'Initial design consultation and mockups', date: '2024-01-10', value: 500000000, status: 'Closed' },
-      { id: 2, soNumber: 'SO-001-B', description: 'Development and deployment sprints', date: '2024-03-15', value: 1500000000, status: 'In Progress' },
-      { id: 3, soNumber: 'SO-001-C', description: 'Final deployment and server setup', date: '2024-10-01', value: 500000000, status: 'Open' },
+      { id: 1, soNumber: 'SO-001-A', description: 'Initial design consultation and mockups', date: '2024-01-10', value: 500000000 },
+      { id: 2, soNumber: 'SO-001-B', description: 'Development and deployment sprints', date: '2024-03-15', value: 1500000000 },
+      { id: 3, soNumber: 'SO-001-C', description: 'Final deployment and server setup', date: '2024-10-01', value: 500000000 },
     ],
     invoices: [
       {
@@ -141,9 +140,9 @@ export const initialProjects: Project[] = [
     duration: '24 Months',
     progress: 40,
     serviceOrders: [
-      { id: 1, soNumber: 'SO-002-A', description: 'Discovery & Planning', date: '2024-02-01', value: 1000000000, status: 'Closed' },
-      { id: 2, soNumber: 'SO-002-B', description: 'UI/UX Design and Backend', date: '2024-04-15', value: 3000000000, status: 'In Progress' },
-      { id: 3, soNumber: 'SO-002-C', description: 'Frontend Development', date: '2024-10-01', value: 1000000000, status: 'Open' },
+      { id: 1, soNumber: 'SO-002-A', description: 'Discovery & Planning', date: '2024-02-01', value: 1000000000 },
+      { id: 2, soNumber: 'SO-002-B', description: 'UI/UX Design and Backend', date: '2024-04-15', value: 3000000000 },
+      { id: 3, soNumber: 'SO-002-C', description: 'Frontend Development', date: '2024-10-01', value: 1000000000 },
     ],
     invoices: [
       {
@@ -217,8 +216,8 @@ export const initialProjects: Project[] = [
     duration: '18 Months',
     progress: 90,
     serviceOrders: [
-      { id: 1, soNumber: 'SO-003-A', description: 'Cloud infrastructure setup and data pipeline implementation', date: '2023-11-20', value: 2500000000, status: 'Closed' },
-      { id: 2, soNumber: 'SO-003-B', description: 'Dashboard development and user training', date: '2024-05-10', value: 700000000, status: 'In Progress' },
+      { id: 1, soNumber: 'SO-003-A', description: 'Cloud infrastructure setup and data pipeline implementation', date: '2023-11-20', value: 2500000000 },
+      { id: 2, soNumber: 'SO-003-B', description: 'Dashboard development and user training', date: '2024-05-10', value: 700000000 },
     ],
     invoices: [
       {
