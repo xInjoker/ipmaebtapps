@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal, PlusCircle, Calendar as CalendarIcon, FileDown } from 'lucide-react';
@@ -45,6 +45,15 @@ export function ProjectServiceOrderTab({ project, setProjects }: ProjectServiceO
         value: 0,
         status: 'Open',
     });
+
+    const invoicedAmountsBySO = useMemo(() => {
+        return project.invoices.reduce((acc, invoice) => {
+            if (invoice.soNumber) {
+                acc[invoice.soNumber] = (acc[invoice.soNumber] || 0) + invoice.value;
+            }
+            return acc;
+        }, {} as Record<string, number>);
+    }, [project.invoices]);
 
     const handleAddItem = () => {
         if (newItem.soNumber && newItem.description && newItem.date && newItem.value > 0) {
@@ -216,17 +225,22 @@ export function ProjectServiceOrderTab({ project, setProjects }: ProjectServiceO
                                 <TableHead>Description</TableHead>
                                 <TableHead>Date</TableHead>
                                 <TableHead className="text-right">Value</TableHead>
+                                <TableHead className="text-right">Remaining Value</TableHead>
                                 <TableHead>Status</TableHead>
                                 <TableHead className="text-right">Action</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {project.serviceOrders?.map((item) => (
+                            {project.serviceOrders?.map((item) => {
+                                const invoicedAmount = invoicedAmountsBySO[item.soNumber] || 0;
+                                const remainingValue = item.value - invoicedAmount;
+                                return (
                                 <TableRow key={item.id}>
                                     <TableCell className="font-medium">{item.soNumber}</TableCell>
                                     <TableCell>{item.description}</TableCell>
                                     <TableCell>{format(new Date(item.date), 'PPP')}</TableCell>
                                     <TableCell className="text-right">{formatCurrency(item.value)}</TableCell>
+                                    <TableCell className="text-right">{formatCurrency(remainingValue)}</TableCell>
                                     <TableCell>
                                         <Badge variant={item.status === 'Closed' ? 'green' : item.status === 'In Progress' ? 'blue' : 'secondary'}>{item.status}</Badge>
                                     </TableCell>
@@ -241,10 +255,10 @@ export function ProjectServiceOrderTab({ project, setProjects }: ProjectServiceO
                                         </DropdownMenu>
                                     </TableCell>
                                 </TableRow>
-                            ))}
+                            )})}
                             {!project.serviceOrders?.length && (
                                 <TableRow>
-                                    <TableCell colSpan={6} className="text-center">No service orders found.</TableCell>
+                                    <TableCell colSpan={7} className="text-center">No service orders found.</TableCell>
                                 </TableRow>
                             )}
                         </TableBody>
