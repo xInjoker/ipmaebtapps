@@ -59,106 +59,108 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     setIsInitializing(true);
     try {
-        // --- Load data from localStorage ---
-        const storedRolesString = localStorage.getItem('roles');
-        const storedUsersString = localStorage.getItem('users');
-        const storedUserString = localStorage.getItem('user');
-
-        // --- Process Roles ---
-        const freshInitialRoles = initialRoles; // Fresh roles from code
-        const initialRoleMap = new Map(freshInitialRoles.map(r => [r.id, r]));
-        
-        let storedRoles: Role[] = [];
-        if (storedRolesString) {
-            try {
-                storedRoles = JSON.parse(storedRolesString);
-            } catch {
-                storedRoles = []; // Handle corrupted JSON
-            }
+      // --- Load all data from localStorage ---
+      const storedRolesString = localStorage.getItem('roles');
+      const storedUsersString = localStorage.getItem('users');
+      const storedUserString = localStorage.getItem('user');
+  
+      // --- Process Roles ---
+      const freshInitialRoles = initialRoles; // Fresh roles from code
+      const initialRoleMap = new Map(freshInitialRoles.map(r => [r.id, r]));
+      
+      let storedRoles: Role[] = [];
+      if (storedRolesString) {
+        try {
+          storedRoles = JSON.parse(storedRolesString);
+        } catch {
+          storedRoles = []; // Handle corrupted JSON
         }
-
-        // Filter out any stored roles that are built-in, keeping only true custom roles
-        const customRoles = storedRoles.filter(r => !initialRoleMap.has(r.id));
-        
-        // Combine the fresh built-in roles with custom roles. This ensures built-in roles are always up-to-date.
-        const finalRoles = [...freshInitialRoles, ...customRoles];
-        setRoles(finalRoles);
-        localStorage.setItem('roles', JSON.stringify(finalRoles));
-        
-        // --- Process Users ---
-        const validRoleIds = new Set(finalRoles.map(r => r.id));
-        let loadedUsers: User[] = initialUsers; // Default to initialUsers
-        if (storedUsersString) {
-            try {
-                loadedUsers = JSON.parse(storedUsersString);
-            } catch {
-                loadedUsers = initialUsers; // Handle corrupted JSON
-            }
+      }
+  
+      // Filter out any stored roles that are built-in, keeping only true custom roles
+      const customRoles = storedRoles.filter(r => !initialRoleMap.has(r.id));
+      
+      // Combine the fresh built-in roles with custom roles. This ensures built-in roles are always up-to-date.
+      const finalRoles = [...freshInitialRoles, ...customRoles];
+      setRoles(finalRoles);
+      localStorage.setItem('roles', JSON.stringify(finalRoles));
+      
+      // --- Process Users ---
+      const validRoleIds = new Set(finalRoles.map(r => r.id));
+      let loadedUsers: User[] = initialUsers; // Default to initialUsers
+      if (storedUsersString) {
+        try {
+          loadedUsers = JSON.parse(storedUsersString);
+        } catch {
+          loadedUsers = initialUsers; // Handle corrupted JSON
         }
-        
-        // Validate each user's role, falling back to 'staff' if invalid.
-        let usersDataWasUpdated = false;
-        const validatedUsers = loadedUsers.map(u => {
-            if (!validRoleIds.has(u.roleId)) {
-                usersDataWasUpdated = true;
-                return { ...u, roleId: 'staff' };
-            }
-            return u;
-        });
-
-        if (usersDataWasUpdated || !storedUsersString) {
-            localStorage.setItem('users', JSON.stringify(validatedUsers));
+      }
+      
+      // Validate each user's role, falling back to 'staff' if invalid.
+      let usersDataWasUpdated = false;
+      const validatedUsers = loadedUsers.map(u => {
+        if (!validRoleIds.has(u.roleId)) {
+          usersDataWasUpdated = true;
+          return { ...u, roleId: 'staff' };
         }
-        setUsers(validatedUsers);
-
-        // --- Process Current Logged-in User ---
-        if (storedUserString) {
-            try {
-                const userObject: User = JSON.parse(storedUserString);
-                // Find the corresponding user from the *already validated* list to ensure data consistency.
-                const currentUserFromValidatedList = validatedUsers.find(u => u.id === userObject.id);
-
-                if (currentUserFromValidatedList) {
-                     setUser(currentUserFromValidatedList);
-                     // Resync localStorage with the validated user object.
-                     localStorage.setItem('user', JSON.stringify(currentUserFromValidatedList));
-                } else {
-                    // If the user in storage doesn't exist in our list, they are invalid. Log them out.
-                    localStorage.removeItem('user');
-                    setUser(null);
-                }
-            } catch {
-                // Handle corrupted JSON for the current user
-                localStorage.removeItem('user');
-                setUser(null);
-            }
-        } else {
-            setUser(null);
+        return u;
+      });
+  
+      if (usersDataWasUpdated || !storedUsersString) {
+        localStorage.setItem('users', JSON.stringify(validatedUsers));
+      }
+      setUsers(validatedUsers);
+  
+      // --- Process Current Logged-in User ---
+      if (storedUserString) {
+        try {
+          const userObject: User = JSON.parse(storedUserString);
+          // Find the corresponding user from the *already validated* list to ensure data consistency.
+          const currentUserFromValidatedList = validatedUsers.find(u => u.id === userObject.id);
+  
+          if (currentUserFromValidatedList) {
+               setUser(currentUserFromValidatedList);
+               // Resync localStorage with the validated user object, in case their role was defaulted.
+               if (JSON.stringify(userObject) !== JSON.stringify(currentUserFromValidatedList)) {
+                   localStorage.setItem('user', JSON.stringify(currentUserFromValidatedList));
+               }
+          } else {
+              // If the user in storage doesn't exist in our list, they are invalid. Log them out.
+              localStorage.removeItem('user');
+              setUser(null);
+          }
+        } catch {
+          // Handle corrupted JSON for the current user
+          localStorage.removeItem('user');
+          setUser(null);
         }
-
-        // --- Branches (always use the list from code as the source of truth) ---
-        setBranches(initialBranches);
-
-    } catch (error) {
-        console.error('Failed to initialize from localStorage. Resetting to defaults.', error);
-        // Fallback to a known good state on any unexpected error
-        localStorage.setItem('roles', JSON.stringify(initialRoles));
-        setRoles(initialRoles);
-        localStorage.setItem('users', JSON.stringify(initialUsers));
-        setUsers(initialUsers);
-        setBranches(initialBranches);
-        localStorage.removeItem('user');
+      } else {
         setUser(null);
+      }
+  
+      // --- Branches (always use the list from code as the source of truth) ---
+      setBranches(initialBranches);
+  
+    } catch (error) {
+      console.error('Failed to initialize from localStorage. Resetting to defaults.', error);
+      // Fallback to a known good state on any unexpected error
+      localStorage.setItem('roles', JSON.stringify(initialRoles));
+      setRoles(initialRoles);
+      localStorage.setItem('users', JSON.stringify(initialUsers));
+      setUsers(initialUsers);
+      setBranches(initialBranches);
+      localStorage.removeItem('user');
+      setUser(null);
     } finally {
-        setIsInitializing(false);
+      setIsInitializing(false);
     }
   }, []);
 
   const login = (email: string, pass: string) => {
-    const allUsers = users.length > 0 ? users : initialUsers;
-    const userToLogin = allUsers.find((u) => u.email === email);
+    // This logic should use the state `users` which is now guaranteed to be up to date
+    const userToLogin = users.find((u) => u.email === email);
 
-    if (userToLogin && pass) {
+    if (userToLogin && pass) { // Dummy password check
       const userRoleExists = roles.some(r => r.id === userToLogin.roleId);
       if (!userRoleExists) {
         userToLogin.roleId = 'staff';
