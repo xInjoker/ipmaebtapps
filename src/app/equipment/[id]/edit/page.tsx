@@ -98,7 +98,7 @@ export default function EditEquipmentPage() {
 
   const handleSave = () => {
     if (!equipment) return;
-    if (!equipment.name || !equipment.type || !equipment.owningBranchId || !equipment.calibrationDueDate) {
+    if (!equipment.name || !equipment.serialNumber || !equipment.type || !equipment.owningBranchId || !equipment.calibrationDueDate) {
       toast({
         variant: 'destructive',
         title: 'Missing Information',
@@ -154,6 +154,10 @@ export default function EditEquipmentPage() {
             <div className="space-y-2">
                 <Label htmlFor="name">Equipment Name</Label>
                 <Input id="name" value={equipment.name} onChange={e => setEquipment({...equipment, name: e.target.value})} />
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="serialNumber">Serial Number</Label>
+                <Input id="serialNumber" value={equipment.serialNumber} onChange={e => setEquipment(equipment ? {...equipment, serialNumber: e.target.value} : null)} />
             </div>
             <div className="space-y-2">
                 <Label htmlFor="type">Type</Label>

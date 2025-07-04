@@ -35,6 +35,7 @@ export default function NewEquipmentPage() {
 
   const [newEquipment, setNewEquipment] = useState<{
     name: string;
+    serialNumber: string;
     type: EquipmentType | '';
     owningBranchId: string;
     currentLocation: string;
@@ -42,6 +43,7 @@ export default function NewEquipmentPage() {
     status: EquipmentStatus;
   }>({
     name: '',
+    serialNumber: '',
     type: '',
     owningBranchId: '',
     currentLocation: '',
@@ -70,7 +72,7 @@ export default function NewEquipmentPage() {
 
 
   const handleSave = () => {
-    if (!newEquipment.name || !newEquipment.type || !newEquipment.owningBranchId || !newEquipment.calibrationDueDate) {
+    if (!newEquipment.name || !newEquipment.serialNumber || !newEquipment.type || !newEquipment.owningBranchId || !newEquipment.calibrationDueDate) {
       toast({
         variant: 'destructive',
         title: 'Missing Information',
@@ -81,6 +83,7 @@ export default function NewEquipmentPage() {
 
     addEquipment({
       name: newEquipment.name,
+      serialNumber: newEquipment.serialNumber,
       type: newEquipment.type as EquipmentType,
       owningBranchId: newEquipment.owningBranchId,
       currentLocation: newEquipment.currentLocation,
@@ -121,6 +124,10 @@ export default function NewEquipmentPage() {
             <div className="space-y-2">
                 <Label htmlFor="name">Equipment Name</Label>
                 <Input id="name" value={newEquipment.name} onChange={e => setNewEquipment({...newEquipment, name: e.target.value})} placeholder="e.g., GUL Wavemaker G4" />
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="serialNumber">Serial Number</Label>
+                <Input id="serialNumber" value={newEquipment.serialNumber} onChange={e => setNewEquipment({...newEquipment, serialNumber: e.target.value})} placeholder="e.g., G4-2021-001" />
             </div>
             <div className="space-y-2">
                 <Label htmlFor="type">Type</Label>

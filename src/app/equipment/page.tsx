@@ -74,7 +74,7 @@ export default function EquipmentPage() {
                     <CardHeader className="flex-row items-start justify-between">
                       <div>
                           <CardTitle className="font-headline text-lg">{item.name}</CardTitle>
-                          <CardDescription>{item.type}</CardDescription>
+                          <CardDescription>{item.type} &bull; {item.serialNumber}</CardDescription>
                       </div>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
