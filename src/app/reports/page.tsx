@@ -1,8 +1,14 @@
 'use client';
 
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
-import { ChevronRight, Beaker, Magnet, Waves, Radio, FileText } from 'lucide-react';
+import { ChevronRight, Beaker, Magnet, Waves, Radio, FileText, MoreHorizontal } from 'lucide-react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { initialReports, type ReportItem, type ReportStatus } from '@/lib/reports';
 
 const reportTypes = [
   { name: 'Penetrant Test', href: '/reports/penetrant', icon: Beaker, description: 'Create and manage liquid penetrant testing reports.' },
@@ -12,14 +18,31 @@ const reportTypes = [
   { name: 'Other Methods', href: '/reports/other', icon: FileText, description: 'Create and manage reports for other testing methods.' },
 ];
 
+const getStatusVariant = (status: ReportStatus) => {
+    switch (status) {
+        case 'Approved':
+            return 'green';
+        case 'Submitted':
+            return 'blue';
+        case 'Draft':
+            return 'yellow';
+        case 'Rejected':
+            return 'destructive';
+        default:
+            return 'secondary';
+    }
+};
+
 export default function ReportsPage() {
+  const [reports, setReports] = useState<ReportItem[]>(initialReports);
+
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle className="font-headline">Reporting</CardTitle>
           <CardDescription>
-            Select a non-destructive testing method to create or view a report.
+            Select a non-destructive testing method to create a new report or view existing reports below.
           </CardDescription>
         </CardHeader>
       </Card>
@@ -45,6 +68,57 @@ export default function ReportsPage() {
           </Card>
         ))}
       </div>
+      
+      <Card>
+          <CardHeader>
+              <CardTitle>Generated Reports</CardTitle>
+              <CardDescription>A summary of all generated test reports.</CardDescription>
+          </CardHeader>
+          <CardContent>
+              <Table>
+                  <TableHeader>
+                      <TableRow>
+                          <TableHead>Report Number</TableHead>
+                          <TableHead>Job Location</TableHead>
+                          <TableHead>Line Type</TableHead>
+                          <TableHead>Job Type</TableHead>
+                          <TableHead>Qty Joint</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                      {reports.map((report) => (
+                          <TableRow key={report.id}>
+                              <TableCell className="font-medium">{report.reportNumber}</TableCell>
+                              <TableCell>{report.jobLocation}</TableCell>
+                              <TableCell>{report.lineType}</TableCell>
+                              <TableCell>{report.jobType}</TableCell>
+                              <TableCell>{report.qtyJoint}</TableCell>
+                              <TableCell>
+                                  <Badge variant={getStatusVariant(report.status)}>{report.status}</Badge>
+                              </TableCell>
+                              <TableCell className="text-right">
+                                  <DropdownMenu>
+                                      <DropdownMenuTrigger asChild>
+                                          <Button variant="ghost" className="h-8 w-8 p-0">
+                                              <span className="sr-only">Open menu</span>
+                                              <MoreHorizontal className="h-4 w-4" />
+                                          </Button>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent align="end">
+                                          <DropdownMenuItem>View</DropdownMenuItem>
+                                          <DropdownMenuItem>Edit</DropdownMenuItem>
+                                          <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+                                      </DropdownMenuContent>
+                                  </DropdownMenu>
+                              </TableCell>
+                          </TableRow>
+                      ))}
+                  </TableBody>
+              </Table>
+          </CardContent>
+      </Card>
     </div>
   );
 }
