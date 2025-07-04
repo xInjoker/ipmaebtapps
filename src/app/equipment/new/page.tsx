@@ -23,15 +23,17 @@ import { ArrowLeft, Calendar as CalendarIcon, Save, Upload, File as FileIcon, X,
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { Checkbox } from '@/components/ui/checkbox';
 
 export default function NewEquipmentPage() {
   const router = useRouter();
-  const { branches } = useAuth();
+  const { branches, users } = useAuth();
   const { addEquipment } = useEquipment();
   const { toast } = useToast();
 
   const [images, setImages] = useState<File[]>([]);
   const [documents, setDocuments] = useState<File[]>([]);
+  const [personnelCertifications, setPersonnelCertifications] = useState<File[]>([]);
 
   const [newEquipment, setNewEquipment] = useState<{
     name: string;
@@ -41,6 +43,7 @@ export default function NewEquipmentPage() {
     currentLocation: string;
     calibrationDueDate: string;
     status: EquipmentStatus;
+    assignedPersonnelIds: number[];
   }>({
     name: '',
     serialNumber: '',
@@ -49,6 +52,7 @@ export default function NewEquipmentPage() {
     currentLocation: '',
     calibrationDueDate: '',
     status: 'Normal',
+    assignedPersonnelIds: [],
   });
   
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -62,6 +66,13 @@ export default function NewEquipmentPage() {
       setDocuments(prev => [...prev, ...Array.from(e.target.files!)]);
     }
   };
+  
+  const handlePersonnelCertChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+        setPersonnelCertifications(prev => [...prev, ...Array.from(e.target.files!)]);
+    }
+  };
+
 
   const removeImage = (index: number) => {
     setImages(prev => prev.filter((_, i) => i !== index));
@@ -69,6 +80,23 @@ export default function NewEquipmentPage() {
 
   const removeDocument = (index: number) => {
     setDocuments(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const removePersonnelCert = (index: number) => {
+    setPersonnelCertifications(prev => prev.filter((_, i) => i !== index));
+  };
+  
+  const handlePersonnelChange = (userId: number) => {
+    setNewEquipment(prev => {
+        const newAssigned = [...prev.assignedPersonnelIds];
+        const index = newAssigned.indexOf(userId);
+        if (index > -1) {
+            newAssigned.splice(index, 1);
+        } else {
+            newAssigned.push(userId);
+        }
+        return {...prev, assignedPersonnelIds: newAssigned};
+    });
   };
 
 
@@ -92,6 +120,8 @@ export default function NewEquipmentPage() {
       status: newEquipment.status,
       imageUrls: images.map(file => URL.createObjectURL(file)), // In a real app, you'd upload and get URLs
       documentUrls: documents.map(file => file.name),
+      assignedPersonnelIds: newEquipment.assignedPersonnelIds,
+      personnelCertificationUrls: personnelCertifications.map(file => file.name),
     });
     
     toast({
@@ -190,6 +220,25 @@ export default function NewEquipmentPage() {
                 </Select>
             </div>
             <div className="space-y-2 md:col-span-2">
+                <Label>Authorized Personnel</Label>
+                <Card>
+                    <CardContent className="p-4 grid grid-cols-2 md:grid-cols-3 gap-4">
+                        {users.map(user => (
+                            <div key={user.id} className="flex items-center space-x-2">
+                                <Checkbox
+                                    id={`user-${user.id}`}
+                                    checked={newEquipment.assignedPersonnelIds.includes(user.id)}
+                                    onCheckedChange={() => handlePersonnelChange(user.id)}
+                                />
+                                <Label htmlFor={`user-${user.id}`} className="font-normal cursor-pointer">
+                                    {user.name}
+                                </Label>
+                            </div>
+                        ))}
+                    </CardContent>
+                </Card>
+            </div>
+            <div className="space-y-2 md:col-span-2">
                 <Label>Equipment Images</Label>
                 <div className="flex items-center justify-center w-full">
                     <label htmlFor="image-upload" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-card hover:bg-muted">
@@ -240,6 +289,34 @@ export default function NewEquipmentPage() {
                                 <span className="text-sm truncate">{file.name}</span>
                             </div>
                             <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeDocument(index)}>
+                                <X className="h-4 w-4" />
+                            </Button>
+                        </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+            <div className="space-y-2 md:col-span-2">
+                <Label>Personnel Certifications</Label>
+                <div className="flex items-center justify-center w-full">
+                    <label htmlFor="cert-upload" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-card hover:bg-muted">
+                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                            <Upload className="w-8 h-8 mb-3 text-muted-foreground" />
+                            <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> or drag and drop</p>
+                            <p className="text-xs text-muted-foreground">PDF, JPG, PNG</p>
+                        </div>
+                        <Input id="cert-upload" type="file" className="hidden" multiple onChange={handlePersonnelCertChange} />
+                    </label>
+                </div>
+                 {personnelCertifications.length > 0 && (
+                    <div className="mt-4 space-y-2">
+                        {personnelCertifications.map((file, index) => (
+                        <div key={index} className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
+                            <div className="flex items-center gap-2 truncate">
+                                <FileIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                <span className="text-sm truncate">{file.name}</span>
+                            </div>
+                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removePersonnelCert(index)}>
                                 <X className="h-4 w-4" />
                             </Button>
                         </div>

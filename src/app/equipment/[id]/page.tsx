@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -34,6 +34,7 @@ import {
   FileText,
   Image as ImageIcon,
   Edit,
+  Users,
 } from 'lucide-react';
 import { format, isPast, differenceInDays } from 'date-fns';
 import { useAuth } from '@/context/AuthContext';
@@ -43,7 +44,7 @@ export default function EquipmentDetailsPage() {
   const router = useRouter();
   const params = useParams();
   const { getEquipmentById } = useEquipment();
-  const { branches } = useAuth();
+  const { users, branches } = useAuth();
   const [equipment, setEquipment] = useState<EquipmentItem | null>(null);
 
   useEffect(() => {
@@ -53,6 +54,13 @@ export default function EquipmentDetailsPage() {
       setEquipment(item || null);
     }
   }, [params.id, getEquipmentById]);
+  
+  const userMap = useMemo(() => {
+    return users.reduce((acc, user) => {
+        acc[user.id] = user.name;
+        return acc;
+    }, {} as Record<number, string>)
+  }, [users]);
 
   const branchMap = branches.reduce((acc, branch) => {
     acc[branch.id] = branch.name;
@@ -91,6 +99,7 @@ export default function EquipmentDetailsPage() {
   }
   
   const calibration = getCalibrationStatus(new Date(equipment.calibrationDueDate));
+  const assignedPersonnel = (equipment.assignedPersonnelIds || []).map(id => userMap[id]).filter(Boolean);
 
   return (
     <div className="space-y-6">
@@ -180,6 +189,20 @@ export default function EquipmentDetailsPage() {
                     </div>
                 </div>
             </div>
+             <Separator />
+            <h3 className="font-semibold text-lg">Authorized Personnel</h3>
+            <div className="space-y-2">
+                {assignedPersonnel.length > 0 ? (
+                    assignedPersonnel.map((name, index) => (
+                         <div key={index} className="flex items-center gap-2">
+                            <Users className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm">{name}</span>
+                        </div>
+                    ))
+                ) : (
+                    <p className="text-sm text-muted-foreground">No personnel assigned.</p>
+                )}
+            </div>
           </div>
           <div className="space-y-6 lg:col-span-2">
              <div>
@@ -217,7 +240,7 @@ export default function EquipmentDetailsPage() {
             <Separator />
             <div>
                 <h3 className="font-semibold text-lg mb-4">Supporting Documents</h3>
-                {equipment.documentUrls.length > 0 ? (
+                {(equipment.documentUrls || []).length > 0 ? (
                     <div className="space-y-2">
                         {equipment.documentUrls.map((url, index) => (
                             <div key={index} className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
@@ -234,6 +257,30 @@ export default function EquipmentDetailsPage() {
                         <div className="text-center text-muted-foreground">
                             <FileText className="mx-auto h-10 w-10" />
                             <p className="mt-2 text-sm">No documents uploaded</p>
+                        </div>
+                    </div>
+                )}
+            </div>
+            <Separator />
+            <div>
+                <h3 className="font-semibold text-lg mb-4">Personnel Certifications</h3>
+                {(equipment.personnelCertificationUrls || []).length > 0 ? (
+                    <div className="space-y-2">
+                        {equipment.personnelCertificationUrls.map((url, index) => (
+                            <div key={index} className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
+                                <div className="flex items-center gap-2 truncate">
+                                    <FileText className="h-4 w-4 flex-shrink-0" />
+                                    <span className="text-sm truncate">{url.split('/').pop()}</span>
+                                </div>
+                                <Button variant="ghost" size="sm">Download</Button>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                     <div className="flex items-center justify-center h-32 rounded-md border-2 border-dashed bg-muted">
+                        <div className="text-center text-muted-foreground">
+                            <FileText className="mx-auto h-10 w-10" />
+                            <p className="mt-2 text-sm">No certifications uploaded</p>
                         </div>
                     </div>
                 )}

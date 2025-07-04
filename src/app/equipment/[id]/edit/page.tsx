@@ -24,17 +24,19 @@ import { ArrowLeft, Calendar as CalendarIcon, Save, Upload, File as FileIcon, X,
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { Checkbox } from '@/components/ui/checkbox';
 
 export default function EditEquipmentPage() {
   const router = useRouter();
   const params = useParams();
-  const { branches } = useAuth();
+  const { branches, users } = useAuth();
   const { getEquipmentById, updateEquipment } = useEquipment();
   const { toast } = useToast();
   
   const [equipment, setEquipment] = useState<EquipmentItem | null>(null);
   const [newImages, setNewImages] = useState<File[]>([]);
   const [newDocuments, setNewDocuments] = useState<File[]>([]);
+  const [newPersonnelCerts, setNewPersonnelCerts] = useState<File[]>([]);
 
   useEffect(() => {
     const equipmentId = params.id as string;
@@ -45,6 +47,8 @@ export default function EditEquipmentPage() {
             ...item,
             imageUrls: item.imageUrls || [],
             documentUrls: item.documentUrls || [],
+            assignedPersonnelIds: item.assignedPersonnelIds || [],
+            personnelCertificationUrls: item.personnelCertificationUrls || [],
         });
       } else {
         toast({
@@ -66,6 +70,12 @@ export default function EditEquipmentPage() {
   const handleDocumentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       setNewDocuments(prev => [...prev, ...Array.from(e.target.files!)]);
+    }
+  };
+  
+  const handlePersonnelCertChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+        setNewPersonnelCerts(prev => [...prev, ...Array.from(e.target.files!)]);
     }
   };
 
@@ -94,6 +104,31 @@ export default function EditEquipmentPage() {
       });
     }
   };
+  
+  const removeNewPersonnelCert = (index: number) => {
+    setNewPersonnelCerts(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const removeExistingPersonnelCert = (url: string) => {
+    if (equipment) {
+      setEquipment({
+        ...equipment,
+        personnelCertificationUrls: equipment.personnelCertificationUrls.filter(u => u !== url),
+      });
+    }
+  };
+
+  const handlePersonnelChange = (userId: number) => {
+    if (!equipment) return;
+    const newAssigned = [...equipment.assignedPersonnelIds];
+    const index = newAssigned.indexOf(userId);
+    if (index > -1) {
+        newAssigned.splice(index, 1);
+    } else {
+        newAssigned.push(userId);
+    }
+    setEquipment({...equipment, assignedPersonnelIds: newAssigned});
+  };
 
   const handleSave = () => {
     if (!equipment) return;
@@ -110,6 +145,7 @@ export default function EditEquipmentPage() {
         ...equipment,
         imageUrls: [...equipment.imageUrls, ...newImages.map(file => URL.createObjectURL(file))], // In a real app, you'd upload and get URLs
         documentUrls: [...equipment.documentUrls, ...newDocuments.map(file => file.name)],
+        personnelCertificationUrls: [...equipment.personnelCertificationUrls, ...newPersonnelCerts.map(file => file.name)],
     };
 
     updateEquipment(equipment.id, updatedEquipmentData);
@@ -217,6 +253,25 @@ export default function EditEquipmentPage() {
                     </SelectContent>
                 </Select>
             </div>
+             <div className="space-y-2 md:col-span-2">
+                <Label>Authorized Personnel</Label>
+                <Card>
+                    <CardContent className="p-4 grid grid-cols-2 md:grid-cols-3 gap-4">
+                        {users.map(user => (
+                            <div key={user.id} className="flex items-center space-x-2">
+                                <Checkbox
+                                    id={`user-${user.id}`}
+                                    checked={equipment.assignedPersonnelIds.includes(user.id)}
+                                    onCheckedChange={() => handlePersonnelChange(user.id)}
+                                />
+                                <Label htmlFor={`user-${user.id}`} className="font-normal cursor-pointer">
+                                    {user.name}
+                                </Label>
+                            </div>
+                        ))}
+                    </CardContent>
+                </Card>
+            </div>
             <div className="space-y-2 md:col-span-2">
                 <Label>Equipment Images</Label>
                  <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
@@ -292,6 +347,43 @@ export default function EditEquipmentPage() {
                             <p className="text-xs text-muted-foreground">PDF, DOCX, XLSX</p>
                         </div>
                         <Input id="document-upload" type="file" className="hidden" multiple onChange={handleDocumentChange} />
+                    </label>
+                </div>
+            </div>
+            <div className="space-y-2 md:col-span-2">
+                <Label>Personnel Certifications</Label>
+                 <div className="mt-2 space-y-2">
+                    {equipment.personnelCertificationUrls.map((url, index) => (
+                    <div key={`existing-cert-${index}`} className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
+                        <div className="flex items-center gap-2 truncate">
+                            <FileIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                            <span className="text-sm truncate">{url.split('/').pop()}</span>
+                        </div>
+                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeExistingPersonnelCert(url)}>
+                            <X className="h-4 w-4" />
+                        </Button>
+                    </div>
+                    ))}
+                    {newPersonnelCerts.map((file, index) => (
+                    <div key={`new-cert-${index}`} className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
+                        <div className="flex items-center gap-2 truncate">
+                            <FileIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                            <span className="text-sm truncate">{file.name}</span>
+                        </div>
+                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeNewPersonnelCert(index)}>
+                            <X className="h-4 w-4" />
+                        </Button>
+                    </div>
+                    ))}
+                </div>
+                <div className="flex items-center justify-center w-full mt-4">
+                    <label htmlFor="cert-upload" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-card hover:bg-muted">
+                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                            <Upload className="w-8 h-8 mb-3 text-muted-foreground" />
+                            <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> or drag and drop</p>
+                            <p className="text-xs text-muted-foreground">PDF, JPG, PNG</p>
+                        </div>
+                        <Input id="cert-upload" type="file" className="hidden" multiple onChange={handlePersonnelCertChange} />
                     </label>
                 </div>
             </div>

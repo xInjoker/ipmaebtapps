@@ -19,7 +19,12 @@ export function EquipmentProvider({ children }: { children: ReactNode }) {
 
   const addEquipment = (item: Omit<EquipmentItem, 'id'>) => {
     const newId = `EQ-${String(equipmentList.length + 1).padStart(3, '0')}`;
-    const newItem = { ...item, id: newId };
+    const newItem = { 
+      ...item, 
+      id: newId,
+      assignedPersonnelIds: item.assignedPersonnelIds || [],
+      personnelCertificationUrls: item.personnelCertificationUrls || [],
+    };
     setEquipmentList(prev => [...prev, newItem]);
   };
   
