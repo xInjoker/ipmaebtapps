@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState }from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -66,7 +66,7 @@ export default function PenetrantTestPage() {
         testResults: [] as TestResult[],
     });
 
-    const [newTestResult, setNewTestResult] = useState<Omit<TestResult, 'id'>>({
+    const [newTestResult, setNewTestResult] = useState<TestResult>({
         jointNo: '',
         weldId: '',
         diameter: '',
@@ -101,7 +101,7 @@ export default function PenetrantTestPage() {
         if (newTestResult.jointNo && newTestResult.weldId) {
             setFormData(prev => ({
                 ...prev,
-                testResults: [...prev.testResults, newTestResult as TestResult]
+                testResults: [...prev.testResults, newTestResult]
             }));
             setNewTestResult({ jointNo: '', weldId: '', diameter: '', thickness: '', indication: 'No Indication', result: 'Accept' });
         }
