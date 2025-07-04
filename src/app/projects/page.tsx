@@ -49,6 +49,7 @@ export default function ProjectsPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newProject, setNewProject] = useState({
     contractNumber: '',
+    rabNumber: '',
     name: '',
     client: '',
     description: '',
@@ -61,6 +62,7 @@ export default function ProjectsPage() {
     if (isDialogOpen) {
       setNewProject({
         contractNumber: '',
+        rabNumber: '',
         name: '',
         client: '',
         description: '',
@@ -126,6 +128,7 @@ export default function ProjectsPage() {
 
     if (
       !newProject.contractNumber ||
+      !newProject.rabNumber ||
       !newProject.name ||
       !newProject.client ||
       !newProject.description ||
@@ -292,6 +295,18 @@ export default function ProjectsPage() {
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="rabNumber" className="text-right">
+                  RAB No.
+                </Label>
+                <Input
+                  id="rabNumber"
+                  value={newProject.rabNumber}
+                  onChange={(e) => setNewProject({ ...newProject, rabNumber: e.target.value })}
+                  className="col-span-3"
+                  placeholder="RAB number"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="name" className="text-right">
                   Name
                 </Label>
@@ -453,6 +468,10 @@ export default function ProjectsPage() {
                    <div className="flex justify-between text-sm">
                       <p className="text-muted-foreground">Contract No.</p>
                       <p className="font-medium">{project.contractNumber}</p>
+                  </div>
+                   <div className="flex justify-between text-sm">
+                      <p className="text-muted-foreground">RAB No.</p>
+                      <p className="font-medium">{project.rabNumber}</p>
                   </div>
                   <div className="flex justify-between text-sm">
                     <p className="text-muted-foreground">Contract Executor</p>

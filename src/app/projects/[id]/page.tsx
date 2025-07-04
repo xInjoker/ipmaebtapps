@@ -19,6 +19,7 @@ import {
   Clock,
   User,
   Building,
+  FileSpreadsheet,
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
@@ -184,6 +185,15 @@ export default function ProjectDetailsPage() {
                         </p>
                         <p className="font-medium">{project.contractNumber}</p>
                     </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <FileSpreadsheet className="mt-0.5 h-5 w-5 flex-shrink-0 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">
+                          RAB No.
+                        </p>
+                        <p className="font-medium">{project.rabNumber}</p>
+                      </div>
                     </div>
                     <div className="flex items-start gap-3">
                     <Calendar className="mt-0.5 h-5 w-5 flex-shrink-0 text-muted-foreground" />

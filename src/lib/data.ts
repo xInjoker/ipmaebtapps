@@ -21,6 +21,7 @@ export type ExpenditureItem = {
 export type Project = {
   id: number;
   contractNumber: string;
+  rabNumber: string;
   name: string;
   client: string;
   description: string;
@@ -41,6 +42,7 @@ export const initialProjects: Project[] = [
   {
     id: 1,
     contractNumber: 'CN-001',
+    rabNumber: 'RAB-24-001',
     name: 'Corporate Website Revamp',
     client: 'Acme Inc.',
     description:
@@ -111,6 +113,7 @@ export const initialProjects: Project[] = [
   {
     id: 2,
     contractNumber: 'CN-002',
+    rabNumber: 'RAB-24-002',
     name: 'Mobile App Development',
     client: 'Stark Industries',
     description:
@@ -181,6 +184,7 @@ export const initialProjects: Project[] = [
   {
     id: 3,
     contractNumber: 'CN-003',
+    rabNumber: 'RAB-23-015',
     name: 'Data Analytics Platform',
     client: 'Wayne Enterprises',
     description:
