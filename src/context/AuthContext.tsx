@@ -60,16 +60,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsInitializing(true);
     try {
       // --- Roles ---
-      // The roles defined in the code are the source of truth for default roles.
+      // This logic ensures that built-in roles are always up-to-date with the code,
+      // while preserving any user-created custom roles to prevent data corruption from storage.
       const initialRoleMap = new Map(initialRoles.map(r => [r.id, r]));
       
       const storedRolesString = localStorage.getItem('roles');
       const storedRoles: Role[] = storedRolesString ? JSON.parse(storedRolesString) : [];
 
-      // Get custom roles from storage (any role not in our initial set).
+      // Get custom roles from storage (any role that is not a built-in one).
       const customRoles = storedRoles.filter(r => !initialRoleMap.has(r.id));
       
-      // The final list of roles is the up-to-date initial roles plus any custom roles from storage.
+      // The final list of roles is the fresh, up-to-date initial roles from the code, plus any custom roles.
       const finalRoles = [...initialRoles, ...customRoles];
       setRoles(finalRoles);
       localStorage.setItem('roles', JSON.stringify(finalRoles));
@@ -82,10 +83,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       let usersDataWasUpdated = false;
       const validatedUsers = loadedUsers.map(u => {
-        // If a user has a role that no longer exists, assign them the 'staff' role.
+        // If a user has a role that no longer exists, assign them the 'staff' role as a fallback.
         if (!validRoleIds.has(u.roleId)) {
           usersDataWasUpdated = true;
-          return { ...u, roleId: 'staff' }; // Fallback to 'staff' if role is invalid
+          return { ...u, roleId: 'staff' };
         }
         return u;
       });
@@ -117,13 +118,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setRoles(initialRoles);
       localStorage.setItem('users', JSON.stringify(initialUsers));
       setUsers(initialUsers);
+      localStorage.setItem('branches', JSON.stringify(initialBranches));
+      setBranches(initialBranches);
       localStorage.removeItem('user');
       setUser(null);
-      setBranches(initialBranches);
     } finally {
       setIsInitializing(false);
     }
-  }, []); // Run only on initial mount
+  }, []);
 
   const login = (email: string, pass: string) => {
     const allUsers = users.length > 0 ? users : initialUsers;
