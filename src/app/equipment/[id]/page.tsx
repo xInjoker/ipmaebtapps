@@ -34,12 +34,13 @@ import {
   FileText,
   Image as ImageIcon,
   Edit,
-  Users,
 } from 'lucide-react';
 import { format, isPast, differenceInDays } from 'date-fns';
 import { useAuth } from '@/context/AuthContext';
 import { type EquipmentItem } from '@/lib/equipment';
 import { useInspectors } from '@/context/InspectorContext';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { cn, getAvatarColor, getInitials } from '@/lib/utils';
 
 export default function EquipmentDetailsPage() {
   const router = useRouter();
@@ -56,18 +57,18 @@ export default function EquipmentDetailsPage() {
       setEquipment(item || null);
     }
   }, [params.id, getEquipmentById]);
-  
-  const inspectorMap = useMemo(() => {
-    return inspectors.reduce((acc, inspector) => {
-        acc[inspector.id] = inspector.name;
-        return acc;
-    }, {} as Record<string, string>)
-  }, [inspectors]);
 
-  const branchMap = branches.reduce((acc, branch) => {
-    acc[branch.id] = branch.name;
-    return acc;
-  }, {} as Record<string, string>);
+  const branchMap = useMemo(() => {
+    return branches.reduce((acc, branch) => {
+      acc[branch.id] = branch.name;
+      return acc;
+    }, {} as Record<string, string>);
+  }, [branches]);
+
+  const assignedInspectors = useMemo(() => {
+    if (!equipment) return [];
+    return inspectors.filter(inspector => (equipment.assignedPersonnelIds || []).includes(inspector.id));
+  }, [equipment, inspectors]);
 
   const getCalibrationStatus = (dueDate: Date) => {
     const today = new Date();
@@ -101,7 +102,6 @@ export default function EquipmentDetailsPage() {
   }
   
   const calibration = getCalibrationStatus(new Date(equipment.calibrationDueDate));
-  const assignedPersonnel = (equipment.assignedPersonnelIds || []).map(id => inspectorMap[id]).filter(Boolean);
 
   return (
     <div className="space-y-6">
@@ -194,16 +194,27 @@ export default function EquipmentDetailsPage() {
              <Separator />
             <h3 className="font-semibold text-lg">Authorized Personnel</h3>
             <div className="space-y-2">
-                {assignedPersonnel.length > 0 ? (
-                    assignedPersonnel.map((name, index) => (
-                         <div key={index} className="flex items-center gap-2">
-                            <Users className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm">{name}</span>
-                        </div>
-                    ))
-                ) : (
-                    <p className="text-sm text-muted-foreground">No personnel assigned.</p>
-                )}
+              {assignedInspectors.length > 0 ? (
+                assignedInspectors.map((inspector) => {
+                  const avatarColor = getAvatarColor(inspector.name);
+                  return (
+                    <div key={inspector.id} className="flex items-center gap-3 rounded-md border p-2">
+                      <Avatar className="h-9 w-9">
+                        {inspector.avatarUrl ? <AvatarImage src={inspector.avatarUrl} alt={inspector.name} /> : null}
+                        <AvatarFallback className={cn(avatarColor.background, avatarColor.text)}>
+                          {getInitials(inspector.name)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="font-medium text-sm">{inspector.name}</p>
+                        <p className="text-xs text-muted-foreground">{branchMap[inspector.branchId] || 'Unknown Branch'}</p>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <p className="text-sm text-muted-foreground">No personnel assigned.</p>
+              )}
             </div>
           </div>
           <div className="space-y-6 lg:col-span-2">
