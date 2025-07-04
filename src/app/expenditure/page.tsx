@@ -39,6 +39,7 @@ import {
 } from '@/components/ui/select';
 import { PlusCircle } from 'lucide-react';
 import { initialProjects } from '@/lib/data';
+import { formatCurrency } from '@/lib/utils';
 
 type ExpenditureItem = {
   id: string;
@@ -96,14 +97,6 @@ const categoryToCoaMap: { [key: string]: string } = {
     'Promosi': '4800',
     'Umum': '4900',
 };
-
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    minimumFractionDigits: 0,
-  }).format(value);
-}
 
 export default function ExpenditurePage() {
   const [expenditureData, setExpenditureData] = useState<ExpenditureItem[]>(initialExpenditureData);

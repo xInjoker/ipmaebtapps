@@ -19,6 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { formatCurrency } from '@/lib/utils';
 
 type FinancialCategory = {
   id: number;
@@ -101,8 +102,8 @@ export default function FinancesPage() {
       </CardContent>
       <CardFooter className="flex flex-col items-end space-y-2 border-t bg-muted/50 px-6 py-4 sm:flex-row sm:justify-between sm:space-y-0">
         <div className="text-right sm:text-left">
-            <p className="text-sm font-medium">Total Budget: {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(totalBudget)}</p>
-            <p className="text-sm font-medium text-muted-foreground">Total Realization: {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(totalRealization)}</p>
+            <p className="text-sm font-medium">Total Budget: {formatCurrency(totalBudget)}</p>
+            <p className="text-sm font-medium text-muted-foreground">Total Realization: {formatCurrency(totalRealization)}</p>
         </div>
         <Button>Save Financials</Button>
       </CardFooter>

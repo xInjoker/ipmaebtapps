@@ -36,3 +36,11 @@ export function getAvatarColor(name: string) {
   const index = Math.abs(hash % colorPairs.length);
   return colorPairs[index];
 }
+
+export function formatCurrency(value: number) {
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0,
+  }).format(value);
+}

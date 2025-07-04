@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -32,7 +31,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PlusCircle, Calendar as CalendarIcon, CircleDollarSign, Wallet, TrendingUp, Landmark } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
-import { cn } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
@@ -204,11 +203,7 @@ export default function ProjectsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold font-headline">
-               {new Intl.NumberFormat('id-ID', {
-                style: 'currency',
-                currency: 'IDR',
-                minimumFractionDigits: 0,
-              }).format(totalProjectValue)}
+               {formatCurrency(totalProjectValue)}
             </div>
             <p className="text-xs text-muted-foreground">
               Across {visibleProjects.length} projects
@@ -224,11 +219,7 @@ export default function ProjectsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold font-headline">
-               {new Intl.NumberFormat('id-ID', {
-                style: 'currency',
-                currency: 'IDR',
-                minimumFractionDigits: 0,
-              }).format(totalCost)}
+               {formatCurrency(totalCost)}
             </div>
             <p className="text-xs text-muted-foreground">
               Total costs realized across all projects
@@ -244,11 +235,7 @@ export default function ProjectsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold font-headline">
-               {new Intl.NumberFormat('id-ID', {
-                style: 'currency',
-                currency: 'IDR',
-                minimumFractionDigits: 0,
-              }).format(totalInvoiced)}
+               {formatCurrency(totalInvoiced)}
             </div>
             <p className="text-xs text-muted-foreground">
               Total invoiced across all projects
@@ -264,11 +251,7 @@ export default function ProjectsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold font-headline">
-               {new Intl.NumberFormat('id-ID', {
-                style: 'currency',
-                currency: 'IDR',
-                minimumFractionDigits: 0,
-              }).format(totalPaid)}
+               {formatCurrency(totalPaid)}
             </div>
             <p className="text-xs text-muted-foreground">
               Total paid across all projects
@@ -486,11 +469,7 @@ export default function ProjectsPage() {
                   <div>
                     <p className="text-sm text-muted-foreground">Contract Value</p>
                     <p className="text-2xl font-bold text-primary">
-                      {new Intl.NumberFormat('id-ID', {
-                        style: 'currency',
-                        currency: 'IDR',
-                        minimumFractionDigits: 0,
-                      }).format(project.value)}
+                      {formatCurrency(project.value)}
                     </p>
                   </div>
                   <div>

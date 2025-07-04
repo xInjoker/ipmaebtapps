@@ -27,6 +27,7 @@ import { TrendingUp, CircleDollarSign, ListTodo, Receipt } from 'lucide-react';
 import { useMemo } from 'react';
 import { useProjects } from '@/context/ProjectContext';
 import { useAuth } from '@/context/AuthContext';
+import { formatCurrency } from '@/lib/utils';
 
 const chartData = [
   { month: 'January', invoiced: 186000000, paid: 80000000 },
@@ -54,15 +55,6 @@ const upcomingTasks = [
   { task: 'Submit Invoice #INV-007', dueDate: '2024-07-12', status: 'Pending' },
   { task: 'Finalize Milestone 2 Deliverables', dueDate: '2024-07-20', status: 'Todo' },
 ];
-
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    minimumFractionDigits: 0,
-  }).format(value);
-}
-
 
 export default function DashboardPage() {
   const { projects } = useProjects();
