@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 import { useEquipment } from '@/context/EquipmentContext';
 import {
@@ -19,7 +20,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { ArrowLeft, Calendar as CalendarIcon, Save, Upload, File as FileIcon, X, Image as ImageIcon, PlusCircle } from 'lucide-react';
+import { ArrowLeft, Calendar as CalendarIcon, Save, Upload, File as FileIcon, X, PlusCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn, getAvatarColor, getInitials } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -38,6 +39,7 @@ export default function EditEquipmentPage() {
   
   const [equipment, setEquipment] = useState<EquipmentItem | null>(null);
   const [newImages, setNewImages] = useState<File[]>([]);
+  const [newImagePreviews, setNewImagePreviews] = useState<string[]>([]);
   const [newDocuments, setNewDocuments] = useState<File[]>([]);
   const [newPersonnelCerts, setNewPersonnelCerts] = useState<File[]>([]);
   const [isPersonnelPopoverOpen, setIsPersonnelPopoverOpen] = useState(false);
@@ -64,6 +66,19 @@ export default function EditEquipmentPage() {
       }
     }
   }, [params.id, getEquipmentById, router, toast]);
+
+  useEffect(() => {
+    if (newImages.length === 0) {
+      setNewImagePreviews([]);
+      return;
+    }
+    const objectUrls = newImages.map(file => URL.createObjectURL(file));
+    setNewImagePreviews(objectUrls);
+
+    return () => {
+      objectUrls.forEach(url => URL.revokeObjectURL(url));
+    };
+  }, [newImages]);
 
   const branchMap = useMemo(() => {
     return branches.reduce((acc, branch) => {
@@ -351,8 +366,15 @@ export default function EditEquipmentPage() {
                  <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                     {equipment.imageUrls.map((url, index) => (
                       <div key={`existing-${index}`} className="relative group">
-                        <div className="aspect-square w-full overflow-hidden rounded-md border flex items-center justify-center bg-muted">
-                           <ImageIcon className="h-10 w-10 text-muted-foreground" />
+                        <div className="aspect-square w-full overflow-hidden rounded-md border bg-muted">
+                           <Image
+                                src={url || 'https://placehold.co/100x100.png'}
+                                alt={`${equipment.name} image ${index + 1}`}
+                                width={100}
+                                height={100}
+                                className="h-full w-full object-cover"
+                                data-ai-hint="equipment"
+                            />
                         </div>
                         <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                             <Button variant="destructive" size="icon" className="h-8 w-8" onClick={() => removeExistingImage(url)}>
@@ -362,17 +384,24 @@ export default function EditEquipmentPage() {
                         <p className="text-xs text-muted-foreground truncate mt-1">{url.split('/').pop()}</p>
                       </div>
                     ))}
-                    {newImages.map((file, index) => (
+                    {newImagePreviews.map((url, index) => (
                       <div key={`new-${index}`} className="relative group">
-                        <div className="aspect-square w-full overflow-hidden rounded-md border flex items-center justify-center bg-muted">
-                           <ImageIcon className="h-10 w-10 text-muted-foreground" />
+                        <div className="aspect-square w-full overflow-hidden rounded-md border bg-muted">
+                           <Image
+                                src={url}
+                                alt={`New equipment image preview ${index + 1}`}
+                                width={100}
+                                height={100}
+                                className="h-full w-full object-cover"
+                                data-ai-hint="equipment"
+                            />
                         </div>
                         <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                             <Button variant="destructive" size="icon" className="h-8 w-8" onClick={() => removeNewImage(index)}>
                                 <X className="h-4 w-4" />
                             </Button>
                         </div>
-                        <p className="text-xs text-muted-foreground truncate mt-1">{file.name}</p>
+                        <p className="text-xs text-muted-foreground truncate mt-1">{newImages[index]?.name || 'New Image'}</p>
                       </div>
                     ))}
                   </div>
