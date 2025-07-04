@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import {
   Card,
@@ -23,9 +23,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { EquipmentCard } from '@/components/equipment-card';
 
 export default function EquipmentPage() {
-  const { branches } = useAuth();
+  const { user, isHqUser, branches } = useAuth();
   const { equipmentList } = useEquipment();
   const [isClient, setIsClient] = useState(false);
+  const initialFilterSet = useRef(false);
 
   useEffect(() => {
     setIsClient(true);
@@ -35,6 +36,13 @@ export default function EquipmentPage() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
   const [branchFilter, setBranchFilter] = useState('all');
+  
+  useEffect(() => {
+    if (user && !isHqUser && !initialFilterSet.current) {
+      setBranchFilter(user.branchId);
+      initialFilterSet.current = true;
+    }
+  }, [user, isHqUser]);
 
   const branchMap = useMemo(() => {
     return branches.reduce((acc, branch) => {
