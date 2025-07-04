@@ -19,6 +19,7 @@ import { cn } from '@/lib/utils';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { useProjects } from '@/context/ProjectContext';
 import { useAuth } from '@/context/AuthContext';
+import { initialReports } from '@/lib/reports';
 
 
 const steps = [
@@ -92,7 +93,40 @@ export default function PenetrantTestPage() {
     };
     
     const handleSelectChange = (id: string, value: string) => {
+        // Basic update for any select change
         setFormData(prev => ({ ...prev, [id]: value }));
+    
+        // Special logic for project selection
+        if (id === 'project') {
+            const selectedProject = visibleProjects.find(p => p.name === value);
+            if (selectedProject) {
+                // Autogenerate Report Number
+                const currentYear = new Date().getFullYear();
+                const penetrantReportsThisYear = initialReports.filter(r => 
+                    r.jobType === 'Penetrant Test' && r.reportNumber.includes(`-${currentYear}-`)
+                ).length;
+                const newReportNumber = `PT-${currentYear}-${String(penetrantReportsThisYear + 1).padStart(3, '0')}`;
+    
+                setFormData(prev => ({
+                    ...prev,
+                    project: value, // Ensure project value is also set in this single update
+                    client: selectedProject.client,
+                    mainContractor: selectedProject.contractExecutor,
+                    jobLocation: `On-site at ${selectedProject.name}`,
+                    reportNumber: newReportNumber
+                }));
+            } else {
+                // Clear fields if project is deselected
+                 setFormData(prev => ({
+                    ...prev,
+                    project: '',
+                    client: '',
+                    mainContractor: '',
+                    jobLocation: '',
+                    reportNumber: '',
+                }));
+            }
+        }
     };
     
     const handleDateChange = (date: Date | undefined) => {
@@ -126,7 +160,7 @@ export default function PenetrantTestPage() {
 
     const prev = () => {
         if (currentStep > 0) {
-            setCurrentStep(step => step - 1);
+            setCurrentStep(step => step + 1);
         }
     };
 
@@ -178,14 +212,6 @@ export default function PenetrantTestPage() {
             {currentStep === 0 && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
                     <div className="space-y-2">
-                        <Label htmlFor="client">Client</Label>
-                        <Input id="client" value={formData.client} onChange={handleInputChange} />
-                    </div>
-                     <div className="space-y-2">
-                        <Label htmlFor="mainContractor">Main Contractor</Label>
-                        <Input id="mainContractor" value={formData.mainContractor} onChange={handleInputChange} />
-                    </div>
-                    <div className="space-y-2">
                         <Label htmlFor="project">Project</Label>
                         <Select value={formData.project} onValueChange={(value) => handleSelectChange('project', value)}>
                             <SelectTrigger id="project"><SelectValue placeholder="Select a project" /></SelectTrigger>
@@ -199,8 +225,16 @@ export default function PenetrantTestPage() {
                         </Select>
                     </div>
                      <div className="space-y-2">
+                        <Label htmlFor="client">Client</Label>
+                        <Input id="client" value={formData.client} onChange={handleInputChange} disabled />
+                    </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="mainContractor">Main Contractor</Label>
+                        <Input id="mainContractor" value={formData.mainContractor} onChange={handleInputChange} disabled />
+                    </div>
+                     <div className="space-y-2">
                         <Label htmlFor="jobLocation">Job Location</Label>
-                        <Input id="jobLocation" value={formData.jobLocation} onChange={handleInputChange} />
+                        <Input id="jobLocation" value={formData.jobLocation} onChange={handleInputChange} disabled />
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="dateOfTest">Date of Test</Label>
@@ -225,7 +259,7 @@ export default function PenetrantTestPage() {
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="reportNumber">Report Number</Label>
-                        <Input id="reportNumber" value={formData.reportNumber} onChange={handleInputChange} />
+                        <Input id="reportNumber" value={formData.reportNumber} onChange={handleInputChange} disabled />
                     </div>
                 </div>
             )}
