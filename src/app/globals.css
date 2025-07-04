@@ -104,7 +104,7 @@
     --sidebar-accent-foreground: 142.1 76.2% 36.3%;
   }
 
-  .dark .theme-green {
+  .dark.theme-green {
     --background: 143 65.2% 12.5%;
     --foreground: 143 25% 90.8%;
     --card: 143 65.2% 12.5%;
@@ -158,7 +158,7 @@
     --sidebar-accent-foreground: 346.8 77.2% 49.8%;
   }
 
-  .dark .theme-rose {
+  .dark.theme-rose {
     --background: 348 61.5% 12.5%;
     --foreground: 347 33.3% 90.8%;
     --card: 348 61.5% 12.5%;
