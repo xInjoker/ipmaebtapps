@@ -66,7 +66,13 @@ function formatCurrency(value: number) {
 
 export default function DashboardPage() {
   const { projects } = useProjects();
-  const { user, isHqUser } = useAuth();
+  const { user, isHqUser, branches } = useAuth();
+
+  const branchName = useMemo(() => {
+    if (!user) return '';
+    const branch = branches.find(b => b.id === user.branchId);
+    return branch ? branch.name : 'your branch';
+  }, [user, branches]);
   
   const visibleProjects = useMemo(() => {
     if (isHqUser) return projects;
@@ -116,6 +122,12 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold font-headline">Welcome, {user?.name}</h1>
+        <p className="text-muted-foreground">
+          Here's an overview of your projects from {branchName}.
+        </p>
+      </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
