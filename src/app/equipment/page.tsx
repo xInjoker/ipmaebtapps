@@ -2,21 +2,15 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import Image from 'next/image';
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -26,7 +20,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -105,13 +98,14 @@ export default function EquipmentPage() {
 
   const getCalibrationStatus = (dueDate: Date) => {
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // Set to start of day for accurate comparison
-    dueDate.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+    const cleanDueDate = new Date(dueDate);
+    cleanDueDate.setHours(0, 0, 0, 0);
 
-    if (isPast(dueDate)) {
+    if (isPast(cleanDueDate)) {
       return { text: 'Expired', variant: 'destructive' as const };
     }
-    const daysLeft = differenceInDays(dueDate, today);
+    const daysLeft = differenceInDays(cleanDueDate, today);
     if (daysLeft <= 30) {
       return { text: `Expires in ${daysLeft} days`, variant: 'yellow' as const };
     }
@@ -182,57 +176,74 @@ export default function EquipmentPage() {
           </Button>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Owning Branch</TableHead>
-                <TableHead>Current Location</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Calibration</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {equipmentList.map((item) => {
-                  const calibration = getCalibrationStatus(new Date(item.calibrationDueDate));
-                  return (
-                    <TableRow key={item.id}>
-                        <TableCell className="font-medium">{item.name}</TableCell>
-                        <TableCell>{item.type}</TableCell>
-                        <TableCell>{branchMap[item.owningBranchId] || item.owningBranchId}</TableCell>
-                        <TableCell>{item.currentLocation}</TableCell>
-                        <TableCell>
+           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {equipmentList.map((item) => {
+                const calibration = getCalibrationStatus(new Date(item.calibrationDueDate));
+                return (
+                  <Card key={item.id} className="flex flex-col">
+                    <CardHeader className="flex-row items-start justify-between">
+                      <div>
+                          <CardTitle className="font-headline text-lg">{item.name}</CardTitle>
+                          <CardDescription>{item.type}</CardDescription>
+                      </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0 flex-shrink-0">
+                            <span className="sr-only">Open menu</span>
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onSelect={() => handleOpenDialog('edit', item)}>
+                            Edit
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </CardHeader>
+                    <CardContent className="space-y-4 flex-grow">
+                      <div className="aspect-video w-full overflow-hidden rounded-md border">
+                          <Image
+                              src={`https://placehold.co/400x225.png`}
+                              alt={item.name}
+                              width={400}
+                              height={225}
+                              className="h-full w-full object-cover transition-transform hover:scale-105"
+                              data-ai-hint={`${item.type.toLowerCase()} equipment`}
+                          />
+                      </div>
+                      <div className="space-y-2 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Status</span>
                             <Badge variant={item.status === 'Normal' ? 'green' : item.status === 'Broken' ? 'destructive' : 'yellow'}>
-                                {item.status}
+                              {item.status}
                             </Badge>
-                        </TableCell>
-                        <TableCell>
-                            <Badge variant={calibration.variant}>
-                                {calibration.text}
-                            </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="h-8 w-8 p-0">
-                                  <span className="sr-only">Open menu</span>
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem onSelect={() => handleOpenDialog('edit', item)}>
-                                  Edit
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                        </TableCell>
-                    </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Owning Branch</span>
+                            <span className="font-medium text-right">{branchMap[item.owningBranchId] || item.owningBranchId}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Location</span>
+                            <span className="font-medium text-right">{item.currentLocation}</span>
+                          </div>
+                      </div>
+                    </CardContent>
+                    <CardFooter className="flex-col items-start gap-2 border-t bg-muted/50 p-4">
+                        <div className="flex w-full justify-between text-sm">
+                            <span className="text-muted-foreground">Calibration Due</span>
+                            <span className="font-medium">{format(item.calibrationDueDate, 'PPP')}</span>
+                        </div>
+                        <div className="flex w-full items-center justify-between">
+                          <span className="text-muted-foreground text-sm">Validity</span>
+                          <Badge variant={calibration.variant} className="text-xs">
+                              {calibration.text}
+                          </Badge>
+                        </div>
+                    </CardFooter>
+                  </Card>
+                );
+            })}
+          </div>
         </CardContent>
       </Card>
       
