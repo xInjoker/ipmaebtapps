@@ -1,3 +1,4 @@
+
 'use client';
 
 import { usePathname } from 'next/navigation';
@@ -10,6 +11,7 @@ import { Search } from 'lucide-react';
 const getPageTitle = (pathname: string) => {
   if (pathname.startsWith('/projects')) return 'Projects';
   if (pathname.startsWith('/equipment')) return 'Equipment Management';
+  if (pathname.startsWith('/inspectors')) return 'Inspector Database';
   if (pathname.startsWith('/sanity-checker')) return 'AI Report Sanity Checker';
   if (pathname.startsWith('/profile')) return 'Profile';
   if (pathname.startsWith('/settings')) return 'Settings';

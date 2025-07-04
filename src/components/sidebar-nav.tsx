@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -9,6 +10,7 @@ import {
   Settings,
   User,
   Users,
+  Users2,
   Wrench,
 } from 'lucide-react';
 import {
@@ -56,6 +58,7 @@ export function SidebarNav() {
       })),
     },
     { href: '/equipment', label: 'Equipment', icon: Wrench, permission: 'manage-equipment' },
+    { href: '/inspectors', label: 'Inspectors', icon: Users2, permission: 'manage-inspectors' },
     { href: '/sanity-checker', label: 'AI Sanity Check', icon: BrainCircuit, permission: 'view-ai-sanity-check' },
     {
       href: '/user-management',

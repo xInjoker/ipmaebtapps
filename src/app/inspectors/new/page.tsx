@@ -1,0 +1,210 @@
+
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { useInspectors } from '@/context/InspectorContext';
+import { inspectorPositions, type Inspector } from '@/lib/inspectors';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ArrowLeft, Save, Upload, File as FileIcon, X } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+
+export default function NewInspectorPage() {
+  const router = useRouter();
+  const { addInspector } = useInspectors();
+  const { toast } = useToast();
+
+  const [cvFile, setCvFile] = useState<File | null>(null);
+  const [qualifications, setQualifications] = useState<File[]>([]);
+  const [otherDocs, setOtherDocs] = useState<File[]>([]);
+  
+  const [newInspector, setNewInspector] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    position: '' as Inspector['position'] | '',
+  });
+
+  const handleFileChange = (setter: React.Dispatch<React.SetStateAction<File[]>>, e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setter(prev => [...prev, ...Array.from(e.target.files!)]);
+    }
+  };
+  
+  const handleSingleFileChange = (setter: React.Dispatch<React.SetStateAction<File | null>>, e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setter(e.target.files[0] || null);
+    }
+  }
+
+  const removeFile = (setter: React.Dispatch<React.SetStateAction<File[]>>, index: number) => {
+    setter(prev => prev.filter((_, i) => i !== index));
+  };
+  
+  const handleSave = () => {
+    if (!newInspector.name || !newInspector.email || !newInspector.position) {
+      toast({
+        variant: 'destructive',
+        title: 'Missing Information',
+        description: 'Please fill out all required fields (Name, Email, Position).',
+      });
+      return;
+    }
+
+    addInspector({
+      ...newInspector,
+      position: newInspector.position as Inspector['position'],
+      avatarUrl: '', // Placeholder
+      cvUrl: cvFile ? cvFile.name : '', // In real app, upload and get URL
+      qualificationUrls: qualifications.map(file => file.name),
+      otherDocumentUrls: otherDocs.map(file => file.name),
+    });
+
+    toast({
+        title: 'Inspector Added',
+        description: `Successfully added ${newInspector.name}.`,
+    });
+
+    router.push('/inspectors');
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center gap-4">
+        <Button asChild variant="outline" size="icon">
+          <Link href="/inspectors">
+            <ArrowLeft className="h-4 w-4" />
+            <span className="sr-only">Back to Inspectors</span>
+          </Link>
+        </Button>
+        <div>
+          <h1 className="font-headline text-2xl font-bold">Add New Inspector</h1>
+          <p className="text-muted-foreground">Fill in the details for the new inspector.</p>
+        </div>
+      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Inspector Information</CardTitle>
+          <CardDescription>Enter the personal and professional details of the inspector.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-6 md:grid-cols-2">
+            <div className="space-y-2">
+                <Label htmlFor="name">Full Name</Label>
+                <Input id="name" value={newInspector.name} onChange={e => setNewInspector({...newInspector, name: e.target.value})} placeholder="e.g., Budi Santoso" />
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="email">Email Address</Label>
+                <Input id="email" type="email" value={newInspector.email} onChange={e => setNewInspector({...newInspector, email: e.target.value})} placeholder="e.g., budi.s@example.com" />
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="phone">Phone Number</Label>
+                <Input id="phone" value={newInspector.phone} onChange={e => setNewInspector({...newInspector, phone: e.target.value})} placeholder="e.g., 0812-3456-7890" />
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="position">Position</Label>
+                <Select value={newInspector.position} onValueChange={(value: Inspector['position']) => setNewInspector({...newInspector, position: value})}>
+                    <SelectTrigger id="position"><SelectValue placeholder="Select position" /></SelectTrigger>
+                    <SelectContent>
+                        {inspectorPositions.map(pos => <SelectItem key={pos} value={pos}>{pos}</SelectItem>)}
+                    </SelectContent>
+                </Select>
+            </div>
+            <div className="space-y-2 md:col-span-2">
+                <Label>Curriculum Vitae (CV)</Label>
+                <div className="flex items-center justify-center w-full">
+                    <label htmlFor="cv-upload" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-card hover:bg-muted">
+                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                            <Upload className="w-8 h-8 mb-3 text-muted-foreground" />
+                            <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> or drag and drop</p>
+                            <p className="text-xs text-muted-foreground">PDF, DOCX</p>
+                        </div>
+                        <Input id="cv-upload" type="file" className="hidden" onChange={(e) => handleSingleFileChange(setCvFile, e)} />
+                    </label>
+                </div>
+                {cvFile && (
+                    <div className="mt-2 flex items-center justify-between p-2 rounded-md border bg-muted/50">
+                        <div className="flex items-center gap-2 truncate">
+                            <FileIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                            <span className="text-sm truncate">{cvFile.name}</span>
+                        </div>
+                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setCvFile(null)}>
+                            <X className="h-4 w-4" />
+                        </Button>
+                    </div>
+                )}
+            </div>
+             <div className="space-y-2 md:col-span-2">
+                <Label>Qualification Certificates</Label>
+                <div className="flex items-center justify-center w-full">
+                    <label htmlFor="qual-upload" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-card hover:bg-muted">
+                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                            <Upload className="w-8 h-8 mb-3 text-muted-foreground" />
+                            <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> or drag and drop</p>
+                            <p className="text-xs text-muted-foreground">PDF, JPG, PNG</p>
+                        </div>
+                        <Input id="qual-upload" type="file" className="hidden" multiple onChange={(e) => handleFileChange(setQualifications, e)} />
+                    </label>
+                </div>
+                 {qualifications.length > 0 && (
+                    <div className="mt-4 space-y-2">
+                        {qualifications.map((file, index) => (
+                        <div key={index} className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
+                            <div className="flex items-center gap-2 truncate">
+                                <FileIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                <span className="text-sm truncate">{file.name}</span>
+                            </div>
+                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeFile(setQualifications, index)}>
+                                <X className="h-4 w-4" />
+                            </Button>
+                        </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+            <div className="space-y-2 md:col-span-2">
+                <Label>Other Supporting Documents</Label>
+                <div className="flex items-center justify-center w-full">
+                    <label htmlFor="other-upload" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-card hover:bg-muted">
+                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                            <Upload className="w-8 h-8 mb-3 text-muted-foreground" />
+                            <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> or drag and drop</p>
+                            <p className="text-xs text-muted-foreground">Any file type</p>
+                        </div>
+                        <Input id="other-upload" type="file" className="hidden" multiple onChange={(e) => handleFileChange(setOtherDocs, e)} />
+                    </label>
+                </div>
+                 {otherDocs.length > 0 && (
+                    <div className="mt-4 space-y-2">
+                        {otherDocs.map((file, index) => (
+                        <div key={index} className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
+                            <div className="flex items-center gap-2 truncate">
+                                <FileIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                <span className="text-sm truncate">{file.name}</span>
+                            </div>
+                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeFile(setOtherDocs, index)}>
+                                <X className="h-4 w-4" />
+                            </Button>
+                        </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+        </CardContent>
+        <CardFooter className="flex justify-end gap-2">
+            <Button variant="outline" asChild>
+                <Link href="/inspectors">Cancel</Link>
+            </Button>
+            <Button onClick={handleSave}>
+                <Save className="mr-2 h-4 w-4" />
+                Save Inspector
+            </Button>
+        </CardFooter>
+      </Card>
+    </div>
+  );
+}
