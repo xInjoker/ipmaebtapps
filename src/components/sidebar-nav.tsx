@@ -9,6 +9,7 @@ import {
   Settings,
   User,
   Users,
+  Wrench,
 } from 'lucide-react';
 import {
   SidebarMenu,
@@ -54,6 +55,7 @@ export function SidebarNav() {
         label: project.contractNumber,
       })),
     },
+    { href: '/equipment', label: 'Equipment', icon: Wrench, permission: 'manage-equipment' },
     { href: '/sanity-checker', label: 'AI Sanity Check', icon: BrainCircuit, permission: 'view-ai-sanity-check' },
     {
       href: '/user-management',

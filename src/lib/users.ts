@@ -2,6 +2,7 @@
 export const permissions = [
   'view-dashboard',
   'manage-projects',
+  'manage-equipment',
   'view-ai-sanity-check',
   'manage-users',
   'view-settings',
@@ -61,6 +62,7 @@ export const initialRoles: Role[] = [
     permissions: [
       'view-dashboard',
       'manage-projects',
+      'manage-equipment',
       'view-ai-sanity-check',
       'view-settings',
       'view-profile',
