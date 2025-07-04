@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import {
@@ -23,6 +23,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useEquipment } from '@/context/EquipmentContext';
 import { equipmentTypes, equipmentStatuses, type EquipmentItem } from '@/lib/equipment';
 import { format, isPast, differenceInDays } from 'date-fns';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const getCalibrationStatus = (dueDate: Date) => {
   const today = new Date();
@@ -44,6 +45,11 @@ const getCalibrationStatus = (dueDate: Date) => {
 export default function EquipmentPage() {
   const { branches } = useAuth();
   const { equipmentList } = useEquipment();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -141,7 +147,30 @@ export default function EquipmentPage() {
            </div>
            <Separator className="my-6" />
 
-           {filteredEquipment.length > 0 ? (
+           {!isClient ? (
+             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+               {[...Array(6)].map((_, i) => (
+                 <Card key={i}>
+                   <CardHeader>
+                     <Skeleton className="h-5 w-3/4" />
+                     <Skeleton className="h-4 w-1/2" />
+                   </CardHeader>
+                   <CardContent>
+                     <Skeleton className="aspect-video w-full rounded-md" />
+                     <div className="space-y-2 mt-4">
+                       <Skeleton className="h-4 w-full" />
+                       <Skeleton className="h-4 w-full" />
+                       <Skeleton className="h-4 w-2/3" />
+                     </div>
+                   </CardContent>
+                   <CardFooter className="flex-col items-start gap-2 border-t bg-muted/50 p-4">
+                     <Skeleton className="h-4 w-full" />
+                     <Skeleton className="h-6 w-1/3" />
+                   </CardFooter>
+                 </Card>
+               ))}
+             </div>
+           ) : filteredEquipment.length > 0 ? (
              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {filteredEquipment.map((item: EquipmentItem) => {
                   const calibration = getCalibrationStatus(item.calibrationDueDate);
