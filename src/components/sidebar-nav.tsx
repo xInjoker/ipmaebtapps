@@ -12,6 +12,7 @@ import {
   Users,
   Users2,
   Wrench,
+  ClipboardEdit,
 } from 'lucide-react';
 import {
   SidebarMenu,
@@ -59,6 +60,7 @@ export function SidebarNav() {
     },
     { href: '/equipment', label: 'Equipment', icon: Wrench, permission: 'manage-equipment' },
     { href: '/inspectors', label: 'Inspectors', icon: Users2, permission: 'manage-inspectors' },
+    { href: '/reports', label: 'Reporting', icon: ClipboardEdit, permission: 'manage-reports' },
     { href: '/sanity-checker', label: 'AI Sanity Check', icon: BrainCircuit, permission: 'view-ai-sanity-check' },
     {
       href: '/user-management',
