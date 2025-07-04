@@ -1,4 +1,10 @@
 
+export type InspectorDocument = {
+  name: string;
+  url: string;
+  expirationDate?: string; // ISO 8601 format 'YYYY-MM-DD'
+};
+
 export type Inspector = {
   id: string;
   name: string;
@@ -7,8 +13,8 @@ export type Inspector = {
   position: 'Lead Inspector' | 'Inspector' | 'Trainee Inspector';
   avatarUrl: string;
   cvUrl: string; // URL for a single CV file
-  qualificationUrls: string[]; // URLs for multiple qualification certificates
-  otherDocumentUrls: string[]; // URLs for other supporting documents
+  qualifications: InspectorDocument[];
+  otherDocuments: InspectorDocument[];
 };
 
 export const inspectorPositions: Inspector['position'][] = ['Lead Inspector', 'Inspector', 'Trainee Inspector'];
@@ -22,8 +28,13 @@ export const initialInspectors: Inspector[] = [
     position: 'Lead Inspector',
     avatarUrl: '',
     cvUrl: 'Budi_Santoso_CV.pdf',
-    qualificationUrls: ['ASNT_Level_III.pdf', 'CSWIP_3.1.pdf'],
-    otherDocumentUrls: ['Safety_Training_Cert.pdf'],
+    qualifications: [
+      { name: 'ASNT_Level_III.pdf', url: 'ASNT_Level_III.pdf', expirationDate: '2027-05-20' },
+      { name: 'CSWIP_3.1.pdf', url: 'CSWIP_3.1.pdf', expirationDate: '2025-11-10' },
+    ],
+    otherDocuments: [
+      { name: 'Safety_Training_Cert.pdf', url: 'Safety_Training_Cert.pdf', expirationDate: '2024-08-01' },
+    ],
   },
   {
     id: 'INSP-002',
@@ -33,8 +44,11 @@ export const initialInspectors: Inspector[] = [
     position: 'Inspector',
     avatarUrl: '',
     cvUrl: 'Citra_Dewi_CV.pdf',
-    qualificationUrls: ['ASNT_Level_II_UT.pdf', 'ASNT_Level_II_MT.pdf'],
-    otherDocumentUrls: [],
+    qualifications: [
+      { name: 'ASNT_Level_II_UT.pdf', url: 'ASNT_Level_II_UT.pdf', expirationDate: '2026-02-15' },
+      { name: 'ASNT_Level_II_MT.pdf', url: 'ASNT_Level_II_MT.pdf', expirationDate: '2026-02-15' },
+    ],
+    otherDocuments: [],
   },
   {
     id: 'INSP-003',
@@ -44,7 +58,9 @@ export const initialInspectors: Inspector[] = [
     position: 'Trainee Inspector',
     avatarUrl: '',
     cvUrl: 'Eko_Wahyudi_CV.pdf',
-    qualificationUrls: [],
-    otherDocumentUrls: ['First_Aid_Cert.pdf'],
+    qualifications: [],
+    otherDocuments: [
+      { name: 'First_Aid_Cert.pdf', url: 'First_Aid_Cert.pdf' }, // No expiration date
+    ],
   },
 ];

@@ -5,14 +5,24 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useInspectors } from '@/context/InspectorContext';
-import { inspectorPositions, type Inspector } from '@/lib/inspectors';
+import { type Inspector, type InspectorDocument } from '@/lib/inspectors';
+import { inspectorPositions } from '@/lib/inspectors';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Save, Upload, File as FileIcon, X } from 'lucide-react';
+import { ArrowLeft, Save, Upload, File as FileIcon, X, Calendar as CalendarIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
+
+type NewUploadableDocument = {
+  file: File;
+  expirationDate?: string;
+};
 
 export default function EditInspectorPage() {
   const router = useRouter();
@@ -22,8 +32,8 @@ export default function EditInspectorPage() {
 
   const [inspector, setInspector] = useState<Inspector | null>(null);
   const [newCvFile, setNewCvFile] = useState<File | null>(null);
-  const [newQualifications, setNewQualifications] = useState<File[]>([]);
-  const [newOtherDocs, setNewOtherDocs] = useState<File[]>([]);
+  const [newQualifications, setNewQualifications] = useState<NewUploadableDocument[]>([]);
+  const [newOtherDocs, setNewOtherDocs] = useState<NewUploadableDocument[]>([]);
 
   useEffect(() => {
     const inspectorId = params.id as string;
@@ -42,20 +52,43 @@ export default function EditInspectorPage() {
     }
   }, [params.id, getInspectorById, router, toast]);
 
-  const removeExistingFile = (field: 'cvUrl' | 'qualificationUrls' | 'otherDocumentUrls', url: string) => {
+  const removeExistingFile = (field: 'qualifications' | 'otherDocuments', url: string) => {
     if (!inspector) return;
-    if (field === 'cvUrl') {
-        setInspector({ ...inspector, cvUrl: '' });
-    } else {
-        setInspector({
-            ...inspector,
-            [field]: inspector[field].filter(u => u !== url),
-        });
-    }
+    setInspector({
+        ...inspector,
+        [field]: (inspector[field] as InspectorDocument[]).filter(d => d.url !== url),
+    });
+  };
+  
+  const removeExistingCv = () => {
+    if (!inspector) return;
+    setInspector({ ...inspector, cvUrl: '' });
   };
 
-  const removeNewFile = (setter: React.Dispatch<React.SetStateAction<File[]>>, index: number) => {
+  const removeNewFile = (setter: React.Dispatch<React.SetStateAction<NewUploadableDocument[]>>, index: number) => {
     setter(prev => prev.filter((_, i) => i !== index));
+  };
+  
+  const handleExistingDocDateChange = (field: 'qualifications' | 'otherDocuments', index: number, date?: Date) => {
+    if (!inspector) return;
+    const updatedDocs = [...inspector[field]];
+    updatedDocs[index].expirationDate = date ? format(date, 'yyyy-MM-dd') : undefined;
+    setInspector({ ...inspector, [field]: updatedDocs });
+  };
+  
+  const handleNewDocDateChange = (setter: React.Dispatch<React.SetStateAction<NewUploadableDocument[]>>, index: number, date?: Date) => {
+    setter(prev => {
+        const newDocs = [...prev];
+        newDocs[index].expirationDate = date ? format(date, 'yyyy-MM-dd') : undefined;
+        return newDocs;
+    });
+  };
+
+  const handleFileChange = (setter: React.Dispatch<React.SetStateAction<NewUploadableDocument[]>>, e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const newFiles = Array.from(e.target.files).map(file => ({ file, expirationDate: undefined }));
+      setter(prev => [...prev, ...newFiles]);
+    }
   };
 
   const handleSave = () => {
@@ -69,12 +102,23 @@ export default function EditInspectorPage() {
       return;
     }
 
-    // In a real app, you would handle uploads and get new URLs
+    const newQualsToSave: InspectorDocument[] = newQualifications.map(doc => ({
+      name: doc.file.name,
+      url: doc.file.name,
+      expirationDate: doc.expirationDate,
+    }));
+    
+    const newOthersToSave: InspectorDocument[] = newOtherDocs.map(doc => ({
+      name: doc.file.name,
+      url: doc.file.name,
+      expirationDate: doc.expirationDate,
+    }));
+
     const updatedInspectorData: Inspector = {
         ...inspector,
         cvUrl: newCvFile ? newCvFile.name : inspector.cvUrl,
-        qualificationUrls: [...inspector.qualificationUrls, ...newQualifications.map(file => file.name)],
-        otherDocumentUrls: [...inspector.otherDocumentUrls, ...newOtherDocs.map(file => file.name)],
+        qualifications: [...inspector.qualifications, ...newQualsToSave],
+        otherDocuments: [...inspector.otherDocuments, ...newOthersToSave],
     };
 
     updateInspector(inspector.id, updatedInspectorData);
@@ -84,7 +128,7 @@ export default function EditInspectorPage() {
         description: `Successfully updated ${inspector.name}.`,
     });
 
-    router.push('/inspectors');
+    router.push(`/inspectors/${inspector.id}`);
   };
 
   if (!inspector) {
@@ -99,9 +143,9 @@ export default function EditInspectorPage() {
     <div className="space-y-6">
       <div className="flex items-center gap-4">
         <Button asChild variant="outline" size="icon">
-          <Link href="/inspectors">
+          <Link href={`/inspectors/${inspector.id}`}>
             <ArrowLeft className="h-4 w-4" />
-            <span className="sr-only">Back to Inspectors</span>
+            <span className="sr-only">Back to Inspector</span>
           </Link>
         </Button>
         <div>
@@ -145,7 +189,7 @@ export default function EditInspectorPage() {
                             <FileIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                             <span className="text-sm truncate">{inspector.cvUrl.split('/').pop()}</span>
                         </div>
-                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeExistingFile('cvUrl', inspector.cvUrl)}>
+                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={removeExistingCv}>
                             <X className="h-4 w-4" />
                         </Button>
                     </div>
@@ -176,27 +220,49 @@ export default function EditInspectorPage() {
             <div className="space-y-2 md:col-span-2">
                 <Label>Qualification Certificates</Label>
                 <div className="mt-2 space-y-2">
-                    {inspector.qualificationUrls.map((url, index) => (
-                    <div key={`existing-qual-${index}`} className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
-                        <div className="flex items-center gap-2 truncate">
-                            <FileIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                            <span className="text-sm truncate">{url.split('/').pop()}</span>
+                    {inspector.qualifications.map((doc, index) => (
+                        <div key={`existing-qual-${index}`} className="flex items-center justify-between gap-2 p-2 rounded-md border bg-muted/50">
+                            <div className="flex items-center gap-2 truncate flex-1">
+                                <FileIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                <span className="text-sm truncate">{doc.name}</span>
+                            </div>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button variant={"outline"} className={cn("w-[240px] justify-start text-left font-normal", !doc.expirationDate && "text-muted-foreground")}>
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {doc.expirationDate ? format(new Date(doc.expirationDate), "PPP") : <span>Expiry date (optional)</span>}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0">
+                                    <Calendar mode="single" selected={doc.expirationDate ? new Date(doc.expirationDate) : undefined} onSelect={(date) => handleExistingDocDateChange('qualifications', index, date)} initialFocus />
+                                </PopoverContent>
+                            </Popover>
+                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeExistingFile('qualifications', doc.url)}>
+                                <X className="h-4 w-4" />
+                            </Button>
                         </div>
-                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeExistingFile('qualificationUrls', url)}>
-                            <X className="h-4 w-4" />
-                        </Button>
-                    </div>
                     ))}
-                    {newQualifications.map((file, index) => (
-                    <div key={`new-qual-${index}`} className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
-                        <div className="flex items-center gap-2 truncate">
-                            <FileIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                            <span className="text-sm truncate">{file.name}</span>
+                    {newQualifications.map((doc, index) => (
+                        <div key={`new-qual-${index}`} className="flex items-center justify-between gap-2 p-2 rounded-md border bg-muted/50">
+                            <div className="flex items-center gap-2 truncate flex-1">
+                                <FileIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                <span className="text-sm truncate">{doc.file.name}</span>
+                            </div>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button variant={"outline"} className={cn("w-[240px] justify-start text-left font-normal", !doc.expirationDate && "text-muted-foreground")}>
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {doc.expirationDate ? format(new Date(doc.expirationDate), "PPP") : <span>Expiry date (optional)</span>}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0">
+                                    <Calendar mode="single" selected={doc.expirationDate ? new Date(doc.expirationDate) : undefined} onSelect={(date) => handleNewDocDateChange(setNewQualifications, index, date)} initialFocus />
+                                </PopoverContent>
+                            </Popover>
+                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeNewFile(setNewQualifications, index)}>
+                                <X className="h-4 w-4" />
+                            </Button>
                         </div>
-                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeNewFile(setNewQualifications, index)}>
-                            <X className="h-4 w-4" />
-                        </Button>
-                    </div>
                     ))}
                 </div>
                  <div className="flex items-center justify-center w-full mt-4">
@@ -205,7 +271,7 @@ export default function EditInspectorPage() {
                             <Upload className="w-8 h-8 mb-3 text-muted-foreground" />
                             <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> or drag and drop</p>
                         </div>
-                        <Input id="qual-upload" type="file" className="hidden" multiple onChange={(e) => setNewQualifications(prev => [...prev, ...Array.from(e.target.files || [])])} />
+                        <Input id="qual-upload" type="file" className="hidden" multiple onChange={(e) => handleFileChange(setNewQualifications, e)} />
                     </label>
                 </div>
             </div>
@@ -213,27 +279,49 @@ export default function EditInspectorPage() {
             <div className="space-y-2 md:col-span-2">
                 <Label>Other Supporting Documents</Label>
                  <div className="mt-2 space-y-2">
-                    {inspector.otherDocumentUrls.map((url, index) => (
-                    <div key={`existing-other-${index}`} className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
-                        <div className="flex items-center gap-2 truncate">
-                            <FileIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                            <span className="text-sm truncate">{url.split('/').pop()}</span>
+                    {inspector.otherDocuments.map((doc, index) => (
+                        <div key={`existing-other-${index}`} className="flex items-center justify-between gap-2 p-2 rounded-md border bg-muted/50">
+                            <div className="flex items-center gap-2 truncate flex-1">
+                                <FileIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                <span className="text-sm truncate">{doc.name}</span>
+                            </div>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button variant={"outline"} className={cn("w-[240px] justify-start text-left font-normal", !doc.expirationDate && "text-muted-foreground")}>
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {doc.expirationDate ? format(new Date(doc.expirationDate), "PPP") : <span>Expiry date (optional)</span>}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0">
+                                    <Calendar mode="single" selected={doc.expirationDate ? new Date(doc.expirationDate) : undefined} onSelect={(date) => handleExistingDocDateChange('otherDocuments', index, date)} initialFocus />
+                                </PopoverContent>
+                            </Popover>
+                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeExistingFile('otherDocuments', doc.url)}>
+                                <X className="h-4 w-4" />
+                            </Button>
                         </div>
-                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeExistingFile('otherDocumentUrls', url)}>
-                            <X className="h-4 w-4" />
-                        </Button>
-                    </div>
                     ))}
-                    {newOtherDocs.map((file, index) => (
-                    <div key={`new-other-${index}`} className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
-                        <div className="flex items-center gap-2 truncate">
-                            <FileIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                            <span className="text-sm truncate">{file.name}</span>
+                    {newOtherDocs.map((doc, index) => (
+                        <div key={`new-other-${index}`} className="flex items-center justify-between gap-2 p-2 rounded-md border bg-muted/50">
+                            <div className="flex items-center gap-2 truncate flex-1">
+                                <FileIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                <span className="text-sm truncate">{doc.file.name}</span>
+                            </div>
+                             <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button variant={"outline"} className={cn("w-[240px] justify-start text-left font-normal", !doc.expirationDate && "text-muted-foreground")}>
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {doc.expirationDate ? format(new Date(doc.expirationDate), "PPP") : <span>Expiry date (optional)</span>}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0">
+                                    <Calendar mode="single" selected={doc.expirationDate ? new Date(doc.expirationDate) : undefined} onSelect={(date) => handleNewDocDateChange(setNewOtherDocs, index, date)} initialFocus />
+                                </PopoverContent>
+                            </Popover>
+                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeNewFile(setNewOtherDocs, index)}>
+                                <X className="h-4 w-4" />
+                            </Button>
                         </div>
-                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeNewFile(setNewOtherDocs, index)}>
-                            <X className="h-4 w-4" />
-                        </Button>
-                    </div>
                     ))}
                 </div>
                  <div className="flex items-center justify-center w-full mt-4">
@@ -242,7 +330,7 @@ export default function EditInspectorPage() {
                             <Upload className="w-8 h-8 mb-3 text-muted-foreground" />
                             <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> or drag and drop</p>
                         </div>
-                        <Input id="other-upload" type="file" className="hidden" multiple onChange={(e) => setNewOtherDocs(prev => [...prev, ...Array.from(e.target.files || [])])} />
+                        <Input id="other-upload" type="file" className="hidden" multiple onChange={(e) => handleFileChange(setNewOtherDocs, e)} />
                     </label>
                 </div>
             </div>

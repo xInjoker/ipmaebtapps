@@ -11,8 +11,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Save, Upload, File as FileIcon, X } from 'lucide-react';
+import { ArrowLeft, Save, Upload, File as FileIcon, X, Calendar as CalendarIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
+
+type UploadableDocument = {
+  file: File;
+  expirationDate?: string;
+};
 
 export default function NewInspectorPage() {
   const router = useRouter();
@@ -20,8 +29,8 @@ export default function NewInspectorPage() {
   const { toast } = useToast();
 
   const [cvFile, setCvFile] = useState<File | null>(null);
-  const [qualifications, setQualifications] = useState<File[]>([]);
-  const [otherDocs, setOtherDocs] = useState<File[]>([]);
+  const [qualifications, setQualifications] = useState<UploadableDocument[]>([]);
+  const [otherDocs, setOtherDocs] = useState<UploadableDocument[]>([]);
   
   const [newInspector, setNewInspector] = useState({
     name: '',
@@ -30,9 +39,10 @@ export default function NewInspectorPage() {
     position: '' as Inspector['position'] | '',
   });
 
-  const handleFileChange = (setter: React.Dispatch<React.SetStateAction<File[]>>, e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (setter: React.Dispatch<React.SetStateAction<UploadableDocument[]>>, e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      setter(prev => [...prev, ...Array.from(e.target.files!)]);
+      const newFiles = Array.from(e.target.files).map(file => ({ file, expirationDate: undefined }));
+      setter(prev => [...prev, ...newFiles]);
     }
   };
   
@@ -42,10 +52,18 @@ export default function NewInspectorPage() {
     }
   }
 
-  const removeFile = (setter: React.Dispatch<React.SetStateAction<File[]>>, index: number) => {
+  const removeFile = (setter: React.Dispatch<React.SetStateAction<UploadableDocument[]>>, index: number) => {
     setter(prev => prev.filter((_, i) => i !== index));
   };
   
+  const handleDateChange = (setter: React.Dispatch<React.SetStateAction<UploadableDocument[]>>, index: number, date?: Date) => {
+    setter(prev => {
+        const updated = [...prev];
+        updated[index].expirationDate = date ? format(date, 'yyyy-MM-dd') : undefined;
+        return updated;
+    });
+  };
+
   const handleSave = () => {
     if (!newInspector.name || !newInspector.email || !newInspector.position) {
       toast({
@@ -61,8 +79,16 @@ export default function NewInspectorPage() {
       position: newInspector.position as Inspector['position'],
       avatarUrl: '', // Placeholder
       cvUrl: cvFile ? cvFile.name : '', // In real app, upload and get URL
-      qualificationUrls: qualifications.map(file => file.name),
-      otherDocumentUrls: otherDocs.map(file => file.name),
+      qualifications: qualifications.map(doc => ({
+        name: doc.file.name,
+        url: doc.file.name,
+        expirationDate: doc.expirationDate,
+      })),
+      otherDocuments: otherDocs.map(doc => ({
+        name: doc.file.name,
+        url: doc.file.name,
+        expirationDate: doc.expirationDate,
+      })),
     });
 
     toast({
@@ -152,13 +178,27 @@ export default function NewInspectorPage() {
                 </div>
                  {qualifications.length > 0 && (
                     <div className="mt-4 space-y-2">
-                        {qualifications.map((file, index) => (
-                        <div key={index} className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
-                            <div className="flex items-center gap-2 truncate">
+                        {qualifications.map((doc, index) => (
+                        <div key={index} className="flex items-center justify-between gap-2 p-2 rounded-md border bg-muted/50">
+                            <div className="flex items-center gap-2 truncate flex-1">
                                 <FileIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                                <span className="text-sm truncate">{file.name}</span>
+                                <span className="text-sm truncate">{doc.file.name}</span>
                             </div>
-                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeFile(setQualifications, index)}>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant={"outline"}
+                                        className={cn("w-[240px] justify-start text-left font-normal", !doc.expirationDate && "text-muted-foreground")}
+                                    >
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {doc.expirationDate ? format(new Date(doc.expirationDate), "PPP") : <span>Expiry date (optional)</span>}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0">
+                                    <Calendar mode="single" selected={doc.expirationDate ? new Date(doc.expirationDate) : undefined} onSelect={(date) => handleDateChange(setQualifications, index, date)} initialFocus />
+                                </PopoverContent>
+                            </Popover>
+                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeFile(setQualifications, index)}>
                                 <X className="h-4 w-4" />
                             </Button>
                         </div>
@@ -180,13 +220,27 @@ export default function NewInspectorPage() {
                 </div>
                  {otherDocs.length > 0 && (
                     <div className="mt-4 space-y-2">
-                        {otherDocs.map((file, index) => (
-                        <div key={index} className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
-                            <div className="flex items-center gap-2 truncate">
+                        {otherDocs.map((doc, index) => (
+                        <div key={index} className="flex items-center justify-between gap-2 p-2 rounded-md border bg-muted/50">
+                            <div className="flex items-center gap-2 truncate flex-1">
                                 <FileIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                                <span className="text-sm truncate">{file.name}</span>
+                                <span className="text-sm truncate">{doc.file.name}</span>
                             </div>
-                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeFile(setOtherDocs, index)}>
+                             <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant={"outline"}
+                                        className={cn("w-[240px] justify-start text-left font-normal", !doc.expirationDate && "text-muted-foreground")}
+                                    >
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {doc.expirationDate ? format(new Date(doc.expirationDate), "PPP") : <span>Expiry date (optional)</span>}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0">
+                                    <Calendar mode="single" selected={doc.expirationDate ? new Date(doc.expirationDate) : undefined} onSelect={(date) => handleDateChange(setOtherDocs, index, date)} initialFocus />
+                                </PopoverContent>
+                            </Popover>
+                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeFile(setOtherDocs, index)}>
                                 <X className="h-4 w-4" />
                             </Button>
                         </div>

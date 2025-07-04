@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils';
 
 export function InspectorCard({ inspector }: { inspector: Inspector }) {
   const avatarColor = getAvatarColor(inspector.name);
-  const totalDocs = inspector.qualificationUrls.length + inspector.otherDocumentUrls.length + (inspector.cvUrl ? 1 : 0);
+  const totalDocs = inspector.qualifications.length + inspector.otherDocuments.length + (inspector.cvUrl ? 1 : 0);
 
   return (
     <Card className="flex flex-col">
