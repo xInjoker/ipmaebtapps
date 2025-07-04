@@ -57,31 +57,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
 
   useEffect(() => {
+    setIsInitializing(true);
     try {
-      // Roles: Start with initialRoles as the base to ensure it's always fresh.
-      const finalRoles: Role[] = [...initialRoles];
-      const storedRolesString = localStorage.getItem('roles');
-
-      if (storedRolesString) {
-        const loadedRoles: Role[] = JSON.parse(storedRolesString);
-        const initialRoleIds = new Set(initialRoles.map(r => r.id));
-        // Find only custom roles from storage (roles that are not in the default set)
-        const customRoles = loadedRoles.filter(role => !initialRoleIds.has(role.id));
-        // Add the custom roles to the final list
-        finalRoles.push(...customRoles);
-      }
+      // --- Roles ---
+      // The roles defined in the code are the source of truth for default roles.
+      const initialRoleMap = new Map(initialRoles.map(r => [r.id, r]));
       
+      const storedRolesString = localStorage.getItem('roles');
+      const storedRoles: Role[] = storedRolesString ? JSON.parse(storedRolesString) : [];
+
+      // Get custom roles from storage (any role not in our initial set).
+      const customRoles = storedRoles.filter(r => !initialRoleMap.has(r.id));
+      
+      // The final list of roles is the up-to-date initial roles plus any custom roles from storage.
+      const finalRoles = [...initialRoles, ...customRoles];
       setRoles(finalRoles);
       localStorage.setItem('roles', JSON.stringify(finalRoles));
       
       const validRoleIds = new Set(finalRoles.map(r => r.id));
 
-      // Users
+      // --- Users ---
       const storedUsersString = localStorage.getItem('users');
       let loadedUsers: User[] = storedUsersString ? JSON.parse(storedUsersString) : initialUsers;
       
       let usersDataWasUpdated = false;
       const validatedUsers = loadedUsers.map(u => {
+        // If a user has a role that no longer exists, assign them the 'staff' role.
         if (!validRoleIds.has(u.roleId)) {
           usersDataWasUpdated = true;
           return { ...u, roleId: 'staff' }; // Fallback to 'staff' if role is invalid
@@ -89,15 +90,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return u;
       });
 
-      if (usersDataWasUpdated) {
+      if (usersDataWasUpdated || !storedUsersString) {
         localStorage.setItem('users', JSON.stringify(validatedUsers));
       }
       setUsers(validatedUsers);
 
-      // Current User
+      // --- Current User ---
       const storedUserString = localStorage.getItem('user');
       if (storedUserString) {
         let userObject: User = JSON.parse(storedUserString);
+        // Also validate the current user's role.
         if (!validRoleIds.has(userObject.roleId)) {
           userObject.roleId = 'staff';
           localStorage.setItem('user', JSON.stringify(userObject));
@@ -105,12 +107,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(userObject);
       }
 
-      // Branches
+      // --- Branches ---
       setBranches(initialBranches);
 
     } catch (error) {
-      console.error('Failed to initialize from localStorage', error);
-      // Reset to defaults on parsing error
+      console.error('Failed to initialize from localStorage. Resetting to defaults.', error);
+      // If anything goes wrong, reset to a known good state.
       localStorage.setItem('roles', JSON.stringify(initialRoles));
       setRoles(initialRoles);
       localStorage.setItem('users', JSON.stringify(initialUsers));
@@ -121,7 +123,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsInitializing(false);
     }
-  }, []);
+  }, []); // Run only on initial mount
 
   const login = (email: string, pass: string) => {
     const allUsers = users.length > 0 ? users : initialUsers;
