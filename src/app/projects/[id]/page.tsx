@@ -21,6 +21,7 @@ import {
   User,
   Building,
   FileSpreadsheet,
+  FilePen,
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
@@ -43,30 +44,48 @@ export default function ProjectDetailsPage() {
   
   const project = projects.find((p) => p.id === parseInt(params.id as string, 10));
 
-  const totalCost = useMemo(() => {
-    if (!project) return 0;
-    return project.expenditures
+  const {
+    totalCost,
+    totalInvoiced,
+    totalPad,
+    totalServiceOrderValue,
+    totalDocumentPreparation,
+  } = useMemo(() => {
+    if (!project) {
+      return {
+        totalCost: 0,
+        totalInvoiced: 0,
+        totalPad: 0,
+        totalServiceOrderValue: 0,
+        totalDocumentPreparation: 0,
+      };
+    }
+
+    const cost = project.expenditures
       .filter((exp) => exp.status === 'Approved')
       .reduce((acc, exp) => acc + exp.amount, 0);
-  }, [project]);
 
-  const totalInvoiced = useMemo(() => {
-    if (!project) return 0;
-    return project.invoices
+    const invoiced = project.invoices
       .filter((inv) => inv.status === 'Invoiced' || inv.status === 'Paid')
       .reduce((acc, inv) => acc + inv.value, 0);
-  }, [project]);
-  
-  const totalPad = useMemo(() => {
-    if (!project) return 0;
-    return project.invoices
+
+    const pad = project.invoices
       .filter((inv) => inv.status === 'PAD')
       .reduce((acc, inv) => acc + inv.value, 0);
-  }, [project]);
+    
+    const documentPreparation = project.invoices
+      .filter((inv) => inv.status === 'Document Preparation')
+      .reduce((acc, inv) => acc + inv.value, 0);
 
-  const totalServiceOrderValue = useMemo(() => {
-    if (!project) return 0;
-    return project.serviceOrders.reduce((acc, so) => acc + so.value, 0);
+    const serviceOrderValue = project.serviceOrders.reduce((acc, so) => acc + so.value, 0);
+
+    return {
+      totalCost: cost,
+      totalInvoiced: invoiced,
+      totalPad: pad,
+      totalServiceOrderValue: serviceOrderValue,
+      totalDocumentPreparation: documentPreparation,
+    };
   }, [project]);
 
   const monthlyRecapData = useMemo(() => {
@@ -254,6 +273,15 @@ export default function ProjectDetailsPage() {
                         Total PAD
                         </p>
                         <p className="font-medium">{formatCurrency(totalPad)}</p>
+                    </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                    <FilePen className="mt-0.5 h-5 w-5 flex-shrink-0 text-muted-foreground" />
+                    <div>
+                        <p className="text-sm text-muted-foreground">
+                        Total Document Preparation
+                        </p>
+                        <p className="font-medium">{formatCurrency(totalDocumentPreparation)}</p>
                     </div>
                     </div>
                     <div className="flex items-start gap-3">
