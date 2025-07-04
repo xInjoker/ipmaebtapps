@@ -46,7 +46,9 @@ export function EquipmentCard({ item, branchMap }: { item: EquipmentItem; branch
 
   useEffect(() => {
     // This runs only on the client, after hydration
-    setCalibration(getCalibrationStatus(item.calibrationDueDate));
+    if (item.calibrationDueDate) {
+      setCalibration(getCalibrationStatus(new Date(item.calibrationDueDate)));
+    }
   }, [item.calibrationDueDate]);
 
   return (

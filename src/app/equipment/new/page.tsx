@@ -39,7 +39,7 @@ export default function NewEquipmentPage() {
     type: EquipmentType | '';
     owningBranchId: string;
     currentLocation: string;
-    calibrationDueDate?: Date;
+    calibrationDueDate: string;
     status: EquipmentStatus;
   }>({
     name: '',
@@ -47,6 +47,7 @@ export default function NewEquipmentPage() {
     type: '',
     owningBranchId: '',
     currentLocation: '',
+    calibrationDueDate: '',
     status: 'Normal',
   });
   
@@ -89,7 +90,7 @@ export default function NewEquipmentPage() {
       currentLocation: newEquipment.currentLocation,
       calibrationDueDate: newEquipment.calibrationDueDate,
       status: newEquipment.status,
-      imageUrls: images.map(file => file.name), // In a real app, you'd upload and get URLs
+      imageUrls: images.map(file => URL.createObjectURL(file)), // In a real app, you'd upload and get URLs
       documentUrls: documents.map(file => file.name),
     });
     
@@ -100,6 +101,8 @@ export default function NewEquipmentPage() {
 
     router.push('/equipment');
   };
+
+  const calibrationDate = newEquipment.calibrationDueDate ? new Date(newEquipment.calibrationDueDate) : undefined;
 
   return (
     <div className="space-y-6">
@@ -160,18 +163,18 @@ export default function NewEquipmentPage() {
                           variant={"outline"}
                           className={cn(
                               "w-full justify-start text-left font-normal",
-                              !newEquipment.calibrationDueDate && "text-muted-foreground"
+                              !calibrationDate && "text-muted-foreground"
                           )}
                       >
                           <CalendarIcon className="mr-2 h-4 w-4" />
-                          {newEquipment.calibrationDueDate ? format(newEquipment.calibrationDueDate, "PPP") : <span>Pick a date</span>}
+                          {calibrationDate ? format(calibrationDate, "PPP") : <span>Pick a date</span>}
                       </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">
                       <Calendar
                           mode="single"
-                          selected={newEquipment.calibrationDueDate}
-                          onSelect={(date) => setNewEquipment({...newEquipment, calibrationDueDate: date})}
+                          selected={calibrationDate}
+                          onSelect={(date) => setNewEquipment({...newEquipment, calibrationDueDate: date ? format(date, 'yyyy-MM-dd') : ''})}
                           initialFocus
                       />
                   </PopoverContent>

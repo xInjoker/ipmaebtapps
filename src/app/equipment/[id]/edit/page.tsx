@@ -42,8 +42,7 @@ export default function EditEquipmentPage() {
       const item = getEquipmentById(equipmentId);
       if (item) {
         setEquipment({ 
-            ...item, 
-            calibrationDueDate: new Date(item.calibrationDueDate),
+            ...item,
             imageUrls: item.imageUrls || [],
             documentUrls: item.documentUrls || [],
         });
@@ -109,7 +108,7 @@ export default function EditEquipmentPage() {
 
     const updatedEquipmentData: EquipmentItem = {
         ...equipment,
-        imageUrls: [...equipment.imageUrls, ...newImages.map(file => file.name)],
+        imageUrls: [...equipment.imageUrls, ...newImages.map(file => URL.createObjectURL(file))], // In a real app, you'd upload and get URLs
         documentUrls: [...equipment.documentUrls, ...newDocuments.map(file => file.name)],
     };
 
@@ -130,6 +129,8 @@ export default function EditEquipmentPage() {
         </div>
     );
   }
+
+  const calibrationDate = equipment.calibrationDueDate ? new Date(equipment.calibrationDueDate) : undefined;
 
   return (
     <div className="space-y-6">
@@ -190,18 +191,18 @@ export default function EditEquipmentPage() {
                           variant={"outline"}
                           className={cn(
                               "w-full justify-start text-left font-normal",
-                              !equipment.calibrationDueDate && "text-muted-foreground"
+                              !calibrationDate && "text-muted-foreground"
                           )}
                       >
                           <CalendarIcon className="mr-2 h-4 w-4" />
-                          {equipment.calibrationDueDate ? format(equipment.calibrationDueDate, "PPP") : <span>Pick a date</span>}
+                          {calibrationDate ? format(calibrationDate, "PPP") : <span>Pick a date</span>}
                       </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">
                       <Calendar
                           mode="single"
-                          selected={equipment.calibrationDueDate}
-                          onSelect={(date) => setEquipment(equipment ? {...equipment, calibrationDueDate: date || new Date()} : null)}
+                          selected={calibrationDate}
+                          onSelect={(date) => setEquipment(equipment ? {...equipment, calibrationDueDate: date ? format(date, 'yyyy-MM-dd') : ''} : null)}
                           initialFocus
                       />
                   </PopoverContent>
