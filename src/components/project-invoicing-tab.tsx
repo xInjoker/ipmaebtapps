@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal, PlusCircle, FileDown } from 'lucide-react';
@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import type { Project, InvoiceItem } from '@/lib/data';
+import type { Project, InvoiceItem, ServiceOrderItem } from '@/lib/data';
 import { formatCurrency } from '@/lib/utils';
 
 type ProjectInvoicingTabProps = {
@@ -23,29 +23,20 @@ type ProjectInvoicingTabProps = {
 export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTabProps) {
     const [isAddInvoiceDialogOpen, setIsAddInvoiceDialogOpen] = useState(false);
     const [isEditInvoiceDialogOpen, setIsEditInvoiceDialogOpen] = useState(false);
+    
     const [invoiceToEdit, setInvoiceToEdit] = useState<InvoiceItem | null>(null);
-
-    const [editedInvoice, setEditedInvoice] = useState<{
-        id: number;
-        spkNumber: string;
-        serviceCategory: string;
-        description: string;
-        status: 'Paid' | 'Invoiced' | 'Cancel' | 'Re-invoiced' | 'PAD' | 'Document Preparation';
-        periodMonth: string;
-        periodYear: string;
-        value: number;
-    } | null>(null);
+    const [editedInvoice, setEditedInvoice] = useState<InvoiceItem & { periodMonth: string; periodYear: string; } | null>(null);
 
     const [newInvoice, setNewInvoice] = useState<{
-        spkNumber: string;
+        soNumber: string;
         serviceCategory: string;
         description: string;
-        status: 'Paid' | 'Invoiced' | 'Cancel' | 'Re-invoiced' | 'PAD' | 'Document Preparation';
+        status: InvoiceItem['status'];
         periodMonth: string;
         periodYear: string;
         value: number;
     }>({
-        spkNumber: '',
+        soNumber: '',
         serviceCategory: '',
         description: '',
         status: 'Invoiced',
@@ -53,9 +44,25 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
         periodYear: '',
         value: 0,
     });
+    
+    const invoicedAmountsBySO = useMemo(() => {
+        return project.invoices.reduce((acc, invoice) => {
+            if (invoice.soNumber) {
+                // When calculating for an invoice being edited, exclude its own value
+                const value = (invoiceToEdit && invoiceToEdit.id === invoice.id) ? 0 : invoice.value;
+                acc[invoice.soNumber] = (acc[invoice.soNumber] || 0) + value;
+            }
+            return acc;
+        }, {} as Record<string, number>);
+    }, [project.invoices, invoiceToEdit]);
+
+    const serviceOrderMap = useMemo(() => {
+        return new Map(project.serviceOrders.map(so => [so.soNumber, so]));
+    }, [project.serviceOrders]);
+
 
     const handleAddInvoice = () => {
-        if (newInvoice.spkNumber && newInvoice.serviceCategory && newInvoice.description && newInvoice.periodMonth && newInvoice.periodYear && newInvoice.value > 0) {
+        if (newInvoice.soNumber && newInvoice.serviceCategory && newInvoice.description && newInvoice.periodMonth && newInvoice.periodYear && newInvoice.value > 0) {
             const newId = project.invoices.length > 0 ? Math.max(...project.invoices.map((i) => i.id)) + 1 : 1;
             const { periodMonth, periodYear, ...restOfInvoice } = newInvoice;
             const period = `${periodMonth} ${periodYear}`;
@@ -65,7 +72,7 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
                 p.id === project.id ? { ...p, invoices: [...p.invoices, newInvoiceItem] } : p
             ));
 
-            setNewInvoice({ spkNumber: '', serviceCategory: '', description: '', status: 'Invoiced', periodMonth: '', periodYear: '', value: 0 });
+            setNewInvoice({ soNumber: '', serviceCategory: '', description: '', status: 'Invoiced', periodMonth: '', periodYear: '', value: 0 });
             setIsAddInvoiceDialogOpen(false);
         }
     };
@@ -95,14 +102,14 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
     const handleExportInvoices = () => {
         if (!project || !project.invoices) return;
 
-        const headers = ['ID', 'SPK Number', 'Service Category', 'Description', 'Status', 'Period', 'Value (IDR)'];
+        const headers = ['ID', 'SO Number', 'Service Category', 'Description', 'Status', 'Period', 'Value (IDR)'];
         const csvRows = [headers.join(',')];
 
         project.invoices.forEach((invoice) => {
-            const spkNumber = `"${invoice.spkNumber.replace(/"/g, '""')}"`;
+            const soNumber = `"${invoice.soNumber.replace(/"/g, '""')}"`;
             const serviceCategory = `"${invoice.serviceCategory.replace(/"/g, '""')}"`;
             const description = `"${invoice.description.replace(/"/g, '""')}"`;
-            const row = [invoice.id, spkNumber, serviceCategory, description, invoice.status, invoice.period, invoice.value].join(',');
+            const row = [invoice.id, soNumber, serviceCategory, description, invoice.status, invoice.period, invoice.value].join(',');
             csvRows.push(row);
         });
 
@@ -118,6 +125,21 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
     };
+
+    const getSoDetails = (soNumber: string, value: number) => {
+        const so = serviceOrderMap.get(soNumber);
+        if (!so) return { remaining: 0, warning: '' };
+
+        const invoicedAmount = invoicedAmountsBySO[soNumber] || 0;
+        const remaining = so.value - invoicedAmount;
+        const warning = value > remaining ? `Warning: Amount exceeds remaining SO value of ${formatCurrency(remaining)}.` : '';
+
+        return { remaining, warning };
+    };
+    
+    const addSoDetails = getSoDetails(newInvoice.soNumber, newInvoice.value);
+    const editSoDetails = editedInvoice ? getSoDetails(editedInvoice.soNumber, editedInvoice.value) : { remaining: 0, warning: '' };
+
 
     return (
         <>
@@ -146,8 +168,17 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
                                 </DialogHeader>
                                 <div className="grid gap-4 py-4">
                                     <div className="grid grid-cols-4 items-center gap-4">
-                                        <Label htmlFor="spkNumber" className="text-right">SPK Number</Label>
-                                        <Input id="spkNumber" value={newInvoice.spkNumber} onChange={(e) => setNewInvoice({ ...newInvoice, spkNumber: e.target.value })} className="col-span-3" />
+                                        <Label htmlFor="soNumber" className="text-right">SO Number</Label>
+                                        <Select value={newInvoice.soNumber} onValueChange={(value) => setNewInvoice({ ...newInvoice, soNumber: value })}>
+                                            <SelectTrigger className="col-span-3"><SelectValue placeholder="Select an SO" /></SelectTrigger>
+                                            <SelectContent>
+                                                {project.serviceOrders.map(so => <SelectItem key={so.id} value={so.soNumber}>{so.soNumber}</SelectItem>)}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="grid grid-cols-4 items-center gap-4">
+                                        <Label className="text-right">SO Remaining</Label>
+                                        <p className="col-span-3 text-sm font-medium">{formatCurrency(addSoDetails.remaining)}</p>
                                     </div>
                                     <div className="grid grid-cols-4 items-center gap-4">
                                         <Label htmlFor="serviceCategory" className="text-right">Service</Label>
@@ -187,6 +218,9 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
                                         <Label htmlFor="value" className="text-right">Value (IDR)</Label>
                                         <Input id="value" type="number" value={newInvoice.value || ''} onChange={(e) => setNewInvoice({ ...newInvoice, value: parseInt(e.target.value) || 0 })} className="col-span-3" />
                                     </div>
+                                    {addSoDetails.warning && (
+                                        <p className="col-span-4 text-center text-sm font-medium text-yellow-600">{addSoDetails.warning}</p>
+                                    )}
                                 </div>
                                 <DialogFooter>
                                     <Button onClick={handleAddInvoice}>Add Invoice</Button>
@@ -200,7 +234,7 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
                         <TableHeader>
                             <TableRow>
                                 <TableHead>ID</TableHead>
-                                <TableHead>SPK Number</TableHead>
+                                <TableHead>SO Number</TableHead>
                                 <TableHead>Service Category</TableHead>
                                 <TableHead>Description</TableHead>
                                 <TableHead>Period</TableHead>
@@ -213,7 +247,7 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
                             {project.invoices?.map((invoice) => (
                                 <TableRow key={invoice.id}>
                                     <TableCell>{invoice.id}</TableCell>
-                                    <TableCell className="font-medium">{invoice.spkNumber}</TableCell>
+                                    <TableCell className="font-medium">{invoice.soNumber}</TableCell>
                                     <TableCell className="font-medium">{invoice.serviceCategory}</TableCell>
                                     <TableCell>{invoice.description}</TableCell>
                                     <TableCell>{invoice.period}</TableCell>
@@ -245,8 +279,7 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
                 </CardContent>
             </Card>
 
-            {/* Edit Invoice Dialog */}
-            <Dialog open={isEditInvoiceDialogOpen} onOpenChange={setIsEditInvoiceDialogOpen}>
+            <Dialog open={isEditInvoiceDialogOpen} onOpenChange={(open) => { setIsEditInvoiceDialogOpen(open); if (!open) setInvoiceToEdit(null); }}>
                 <DialogContent className="sm:max-w-lg">
                     {editedInvoice && (
                         <>
@@ -256,8 +289,17 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
                             </DialogHeader>
                             <div className="grid gap-4 py-4">
                                 <div className="grid grid-cols-4 items-center gap-4">
-                                    <Label htmlFor="editSpkNumber" className="text-right">SPK Number</Label>
-                                    <Input id="editSpkNumber" value={editedInvoice.spkNumber} onChange={(e) => setEditedInvoice({ ...editedInvoice, spkNumber: e.target.value })} className="col-span-3" />
+                                    <Label htmlFor="editSoNumber" className="text-right">SO Number</Label>
+                                    <Select value={editedInvoice.soNumber} onValueChange={(value) => setEditedInvoice({ ...editedInvoice, soNumber: value })}>
+                                        <SelectTrigger className="col-span-3"><SelectValue placeholder="Select an SO" /></SelectTrigger>
+                                        <SelectContent>
+                                            {project.serviceOrders.map(so => <SelectItem key={so.id} value={so.soNumber}>{so.soNumber}</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                 <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label className="text-right">SO Remaining</Label>
+                                    <p className="col-span-3 text-sm font-medium">{formatCurrency(editSoDetails.remaining)}</p>
                                 </div>
                                 <div className="grid grid-cols-4 items-center gap-4">
                                     <Label htmlFor="editServiceCategory" className="text-right">Service</Label>
@@ -297,6 +339,9 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
                                     <Label htmlFor="editValue" className="text-right">Value (IDR)</Label>
                                     <Input id="editValue" type="number" value={editedInvoice.value || ''} onChange={(e) => setEditedInvoice({ ...editedInvoice, value: parseInt(e.target.value) || 0 })} className="col-span-3" />
                                 </div>
+                                 {editSoDetails.warning && (
+                                    <p className="col-span-4 text-center text-sm font-medium text-yellow-600">{editSoDetails.warning}</p>
+                                )}
                             </div>
                             <DialogFooter>
                                 <Button onClick={handleUpdateInvoice}>Save Changes</Button>

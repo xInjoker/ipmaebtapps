@@ -10,7 +10,7 @@ export type ServiceOrderItem = {
 
 export type InvoiceItem = {
   id: number;
-  spkNumber: string;
+  soNumber: string;
   serviceCategory: string;
   description: string;
   status: 'Paid' | 'Invoiced' | 'Cancel' | 'Re-invoiced' | 'PAD' | 'Document Preparation';
@@ -67,11 +67,12 @@ export const initialProjects: Project[] = [
     serviceOrders: [
       { id: 1, soNumber: 'SO-001-A', description: 'Initial design consultation and mockups', date: '2024-01-10', value: 500000000, status: 'Closed' },
       { id: 2, soNumber: 'SO-001-B', description: 'Development and deployment sprints', date: '2024-03-15', value: 1500000000, status: 'In Progress' },
+      { id: 3, soNumber: 'SO-001-C', description: 'Final deployment and server setup', date: '2024-10-01', value: 500000000, status: 'Open' },
     ],
     invoices: [
       {
         id: 1,
-        spkNumber: 'SPK-001',
+        soNumber: 'SO-001-A',
         serviceCategory: 'Design Phase',
         description: 'Initial design mockups and wireframes.',
         status: 'Paid',
@@ -80,7 +81,7 @@ export const initialProjects: Project[] = [
       },
       {
         id: 2,
-        spkNumber: 'SPK-002',
+        soNumber: 'SO-001-B',
         serviceCategory: 'Development - Sprint 1',
         description: 'Development work for the first sprint.',
         status: 'Paid',
@@ -89,7 +90,7 @@ export const initialProjects: Project[] = [
       },
       {
         id: 3,
-        spkNumber: 'SPK-003',
+        soNumber: 'SO-001-B',
         serviceCategory: 'Development - Sprint 2',
         description: 'Development work for the second sprint.',
         status: 'Invoiced',
@@ -98,7 +99,7 @@ export const initialProjects: Project[] = [
       },
       {
         id: 4,
-        spkNumber: 'SPK-004',
+        soNumber: 'SO-001-C',
         serviceCategory: 'Final Deployment',
         description: 'Final deployment and server setup.',
         status: 'Invoiced',
@@ -140,12 +141,14 @@ export const initialProjects: Project[] = [
     duration: '24 Months',
     progress: 40,
     serviceOrders: [
-      { id: 1, soNumber: 'SO-002-A', description: 'Full-stack mobile app development cycle', date: '2024-02-01', value: 5000000000, status: 'Open' },
+      { id: 1, soNumber: 'SO-002-A', description: 'Discovery & Planning', date: '2024-02-01', value: 1000000000, status: 'Closed' },
+      { id: 2, soNumber: 'SO-002-B', description: 'UI/UX Design and Backend', date: '2024-04-15', value: 3000000000, status: 'In Progress' },
+      { id: 3, soNumber: 'SO-002-C', description: 'Frontend Development', date: '2024-10-01', value: 1000000000, status: 'Open' },
     ],
     invoices: [
       {
         id: 1,
-        spkNumber: 'SPK-005',
+        soNumber: 'SO-002-A',
         serviceCategory: 'Discovery & Planning',
         description: 'Discovery and project planning phase.',
         status: 'Paid',
@@ -154,7 +157,7 @@ export const initialProjects: Project[] = [
       },
       {
         id: 2,
-        spkNumber: 'SPK-006',
+        soNumber: 'SO-002-B',
         serviceCategory: 'UI/UX Design',
         description: 'UI/UX design for the mobile application.',
         status: 'Invoiced',
@@ -163,7 +166,7 @@ export const initialProjects: Project[] = [
       },
        {
         id: 3,
-        spkNumber: 'SPK-007',
+        soNumber: 'SO-002-B',
         serviceCategory: 'Backend Development',
         description: 'Backend development for core features.',
         status: 'Invoiced',
@@ -172,7 +175,7 @@ export const initialProjects: Project[] = [
       },
       {
         id: 4,
-        spkNumber: 'SPK-008',
+        soNumber: 'SO-002-C',
         serviceCategory: 'Frontend Development',
         description: 'Frontend development for the user interface.',
         status: 'Cancel',
@@ -220,7 +223,7 @@ export const initialProjects: Project[] = [
     invoices: [
       {
         id: 1,
-        spkNumber: 'SPK-009',
+        soNumber: 'SO-003-A',
         serviceCategory: 'Infrastructure Setup',
         description: 'Setup of cloud infrastructure.',
         status: 'Paid',
@@ -229,7 +232,7 @@ export const initialProjects: Project[] = [
       },
       {
         id: 2,
-        spkNumber: 'SPK-010',
+        soNumber: 'SO-003-A',
         serviceCategory: 'Data Pipeline',
         description: 'Implementation of data ingestion pipelines.',
         status: 'Paid',
@@ -238,7 +241,7 @@ export const initialProjects: Project[] = [
       },
       {
         id: 3,
-        spkNumber: 'SPK-011',
+        soNumber: 'SO-003-B',
         serviceCategory: 'Dashboard Development',
         description: 'Development of user-facing dashboards.',
         status: 'Re-invoiced',
@@ -247,7 +250,7 @@ export const initialProjects: Project[] = [
       },
       {
         id: 4,
-        spkNumber: 'SPK-012',
+        soNumber: 'SO-003-B',
         serviceCategory: 'User Training',
         description: 'Training sessions for end-users.',
         status: 'Cancel',
