@@ -58,20 +58,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     try {
-      // Roles
+      // Roles - This logic ensures default roles are always up-to-date with code.
       const storedRolesString = localStorage.getItem('roles');
-      let loadedRoles: Role[] = storedRolesString ? JSON.parse(storedRolesString) : initialRoles;
+      const loadedRoles: Role[] = storedRolesString ? JSON.parse(storedRolesString) : initialRoles;
 
-      // Ensure default roles exist, preserving custom roles.
-      initialRoles.forEach(initialRole => {
-        if (!loadedRoles.some(loadedRole => loadedRole.id === initialRole.id)) {
-          loadedRoles.push(initialRole);
-        }
-      });
-      setRoles(loadedRoles);
-      localStorage.setItem('roles', JSON.stringify(loadedRoles));
+      // Filter out custom roles from what was loaded to preserve them
+      const customRoles = loadedRoles.filter(
+        (lr) => !initialRoles.some((ir) => ir.id === lr.id)
+      );
       
-      const validRoleIds = new Set(loadedRoles.map(r => r.id));
+      // Combine the fresh initialRoles from code with any existing custom roles
+      const finalRoles = [...initialRoles, ...customRoles];
+      
+      setRoles(finalRoles);
+      localStorage.setItem('roles', JSON.stringify(finalRoles));
+      
+      const validRoleIds = new Set(finalRoles.map(r => r.id));
 
       // Users
       const storedUsersString = localStorage.getItem('users');
@@ -81,7 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const validatedUsers = loadedUsers.map(u => {
         if (!validRoleIds.has(u.roleId)) {
           usersDataWasUpdated = true;
-          return { ...u, roleId: 'staff' };
+          return { ...u, roleId: 'staff' }; // Fallback to 'staff' if role is invalid
         }
         return u;
       });
@@ -103,13 +105,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       // Branches
-      const storedBranchesString = localStorage.getItem('branches');
-      if (storedBranchesString) {
-          setBranches(JSON.parse(storedBranchesString));
-      } else {
-          setBranches(initialBranches);
-          localStorage.setItem('branches', JSON.stringify(initialBranches));
-      }
+      setBranches(initialBranches);
+      localStorage.setItem('branches', JSON.stringify(initialBranches));
 
     } catch (error) {
       console.error('Failed to initialize from localStorage', error);
