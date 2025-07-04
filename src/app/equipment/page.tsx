@@ -72,10 +72,12 @@ export default function EquipmentPage() {
                 return (
                   <Card key={item.id} className="flex flex-col">
                     <CardHeader className="flex-row items-start justify-between">
-                      <div>
-                          <CardTitle className="font-headline text-lg">{item.name}</CardTitle>
-                          <CardDescription>{item.type} &bull; {item.serialNumber}</CardDescription>
-                      </div>
+                        <div>
+                          <Link href={`/equipment/${item.id}`} className="block hover:underline">
+                              <CardTitle className="font-headline text-lg">{item.name}</CardTitle>
+                              <CardDescription>{item.type} &bull; {item.serialNumber}</CardDescription>
+                          </Link>
+                        </div>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" className="h-8 w-8 p-0 flex-shrink-0">
@@ -93,16 +95,18 @@ export default function EquipmentPage() {
                       </DropdownMenu>
                     </CardHeader>
                     <CardContent className="space-y-4 flex-grow">
-                      <div className="aspect-video w-full overflow-hidden rounded-md border">
-                          <Image
-                              src={item.imageUrls?.[0] || `https://placehold.co/400x225.png`}
-                              alt={item.name}
-                              width={400}
-                              height={225}
-                              className="h-full w-full object-cover transition-transform hover:scale-105"
-                              data-ai-hint={`${item.type.toLowerCase()} equipment`}
-                          />
-                      </div>
+                        <Link href={`/equipment/${item.id}`}>
+                            <div className="aspect-video w-full overflow-hidden rounded-md border">
+                                <Image
+                                    src={item.imageUrls?.[0] || `https://placehold.co/400x225.png`}
+                                    alt={item.name}
+                                    width={400}
+                                    height={225}
+                                    className="h-full w-full object-cover transition-transform hover:scale-105"
+                                    data-ai-hint={`${item.type.toLowerCase()} equipment`}
+                                />
+                            </div>
+                        </Link>
                       <div className="space-y-2 text-sm">
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">Status</span>
