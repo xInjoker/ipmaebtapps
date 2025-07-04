@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -17,6 +17,8 @@ import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Calendar as CalendarIcon } from 'lucide-react';
+import { useProjects } from '@/context/ProjectContext';
+import { useAuth } from '@/context/AuthContext';
 
 
 const steps = [
@@ -37,6 +39,15 @@ type TestResult = {
 
 export default function PenetrantTestPage() {
     const [currentStep, setCurrentStep] = useState(0);
+    const { projects } = useProjects();
+    const { user, isHqUser } = useAuth();
+
+    const visibleProjects = useMemo(() => {
+        if (isHqUser) return projects;
+        if (!user) return [];
+        return projects.filter(p => p.branchId === user.branchId);
+    }, [projects, user, isHqUser]);
+
     const [formData, setFormData] = useState({
         client: '',
         mainContractor: '',
@@ -176,7 +187,16 @@ export default function PenetrantTestPage() {
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="project">Project</Label>
-                        <Input id="project" value={formData.project} onChange={handleInputChange} />
+                        <Select value={formData.project} onValueChange={(value) => handleSelectChange('project', value)}>
+                            <SelectTrigger id="project"><SelectValue placeholder="Select a project" /></SelectTrigger>
+                            <SelectContent>
+                                {visibleProjects.map((project) => (
+                                    <SelectItem key={project.id} value={project.name}>
+                                        {project.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
                      <div className="space-y-2">
                         <Label htmlFor="jobLocation">Job Location</Label>
