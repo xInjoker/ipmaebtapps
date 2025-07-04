@@ -21,8 +21,25 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { PlusCircle, MoreHorizontal, X, Search } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useEquipment } from '@/context/EquipmentContext';
-import { equipmentTypes, equipmentStatuses } from '@/lib/equipment';
+import { equipmentTypes, equipmentStatuses, type EquipmentItem } from '@/lib/equipment';
 import { format, isPast, differenceInDays } from 'date-fns';
+
+const getCalibrationStatus = (dueDate: Date) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const cleanDueDate = new Date(dueDate);
+  cleanDueDate.setHours(0, 0, 0, 0);
+
+  if (isPast(cleanDueDate)) {
+    return { text: 'Expired', variant: 'destructive' as const };
+  }
+  const daysLeft = differenceInDays(cleanDueDate, today);
+  if (daysLeft <= 30) {
+    return { text: `Expires in ${daysLeft} days`, variant: 'yellow' as const };
+  }
+  return { text: 'Valid', variant: 'green' as const };
+};
+
 
 export default function EquipmentPage() {
   const { branches } = useAuth();
@@ -59,22 +76,6 @@ export default function EquipmentPage() {
     setStatusFilter('all');
     setTypeFilter('all');
     setBranchFilter('all');
-  };
-
-  const getCalibrationStatus = (dueDate: Date) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const cleanDueDate = new Date(dueDate);
-    cleanDueDate.setHours(0, 0, 0, 0);
-
-    if (isPast(cleanDueDate)) {
-      return { text: 'Expired', variant: 'destructive' as const };
-    }
-    const daysLeft = differenceInDays(cleanDueDate, today);
-    if (daysLeft <= 30) {
-      return { text: `Expires in ${daysLeft} days`, variant: 'yellow' as const };
-    }
-    return { text: 'Valid', variant: 'green' as const };
   };
 
   return (
@@ -142,8 +143,8 @@ export default function EquipmentPage() {
 
            {filteredEquipment.length > 0 ? (
              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {filteredEquipment.map((item) => {
-                  const calibration = getCalibrationStatus(new Date(item.calibrationDueDate));
+              {filteredEquipment.map((item: EquipmentItem) => {
+                  const calibration = getCalibrationStatus(item.calibrationDueDate);
                   return (
                     <Card key={item.id} className="flex flex-col">
                       <CardHeader className="flex-row items-start justify-between">
