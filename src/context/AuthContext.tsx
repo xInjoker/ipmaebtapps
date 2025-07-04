@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -47,6 +46,10 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// A version for the local storage data structure.
+// Incrementing this will force a reset of stored auth data.
+const DATA_VERSION = '1.3';
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [users, setUsers] = useState<User[]>([]);
@@ -59,6 +62,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     setIsInitializing(true);
     try {
+      // Version check for local storage data
+      const storedVersion = localStorage.getItem('dataVersion');
+      if (storedVersion !== DATA_VERSION) {
+        // Data is outdated or version-less. Clear it to force a refresh from initial data.
+        localStorage.removeItem('user');
+        localStorage.removeItem('users');
+        localStorage.removeItem('roles');
+        localStorage.setItem('dataVersion', DATA_VERSION);
+      }
+
       // --- Load all data from localStorage ---
       const storedRolesString = localStorage.getItem('roles');
       const storedUsersString = localStorage.getItem('users');
