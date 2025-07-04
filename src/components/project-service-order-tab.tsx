@@ -47,12 +47,14 @@ export function ProjectServiceOrderTab({ project, setProjects }: ProjectServiceO
     });
 
     const invoicedAmountsBySO = useMemo(() => {
-        return project.invoices.reduce((acc, invoice) => {
-            if (invoice.soNumber) {
-                acc[invoice.soNumber] = (acc[invoice.soNumber] || 0) + invoice.value;
-            }
-            return acc;
-        }, {} as Record<string, number>);
+        return project.invoices
+            .filter(invoice => invoice.status !== 'Cancel')
+            .reduce((acc, invoice) => {
+                if (invoice.soNumber) {
+                    acc[invoice.soNumber] = (acc[invoice.soNumber] || 0) + invoice.value;
+                }
+                return acc;
+            }, {} as Record<string, number>);
     }, [project.invoices]);
 
     const handleAddItem = () => {

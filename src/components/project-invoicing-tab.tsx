@@ -46,14 +46,16 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
     });
     
     const invoicedAmountsBySO = useMemo(() => {
-        return project.invoices.reduce((acc, invoice) => {
-            if (invoice.soNumber) {
-                // When calculating for an invoice being edited, exclude its own value
-                const value = (invoiceToEdit && invoiceToEdit.id === invoice.id) ? 0 : invoice.value;
-                acc[invoice.soNumber] = (acc[invoice.soNumber] || 0) + value;
-            }
-            return acc;
-        }, {} as Record<string, number>);
+        return project.invoices
+            .filter(invoice => invoice.status !== 'Cancel')
+            .reduce((acc, invoice) => {
+                if (invoice.soNumber) {
+                    // When calculating for an invoice being edited, exclude its own value
+                    const value = (invoiceToEdit && invoiceToEdit.id === invoice.id) ? 0 : invoice.value;
+                    acc[invoice.soNumber] = (acc[invoice.soNumber] || 0) + value;
+                }
+                return acc;
+            }, {} as Record<string, number>);
     }, [project.invoices, invoiceToEdit]);
 
     const serviceOrderMap = useMemo(() => {
