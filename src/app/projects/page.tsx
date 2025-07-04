@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -181,6 +182,7 @@ export default function ProjectsPage() {
       cost: 0,
       invoiced: 0,
       progress: 0,
+      serviceOrders: [],
       invoices: [],
       budgets: {},
       expenditures: [],

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -33,6 +34,7 @@ import { useProjects } from '@/context/ProjectContext';
 import { ProjectMonthlyRecapChart } from '@/components/project-monthly-recap-chart';
 import { ProjectInvoicingTab } from '@/components/project-invoicing-tab';
 import { ProjectExpenditureTab } from '@/components/project-expenditure-tab';
+import { ProjectServiceOrderTab } from '@/components/project-service-order-tab';
 import { formatCurrency } from '@/lib/utils';
 
 export default function ProjectDetailsPage() {
@@ -277,11 +279,15 @@ export default function ProjectDetailsPage() {
         </div>
       </div>
 
-      <Tabs defaultValue="invoices" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+      <Tabs defaultValue="service-orders" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="service-orders">Service Order</TabsTrigger>
           <TabsTrigger value="invoices">Invoicing Progress</TabsTrigger>
           <TabsTrigger value="expenditure">Expenditure Management</TabsTrigger>
         </TabsList>
+        <TabsContent value="service-orders">
+          <ProjectServiceOrderTab project={project} setProjects={setProjects} />
+        </TabsContent>
         <TabsContent value="invoices">
           <ProjectInvoicingTab project={project} setProjects={setProjects} />
         </TabsContent>

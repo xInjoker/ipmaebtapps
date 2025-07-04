@@ -1,3 +1,13 @@
+
+export type ServiceOrderItem = {
+  id: number;
+  soNumber: string;
+  description: string;
+  date: string;
+  value: number;
+  status: 'Open' | 'In Progress' | 'Closed';
+};
+
 export type InvoiceItem = {
   id: number;
   spkNumber: string;
@@ -31,6 +41,7 @@ export type Project = {
   period: string;
   duration: string;
   progress: number;
+  serviceOrders: ServiceOrderItem[];
   invoices: InvoiceItem[];
   budgets: { [category: string]: number };
   expenditures: ExpenditureItem[];
@@ -53,6 +64,10 @@ export const initialProjects: Project[] = [
     period: '2024-2025',
     duration: '12 Months',
     progress: 75,
+    serviceOrders: [
+      { id: 1, soNumber: 'SO-001-A', description: 'Initial design consultation and mockups', date: '2024-01-10', value: 500000000, status: 'Closed' },
+      { id: 2, soNumber: 'SO-001-B', description: 'Development and deployment sprints', date: '2024-03-15', value: 1500000000, status: 'In Progress' },
+    ],
     invoices: [
       {
         id: 1,
@@ -124,6 +139,9 @@ export const initialProjects: Project[] = [
     period: '2024-2026',
     duration: '24 Months',
     progress: 40,
+    serviceOrders: [
+      { id: 1, soNumber: 'SO-002-A', description: 'Full-stack mobile app development cycle', date: '2024-02-01', value: 5000000000, status: 'Open' },
+    ],
     invoices: [
       {
         id: 1,
@@ -195,6 +213,10 @@ export const initialProjects: Project[] = [
     period: '2023-2024',
     duration: '18 Months',
     progress: 90,
+    serviceOrders: [
+      { id: 1, soNumber: 'SO-003-A', description: 'Cloud infrastructure setup and data pipeline implementation', date: '2023-11-20', value: 2500000000, status: 'Closed' },
+      { id: 2, soNumber: 'SO-003-B', description: 'Dashboard development and user training', date: '2024-05-10', value: 700000000, status: 'In Progress' },
+    ],
     invoices: [
       {
         id: 1,
