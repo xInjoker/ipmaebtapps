@@ -34,7 +34,13 @@ const getDocumentStatus = (dueDateString?: string) => {
       return { text: `Expires in ${daysLeft} days`, variant: 'yellow' as const };
     }
     return { text: 'Valid', variant: 'green' as const };
-  };
+};
+
+function formatDocumentName(name?: string) {
+    if (!name) return 'Untitled Document';
+    // Remove file extension and replace underscores/hyphens with spaces.
+    return name.replace(/\.[^/.]+$/, "").replace(/[_.-]/g, ' ');
+}
 
 
 export default function InspectorDetailsPage() {
@@ -129,7 +135,7 @@ export default function InspectorDetailsPage() {
                          <div className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
                             <div className="flex items-center gap-2 truncate">
                                 <FileText className="h-4 w-4 flex-shrink-0" />
-                                <span className="text-sm truncate">{inspector.cvUrl.split('/').pop()}</span>
+                                <span className="text-sm truncate" title={inspector.cvUrl}>{formatDocumentName(inspector.cvUrl.split('/').pop())}</span>
                             </div>
                             <Button variant="ghost" size="sm"><Download className="mr-2 h-4 w-4" />Download</Button>
                         </div>
@@ -147,7 +153,7 @@ export default function InspectorDetailsPage() {
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2 truncate">
                                             <FileText className="h-4 w-4 flex-shrink-0" />
-                                            <span className="text-sm font-medium truncate">{doc.name}</span>
+                                            <span className="text-sm font-medium truncate" title={doc.name}>{formatDocumentName(doc.name)}</span>
                                         </div>
                                         <Button variant="ghost" size="sm"><Download className="mr-2 h-4 w-4" />Download</Button>
                                     </div>
@@ -177,7 +183,7 @@ export default function InspectorDetailsPage() {
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2 truncate">
                                             <FileText className="h-4 w-4 flex-shrink-0" />
-                                            <span className="text-sm font-medium truncate">{doc.name}</span>
+                                            <span className="text-sm font-medium truncate" title={doc.name}>{formatDocumentName(doc.name)}</span>
                                         </div>
                                         <Button variant="ghost" size="sm"><Download className="mr-2 h-4 w-4" />Download</Button>
                                     </div>
