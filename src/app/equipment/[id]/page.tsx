@@ -39,12 +39,14 @@ import {
 import { format, isPast, differenceInDays } from 'date-fns';
 import { useAuth } from '@/context/AuthContext';
 import { type EquipmentItem } from '@/lib/equipment';
+import { useInspectors } from '@/context/InspectorContext';
 
 export default function EquipmentDetailsPage() {
   const router = useRouter();
   const params = useParams();
   const { getEquipmentById } = useEquipment();
-  const { users, branches } = useAuth();
+  const { inspectors } = useInspectors();
+  const { branches } = useAuth();
   const [equipment, setEquipment] = useState<EquipmentItem | null>(null);
 
   useEffect(() => {
@@ -55,12 +57,12 @@ export default function EquipmentDetailsPage() {
     }
   }, [params.id, getEquipmentById]);
   
-  const userMap = useMemo(() => {
-    return users.reduce((acc, user) => {
-        acc[user.id] = user.name;
+  const inspectorMap = useMemo(() => {
+    return inspectors.reduce((acc, inspector) => {
+        acc[inspector.id] = inspector.name;
         return acc;
-    }, {} as Record<number, string>)
-  }, [users]);
+    }, {} as Record<string, string>)
+  }, [inspectors]);
 
   const branchMap = branches.reduce((acc, branch) => {
     acc[branch.id] = branch.name;
@@ -99,7 +101,7 @@ export default function EquipmentDetailsPage() {
   }
   
   const calibration = getCalibrationStatus(new Date(equipment.calibrationDueDate));
-  const assignedPersonnel = (equipment.assignedPersonnelIds || []).map(id => userMap[id]).filter(Boolean);
+  const assignedPersonnel = (equipment.assignedPersonnelIds || []).map(id => inspectorMap[id]).filter(Boolean);
 
   return (
     <div className="space-y-6">

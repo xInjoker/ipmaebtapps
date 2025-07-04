@@ -24,10 +24,12 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { Checkbox } from '@/components/ui/checkbox';
+import { useInspectors } from '@/context/InspectorContext';
 
 export default function NewEquipmentPage() {
   const router = useRouter();
-  const { branches, users } = useAuth();
+  const { branches } = useAuth();
+  const { inspectors } = useInspectors();
   const { addEquipment } = useEquipment();
   const { toast } = useToast();
 
@@ -43,7 +45,7 @@ export default function NewEquipmentPage() {
     currentLocation: string;
     calibrationDueDate: string;
     status: EquipmentStatus;
-    assignedPersonnelIds: number[];
+    assignedPersonnelIds: string[];
   }>({
     name: '',
     serialNumber: '',
@@ -86,14 +88,14 @@ export default function NewEquipmentPage() {
     setPersonnelCertifications(prev => prev.filter((_, i) => i !== index));
   };
   
-  const handlePersonnelChange = (userId: number) => {
+  const handlePersonnelChange = (inspectorId: string) => {
     setNewEquipment(prev => {
         const newAssigned = [...prev.assignedPersonnelIds];
-        const index = newAssigned.indexOf(userId);
+        const index = newAssigned.indexOf(inspectorId);
         if (index > -1) {
             newAssigned.splice(index, 1);
         } else {
-            newAssigned.push(userId);
+            newAssigned.push(inspectorId);
         }
         return {...prev, assignedPersonnelIds: newAssigned};
     });
@@ -223,15 +225,15 @@ export default function NewEquipmentPage() {
                 <Label>Authorized Personnel</Label>
                 <Card>
                     <CardContent className="p-4 grid grid-cols-2 md:grid-cols-3 gap-4">
-                        {users.map(user => (
-                            <div key={user.id} className="flex items-center space-x-2">
+                        {inspectors.map(inspector => (
+                            <div key={inspector.id} className="flex items-center space-x-2">
                                 <Checkbox
-                                    id={`user-${user.id}`}
-                                    checked={newEquipment.assignedPersonnelIds.includes(user.id)}
-                                    onCheckedChange={() => handlePersonnelChange(user.id)}
+                                    id={`user-${inspector.id}`}
+                                    checked={newEquipment.assignedPersonnelIds.includes(inspector.id)}
+                                    onCheckedChange={() => handlePersonnelChange(inspector.id)}
                                 />
-                                <Label htmlFor={`user-${user.id}`} className="font-normal cursor-pointer">
-                                    {user.name}
+                                <Label htmlFor={`user-${inspector.id}`} className="font-normal cursor-pointer">
+                                    {inspector.name}
                                 </Label>
                             </div>
                         ))}
