@@ -11,8 +11,6 @@ export function SiteHeader() {
     <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/95 px-4 backdrop-blur-sm sm:px-6 lg:px-8">
       <div className="flex items-center gap-4">
         <SidebarTrigger className="md:hidden" />
-      </div>
-      <div className="flex flex-1 items-center justify-end space-x-2">
         <form className="hidden sm:block">
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -23,6 +21,8 @@ export function SiteHeader() {
             />
           </div>
         </form>
+      </div>
+      <div className="flex flex-1 items-center justify-end space-x-2">
         <NotificationNav />
         <UserNav />
       </div>
