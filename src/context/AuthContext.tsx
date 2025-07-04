@@ -58,17 +58,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     try {
-      // Roles - This logic ensures default roles are always up-to-date with code.
+      // Roles: Start with initialRoles as the base to ensure it's always fresh.
+      const finalRoles: Role[] = [...initialRoles];
       const storedRolesString = localStorage.getItem('roles');
-      const loadedRoles: Role[] = storedRolesString ? JSON.parse(storedRolesString) : initialRoles;
 
-      // Filter out custom roles from what was loaded to preserve them
-      const customRoles = loadedRoles.filter(
-        (lr) => !initialRoles.some((ir) => ir.id === lr.id)
-      );
-      
-      // Combine the fresh initialRoles from code with any existing custom roles
-      const finalRoles = [...initialRoles, ...customRoles];
+      if (storedRolesString) {
+        const loadedRoles: Role[] = JSON.parse(storedRolesString);
+        const initialRoleIds = new Set(initialRoles.map(r => r.id));
+        // Find only custom roles from storage (roles that are not in the default set)
+        const customRoles = loadedRoles.filter(role => !initialRoleIds.has(role.id));
+        // Add the custom roles to the final list
+        finalRoles.push(...customRoles);
+      }
       
       setRoles(finalRoles);
       localStorage.setItem('roles', JSON.stringify(finalRoles));
@@ -106,7 +107,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       // Branches
       setBranches(initialBranches);
-      localStorage.setItem('branches', JSON.stringify(initialBranches));
 
     } catch (error) {
       console.error('Failed to initialize from localStorage', error);
@@ -117,7 +117,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUsers(initialUsers);
       localStorage.removeItem('user');
       setUser(null);
-      localStorage.setItem('branches', JSON.stringify(initialBranches));
       setBranches(initialBranches);
     } finally {
       setIsInitializing(false);
