@@ -1,7 +1,6 @@
-
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
@@ -19,12 +18,14 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { ArrowLeft, Calendar as CalendarIcon, Save, Upload, File as FileIcon, X, Image as ImageIcon } from 'lucide-react';
+import { ArrowLeft, Calendar as CalendarIcon, Save, Upload, File as FileIcon, X, Image as ImageIcon, PlusCircle } from 'lucide-react';
 import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
+import { cn, getAvatarColor, getInitials } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
-import { Checkbox } from '@/components/ui/checkbox';
 import { useInspectors } from '@/context/InspectorContext';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+
 
 export default function NewEquipmentPage() {
   const router = useRouter();
@@ -36,6 +37,7 @@ export default function NewEquipmentPage() {
   const [images, setImages] = useState<File[]>([]);
   const [documents, setDocuments] = useState<File[]>([]);
   const [personnelCertifications, setPersonnelCertifications] = useState<File[]>([]);
+  const [isPersonnelPopoverOpen, setIsPersonnelPopoverOpen] = useState(false);
 
   const [newEquipment, setNewEquipment] = useState<{
     name: string;
@@ -57,6 +59,21 @@ export default function NewEquipmentPage() {
     assignedPersonnelIds: [],
   });
   
+  const branchMap = useMemo(() => {
+    return branches.reduce((acc, branch) => {
+        acc[branch.id] = branch.name;
+        return acc;
+    }, {} as Record<string, string>);
+  }, [branches]);
+
+  const assignedInspectors = useMemo(() => {
+      return inspectors.filter(inspector => newEquipment.assignedPersonnelIds.includes(inspector.id));
+  }, [newEquipment, inspectors]);
+
+  const unassignedInspectors = useMemo(() => {
+      return inspectors.filter(inspector => !newEquipment.assignedPersonnelIds.includes(inspector.id));
+  }, [newEquipment, inspectors]);
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       setImages(prev => [...prev, ...Array.from(e.target.files!)]);
@@ -74,7 +91,6 @@ export default function NewEquipmentPage() {
         setPersonnelCertifications(prev => [...prev, ...Array.from(e.target.files!)]);
     }
   };
-
 
   const removeImage = (index: number) => {
     setImages(prev => prev.filter((_, i) => i !== index));
@@ -100,7 +116,6 @@ export default function NewEquipmentPage() {
         return {...prev, assignedPersonnelIds: newAssigned};
     });
   };
-
 
   const handleSave = () => {
     if (!newEquipment.name || !newEquipment.serialNumber || !newEquipment.type || !newEquipment.owningBranchId || !newEquipment.calibrationDueDate) {
@@ -223,22 +238,75 @@ export default function NewEquipmentPage() {
             </div>
             <div className="space-y-2 md:col-span-2">
                 <Label>Authorized Personnel</Label>
-                <Card>
-                    <CardContent className="p-4 grid grid-cols-2 md:grid-cols-3 gap-4">
-                        {inspectors.map(inspector => (
-                            <div key={inspector.id} className="flex items-center space-x-2">
-                                <Checkbox
-                                    id={`user-${inspector.id}`}
-                                    checked={newEquipment.assignedPersonnelIds.includes(inspector.id)}
-                                    onCheckedChange={() => handlePersonnelChange(inspector.id)}
-                                />
-                                <Label htmlFor={`user-${inspector.id}`} className="font-normal cursor-pointer">
-                                    {inspector.name}
-                                </Label>
-                            </div>
-                        ))}
-                    </CardContent>
-                </Card>
+                <div className="space-y-2">
+                    {assignedInspectors.map(inspector => {
+                        const avatarColor = getAvatarColor(inspector.name);
+                        return (
+                            <Card key={inspector.id} className="flex items-center justify-between p-2">
+                                <div className="flex items-center gap-3">
+                                    <Avatar className="h-9 w-9">
+                                        {inspector.avatarUrl ? <AvatarImage src={inspector.avatarUrl} alt={inspector.name} /> : null}
+                                        <AvatarFallback className={cn(avatarColor.background, avatarColor.text)}>
+                                            {getInitials(inspector.name)}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                        <p className="font-medium">{inspector.name}</p>
+                                        <p className="text-sm text-muted-foreground">{branchMap[inspector.branchId] || 'Unknown Branch'}</p>
+                                    </div>
+                                </div>
+                                <Button variant="ghost" size="icon" onClick={() => handlePersonnelChange(inspector.id)}>
+                                    <X className="h-4 w-4" />
+                                    <span className="sr-only">Remove {inspector.name}</span>
+                                </Button>
+                            </Card>
+                        )
+                    })}
+                </div>
+                <Popover open={isPersonnelPopoverOpen} onOpenChange={setIsPersonnelPopoverOpen}>
+                    <PopoverTrigger asChild>
+                        <Button variant="outline" className="w-full mt-2">
+                            <PlusCircle className="mr-2 h-4 w-4" />
+                            Add Personnel
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="p-0" align="start">
+                        <Command>
+                            <CommandInput placeholder="Search personnel..." />
+                            <CommandList>
+                                <CommandEmpty>No personnel found.</CommandEmpty>
+                                <CommandGroup>
+                                    {unassignedInspectors.map(inspector => {
+                                        const avatarColor = getAvatarColor(inspector.name);
+                                        return (
+                                            <CommandItem
+                                                key={inspector.id}
+                                                onSelect={() => {
+                                                    handlePersonnelChange(inspector.id);
+                                                    setIsPersonnelPopoverOpen(false);
+                                                }}
+                                                className="flex items-center justify-between cursor-pointer"
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <Avatar className="h-9 w-9">
+                                                        {inspector.avatarUrl ? <AvatarImage src={inspector.avatarUrl} alt={inspector.name} /> : null}
+                                                        <AvatarFallback className={cn(avatarColor.background, avatarColor.text)}>
+                                                            {getInitials(inspector.name)}
+                                                        </AvatarFallback>
+                                                    </Avatar>
+                                                    <div>
+                                                        <p className="font-medium">{inspector.name}</p>
+                                                        <p className="text-sm text-muted-foreground">{branchMap[inspector.branchId] || 'Unknown Branch'}</p>
+                                                    </div>
+                                                </div>
+                                            </CommandItem>
+                                        )
+                                    })}
+                                </CommandGroup>
+                            </CommandList>
+                        </Command>
+                    </PopoverContent>
+                </Popover>
             </div>
             <div className="space-y-2 md:col-span-2">
                 <Label>Equipment Images</Label>
