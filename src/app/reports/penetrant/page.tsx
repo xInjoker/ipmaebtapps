@@ -20,6 +20,7 @@ import { Calendar as CalendarIcon } from 'lucide-react';
 import { useProjects } from '@/context/ProjectContext';
 import { useAuth } from '@/context/AuthContext';
 import { initialReports } from '@/lib/reports';
+import { Badge } from '@/components/ui/badge';
 
 
 const steps = [
@@ -160,7 +161,7 @@ export default function PenetrantTestPage() {
 
     const prev = () => {
         if (currentStep > 0) {
-            setCurrentStep(step => step + 1);
+            setCurrentStep(step => step - 1);
         }
     };
 
@@ -570,3 +571,5 @@ export default function PenetrantTestPage() {
     </div>
   );
 }
+
+    
