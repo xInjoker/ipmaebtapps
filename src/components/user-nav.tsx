@@ -16,18 +16,28 @@ import { getInitials, getAvatarColor } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 
 export function UserNav() {
-  const { user, logout } = useAuth();
+  const { user, logout, roles } = useAuth();
 
   if (!user) {
     return null;
   }
 
+  const userRole = roles.find((r) => r.id === user.roleId);
   const avatarColor = getAvatarColor(user.name);
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+        <Button
+          variant="ghost"
+          className="relative flex h-auto items-center gap-2 rounded-md px-2 py-1.5"
+        >
+          <div className="hidden text-right sm:block">
+            <p className="text-sm font-medium leading-none">{user.name}</p>
+            <p className="text-xs leading-none text-muted-foreground">
+              {userRole?.name || 'Staff'}
+            </p>
+          </div>
           <Avatar className="h-9 w-9">
             {user.avatarUrl ? (
               <AvatarImage src={user.avatarUrl} alt={user.name} />
