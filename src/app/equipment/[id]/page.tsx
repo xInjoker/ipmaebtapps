@@ -17,6 +17,13 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from '@/components/ui/carousel';
+import {
   ArrowLeft,
   Calendar,
   Wrench,
@@ -178,20 +185,26 @@ export default function EquipmentDetailsPage() {
              <div>
                 <h3 className="font-semibold text-lg mb-4">Equipment Images</h3>
                 {equipment.imageUrls.length > 0 ? (
-                    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-                    {equipment.imageUrls.map((url, index) => (
-                        <div key={index} className="aspect-video w-full overflow-hidden rounded-md border">
-                        <Image
-                            src={url || 'https://placehold.co/400x225.png'}
-                            alt={`${equipment.name} image ${index + 1}`}
-                            width={400}
-                            height={225}
-                            className="h-full w-full object-cover"
-                            data-ai-hint={`${equipment.type.toLowerCase()} equipment`}
-                        />
-                        </div>
-                    ))}
-                    </div>
+                    <Carousel className="w-full">
+                        <CarouselContent>
+                        {equipment.imageUrls.map((url, index) => (
+                            <CarouselItem key={index}>
+                                <div className="aspect-video w-full overflow-hidden rounded-md border">
+                                    <Image
+                                        src={url || 'https://placehold.co/400x225.png'}
+                                        alt={`${equipment.name} image ${index + 1}`}
+                                        width={400}
+                                        height={225}
+                                        className="h-full w-full object-cover"
+                                        data-ai-hint={`${equipment.type.toLowerCase()} equipment`}
+                                    />
+                                </div>
+                            </CarouselItem>
+                        ))}
+                        </CarouselContent>
+                        <CarouselPrevious />
+                        <CarouselNext />
+                    </Carousel>
                 ) : (
                     <div className="flex items-center justify-center h-48 rounded-md border-2 border-dashed bg-muted">
                         <div className="text-center text-muted-foreground">
