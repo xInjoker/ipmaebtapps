@@ -20,7 +20,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { ArrowLeft, Calendar as CalendarIcon, Save } from 'lucide-react';
+import { ArrowLeft, Calendar as CalendarIcon, Save, Upload, File as FileIcon, X, Image as ImageIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -33,13 +33,20 @@ export default function EditEquipmentPage() {
   const { toast } = useToast();
   
   const [equipment, setEquipment] = useState<EquipmentItem | null>(null);
+  const [newImages, setNewImages] = useState<File[]>([]);
+  const [newDocuments, setNewDocuments] = useState<File[]>([]);
 
   useEffect(() => {
     const equipmentId = params.id as string;
     if (equipmentId) {
       const item = getEquipmentById(equipmentId);
       if (item) {
-        setEquipment({ ...item, calibrationDueDate: new Date(item.calibrationDueDate) });
+        setEquipment({ 
+            ...item, 
+            calibrationDueDate: new Date(item.calibrationDueDate),
+            imageUrls: item.imageUrls || [],
+            documentUrls: item.documentUrls || [],
+        });
       } else {
         toast({
             variant: 'destructive',
@@ -50,6 +57,44 @@ export default function EditEquipmentPage() {
       }
     }
   }, [params.id, getEquipmentById, router, toast]);
+  
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setNewImages(prev => [...prev, ...Array.from(e.target.files!)]);
+    }
+  };
+
+  const handleDocumentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setNewDocuments(prev => [...prev, ...Array.from(e.target.files!)]);
+    }
+  };
+
+  const removeNewImage = (index: number) => {
+    setNewImages(prev => prev.filter((_, i) => i !== index));
+  };
+  
+  const removeExistingImage = (url: string) => {
+    if (equipment) {
+      setEquipment({
+        ...equipment,
+        imageUrls: equipment.imageUrls.filter(u => u !== url),
+      });
+    }
+  };
+
+  const removeNewDocument = (index: number) => {
+    setNewDocuments(prev => prev.filter((_, i) => i !== index));
+  };
+  
+  const removeExistingDocument = (url: string) => {
+    if (equipment) {
+      setEquipment({
+        ...equipment,
+        documentUrls: equipment.documentUrls.filter(u => u !== url),
+      });
+    }
+  };
 
   const handleSave = () => {
     if (!equipment) return;
@@ -62,7 +107,13 @@ export default function EditEquipmentPage() {
       return;
     }
 
-    updateEquipment(equipment.id, equipment);
+    const updatedEquipmentData: EquipmentItem = {
+        ...equipment,
+        imageUrls: [...equipment.imageUrls, ...newImages.map(file => file.name)],
+        documentUrls: [...equipment.documentUrls, ...newDocuments.map(file => file.name)],
+    };
+
+    updateEquipment(equipment.id, updatedEquipmentData);
     
     toast({
         title: 'Equipment Updated',
@@ -160,6 +211,84 @@ export default function EditEquipmentPage() {
                         {equipmentStatuses.map(status => <SelectItem key={status} value={status}>{status}</SelectItem>)}
                     </SelectContent>
                 </Select>
+            </div>
+            <div className="space-y-2 md:col-span-2">
+                <Label>Equipment Images</Label>
+                 <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    {equipment.imageUrls.map((url, index) => (
+                      <div key={`existing-${index}`} className="relative group">
+                        <div className="aspect-square w-full overflow-hidden rounded-md border flex items-center justify-center bg-muted">
+                           <ImageIcon className="h-10 w-10 text-muted-foreground" />
+                        </div>
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button variant="destructive" size="icon" className="h-8 w-8" onClick={() => removeExistingImage(url)}>
+                                <X className="h-4 w-4" />
+                            </Button>
+                        </div>
+                        <p className="text-xs text-muted-foreground truncate mt-1">{url.split('/').pop()}</p>
+                      </div>
+                    ))}
+                    {newImages.map((file, index) => (
+                      <div key={`new-${index}`} className="relative group">
+                        <div className="aspect-square w-full overflow-hidden rounded-md border flex items-center justify-center bg-muted">
+                           <ImageIcon className="h-10 w-10 text-muted-foreground" />
+                        </div>
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button variant="destructive" size="icon" className="h-8 w-8" onClick={() => removeNewImage(index)}>
+                                <X className="h-4 w-4" />
+                            </Button>
+                        </div>
+                        <p className="text-xs text-muted-foreground truncate mt-1">{file.name}</p>
+                      </div>
+                    ))}
+                  </div>
+                <div className="flex items-center justify-center w-full mt-4">
+                    <label htmlFor="image-upload" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-card hover:bg-muted">
+                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                            <Upload className="w-8 h-8 mb-3 text-muted-foreground" />
+                            <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> or drag and drop</p>
+                            <p className="text-xs text-muted-foreground">PNG, JPG, GIF</p>
+                        </div>
+                        <Input id="image-upload" type="file" className="hidden" multiple onChange={handleImageChange} accept="image/*" />
+                    </label>
+                </div>
+            </div>
+            <div className="space-y-2 md:col-span-2">
+                <Label>Supporting Documents</Label>
+                <div className="mt-2 space-y-2">
+                    {equipment.documentUrls.map((url, index) => (
+                    <div key={`existing-doc-${index}`} className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
+                        <div className="flex items-center gap-2 truncate">
+                            <FileIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                            <span className="text-sm truncate">{url.split('/').pop()}</span>
+                        </div>
+                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeExistingDocument(url)}>
+                            <X className="h-4 w-4" />
+                        </Button>
+                    </div>
+                    ))}
+                    {newDocuments.map((file, index) => (
+                    <div key={`new-doc-${index}`} className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
+                        <div className="flex items-center gap-2 truncate">
+                            <FileIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                            <span className="text-sm truncate">{file.name}</span>
+                        </div>
+                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeNewDocument(index)}>
+                            <X className="h-4 w-4" />
+                        </Button>
+                    </div>
+                    ))}
+                </div>
+                <div className="flex items-center justify-center w-full mt-4">
+                    <label htmlFor="document-upload" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-card hover:bg-muted">
+                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                            <Upload className="w-8 h-8 mb-3 text-muted-foreground" />
+                            <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> or drag and drop</p>
+                            <p className="text-xs text-muted-foreground">PDF, DOCX, XLSX</p>
+                        </div>
+                        <Input id="document-upload" type="file" className="hidden" multiple onChange={handleDocumentChange} />
+                    </label>
+                </div>
             </div>
         </CardContent>
         <CardFooter className="flex justify-end gap-2">

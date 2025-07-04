@@ -19,7 +19,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { ArrowLeft, Calendar as CalendarIcon, Save } from 'lucide-react';
+import { ArrowLeft, Calendar as CalendarIcon, Save, Upload, File as FileIcon, X, Image as ImageIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -29,6 +29,9 @@ export default function NewEquipmentPage() {
   const { branches } = useAuth();
   const { addEquipment } = useEquipment();
   const { toast } = useToast();
+
+  const [images, setImages] = useState<File[]>([]);
+  const [documents, setDocuments] = useState<File[]>([]);
 
   const [newEquipment, setNewEquipment] = useState<{
     name: string;
@@ -44,6 +47,27 @@ export default function NewEquipmentPage() {
     currentLocation: '',
     status: 'Normal',
   });
+  
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setImages(prev => [...prev, ...Array.from(e.target.files!)]);
+    }
+  };
+
+  const handleDocumentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setDocuments(prev => [...prev, ...Array.from(e.target.files!)]);
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const removeDocument = (index: number) => {
+    setDocuments(prev => prev.filter((_, i) => i !== index));
+  };
+
 
   const handleSave = () => {
     if (!newEquipment.name || !newEquipment.type || !newEquipment.owningBranchId || !newEquipment.calibrationDueDate) {
@@ -62,6 +86,8 @@ export default function NewEquipmentPage() {
       currentLocation: newEquipment.currentLocation,
       calibrationDueDate: newEquipment.calibrationDueDate,
       status: newEquipment.status,
+      imageUrls: images.map(file => file.name), // In a real app, you'd upload and get URLs
+      documentUrls: documents.map(file => file.name),
     });
     
     toast({
@@ -152,6 +178,64 @@ export default function NewEquipmentPage() {
                         {equipmentStatuses.map(status => <SelectItem key={status} value={status}>{status}</SelectItem>)}
                     </SelectContent>
                 </Select>
+            </div>
+            <div className="space-y-2 md:col-span-2">
+                <Label>Equipment Images</Label>
+                <div className="flex items-center justify-center w-full">
+                    <label htmlFor="image-upload" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-card hover:bg-muted">
+                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                            <Upload className="w-8 h-8 mb-3 text-muted-foreground" />
+                            <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> or drag and drop</p>
+                            <p className="text-xs text-muted-foreground">PNG, JPG, GIF</p>
+                        </div>
+                        <Input id="image-upload" type="file" className="hidden" multiple onChange={handleImageChange} accept="image/*" />
+                    </label>
+                </div>
+                 {images.length > 0 && (
+                  <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    {images.map((file, index) => (
+                      <div key={index} className="relative group">
+                        <div className="aspect-square w-full overflow-hidden rounded-md border flex items-center justify-center bg-muted">
+                           <ImageIcon className="h-10 w-10 text-muted-foreground" />
+                        </div>
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button variant="destructive" size="icon" className="h-8 w-8" onClick={() => removeImage(index)}>
+                                <X className="h-4 w-4" />
+                            </Button>
+                        </div>
+                        <p className="text-xs text-muted-foreground truncate mt-1">{file.name}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+            </div>
+            <div className="space-y-2 md:col-span-2">
+                <Label>Supporting Documents</Label>
+                <div className="flex items-center justify-center w-full">
+                    <label htmlFor="document-upload" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-card hover:bg-muted">
+                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                            <Upload className="w-8 h-8 mb-3 text-muted-foreground" />
+                            <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> or drag and drop</p>
+                            <p className="text-xs text-muted-foreground">PDF, DOCX, XLSX</p>
+                        </div>
+                        <Input id="document-upload" type="file" className="hidden" multiple onChange={handleDocumentChange} />
+                    </label>
+                </div>
+                 {documents.length > 0 && (
+                    <div className="mt-4 space-y-2">
+                        {documents.map((file, index) => (
+                        <div key={index} className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
+                            <div className="flex items-center gap-2 truncate">
+                                <FileIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                <span className="text-sm truncate">{file.name}</span>
+                            </div>
+                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeDocument(index)}>
+                                <X className="h-4 w-4" />
+                            </Button>
+                        </div>
+                        ))}
+                    </div>
+                )}
             </div>
         </CardContent>
         <CardFooter className="flex justify-end gap-2">

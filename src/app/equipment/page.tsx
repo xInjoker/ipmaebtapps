@@ -95,7 +95,7 @@ export default function EquipmentPage() {
                     <CardContent className="space-y-4 flex-grow">
                       <div className="aspect-video w-full overflow-hidden rounded-md border">
                           <Image
-                              src={`https://placehold.co/400x225.png`}
+                              src={item.imageUrls?.[0] || `https://placehold.co/400x225.png`}
                               alt={item.name}
                               width={400}
                               height={225}
