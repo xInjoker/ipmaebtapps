@@ -109,7 +109,9 @@ export default function ReportsPage() {
                                           </Button>
                                       </DropdownMenuTrigger>
                                       <DropdownMenuContent align="end">
-                                          <DropdownMenuItem>View</DropdownMenuItem>
+                                          <DropdownMenuItem asChild>
+                                            <Link href={`/reports/${report.id}`}>View</Link>
+                                          </DropdownMenuItem>
                                           <DropdownMenuItem>Edit</DropdownMenuItem>
                                           <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
                                       </DropdownMenuContent>

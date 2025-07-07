@@ -20,7 +20,7 @@ import { cn } from '@/lib/utils';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { useProjects } from '@/context/ProjectContext';
 import { useAuth } from '@/context/AuthContext';
-import { initialReports, type ReportItem } from '@/lib/reports';
+import { initialReports, type ReportItem, type PenetrantTestReportDetails } from '@/lib/reports';
 import { Badge } from '@/components/ui/badge';
 import { useReports } from '@/context/ReportContext';
 import { useToast } from '@/hooks/use-toast';
@@ -224,6 +224,36 @@ export default function PenetrantTestPage() {
             return;
         }
     
+        const reportDetails: PenetrantTestReportDetails = {
+            client: formData.client,
+            mainContractor: formData.mainContractor,
+            project: formData.project,
+            dateOfTest: formData.dateOfTest ? format(formData.dateOfTest, 'yyyy-MM-dd') : undefined,
+            procedureNo: formData.procedureNo,
+            acceptanceCriteria: formData.acceptanceCriteria,
+            visualInspection: formData.visualInspection,
+            surfaceCondition: formData.surfaceCondition,
+            material: formData.material,
+            weldingProcess: formData.weldingProcess,
+            drawingNumber: formData.drawingNumber,
+            testExtent: formData.testExtent,
+            testTemperature: formData.testTemperature,
+            penetrantType: formData.penetrantType,
+            penetrantBrand: formData.penetrantBrand,
+            penetrantBatch: formData.penetrantBatch,
+            removerType: formData.removerType,
+            removerBrand: formData.removerBrand,
+            removerBatch: formData.removerBatch,
+            developerType: formData.developerType,
+            developerBrand: formData.developerBrand,
+            developerBatch: formData.developerBatch,
+            testEquipment: formData.testEquipment,
+            testResults: formData.testResults.map(result => ({
+                ...result,
+                imageUrls: result.images.map(image => image.name)
+            })),
+        };
+
         const newReport: Omit<ReportItem, 'id'> = {
             reportNumber: formData.reportNumber,
             jobLocation: formData.jobLocation,
@@ -231,6 +261,7 @@ export default function PenetrantTestPage() {
             jobType: 'Penetrant Test',
             qtyJoint: formData.testResults.length,
             status: 'Submitted',
+            details: reportDetails
         };
     
         addReport(newReport);
