@@ -4,10 +4,10 @@
 import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { ArrowLeft, Check, ChevronLeft, ChevronRight, Upload, X } from 'lucide-react';
-import { Progress } from '@/components/ui/progress';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -20,8 +20,10 @@ import { cn } from '@/lib/utils';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { useProjects } from '@/context/ProjectContext';
 import { useAuth } from '@/context/AuthContext';
-import { initialReports } from '@/lib/reports';
+import { initialReports, type ReportItem } from '@/lib/reports';
 import { Badge } from '@/components/ui/badge';
+import { useReports } from '@/context/ReportContext';
+import { useToast } from '@/hooks/use-toast';
 
 
 const steps = [
@@ -45,6 +47,9 @@ export default function PenetrantTestPage() {
     const [currentStep, setCurrentStep] = useState(0);
     const { projects } = useProjects();
     const { user, isHqUser } = useAuth();
+    const { addReport } = useReports();
+    const router = useRouter();
+    const { toast } = useToast();
 
     const visibleProjects = useMemo(() => {
         if (isHqUser) return projects;
@@ -59,6 +64,7 @@ export default function PenetrantTestPage() {
         jobLocation: '',
         dateOfTest: undefined as Date | undefined,
         reportNumber: '',
+        lineType: '',
         procedureNo: '',
         acceptanceCriteria: '',
         visualInspection: 'Acceptable',
@@ -199,6 +205,37 @@ export default function PenetrantTestPage() {
         }
     };
 
+    const handleSubmit = () => {
+        // Basic validation
+        if (!formData.project || !formData.reportNumber || !formData.lineType) {
+            toast({
+                variant: 'destructive',
+                title: 'Incomplete Information',
+                description: 'Please ensure all required fields are filled before submitting.',
+            });
+            setCurrentStep(0); // Go back to the first step to fix errors
+            return;
+        }
+    
+        const newReport: Omit<ReportItem, 'id'> = {
+            reportNumber: formData.reportNumber,
+            jobLocation: formData.jobLocation,
+            lineType: formData.lineType,
+            jobType: 'Penetrant Test',
+            qtyJoint: formData.testResults.length,
+            status: 'Submitted',
+        };
+    
+        addReport(newReport);
+    
+        toast({
+            title: 'Report Submitted',
+            description: `Report ${formData.reportNumber} has been successfully submitted.`,
+        });
+    
+        router.push('/reports');
+    };
+
   return (
     <div className="space-y-6">
        <div className="flex items-center gap-4">
@@ -295,6 +332,10 @@ export default function PenetrantTestPage() {
                     <div className="space-y-2">
                         <Label htmlFor="reportNumber">Report Number</Label>
                         <Input id="reportNumber" value={formData.reportNumber} onChange={handleInputChange} disabled />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="lineType">Line Type</Label>
+                        <Input id="lineType" value={formData.lineType} onChange={handleInputChange} placeholder="e.g. Pipeline, Structural Weld" />
                     </div>
                 </div>
             )}
@@ -548,6 +589,7 @@ export default function PenetrantTestPage() {
                             <div><p className="font-medium text-muted-foreground">Job Location</p><p>{formData.jobLocation}</p></div>
                             <div><p className="font-medium text-muted-foreground">Date of Test</p><p>{formData.dateOfTest ? format(formData.dateOfTest, 'PPP') : 'N/A'}</p></div>
                             <div><p className="font-medium text-muted-foreground">Report Number</p><p>{formData.reportNumber}</p></div>
+                            <div><p className="font-medium text-muted-foreground">Line Type</p><p>{formData.lineType}</p></div>
                         </CardContent>
                     </Card>
 
@@ -636,7 +678,7 @@ export default function PenetrantTestPage() {
                     </Button>
                 )}
                  {currentStep === steps.length - 1 && (
-                     <Button>
+                     <Button onClick={handleSubmit}>
                         <Check className="h-4 w-4 mr-2" /> Submit Report
                     </Button>
                  )}

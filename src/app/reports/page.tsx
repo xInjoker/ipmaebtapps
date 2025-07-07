@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -8,7 +9,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { initialReports, type ReportItem, type ReportStatus } from '@/lib/reports';
+import { type ReportItem, type ReportStatus } from '@/lib/reports';
+import { useReports } from '@/context/ReportContext';
 
 const reportTypes = [
   { name: 'Penetrant Test', href: '/reports/penetrant', icon: Beaker, description: 'Create and manage liquid penetrant testing reports.' },
@@ -34,7 +36,7 @@ const getStatusVariant = (status: ReportStatus) => {
 };
 
 export default function ReportsPage() {
-  const [reports, setReports] = useState<ReportItem[]>(initialReports);
+  const { reports } = useReports();
 
   return (
     <div className="space-y-6">

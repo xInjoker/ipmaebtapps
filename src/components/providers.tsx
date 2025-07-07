@@ -7,6 +7,7 @@ import { EquipmentProvider } from "@/context/EquipmentContext";
 import { InspectorProvider } from "@/context/InspectorContext";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { ColorThemeProvider } from "@/context/ThemeContext";
+import { ReportProvider } from "@/context/ReportContext";
 import { ReactNode } from "react";
 
 export function Providers({ children }: { children: ReactNode }) {
@@ -16,7 +17,9 @@ export function Providers({ children }: { children: ReactNode }) {
         <AuthProvider>
           <ProjectProvider>
             <EquipmentProvider>
-              <InspectorProvider>{children}</InspectorProvider>
+              <InspectorProvider>
+                <ReportProvider>{children}</ReportProvider>
+              </InspectorProvider>
             </EquipmentProvider>
           </ProjectProvider>
         </AuthProvider>
