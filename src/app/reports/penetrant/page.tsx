@@ -7,7 +7,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { ArrowLeft, Check, ChevronLeft, ChevronRight, Upload, X } from 'lucide-react';
+import { ArrowLeft, Check, ChevronLeft, ChevronRight, Upload, X, ChevronsUpDown } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -24,6 +24,14 @@ import { type ReportItem, type PenetrantTestReportDetails } from '@/lib/reports'
 import { Badge } from '@/components/ui/badge';
 import { useReports } from '@/context/ReportContext';
 import { useToast } from '@/hooks/use-toast';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
 
 
 const steps = [
@@ -43,7 +51,11 @@ type TestResult = {
     roundIndication: string;
     result: 'Accept' | 'Reject';
     images: File[];
+    imageUrls?: string[];
 };
+
+const acceptanceCriteriaOptions = ['ASME B31.3', 'API 1104', 'ASME Section V', 'AWS D1.1'];
+
 
 export default function PenetrantTestPage() {
     const [currentStep, setCurrentStep] = useState(0);
@@ -52,6 +64,8 @@ export default function PenetrantTestPage() {
     const { reports, addReport } = useReports();
     const router = useRouter();
     const { toast } = useToast();
+    const [isAcceptanceCriteriaPopoverOpen, setIsAcceptanceCriteriaPopoverOpen] = useState(false);
+
 
     const visibleProjects = useMemo(() => {
         if (isHqUser) return projects;
@@ -387,7 +401,51 @@ export default function PenetrantTestPage() {
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="acceptanceCriteria">Acceptance Criteria</Label>
-                        <Input id="acceptanceCriteria" value={formData.acceptanceCriteria} onChange={handleInputChange} />
+                        <Popover open={isAcceptanceCriteriaPopoverOpen} onOpenChange={setIsAcceptanceCriteriaPopoverOpen}>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    role="combobox"
+                                    aria-expanded={isAcceptanceCriteriaPopoverOpen}
+                                    className="w-full justify-between font-normal"
+                                >
+                                    {formData.acceptanceCriteria || "Select or type criteria..."}
+                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                <Command>
+                                    <CommandInput
+                                        placeholder="Search or type criteria..."
+                                        value={formData.acceptanceCriteria}
+                                        onValueChange={(value) => handleSelectChange('acceptanceCriteria', value)}
+                                    />
+                                    <CommandList>
+                                        <CommandEmpty>No criteria found.</CommandEmpty>
+                                        <CommandGroup>
+                                            {acceptanceCriteriaOptions.map((option) => (
+                                                <CommandItem
+                                                    key={option}
+                                                    value={option}
+                                                    onSelect={(currentValue) => {
+                                                        handleSelectChange('acceptanceCriteria', currentValue === formData.acceptanceCriteria ? "" : currentValue);
+                                                        setIsAcceptanceCriteriaPopoverOpen(false);
+                                                    }}
+                                                >
+                                                    <Check
+                                                        className={cn(
+                                                            "mr-2 h-4 w-4",
+                                                            formData.acceptanceCriteria.toLowerCase() === option.toLowerCase() ? "opacity-100" : "opacity-0"
+                                                        )}
+                                                    />
+                                                    {option}
+                                                </CommandItem>
+                                            ))}
+                                        </CommandGroup>
+                                    </CommandList>
+                                </Command>
+                            </PopoverContent>
+                        </Popover>
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="visualInspection">Visual Inspection</Label>
