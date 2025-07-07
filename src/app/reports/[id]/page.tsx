@@ -144,7 +144,8 @@ export default function ReportDetailsPage() {
                                     <TableHead>Weld/Part ID</TableHead>
                                     <TableHead>Diameter</TableHead>
                                     <TableHead>Thickness</TableHead>
-                                    <TableHead>Indication</TableHead>
+                                    <TableHead>Linear Indication</TableHead>
+                                    <TableHead>Round Indication</TableHead>
                                     <TableHead>Images</TableHead>
                                     <TableHead>Result</TableHead>
                                 </TableRow>
@@ -156,13 +157,14 @@ export default function ReportDetailsPage() {
                                         <TableCell>{result.weldId}</TableCell>
                                         <TableCell>{result.diameter}</TableCell>
                                         <TableCell>{result.thickness}</TableCell>
-                                        <TableCell>{result.indication}</TableCell>
+                                        <TableCell>{result.linearIndication}</TableCell>
+                                        <TableCell>{result.roundIndication}</TableCell>
                                         <TableCell>{result.imageUrls.length}</TableCell>
                                         <TableCell><Badge variant={result.result === 'Accept' ? 'green' : 'destructive'}>{result.result}</Badge></TableCell>
                                     </TableRow>
                                 ))}
                                 {details.testResults.length === 0 && (
-                                    <TableRow><TableCell colSpan={7} className="text-center">No results in this report.</TableCell></TableRow>
+                                    <TableRow><TableCell colSpan={8} className="text-center">No results in this report.</TableCell></TableRow>
                                 )}
                             </TableBody>
                         </Table>

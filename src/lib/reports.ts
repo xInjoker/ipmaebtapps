@@ -5,7 +5,8 @@ export type PenetrantTestResult = {
     weldId: string;
     diameter: string;
     thickness: string;
-    indication: string;
+    linearIndication: string;
+    roundIndication: string;
     result: 'Accept' | 'Reject';
     imageUrls: string[];
 };
@@ -82,7 +83,8 @@ const mockPenetrantDetails: PenetrantTestReportDetails = {
             weldId: 'W-A-01',
             diameter: '6"',
             thickness: '12mm',
-            indication: 'No Indication',
+            linearIndication: 'N/A',
+            roundIndication: 'N/A',
             result: 'Accept',
             imageUrls: ['https://placehold.co/400x225.png'],
         },
@@ -91,7 +93,8 @@ const mockPenetrantDetails: PenetrantTestReportDetails = {
             weldId: 'W-A-02',
             diameter: '6"',
             thickness: '12mm',
-            indication: 'Linear Indication',
+            linearIndication: '5mm',
+            roundIndication: 'N/A',
             result: 'Reject',
             imageUrls: ['https://placehold.co/400x225.png', 'https://placehold.co/400x225.png'],
         },

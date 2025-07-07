@@ -38,7 +38,8 @@ type TestResult = {
     weldId: string;
     diameter: string;
     thickness: string;
-    indication: string;
+    linearIndication: string;
+    roundIndication: string;
     result: 'Accept' | 'Reject';
     images: File[];
 };
@@ -93,7 +94,8 @@ export default function PenetrantTestPage() {
         weldId: '',
         diameter: '',
         thickness: '',
-        indication: 'No Indication',
+        linearIndication: '',
+        roundIndication: '',
         result: 'Accept',
         images: [],
     });
@@ -160,8 +162,8 @@ export default function PenetrantTestPage() {
         setNewTestResult(prev => ({ ...prev, [id]: value }));
     };
     
-    const handleNewResultSelectChange = (id: 'result' | 'indication', value: string) => {
-        setNewTestResult(prev => ({ ...prev, [id]: value as any}));
+    const handleNewResultSelectChange = (id: 'result', value: string) => {
+        setNewTestResult(prev => ({ ...prev, [id]: value as 'Accept' | 'Reject'}));
     };
     
     const handleAddResult = () => {
@@ -178,7 +180,7 @@ export default function PenetrantTestPage() {
             ...prev,
             testResults: [...prev.testResults, newTestResult]
         }));
-        setNewTestResult({ jointNo: '', weldId: '', diameter: '', thickness: '', indication: 'No Indication', result: 'Accept', images: [] });
+        setNewTestResult({ jointNo: '', weldId: '', diameter: '', thickness: '', linearIndication: '', roundIndication: '', result: 'Accept', images: [] });
     };
     
     const handleNewResultImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -524,7 +526,7 @@ export default function PenetrantTestPage() {
                             <CardTitle>Add Test Result</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 items-end">
+                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 items-end">
                                 <div className="space-y-2">
                                     <Label htmlFor="jointNo">Joint No.</Label>
                                     <Input id="jointNo" value={newTestResult.jointNo} onChange={handleNewResultChange} />
@@ -542,17 +544,12 @@ export default function PenetrantTestPage() {
                                     <Input id="thickness" value={newTestResult.thickness} onChange={handleNewResultChange} />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="indication">Indication</Label>
-                                     <Select value={newTestResult.indication} onValueChange={(value) => handleNewResultSelectChange('indication', value)}>
-                                        <SelectTrigger><SelectValue/></SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="No Indication">No Indication</SelectItem>
-                                            <SelectItem value="Porosity">Porosity</SelectItem>
-                                            <SelectItem value="Incomplete Fusion">Incomplete Fusion</SelectItem>
-                                            <SelectItem value="Crack">Crack</SelectItem>
-                                            <SelectItem value="Other">Other</SelectItem>
-                                        </SelectContent>
-                                    </Select>
+                                    <Label htmlFor="linearIndication">Linear Indication (mm)</Label>
+                                    <Input id="linearIndication" value={newTestResult.linearIndication} onChange={handleNewResultChange} placeholder="e.g., 5mm or N/A" />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="roundIndication">Round Indication (mm)</Label>
+                                    <Input id="roundIndication" value={newTestResult.roundIndication} onChange={handleNewResultChange} placeholder="e.g., 2mm or N/A" />
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="result">Result</Label>
@@ -617,7 +614,8 @@ export default function PenetrantTestPage() {
                                     <TableHead>Weld/Part ID</TableHead>
                                     <TableHead>Diameter</TableHead>
                                     <TableHead>Thickness</TableHead>
-                                    <TableHead>Indication</TableHead>
+                                    <TableHead>Linear Ind.</TableHead>
+                                    <TableHead>Round Ind.</TableHead>
                                     <TableHead>Images</TableHead>
                                     <TableHead>Result</TableHead>
                                 </TableRow>
@@ -629,7 +627,8 @@ export default function PenetrantTestPage() {
                                         <TableCell>{result.weldId}</TableCell>
                                         <TableCell>{result.diameter}</TableCell>
                                         <TableCell>{result.thickness}</TableCell>
-                                        <TableCell>{result.indication}</TableCell>
+                                        <TableCell>{result.linearIndication}</TableCell>
+                                        <TableCell>{result.roundIndication}</TableCell>
                                         <TableCell>{result.images.length}</TableCell>
                                         <TableCell>
                                             <Badge variant={result.result === 'Accept' ? 'green' : 'destructive'}>{result.result}</Badge>
@@ -638,7 +637,7 @@ export default function PenetrantTestPage() {
                                 ))}
                                 {formData.testResults.length === 0 && (
                                     <TableRow>
-                                        <TableCell colSpan={7} className="text-center">No results added yet.</TableCell>
+                                        <TableCell colSpan={8} className="text-center">No results added yet.</TableCell>
                                     </TableRow>
                                 )}
                             </TableBody>
@@ -710,7 +709,8 @@ export default function PenetrantTestPage() {
                                         <TableHead>Weld/Part ID</TableHead>
                                         <TableHead>Diameter</TableHead>
                                         <TableHead>Thickness</TableHead>
-                                        <TableHead>Indication</TableHead>
+                                        <TableHead>Linear Ind.</TableHead>
+                                        <TableHead>Round Ind.</TableHead>
                                         <TableHead>Images</TableHead>
                                         <TableHead>Result</TableHead>
                                     </TableRow>
@@ -722,13 +722,14 @@ export default function PenetrantTestPage() {
                                             <TableCell>{result.weldId}</TableCell>
                                             <TableCell>{result.diameter}</TableCell>
                                             <TableCell>{result.thickness}</TableCell>
-                                            <TableCell>{result.indication}</TableCell>
+                                            <TableCell>{result.linearIndication}</TableCell>
+                                            <TableCell>{result.roundIndication}</TableCell>
                                             <TableCell>{result.images.length}</TableCell>
                                             <TableCell><Badge variant={result.result === 'Accept' ? 'green' : 'destructive'}>{result.result}</Badge></TableCell>
                                         </TableRow>
                                     ))}
                                     {formData.testResults.length === 0 && (
-                                        <TableRow><TableCell colSpan={7} className="text-center">No results added.</TableCell></TableRow>
+                                        <TableRow><TableCell colSpan={8} className="text-center">No results added.</TableCell></TableRow>
                                     )}
                                 </TableBody>
                             </Table>
