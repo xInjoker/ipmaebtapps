@@ -140,6 +140,7 @@ export default function ReportDetailsPage() {
                         <Table>
                             <TableHeader>
                                 <TableRow>
+                                    <TableHead>Subject ID</TableHead>
                                     <TableHead>Joint No.</TableHead>
                                     <TableHead>Weld/Part ID</TableHead>
                                     <TableHead>Diameter</TableHead>
@@ -153,6 +154,7 @@ export default function ReportDetailsPage() {
                             <TableBody>
                                 {details.testResults.map((result, index) => (
                                     <TableRow key={index}>
+                                        <TableCell>{result.subjectIdentification}</TableCell>
                                         <TableCell>{result.jointNo}</TableCell>
                                         <TableCell>{result.weldId}</TableCell>
                                         <TableCell>{result.diameter}</TableCell>
@@ -164,7 +166,7 @@ export default function ReportDetailsPage() {
                                     </TableRow>
                                 ))}
                                 {details.testResults.length === 0 && (
-                                    <TableRow><TableCell colSpan={8} className="text-center">No results in this report.</TableCell></TableRow>
+                                    <TableRow><TableCell colSpan={9} className="text-center">No results in this report.</TableCell></TableRow>
                                 )}
                             </TableBody>
                         </Table>

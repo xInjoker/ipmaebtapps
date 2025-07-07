@@ -1,6 +1,7 @@
 export type ReportStatus = 'Draft' | 'Submitted' | 'Approved' | 'Rejected';
 
 export type PenetrantTestResult = {
+    subjectIdentification: string;
     jointNo: string;
     weldId: string;
     diameter: string;
@@ -79,6 +80,7 @@ const mockPenetrantDetails: PenetrantTestReportDetails = {
     testEquipment: 'PT Kit, Cleaning Cloth, Calipers',
     testResults: [
         {
+            subjectIdentification: 'Pipe Weld A-1',
             jointNo: 'J-01',
             weldId: 'W-A-01',
             diameter: '6"',
@@ -89,6 +91,7 @@ const mockPenetrantDetails: PenetrantTestReportDetails = {
             imageUrls: ['https://placehold.co/400x225.png'],
         },
         {
+            subjectIdentification: 'Pipe Weld A-2',
             jointNo: 'J-02',
             weldId: 'W-A-02',
             diameter: '6"',

@@ -34,6 +34,7 @@ const steps = [
 ];
 
 type TestResult = {
+    subjectIdentification: string;
     jointNo: string;
     weldId: string;
     diameter: string;
@@ -90,6 +91,7 @@ export default function PenetrantTestPage() {
     });
 
     const [newTestResult, setNewTestResult] = useState<TestResult>({
+        subjectIdentification: '',
         jointNo: '',
         weldId: '',
         diameter: '',
@@ -167,11 +169,11 @@ export default function PenetrantTestPage() {
     };
     
     const handleAddResult = () => {
-        if (!newTestResult.jointNo || !newTestResult.weldId) {
+        if (!newTestResult.subjectIdentification || !newTestResult.jointNo || !newTestResult.weldId) {
              toast({
                 variant: 'destructive',
                 title: 'Incomplete Result',
-                description: 'Please enter at least a Joint No. and Weld/Part ID.',
+                description: 'Please enter at least a Subject ID, Joint No. and Weld/Part ID.',
             });
             return;
         }
@@ -180,7 +182,7 @@ export default function PenetrantTestPage() {
             ...prev,
             testResults: [...prev.testResults, newTestResult]
         }));
-        setNewTestResult({ jointNo: '', weldId: '', diameter: '', thickness: '', linearIndication: '', roundIndication: '', result: 'Accept', images: [] });
+        setNewTestResult({ subjectIdentification: '', jointNo: '', weldId: '', diameter: '', thickness: '', linearIndication: '', roundIndication: '', result: 'Accept', images: [] });
     };
     
     const handleNewResultImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -528,6 +530,10 @@ export default function PenetrantTestPage() {
                         <CardContent>
                              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 items-end">
                                 <div className="space-y-2">
+                                    <Label htmlFor="subjectIdentification">Subject Identification</Label>
+                                    <Input id="subjectIdentification" value={newTestResult.subjectIdentification} onChange={handleNewResultChange} />
+                                </div>
+                                <div className="space-y-2">
                                     <Label htmlFor="jointNo">Joint No.</Label>
                                     <Input id="jointNo" value={newTestResult.jointNo} onChange={handleNewResultChange} />
                                 </div>
@@ -610,6 +616,7 @@ export default function PenetrantTestPage() {
                         <Table>
                             <TableHeader>
                                 <TableRow>
+                                    <TableHead>Subject ID</TableHead>
                                     <TableHead>Joint No.</TableHead>
                                     <TableHead>Weld/Part ID</TableHead>
                                     <TableHead>Diameter</TableHead>
@@ -623,6 +630,7 @@ export default function PenetrantTestPage() {
                             <TableBody>
                                 {formData.testResults.map((result, index) => (
                                     <TableRow key={index}>
+                                        <TableCell>{result.subjectIdentification}</TableCell>
                                         <TableCell>{result.jointNo}</TableCell>
                                         <TableCell>{result.weldId}</TableCell>
                                         <TableCell>{result.diameter}</TableCell>
@@ -637,7 +645,7 @@ export default function PenetrantTestPage() {
                                 ))}
                                 {formData.testResults.length === 0 && (
                                     <TableRow>
-                                        <TableCell colSpan={8} className="text-center">No results added yet.</TableCell>
+                                        <TableCell colSpan={9} className="text-center">No results added yet.</TableCell>
                                     </TableRow>
                                 )}
                             </TableBody>
@@ -705,6 +713,7 @@ export default function PenetrantTestPage() {
                              <Table>
                                 <TableHeader>
                                     <TableRow>
+                                        <TableHead>Subject ID</TableHead>
                                         <TableHead>Joint No.</TableHead>
                                         <TableHead>Weld/Part ID</TableHead>
                                         <TableHead>Diameter</TableHead>
@@ -718,6 +727,7 @@ export default function PenetrantTestPage() {
                                 <TableBody>
                                     {formData.testResults.map((result, index) => (
                                         <TableRow key={index}>
+                                            <TableCell>{result.subjectIdentification}</TableCell>
                                             <TableCell>{result.jointNo}</TableCell>
                                             <TableCell>{result.weldId}</TableCell>
                                             <TableCell>{result.diameter}</TableCell>
@@ -729,7 +739,7 @@ export default function PenetrantTestPage() {
                                         </TableRow>
                                     ))}
                                     {formData.testResults.length === 0 && (
-                                        <TableRow><TableCell colSpan={8} className="text-center">No results added.</TableCell></TableRow>
+                                        <TableRow><TableCell colSpan={9} className="text-center">No results added.</TableCell></TableRow>
                                     )}
                                 </TableBody>
                             </Table>
