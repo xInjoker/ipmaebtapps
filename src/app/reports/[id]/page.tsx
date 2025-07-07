@@ -109,6 +109,7 @@ export default function ReportDetailsPage() {
                         <div><p className="font-medium text-muted-foreground">Acceptance Criteria</p><p>{details.acceptanceCriteria}</p></div>
                         <div><p className="font-medium text-muted-foreground">Visual Inspection</p><p>{details.visualInspection}</p></div>
                         <div><p className="font-medium text-muted-foreground">Surface Condition</p><p>{details.surfaceCondition}</p></div>
+                        <div><p className="font-medium text-muted-foreground">Examination Stage</p><p>{details.examinationStage}</p></div>
                         <div><p className="font-medium text-muted-foreground">Material</p><p>{details.material}</p></div>
                         <div><p className="font-medium text-muted-foreground">Welding Process</p><p>{details.weldingProcess}</p></div>
                         <div><p className="font-medium text-muted-foreground">Drawing Number</p><p>{details.drawingNumber}</p></div>
@@ -180,21 +181,34 @@ export default function ReportDetailsPage() {
                                     {allImages.map((image, index) => (
                                         <CarouselItem key={index} className="pl-4 md:basis-1/2 lg:basis-1/3">
                                             <div className="p-1">
-                                                <Card className="cursor-pointer" onClick={() => setPreviewImageUrl(image.url)}>
-                                                    <CardContent className="flex aspect-video items-center justify-center p-0 rounded-t-lg overflow-hidden">
+                                                <Dialog>
+                                                    <DialogTrigger asChild>
+                                                        <Card className="cursor-pointer">
+                                                            <CardContent className="flex aspect-video items-center justify-center p-0 rounded-t-lg overflow-hidden">
+                                                                <Image
+                                                                    src={image.url}
+                                                                    alt={`Image for Joint ${image.jointNo}`}
+                                                                    width={400}
+                                                                    height={225}
+                                                                    className="h-full w-full object-cover"
+                                                                    data-ai-hint="test result"
+                                                                />
+                                                            </CardContent>
+                                                            <CardFooter className="text-xs p-2 bg-muted/50 rounded-b-lg">
+                                                                <p className="font-medium truncate">Joint: {image.jointNo} / Weld ID: {image.weldId}</p>
+                                                            </CardFooter>
+                                                        </Card>
+                                                    </DialogTrigger>
+                                                    <DialogContent className="max-w-4xl p-0 border-0">
                                                         <Image
                                                             src={image.url}
-                                                            alt={`Image for Joint ${image.jointNo}`}
-                                                            width={400}
-                                                            height={225}
-                                                            className="h-full w-full object-cover"
-                                                            data-ai-hint="test result"
+                                                            alt="Evidence image preview"
+                                                            width={1280}
+                                                            height={720}
+                                                            className="h-auto w-full object-contain rounded-lg"
                                                         />
-                                                    </CardContent>
-                                                    <CardFooter className="text-xs p-2 bg-muted/50 rounded-b-lg">
-                                                        <p className="font-medium truncate">Joint: {image.jointNo} / Weld ID: {image.weldId}</p>
-                                                    </CardFooter>
-                                                </Card>
+                                                    </DialogContent>
+                                                </Dialog>
                                             </div>
                                         </CarouselItem>
                                     ))}
@@ -206,20 +220,6 @@ export default function ReportDetailsPage() {
                     </Card>
                 )}
             </div>
-
-            <Dialog open={!!previewImageUrl} onOpenChange={(isOpen) => !isOpen && setPreviewImageUrl(null)}>
-                <DialogContent className="max-w-4xl p-0 border-0">
-                    {previewImageUrl && (
-                        <Image
-                            src={previewImageUrl}
-                            alt="Evidence image preview"
-                            width={1280}
-                            height={720}
-                            className="h-auto w-full object-contain rounded-lg"
-                        />
-                    )}
-                </DialogContent>
-            </Dialog>
         </div>
     );
 }

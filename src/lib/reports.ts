@@ -19,6 +19,7 @@ export type PenetrantTestReportDetails = {
     acceptanceCriteria: string;
     visualInspection: string;
     surfaceCondition: string;
+    examinationStage: string;
     material: string;
     weldingProcess: string;
     drawingNumber: string;
@@ -59,6 +60,7 @@ const mockPenetrantDetails: PenetrantTestReportDetails = {
     acceptanceCriteria: 'ASME B31.3',
     visualInspection: 'Acceptable',
     surfaceCondition: 'As Welded',
+    examinationStage: 'Before PWHT',
     material: 'Carbon Steel',
     weldingProcess: 'SMAW',
     drawingNumber: 'DWG-001-rev2',

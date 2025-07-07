@@ -69,6 +69,7 @@ export default function PenetrantTestPage() {
         acceptanceCriteria: '',
         visualInspection: 'Acceptable',
         surfaceCondition: 'As Welded',
+        examinationStage: '',
         material: '',
         weldingProcess: '',
         drawingNumber: '',
@@ -233,6 +234,7 @@ export default function PenetrantTestPage() {
             acceptanceCriteria: formData.acceptanceCriteria,
             visualInspection: formData.visualInspection,
             surfaceCondition: formData.surfaceCondition,
+            examinationStage: formData.examinationStage,
             material: formData.material,
             weldingProcess: formData.weldingProcess,
             drawingNumber: formData.drawingNumber,
@@ -405,6 +407,23 @@ export default function PenetrantTestPage() {
                             <SelectContent>
                                 <SelectItem value="As Welded">As Welded</SelectItem>
                                 <SelectItem value="Grinded">Grinded</SelectItem>
+                                <SelectItem value="As Rolled">As Rolled</SelectItem>
+                                <SelectItem value="Machined">Machined</SelectItem>
+                                <SelectItem value="As Forged">As Forged</SelectItem>
+                                <SelectItem value="Wire Brushed">Wire Brushed</SelectItem>
+                                <SelectItem value="As Cast">As Cast</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="examinationStage">Examination Stage</Label>
+                        <Select value={formData.examinationStage} onValueChange={(value) => handleSelectChange('examinationStage', value)}>
+                            <SelectTrigger id="examinationStage"><SelectValue placeholder="Select stage" /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="Before PWHT">Before PWHT</SelectItem>
+                                <SelectItem value="After PWHT">After PWHT</SelectItem>
+                                <SelectItem value="Before Hydrostatic Test">Before Hydrostatic Test</SelectItem>
+                                <SelectItem value="After Hydrostatic Test">After Hydrostatic Test</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -412,7 +431,7 @@ export default function PenetrantTestPage() {
                         <Label htmlFor="material">Material</Label>
                         <Input id="material" value={formData.material} onChange={handleInputChange} />
                     </div>
-                    <div className="space-y-2">
+                     <div className="space-y-2">
                         <Label htmlFor="weldingProcess">Welding Process</Label>
                         <Input id="weldingProcess" value={formData.weldingProcess} onChange={handleInputChange} />
                     </div>
@@ -641,6 +660,7 @@ export default function PenetrantTestPage() {
                            <div><p className="font-medium text-muted-foreground">Acceptance Criteria</p><p>{formData.acceptanceCriteria}</p></div>
                            <div><p className="font-medium text-muted-foreground">Visual Inspection</p><p>{formData.visualInspection}</p></div>
                            <div><p className="font-medium text-muted-foreground">Surface Condition</p><p>{formData.surfaceCondition}</p></div>
+                           <div><p className="font-medium text-muted-foreground">Examination Stage</p><p>{formData.examinationStage}</p></div>
                            <div><p className="font-medium text-muted-foreground">Material</p><p>{formData.material}</p></div>
                            <div><p className="font-medium text-muted-foreground">Welding Process</p><p>{formData.weldingProcess}</p></div>
                            <div><p className="font-medium text-muted-foreground">Drawing Number</p><p>{formData.drawingNumber}</p></div>
