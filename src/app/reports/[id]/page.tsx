@@ -4,14 +4,16 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useReports } from '@/context/ReportContext';
 import { type ReportItem, type PenetrantTestReportDetails } from '@/lib/reports';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft } from 'lucide-react';
 import { format } from 'date-fns';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 
 export default function ReportDetailsPage() {
     const router = useRouter();
@@ -59,6 +61,14 @@ export default function ReportDetailsPage() {
     }
     
     const details = report.details as PenetrantTestReportDetails;
+
+    const allImages = details.testResults.flatMap(result =>
+        (result.imageUrls || []).map(url => ({
+            url,
+            jointNo: result.jointNo,
+            weldId: result.weldId,
+        }))
+    );
 
     return (
         <div className="space-y-6">
@@ -154,6 +164,44 @@ export default function ReportDetailsPage() {
                         </Table>
                     </CardContent>
                 </Card>
+                
+                {allImages.length > 0 && (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Evidence Images</CardTitle>
+                            <CardDescription>A gallery of all images uploaded as evidence for the test results.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <Carousel className="w-full" opts={{ align: "start", loop: true }}>
+                                <CarouselContent className="-ml-4">
+                                    {allImages.map((image, index) => (
+                                        <CarouselItem key={index} className="pl-4 md:basis-1/2 lg:basis-1/3">
+                                            <div className="p-1">
+                                                <Card>
+                                                    <CardContent className="flex aspect-video items-center justify-center p-0 rounded-t-lg overflow-hidden">
+                                                        <Image
+                                                            src={image.url}
+                                                            alt={`Image for Joint ${image.jointNo}`}
+                                                            width={400}
+                                                            height={225}
+                                                            className="h-full w-full object-cover"
+                                                            data-ai-hint="test result"
+                                                        />
+                                                    </CardContent>
+                                                    <CardFooter className="text-xs p-2 bg-muted/50 rounded-b-lg">
+                                                        <p className="font-medium truncate">Joint: {image.jointNo} / Weld ID: {image.weldId}</p>
+                                                    </CardFooter>
+                                                </Card>
+                                            </div>
+                                        </CarouselItem>
+                                    ))}
+                                </CarouselContent>
+                                <CarouselPrevious />
+                                <CarouselNext />
+                            </Carousel>
+                        </CardContent>
+                    </Card>
+                )}
             </div>
         </div>
     );

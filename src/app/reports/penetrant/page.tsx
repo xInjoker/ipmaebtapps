@@ -250,7 +250,7 @@ export default function PenetrantTestPage() {
             testEquipment: formData.testEquipment,
             testResults: formData.testResults.map(result => ({
                 ...result,
-                imageUrls: result.images.map(image => image.name)
+                imageUrls: result.images.map(() => `https://placehold.co/400x225.png`)
             })),
         };
 
