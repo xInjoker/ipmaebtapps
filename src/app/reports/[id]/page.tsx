@@ -270,6 +270,7 @@ export default function ReportDetailsPage() {
                     <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                         {details && <>
                             <div><p className="font-medium text-muted-foreground">Client</p><p>{details.client}</p></div>
+                            {details.soNumber && <div><p className="font-medium text-muted-foreground">Service Order</p><p>{details.soNumber}</p></div>}
                             <div><p className="font-medium text-muted-foreground">Project Executor</p><p>{details.projectExecutor}</p></div>
                             <div><p className="font-medium text-muted-foreground">Project</p><p>{details.project}</p></div>
                             <div><p className="font-medium text-muted-foreground">Date of Test</p><p>{details.dateOfTest ? format(new Date(details.dateOfTest), 'PPP') : 'N/A'}</p></div>

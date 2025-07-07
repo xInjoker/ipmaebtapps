@@ -54,9 +54,17 @@ export default function MagneticTestPage() {
         if (!user) return [];
         return projects.filter(p => p.branchId === user.branchId);
     }, [projects, user, isHqUser]);
+    
+    const selectedProject = useMemo(() => {
+        if (!formData.project || formData.project === 'Non Project') {
+            return null;
+        }
+        return visibleProjects.find(p => p.name === formData.project);
+    }, [formData.project, visibleProjects]);
 
     const [formData, setFormData] = useState({
         client: '',
+        soNumber: '',
         projectExecutor: '',
         project: '',
         jobLocation: '',
@@ -110,7 +118,7 @@ export default function MagneticTestPage() {
     const handleSelectChange = (id: string, value: string) => {
         if (id === 'project') {
             if (value === 'Non Project') {
-                setFormData(prev => ({ ...prev, project: 'Non Project', client: '', projectExecutor: '', reportNumber: '' }));
+                setFormData(prev => ({ ...prev, project: 'Non Project', client: '', projectExecutor: '', reportNumber: '', soNumber: '' }));
                 return;
             }
             const selectedProject = visibleProjects.find(p => p.name === value);
@@ -118,7 +126,7 @@ export default function MagneticTestPage() {
                 const currentYear = new Date().getFullYear();
                 const mtReportsThisYear = reports.filter(r => r.jobType === 'Magnetic Particle Test' && r.reportNumber.includes(`-${currentYear}-`)).length;
                 const newReportNumber = `MT-${currentYear}-${String(mtReportsThisYear + 1).padStart(3, '0')}`;
-                setFormData(prev => ({ ...prev, project: value, client: selectedProject.client, projectExecutor: selectedProject.contractExecutor, reportNumber: newReportNumber }));
+                setFormData(prev => ({ ...prev, project: value, client: selectedProject.client, projectExecutor: selectedProject.contractExecutor, reportNumber: newReportNumber, soNumber: '' }));
             }
         } else {
             setFormData(prev => ({ ...prev, [id]: value }));
@@ -169,6 +177,7 @@ export default function MagneticTestPage() {
         const reportDetails: MagneticParticleTestReportDetails = {
             jobType: 'Magnetic Particle Test',
             client: formData.client,
+            soNumber: formData.soNumber,
             projectExecutor: formData.projectExecutor,
             project: formData.project,
             dateOfTest: formData.dateOfTest ? format(formData.dateOfTest, 'yyyy-MM-dd') : undefined,
@@ -240,11 +249,40 @@ export default function MagneticTestPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
                             <div className="space-y-2"><Label htmlFor="project">Project</Label><Select value={formData.project} onValueChange={(value) => handleSelectChange('project', value)}><SelectTrigger id="project"><SelectValue placeholder="Select a project" /></SelectTrigger><SelectContent><SelectItem value="Non Project">Non Project</SelectItem>{visibleProjects.map((project) => (<SelectItem key={project.id} value={project.name}>{project.name}</SelectItem>))}</SelectContent></Select></div>
                             <div className="space-y-2"><Label htmlFor="client">Client</Label><Input id="client" value={formData.client} onChange={handleInputChange} disabled={!!formData.project && formData.project !== 'Non Project'} /></div>
+                            <div className="space-y-2">
+                                <Label htmlFor="soNumber">Service Order</Label>
+                                {formData.project && formData.project !== 'Non Project' ? (
+                                    <Select
+                                        value={formData.soNumber}
+                                        onValueChange={(value) => handleSelectChange('soNumber', value)}
+                                        disabled={!selectedProject}
+                                    >
+                                        <SelectTrigger id="soNumber">
+                                            <SelectValue placeholder="Select a Service Order" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {selectedProject?.serviceOrders.map((so) => (
+                                                <SelectItem key={so.id} value={so.soNumber}>
+                                                    {so.soNumber} - {so.description}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                ) : (
+                                    <Input
+                                        id="soNumber"
+                                        value={formData.soNumber}
+                                        onChange={handleInputChange}
+                                        placeholder="Enter SO Number manually"
+                                        disabled={!!formData.project && formData.project !== 'Non Project'}
+                                    />
+                                )}
+                            </div>
                             <div className="space-y-2"><Label htmlFor="projectExecutor">Project Executor</Label><Input id="projectExecutor" value={formData.projectExecutor} onChange={handleInputChange} disabled={!!formData.project && formData.project !== 'Non Project'} /></div>
                             <div className="space-y-2"><Label htmlFor="jobLocation">Job Location</Label><Input id="jobLocation" value={formData.jobLocation} onChange={handleInputChange} placeholder="e.g. Workshop or Site Name" /></div>
+                            <div className="space-y-2"><Label htmlFor="dateOfTest">Date of Test</Label><Popover><PopoverTrigger asChild><Button id="dateOfTest" variant={"outline"} className={cn("w-full justify-start text-left font-normal", !formData.dateOfTest && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{formData.dateOfTest ? format(formData.dateOfTest, "PPP") : <span>Pick a date</span>}</Button></PopoverTrigger><PopoverContent className="w-auto p-0"><Calendar mode="single" selected={formData.dateOfTest} onSelect={handleDateChange} initialFocus /></PopoverContent></Popover></div>
                             <div className="space-y-2"><Label htmlFor="lineType">Line Type</Label><Input id="lineType" value={formData.lineType} onChange={handleInputChange} placeholder="e.g. Pipeline, Structural Weld" /></div>
                             <div className="space-y-2"><Label htmlFor="reportNumber">Report Number</Label><Input id="reportNumber" value={formData.reportNumber} onChange={handleInputChange} disabled={!!formData.project && formData.project !== 'Non Project'} /></div>
-                            <div className="space-y-2"><Label htmlFor="dateOfTest">Date of Test</Label><Popover><PopoverTrigger asChild><Button id="dateOfTest" variant={"outline"} className={cn("w-full justify-start text-left font-normal", !formData.dateOfTest && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{formData.dateOfTest ? format(formData.dateOfTest, "PPP") : <span>Pick a date</span>}</Button></PopoverTrigger><PopoverContent className="w-auto p-0"><Calendar mode="single" selected={formData.dateOfTest} onSelect={handleDateChange} initialFocus /></PopoverContent></Popover></div>
                         </div>
                     )}
                     {currentStep === 1 && (
@@ -291,6 +329,7 @@ export default function MagneticTestPage() {
                                 <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                                     <div><p className="font-medium text-muted-foreground">Project</p><p>{formData.project}</p></div>
                                     <div><p className="font-medium text-muted-foreground">Client</p><p>{formData.client}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Service Order</p><p>{formData.soNumber}</p></div>
                                     <div><p className="font-medium text-muted-foreground">Report Number</p><p>{formData.reportNumber}</p></div>
                                 </CardContent>
                             </Card>

@@ -25,6 +25,7 @@ export type PenetrantTestResult = {
 export type PenetrantTestReportDetails = {
     jobType: 'Penetrant Test';
     client: string;
+    soNumber: string;
     projectExecutor: string;
     project: string;
     dateOfTest?: string;
@@ -64,6 +65,7 @@ export type MagneticTestResult = {
 export type MagneticParticleTestReportDetails = {
     jobType: 'Magnetic Particle Test';
     client: string;
+    soNumber: string;
     projectExecutor: string;
     project: string;
     dateOfTest?: string;
@@ -97,6 +99,7 @@ export type UltrasonicTestResult = {
 export type UltrasonicTestReportDetails = {
     jobType: 'Ultrasonic Test';
     client: string;
+    soNumber: string;
     projectExecutor: string;
     project: string;
     dateOfTest?: string;
@@ -127,6 +130,7 @@ export type RadiographicTestResult = {
 export type RadiographicTestReportDetails = {
     jobType: 'Radiographic Test';
     client: string;
+    soNumber: string;
     projectExecutor: string;
     project: string;
     dateOfTest?: string;
@@ -174,6 +178,7 @@ export const reportStatuses: ReportStatus[] = ['Draft', 'Submitted', 'Approved',
 const mockPenetrantDetails: PenetrantTestReportDetails = {
     jobType: 'Penetrant Test',
     client: 'Acme Inc.',
+    soNumber: 'SO-001-A',
     projectExecutor: 'Cabang Jakarta',
     project: 'Corporate Website Revamp',
     dateOfTest: '2024-07-20',
@@ -227,7 +232,7 @@ export const initialReports: ReportItem[] = [
         jobType: 'Magnetic Particle Test', 
         qtyJoint: 8, 
         status: 'Submitted', 
-        details: { jobType: 'Magnetic Particle Test', client: 'Wayne Enterprises', projectExecutor: 'Cabang Jakarta', project: 'Data Analytics Platform', dateOfTest: '2024-07-18', procedureNo: 'P-123-MT', acceptanceCriteria: 'AWS D1.1', surfaceCondition: 'As Welded', examinationStage: 'Final', drawingNumber: 'DWG-003', magnetizationTechnique: 'Yoke', magneticParticlesType: 'Wet Visible', particleBrand: 'Parker', particleBatch: 'WB-123', equipment: 'Yoke Y-7', currentType: 'AC', amperage: '100-120 Amps', testResults: [] },
+        details: { jobType: 'Magnetic Particle Test', client: 'Wayne Enterprises', soNumber: 'SO-003-A', projectExecutor: 'Cabang Jakarta', project: 'Data Analytics Platform', dateOfTest: '2024-07-18', procedureNo: 'P-123-MT', acceptanceCriteria: 'AWS D1.1', surfaceCondition: 'As Welded', examinationStage: 'Final', drawingNumber: 'DWG-003', magnetizationTechnique: 'Yoke', magneticParticlesType: 'Wet Visible', particleBrand: 'Parker', particleBatch: 'WB-123', equipment: 'Yoke Y-7', currentType: 'AC', amperage: '100-120 Amps', testResults: [] },
         creationDate: '2024-07-18', 
         reviewerId: null, 
         approverId: null, 
@@ -255,7 +260,7 @@ export const initialReports: ReportItem[] = [
         jobType: 'Radiographic Test', 
         qtyJoint: 30, 
         status: 'Rejected', 
-        details: { jobType: 'Radiographic Test', client: 'Stark Industries', projectExecutor: 'Cabang Surabaya', project: 'Mobile App Development', dateOfTest: '2024-07-12', procedureNo: 'P-123-RT', acceptanceCriteria: 'API 1104', surfaceCondition: 'As Welded', examinationStage: 'Final', drawingNumber: 'DWG-002', source: 'Ir-192', sourceSize: '3mm', sfd: '700mm', exposure: '2.5 min', filmBrandType: 'AGFA D7', screens: 'Lead 0.1mm', sensitivityIQI: '2-2T', density: '2.5', testResults: [] },
+        details: { jobType: 'Radiographic Test', client: 'Stark Industries', soNumber: 'SO-002-B', projectExecutor: 'Cabang Surabaya', project: 'Mobile App Development', dateOfTest: '2024-07-12', procedureNo: 'P-123-RT', acceptanceCriteria: 'API 1104', surfaceCondition: 'As Welded', examinationStage: 'Final', drawingNumber: 'DWG-002', source: 'Ir-192', sourceSize: '3mm', sfd: '700mm', exposure: '2.5 min', filmBrandType: 'AGFA D7', screens: 'Lead 0.1mm', sensitivityIQI: '2-2T', density: '2.5', testResults: [] },
         creationDate: '2024-07-12', 
         reviewerId: '5', 
         approverId: '6', 
@@ -269,7 +274,7 @@ export const initialReports: ReportItem[] = [
         jobType: 'Penetrant Test', 
         qtyJoint: 2, 
         status: 'Submitted', 
-        details: { ...mockPenetrantDetails, client: 'Wayne Enterprises', project: 'Data Analytics Platform', projectExecutor: 'Cabang Jakarta' }, 
+        details: { ...mockPenetrantDetails, soNumber: 'SO-003-B', client: 'Wayne Enterprises', project: 'Data Analytics Platform', projectExecutor: 'Cabang Jakarta' }, 
         creationDate: '2024-07-21', 
         reviewerId: null, 
         approverId: null, 
@@ -283,7 +288,7 @@ export const initialReports: ReportItem[] = [
         jobType: 'Penetrant Test',
         qtyJoint: 1,
         status: 'Submitted',
-        details: { ...mockPenetrantDetails, client: 'Internal', project: 'Procedure Verification', projectExecutor: 'Headquarters' },
+        details: { ...mockPenetrantDetails, soNumber: 'Internal-SO-1', client: 'Internal', project: 'Procedure Verification', projectExecutor: 'Headquarters' },
         creationDate: '2024-07-22',
         reviewerId: null,
         approverId: null,
@@ -311,7 +316,7 @@ export const initialReports: ReportItem[] = [
         jobType: 'Magnetic Particle Test',
         qtyJoint: 12,
         status: 'Submitted',
-        details: { jobType: 'Magnetic Particle Test', client: 'Stark Industries', projectExecutor: 'Cabang Surabaya', project: 'Mobile App Development', dateOfTest: '2024-07-24', procedureNo: 'P-123-MT', acceptanceCriteria: 'AWS D1.1', surfaceCondition: 'As Welded', examinationStage: 'Final', drawingNumber: 'DWG-002-rev1', magnetizationTechnique: 'Yoke', magneticParticlesType: 'Dry Powder', particleBrand: 'Magnaflux', particleBatch: '7HF', equipment: 'Y-1 Yoke', currentType: 'AC', amperage: '110 Amps', testResults: [] },
+        details: { jobType: 'Magnetic Particle Test', client: 'Stark Industries', soNumber: 'SO-002-C', projectExecutor: 'Cabang Surabaya', project: 'Mobile App Development', dateOfTest: '2024-07-24', procedureNo: 'P-123-MT', acceptanceCriteria: 'AWS D1.1', surfaceCondition: 'As Welded', examinationStage: 'Final', drawingNumber: 'DWG-002-rev1', magnetizationTechnique: 'Yoke', magneticParticlesType: 'Dry Powder', particleBrand: 'Magnaflux', particleBatch: '7HF', equipment: 'Y-1 Yoke', currentType: 'AC', amperage: '110 Amps', testResults: [] },
         creationDate: '2024-07-24',
         reviewerId: null,
         approverId: null,

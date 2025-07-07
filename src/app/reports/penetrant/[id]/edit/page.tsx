@@ -79,6 +79,7 @@ export default function EditPenetrantTestPage() {
 
     const [formData, setFormData] = useState({
         client: '',
+        soNumber: '',
         projectExecutor: '',
         project: '',
         jobLocation: '',
@@ -134,6 +135,7 @@ export default function EditPenetrantTestPage() {
                     jobLocation: item.jobLocation,
                     reportNumber: item.reportNumber,
                     lineType: item.lineType,
+                    soNumber: details.soNumber || '',
                     dateOfTest: details.dateOfTest ? new Date(details.dateOfTest) : undefined,
                     // Map existing test results and prepare them for the form state
                     testResults: details.testResults.map(tr => ({
@@ -175,25 +177,20 @@ export default function EditPenetrantTestPage() {
                     project: 'Non Project',
                     client: '',
                     projectExecutor: '',
-                    reportNumber: ''
+                    reportNumber: '',
+                    soNumber: '',
                 }));
                 return;
             }
     
             const selectedProject = visibleProjects.find(p => p.name === value);
             if (selectedProject) {
-                const currentYear = new Date().getFullYear();
-                const penetrantReportsThisYear = reports.filter(r => 
-                    r.jobType === 'Penetrant Test' && r.reportNumber.includes(`-${currentYear}-`)
-                ).length;
-                const newReportNumber = `PT-${currentYear}-${String(penetrantReportsThisYear + 1).padStart(3, '0')}`;
-    
                 setFormData(prev => ({
                     ...prev,
                     project: value,
                     client: selectedProject.client,
                     projectExecutor: selectedProject.contractExecutor,
-                    reportNumber: newReportNumber
+                    soNumber: '',
                 }));
             }
         } else {
@@ -268,7 +265,7 @@ export default function EditPenetrantTestPage() {
 
     const prev = () => {
         if (currentStep > 0) {
-            setCurrentStep(step => step + 1);
+            setCurrentStep(step => step - 1);
         }
     };
 
@@ -276,7 +273,9 @@ export default function EditPenetrantTestPage() {
         if (!originalReport) return;
     
         const reportDetails: PenetrantTestReportDetails = {
+            jobType: 'Penetrant Test',
             client: formData.client,
+            soNumber: formData.soNumber,
             projectExecutor: formData.projectExecutor,
             project: formData.project,
             dateOfTest: formData.dateOfTest ? format(formData.dateOfTest, 'yyyy-MM-dd') : undefined,
@@ -333,6 +332,13 @@ export default function EditPenetrantTestPage() {
     
         router.push(`/reports/${originalReport.id}`);
     };
+    
+    const selectedProject = useMemo(() => {
+        if (!formData.project || formData.project === 'Non Project') {
+            return null;
+        }
+        return visibleProjects.find(p => p.name === formData.project);
+    }, [formData.project, visibleProjects]);
 
     if (!originalReport) {
         return <div className="flex h-screen items-center justify-center">Loading report...</div>;
@@ -403,6 +409,35 @@ export default function EditPenetrantTestPage() {
                         <Label htmlFor="client">Client</Label>
                         <Input id="client" value={formData.client} onChange={handleInputChange} disabled={!!formData.project && formData.project !== 'Non Project'} />
                     </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="soNumber">Service Order</Label>
+                        {formData.project && formData.project !== 'Non Project' ? (
+                            <Select
+                                value={formData.soNumber}
+                                onValueChange={(value) => handleSelectChange('soNumber', value)}
+                                disabled={!selectedProject}
+                            >
+                                <SelectTrigger id="soNumber">
+                                    <SelectValue placeholder="Select a Service Order" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {selectedProject?.serviceOrders.map((so) => (
+                                        <SelectItem key={so.id} value={so.soNumber}>
+                                            {so.soNumber} - {so.description}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        ) : (
+                            <Input
+                                id="soNumber"
+                                value={formData.soNumber}
+                                onChange={handleInputChange}
+                                placeholder="Enter SO Number manually"
+                                disabled={!!formData.project && formData.project !== 'Non Project'}
+                            />
+                        )}
+                    </div>
                      <div className="space-y-2">
                         <Label htmlFor="projectExecutor">Project Executor</Label>
                         <Input id="projectExecutor" value={formData.projectExecutor} onChange={handleInputChange} disabled={!!formData.project && formData.project !== 'Non Project'} />
@@ -433,12 +468,12 @@ export default function EditPenetrantTestPage() {
                         </Popover>
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="reportNumber">Report Number</Label>
-                        <Input id="reportNumber" value={formData.reportNumber} onChange={handleInputChange} disabled={!!formData.project && formData.project !== 'Non Project'} />
-                    </div>
-                    <div className="space-y-2">
                         <Label htmlFor="lineType">Line Type</Label>
                         <Input id="lineType" value={formData.lineType} onChange={handleInputChange} placeholder="e.g. Pipeline, Structural Weld" />
+                    </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="reportNumber">Report Number</Label>
+                        <Input id="reportNumber" value={formData.reportNumber} onChange={handleInputChange} />
                     </div>
                 </div>
             )}
@@ -782,7 +817,7 @@ export default function EditPenetrantTestPage() {
                                         <TableCell>{result.subjectIdentification}</TableCell>
                                         <TableCell>{result.jointNo}</TableCell>
                                         <TableCell>{result.weldId}</TableCell>
-                                        <TableCell>{result.imageUrls?.length || 0}</TableCell>
+                                        <TableCell>{(result.imageUrls?.length || 0) + (result.images?.length || 0)}</TableCell>
                                         <TableCell>
                                             <Badge variant={result.result === 'Accept' ? 'green' : 'destructive'}>{result.result}</Badge>
                                         </TableCell>
@@ -813,6 +848,7 @@ export default function EditPenetrantTestPage() {
                         <CardHeader><CardTitle>General Information</CardTitle></CardHeader>
                         <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                             <div><p className="font-medium text-muted-foreground">Client</p><p>{formData.client}</p></div>
+                            <div><p className="font-medium text-muted-foreground">Service Order</p><p>{formData.soNumber}</p></div>
                             <div><p className="font-medium text-muted-foreground">Project Executor</p><p>{formData.projectExecutor}</p></div>
                             <div><p className="font-medium text-muted-foreground">Project</p><p>{formData.project}</p></div>
                             <div><p className="font-medium text-muted-foreground">Job Location</p><p>{formData.jobLocation}</p></div>
@@ -881,7 +917,7 @@ export default function EditPenetrantTestPage() {
                                             <TableCell>{result.thickness}</TableCell>
                                             <TableCell>{result.linearIndication}</TableCell>
                                             <TableCell>{result.roundIndication}</TableCell>
-                                            <TableCell>{result.imageUrls?.length || 0}</TableCell>
+                                            <TableCell>{(result.imageUrls?.length || 0) + (result.images?.length || 0)}</TableCell>
                                             <TableCell><Badge variant={result.result === 'Accept' ? 'green' : 'destructive'}>{result.result}</Badge></TableCell>
                                         </TableRow>
                                     ))}
