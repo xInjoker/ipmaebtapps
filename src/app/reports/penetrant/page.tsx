@@ -155,7 +155,6 @@ export default function PenetrantTestPage() {
                     project: value,
                     client: selectedProject.client,
                     mainContractor: selectedProject.contractExecutor,
-                    jobLocation: `On-site at ${selectedProject.name}`,
                     reportNumber: newReportNumber
                 }));
             } else {
@@ -194,10 +193,16 @@ export default function PenetrantTestPage() {
             return;
         }
 
+        const newResultWithUrls = {
+            ...newTestResult,
+            imageUrls: newTestResult.images.map(file => URL.createObjectURL(file)),
+        };
+
         setFormData(prev => ({
             ...prev,
-            testResults: [...prev.testResults, newTestResult]
+            testResults: [...prev.testResults, newResultWithUrls]
         }));
+
         setNewTestResult({ subjectIdentification: '', jointNo: '', weldId: '', diameter: '', thickness: '', linearIndication: '', roundIndication: '', result: 'Accept', images: [] });
     };
     
@@ -225,7 +230,7 @@ export default function PenetrantTestPage() {
 
     const prev = () => {
         if (currentStep > 0) {
-            setCurrentStep(step => step - 1);
+            setCurrentStep(step => step + 1);
         }
     };
 
@@ -266,8 +271,15 @@ export default function PenetrantTestPage() {
             developerBatch: formData.developerBatch,
             testEquipment: formData.testEquipment,
             testResults: formData.testResults.map(result => ({
-                ...result,
-                imageUrls: result.images.map(file => URL.createObjectURL(file))
+                subjectIdentification: result.subjectIdentification,
+                jointNo: result.jointNo,
+                weldId: result.weldId,
+                diameter: result.diameter,
+                thickness: result.thickness,
+                linearIndication: result.linearIndication,
+                roundIndication: result.roundIndication,
+                result: result.result,
+                imageUrls: result.imageUrls || [],
             })),
         };
 
@@ -361,7 +373,7 @@ export default function PenetrantTestPage() {
                     </div>
                      <div className="space-y-2">
                         <Label htmlFor="jobLocation">Job Location</Label>
-                        <Input id="jobLocation" value={formData.jobLocation} onChange={handleInputChange} disabled />
+                        <Input id="jobLocation" value={formData.jobLocation} onChange={handleInputChange} placeholder="e.g. Workshop or Site Name" />
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="dateOfTest">Date of Test</Label>
