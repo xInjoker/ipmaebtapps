@@ -77,6 +77,7 @@ export default function PenetrantTestPage() {
 
     const [formData, setFormData] = useState({
         client: '',
+        soNumber: '',
         projectExecutor: '',
         project: '',
         jobLocation: '',
@@ -105,6 +106,13 @@ export default function PenetrantTestPage() {
         testEquipment: '',
         testResults: [] as TestResult[],
     });
+
+    const selectedProject = useMemo(() => {
+        if (!formData.project || formData.project === 'Non Project') {
+            return null;
+        }
+        return visibleProjects.find(p => p.name === formData.project);
+    }, [formData.project, visibleProjects]);
 
     const [newTestResult, setNewTestResult] = useState<TestResult>({
         subjectIdentification: '',
@@ -146,7 +154,8 @@ export default function PenetrantTestPage() {
                     project: 'Non Project',
                     client: '',
                     projectExecutor: '',
-                    reportNumber: ''
+                    reportNumber: '',
+                    soNumber: '',
                 }));
                 return;
             }
@@ -164,7 +173,8 @@ export default function PenetrantTestPage() {
                     project: value,
                     client: selectedProject.client,
                     projectExecutor: selectedProject.contractExecutor,
-                    reportNumber: newReportNumber
+                    reportNumber: newReportNumber,
+                    soNumber: '',
                 }));
             }
         } else {
@@ -248,7 +258,9 @@ export default function PenetrantTestPage() {
         }
     
         const reportDetails: PenetrantTestReportDetails = {
+            jobType: 'Penetrant Test',
             client: formData.client,
+            soNumber: formData.soNumber,
             projectExecutor: formData.projectExecutor,
             project: formData.project,
             dateOfTest: formData.dateOfTest ? format(formData.dateOfTest, 'yyyy-MM-dd') : undefined,
@@ -380,6 +392,35 @@ export default function PenetrantTestPage() {
                         <Label htmlFor="client">Client</Label>
                         <Input id="client" value={formData.client} onChange={handleInputChange} disabled={!!formData.project && formData.project !== 'Non Project'} />
                     </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="soNumber">Service Order</Label>
+                        {formData.project && formData.project !== 'Non Project' ? (
+                            <Select
+                                value={formData.soNumber}
+                                onValueChange={(value) => handleSelectChange('soNumber', value)}
+                                disabled={!selectedProject}
+                            >
+                                <SelectTrigger id="soNumber">
+                                    <SelectValue placeholder="Select a Service Order" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {selectedProject?.serviceOrders.map((so) => (
+                                        <SelectItem key={so.id} value={so.soNumber}>
+                                            {so.soNumber} - {so.description}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        ) : (
+                            <Input
+                                id="soNumber"
+                                value={formData.soNumber}
+                                onChange={handleInputChange}
+                                placeholder="Enter SO Number manually"
+                                disabled={!!formData.project && formData.project !== 'Non Project'}
+                            />
+                        )}
+                    </div>
                      <div className="space-y-2">
                         <Label htmlFor="projectExecutor">Project Executor</Label>
                         <Input id="projectExecutor" value={formData.projectExecutor} onChange={handleInputChange} disabled={!!formData.project && formData.project !== 'Non Project'} />
@@ -387,14 +428,6 @@ export default function PenetrantTestPage() {
                      <div className="space-y-2">
                         <Label htmlFor="jobLocation">Job Location</Label>
                         <Input id="jobLocation" value={formData.jobLocation} onChange={handleInputChange} placeholder="e.g. Workshop or Site Name" />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="lineType">Line Type</Label>
-                        <Input id="lineType" value={formData.lineType} onChange={handleInputChange} placeholder="e.g. Pipeline, Structural Weld" />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="reportNumber">Report Number</Label>
-                        <Input id="reportNumber" value={formData.reportNumber} onChange={handleInputChange} disabled={!!formData.project && formData.project !== 'Non Project'} />
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="dateOfTest">Date of Test</Label>
@@ -416,6 +449,14 @@ export default function PenetrantTestPage() {
                                 <Calendar mode="single" selected={formData.dateOfTest} onSelect={handleDateChange} initialFocus />
                             </PopoverContent>
                         </Popover>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="lineType">Line Type</Label>
+                        <Input id="lineType" value={formData.lineType} onChange={handleInputChange} placeholder="e.g. Pipeline, Structural Weld" />
+                    </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="reportNumber">Report Number</Label>
+                        <Input id="reportNumber" value={formData.reportNumber} onChange={handleInputChange} disabled={!!formData.project && formData.project !== 'Non Project'} />
                     </div>
                 </div>
             )}

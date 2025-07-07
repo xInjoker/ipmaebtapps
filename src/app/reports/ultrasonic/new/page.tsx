@@ -57,13 +57,6 @@ export default function UltrasonicTestPage() {
         return projects.filter(p => p.branchId === user.branchId);
     }, [projects, user, isHqUser]);
 
-    const selectedProject = useMemo(() => {
-        if (!formData.project || formData.project === 'Non Project') {
-            return null;
-        }
-        return visibleProjects.find(p => p.name === formData.project);
-    }, [formData.project, visibleProjects]);
-
     const [formData, setFormData] = useState({
         client: '',
         soNumber: '',
@@ -85,6 +78,13 @@ export default function UltrasonicTestPage() {
         scanningSensitivity: '6 dB above reference',
         testResults: [] as TestResult[],
     });
+
+    const selectedProject = useMemo(() => {
+        if (!formData.project || formData.project === 'Non Project') {
+            return null;
+        }
+        return visibleProjects.find(p => p.name === formData.project);
+    }, [formData.project, visibleProjects]);
 
     const [newTestResult, setNewTestResult] = useState<TestResult>({
         subjectIdentification: '',

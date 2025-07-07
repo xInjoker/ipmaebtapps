@@ -56,13 +56,6 @@ export default function RadiographicTestPage() {
         return projects.filter(p => p.branchId === user.branchId);
     }, [projects, user, isHqUser]);
 
-    const selectedProject = useMemo(() => {
-        if (!formData.project || formData.project === 'Non Project') {
-            return null;
-        }
-        return visibleProjects.find(p => p.name === formData.project);
-    }, [formData.project, visibleProjects]);
-
     const [formData, setFormData] = useState({
         client: '',
         soNumber: '',
@@ -87,6 +80,13 @@ export default function RadiographicTestPage() {
         density: '',
         testResults: [] as TestResult[],
     });
+
+    const selectedProject = useMemo(() => {
+        if (!formData.project || formData.project === 'Non Project') {
+            return null;
+        }
+        return visibleProjects.find(p => p.name === formData.project);
+    }, [formData.project, visibleProjects]);
 
     const [newTestResult, setNewTestResult] = useState<TestResult>({
         subjectIdentification: '',
