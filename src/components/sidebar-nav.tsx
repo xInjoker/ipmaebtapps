@@ -13,6 +13,7 @@ import {
   Users2,
   Wrench,
   ClipboardEdit,
+  ClipboardCheck,
 } from 'lucide-react';
 import {
   SidebarMenu,
@@ -33,6 +34,7 @@ interface MenuItem {
     icon: React.ElementType;
     permission: Permission;
     subItems?: { href: string; label: string; }[];
+    isSubMenu?: boolean;
 }
 
 export function SidebarNav() {
@@ -58,9 +60,15 @@ export function SidebarNav() {
         label: project.contractNumber,
       })),
     },
-    { href: '/equipment', label: 'Equipment', icon: Wrench, permission: 'manage-equipment' },
-    { href: '/inspectors', label: 'Inspectors', icon: Users2, permission: 'manage-inspectors' },
-    { href: '/reports', label: 'Reporting', icon: ClipboardEdit, permission: 'manage-reports' },
+    { href: '/equipment', label: 'Equipment', icon: Wrench, permission: 'view-equipment' },
+    { href: '/inspectors', label: 'Inspectors', icon: Users2, permission: 'view-inspector' },
+    { 
+      href: '/reports', 
+      label: 'Reporting', 
+      icon: ClipboardEdit, 
+      permission: 'manage-reports',
+      subItems: userHasPermission('view-approvals') ? [{ href: '/reports/approvals', label: 'Approvals' }] : [],
+    },
     { href: '/sanity-checker', label: 'AI Sanity Check', icon: BrainCircuit, permission: 'view-ai-sanity-check' },
     {
       href: '/user-management',
@@ -106,6 +114,7 @@ export function SidebarNav() {
                       isActive={pathname === subItem.href}
                     >
                       <Link href={subItem.href}>
+                        {subItem.label === 'Approvals' && <ClipboardCheck className="mr-2 h-4 w-4" />}
                         <span>{subItem.label}</span>
                       </Link>
                     </SidebarMenuSubButton>

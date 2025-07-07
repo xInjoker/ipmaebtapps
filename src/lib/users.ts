@@ -1,10 +1,13 @@
 
 
 
+
 export const permissions = [
   'view-dashboard',
   'manage-projects',
+  'view-equipment',
   'manage-equipment',
+  'view-inspector',
   'manage-inspectors',
   'manage-reports',
   'view-ai-sanity-check',
@@ -69,7 +72,9 @@ export const initialRoles: Role[] = [
     permissions: [
       'view-dashboard',
       'manage-projects',
+      'view-equipment',
       'manage-equipment',
+      'view-inspector',
       'manage-inspectors',
       'manage-reports',
       'view-ai-sanity-check',
@@ -84,7 +89,9 @@ export const initialRoles: Role[] = [
     permissions: [
       'view-dashboard',
       'manage-projects',
+      'view-equipment',
       'manage-equipment',
+      'view-inspector',
       'manage-inspectors',
       'manage-reports',
       'view-ai-sanity-check',
@@ -96,7 +103,7 @@ export const initialRoles: Role[] = [
   {
     id: 'staff',
     name: 'Staff Cabang',
-    permissions: ['view-dashboard', 'view-profile'],
+    permissions: ['view-dashboard', 'view-profile', 'view-equipment', 'view-inspector'],
     isEditable: true,
   },
   {
