@@ -71,12 +71,6 @@ export default function EditPenetrantTestPage() {
     const [isAcceptanceCriteriaPopoverOpen, setIsAcceptanceCriteriaPopoverOpen] = useState(false);
     const [isProcedureNoPopoverOpen, setIsProcedureNoPopoverOpen] = useState(false);
 
-    const visibleProjects = useMemo(() => {
-        if (isHqUser) return projects;
-        if (!user) return [];
-        return projects.filter(p => p.branchId === user.branchId);
-    }, [projects, user, isHqUser]);
-
     const [formData, setFormData] = useState({
         client: '',
         soNumber: '',
@@ -108,6 +102,19 @@ export default function EditPenetrantTestPage() {
         testEquipment: '',
         testResults: [] as TestResult[],
     });
+
+    const visibleProjects = useMemo(() => {
+        if (isHqUser) return projects;
+        if (!user) return [];
+        return projects.filter(p => p.branchId === user.branchId);
+    }, [projects, user, isHqUser]);
+
+    const selectedProject = useMemo(() => {
+        if (!formData.project || formData.project === 'Non Project') {
+            return null;
+        }
+        return visibleProjects.find(p => p.name === formData.project);
+    }, [formData.project, visibleProjects]);
 
     const [newTestResult, setNewTestResult] = useState<TestResult>({
         subjectIdentification: '',
@@ -198,7 +205,6 @@ export default function EditPenetrantTestPage() {
                     project: 'Non Project',
                     client: '',
                     projectExecutor: '',
-                    reportNumber: '',
                     soNumber: '',
                 }));
                 return;
@@ -353,13 +359,6 @@ export default function EditPenetrantTestPage() {
     
         router.push(`/reports/${originalReport.id}`);
     };
-    
-    const selectedProject = useMemo(() => {
-        if (!formData.project || formData.project === 'Non Project') {
-            return null;
-        }
-        return visibleProjects.find(p => p.name === formData.project);
-    }, [formData.project, visibleProjects]);
 
     if (!originalReport) {
         return <div className="flex h-screen items-center justify-center">Loading report...</div>;
@@ -464,6 +463,10 @@ export default function EditPenetrantTestPage() {
                         <Input id="projectExecutor" value={formData.projectExecutor} onChange={handleInputChange} disabled={!!formData.project && formData.project !== 'Non Project'} />
                     </div>
                     <div className="space-y-2">
+                        <Label htmlFor="lineType">Line Type</Label>
+                        <Input id="lineType" value={formData.lineType} onChange={handleInputChange} placeholder="e.g. Pipeline, Structural Weld" />
+                    </div>
+                    <div className="space-y-2">
                         <Label htmlFor="dateOfTest">Date of Test</Label>
                         <Popover>
                             <PopoverTrigger asChild>
@@ -483,10 +486,6 @@ export default function EditPenetrantTestPage() {
                                 <Calendar mode="single" selected={formData.dateOfTest} onSelect={handleDateChange} initialFocus />
                             </PopoverContent>
                         </Popover>
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="lineType">Line Type</Label>
-                        <Input id="lineType" value={formData.lineType} onChange={handleInputChange} placeholder="e.g. Pipeline, Structural Weld" />
                     </div>
                      <div className="space-y-2">
                         <Label htmlFor="jobLocation">Job Location</Label>
