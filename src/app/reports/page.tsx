@@ -53,7 +53,8 @@ export default function ReportsPage() {
     return reports.filter(item => {
         const searchMatch = searchTerm.toLowerCase() === '' ||
                             item.reportNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            item.jobLocation.toLowerCase().includes(searchTerm.toLowerCase());
+                            item.jobLocation.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            item.details?.project.toLowerCase().includes(searchTerm.toLowerCase());
 
         const jobTypeMatch = jobTypeFilter === 'all' || item.jobType === jobTypeFilter;
         const statusMatch = statusFilter === 'all' || item.status === statusFilter;
@@ -124,7 +125,7 @@ export default function ReportsPage() {
                   <div className="relative flex-1">
                       <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                       <Input
-                          placeholder="Search by number or location..."
+                          placeholder="Search by number or project..."
                           value={searchTerm}
                           onChange={(e) => setSearchTerm(e.target.value)}
                           className="pl-8 w-full"
@@ -160,61 +161,66 @@ export default function ReportsPage() {
                     <TableHeader>
                         <TableRow>
                             <TableHead>Report Number</TableHead>
-                            <TableHead>Job Location</TableHead>
+                            <TableHead>Project Name</TableHead>
                             <TableHead>Line Type</TableHead>
                             <TableHead>Job Type</TableHead>
                             <TableHead>Qty Joint</TableHead>
+                            <TableHead>Created By</TableHead>
                             <TableHead>Status</TableHead>
                             <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {filteredReports.length > 0 ? (
-                          filteredReports.map((report) => (
-                            <TableRow key={report.id}>
-                                <TableCell className="font-medium">{report.reportNumber}</TableCell>
-                                <TableCell>{report.jobLocation}</TableCell>
-                                <TableCell>{report.lineType}</TableCell>
-                                <TableCell>{report.jobType}</TableCell>
-                                <TableCell>{report.qtyJoint}</TableCell>
-                                <TableCell>
-                                    <Badge variant={getStatusVariant(report.status)}>{report.status}</Badge>
-                                </TableCell>
-                                <TableCell className="text-right">
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button variant="ghost" className="h-8 w-8 p-0">
-                                                <span className="sr-only">Open menu</span>
-                                                <MoreHorizontal className="h-4 w-4" />
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end">
-                                            <DropdownMenuItem asChild>
-                                              <Link href={`/reports/${report.id}`}>View</Link>
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem asChild disabled={report.jobType !== 'Penetrant Test'}>
-                                                <Link href={report.jobType === 'Penetrant Test' ? `/reports/penetrant/${report.id}/edit` : '#'}>
-                                                    Edit
-                                                </Link>
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem
-                                                className="text-destructive"
-                                                onSelect={(e) => {
-                                                    e.preventDefault();
-                                                    setReportToDelete(report);
-                                                    setIsDeleteDialogOpen(true);
-                                                }}
-                                            >
-                                                Delete
-                                            </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                </TableCell>
-                            </TableRow>
-                          ))
+                          filteredReports.map((report) => {
+                            const creator = report.approvalHistory?.[0]?.actorName || 'N/A';
+                            return (
+                                <TableRow key={report.id}>
+                                    <TableCell className="font-medium">{report.reportNumber}</TableCell>
+                                    <TableCell>{report.details?.project || 'N/A'}</TableCell>
+                                    <TableCell>{report.lineType}</TableCell>
+                                    <TableCell>{report.jobType}</TableCell>
+                                    <TableCell>{report.qtyJoint}</TableCell>
+                                    <TableCell>{creator}</TableCell>
+                                    <TableCell>
+                                        <Badge variant={getStatusVariant(report.status)}>{report.status}</Badge>
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button variant="ghost" className="h-8 w-8 p-0">
+                                                    <span className="sr-only">Open menu</span>
+                                                    <MoreHorizontal className="h-4 w-4" />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end">
+                                                <DropdownMenuItem asChild>
+                                                  <Link href={`/reports/${report.id}`}>View</Link>
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem asChild disabled={report.jobType !== 'Penetrant Test'}>
+                                                    <Link href={report.jobType === 'Penetrant Test' ? `/reports/penetrant/${report.id}/edit` : '#'}>
+                                                        Edit
+                                                    </Link>
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                    className="text-destructive"
+                                                    onSelect={(e) => {
+                                                        e.preventDefault();
+                                                        setReportToDelete(report);
+                                                        setIsDeleteDialogOpen(true);
+                                                    }}
+                                                >
+                                                    Delete
+                                                </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </TableCell>
+                                </TableRow>
+                            );
+                          })
                         ) : (
                           <TableRow>
-                              <TableCell colSpan={7} className="h-24 text-center">
+                              <TableCell colSpan={8} className="h-24 text-center">
                                   No reports found.
                               </TableCell>
                           </TableRow>
