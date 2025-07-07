@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -48,7 +49,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // A version for the local storage data structure.
 // Incrementing this will force a reset of stored auth data.
-const DATA_VERSION = '1.3';
+const DATA_VERSION = '1.4';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
