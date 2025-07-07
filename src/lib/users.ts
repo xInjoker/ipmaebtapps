@@ -2,6 +2,7 @@
 
 
 
+
 export const permissions = [
   'view-dashboard',
   'manage-projects',
@@ -100,6 +101,19 @@ export const initialRoles: Role[] = [
     ],
     isEditable: true,
   },
+  { 
+    id: 'inspector', 
+    name: 'Inspector', 
+    permissions: [
+      'view-dashboard',
+      'manage-reports',
+      'view-equipment',
+      'view-inspector',
+      'view-approvals',
+      'view-profile'
+    ],
+    isEditable: true,
+  },
   {
     id: 'staff',
     name: 'Staff Cabang',
@@ -140,4 +154,5 @@ export const initialUsers: User[] = [
   { id: 5, name: 'QAQC Client', email: 'qaqc.client@example.com', roleId: 'client-qaqc', branchId: 'hq', avatarUrl: '' },
   { id: 6, name: 'Rep Client', email: 'rep.client@example.com', roleId: 'client-rep', branchId: 'hq', avatarUrl: '' },
   { id: 7, name: 'Project Admin User', email: 'pa@example.com', roleId: 'project-admin', branchId: 'jakarta', avatarUrl: '' },
+  { id: 8, name: 'Inspector User', email: 'inspector@example.com', roleId: 'inspector', branchId: 'jakarta', avatarUrl: '' },
 ];
