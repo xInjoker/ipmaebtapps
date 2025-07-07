@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { type ReportItem, type ReportStatus, reportStatuses } from '@/lib/reports';
 import { useReports } from '@/context/ReportContext';
+import { useAuth } from '@/context/AuthContext';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
@@ -42,6 +43,7 @@ const getStatusVariant = (status: ReportStatus) => {
 
 export default function ReportsPage() {
   const { reports, deleteReport } = useReports();
+  const { user, roles } = useAuth();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [jobTypeFilter, setJobTypeFilter] = useState('all');
@@ -49,8 +51,20 @@ export default function ReportsPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [reportToDelete, setReportToDelete] = useState<ReportItem | null>(null);
 
+  const userRole = useMemo(() => roles.find(r => r.id === user?.roleId), [user, roles]);
+
+  const visibleReports = useMemo(() => {
+    if (userRole?.id === 'inspector') {
+      return reports.filter(report => {
+        const creatorName = report.approvalHistory?.[0]?.actorName;
+        return creatorName === user?.name;
+      });
+    }
+    return reports;
+  }, [reports, user, userRole]);
+
   const filteredReports = useMemo(() => {
-    return reports.filter(item => {
+    return visibleReports.filter(item => {
         const searchMatch = searchTerm.toLowerCase() === '' ||
                             item.reportNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
                             item.jobLocation.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -61,7 +75,7 @@ export default function ReportsPage() {
 
         return searchMatch && jobTypeMatch && statusMatch;
     });
-  }, [reports, searchTerm, jobTypeFilter, statusFilter]);
+  }, [visibleReports, searchTerm, jobTypeFilter, statusFilter]);
 
   const handleClearFilters = () => {
     setSearchTerm('');
