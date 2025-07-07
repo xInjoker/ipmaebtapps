@@ -14,12 +14,15 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowLeft } from 'lucide-react';
 import { format } from 'date-fns';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+
 
 export default function ReportDetailsPage() {
     const router = useRouter();
     const params = useParams();
     const { reports } = useReports();
     const [report, setReport] = useState<ReportItem | null>(null);
+    const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
 
     useEffect(() => {
         const reportId = params.id as string;
@@ -169,7 +172,7 @@ export default function ReportDetailsPage() {
                     <Card>
                         <CardHeader>
                             <CardTitle>Evidence Images</CardTitle>
-                            <CardDescription>A gallery of all images uploaded as evidence for the test results.</CardDescription>
+                            <CardDescription>A gallery of all images uploaded as evidence for the test results. Click an image to enlarge.</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <Carousel className="w-full" opts={{ align: "start", loop: true }}>
@@ -177,7 +180,7 @@ export default function ReportDetailsPage() {
                                     {allImages.map((image, index) => (
                                         <CarouselItem key={index} className="pl-4 md:basis-1/2 lg:basis-1/3">
                                             <div className="p-1">
-                                                <Card>
+                                                <Card className="cursor-pointer" onClick={() => setPreviewImageUrl(image.url)}>
                                                     <CardContent className="flex aspect-video items-center justify-center p-0 rounded-t-lg overflow-hidden">
                                                         <Image
                                                             src={image.url}
@@ -203,6 +206,20 @@ export default function ReportDetailsPage() {
                     </Card>
                 )}
             </div>
+
+            <Dialog open={!!previewImageUrl} onOpenChange={(isOpen) => !isOpen && setPreviewImageUrl(null)}>
+                <DialogContent className="max-w-4xl p-0 border-0">
+                    {previewImageUrl && (
+                        <Image
+                            src={previewImageUrl}
+                            alt="Evidence image preview"
+                            width={1280}
+                            height={720}
+                            className="h-auto w-full object-contain rounded-lg"
+                        />
+                    )}
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
