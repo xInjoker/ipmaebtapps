@@ -79,7 +79,7 @@ export default function EditPenetrantTestPage() {
 
     const [formData, setFormData] = useState({
         client: '',
-        mainContractor: '',
+        projectExecutor: '',
         project: '',
         jobLocation: '',
         dateOfTest: undefined as Date | undefined,
@@ -174,7 +174,7 @@ export default function EditPenetrantTestPage() {
                     ...prev,
                     project: 'Non Project',
                     client: '',
-                    mainContractor: '',
+                    projectExecutor: '',
                     reportNumber: ''
                 }));
                 return;
@@ -192,7 +192,7 @@ export default function EditPenetrantTestPage() {
                     ...prev,
                     project: value,
                     client: selectedProject.client,
-                    mainContractor: selectedProject.contractExecutor,
+                    projectExecutor: selectedProject.contractExecutor,
                     reportNumber: newReportNumber
                 }));
             }
@@ -268,7 +268,7 @@ export default function EditPenetrantTestPage() {
 
     const prev = () => {
         if (currentStep > 0) {
-            setCurrentStep(step => step - 1);
+            setCurrentStep(step => step + 1);
         }
     };
 
@@ -277,7 +277,7 @@ export default function EditPenetrantTestPage() {
     
         const reportDetails: PenetrantTestReportDetails = {
             client: formData.client,
-            mainContractor: formData.mainContractor,
+            projectExecutor: formData.projectExecutor,
             project: formData.project,
             dateOfTest: formData.dateOfTest ? format(formData.dateOfTest, 'yyyy-MM-dd') : undefined,
             procedureNo: formData.procedureNo,
@@ -404,8 +404,8 @@ export default function EditPenetrantTestPage() {
                         <Input id="client" value={formData.client} onChange={handleInputChange} disabled={!!formData.project && formData.project !== 'Non Project'} />
                     </div>
                      <div className="space-y-2">
-                        <Label htmlFor="mainContractor">Main Contractor</Label>
-                        <Input id="mainContractor" value={formData.mainContractor} onChange={handleInputChange} disabled={!!formData.project && formData.project !== 'Non Project'} />
+                        <Label htmlFor="projectExecutor">Project Executor</Label>
+                        <Input id="projectExecutor" value={formData.projectExecutor} onChange={handleInputChange} disabled={!!formData.project && formData.project !== 'Non Project'} />
                     </div>
                      <div className="space-y-2">
                         <Label htmlFor="jobLocation">Job Location</Label>
@@ -813,7 +813,7 @@ export default function EditPenetrantTestPage() {
                         <CardHeader><CardTitle>General Information</CardTitle></CardHeader>
                         <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                             <div><p className="font-medium text-muted-foreground">Client</p><p>{formData.client}</p></div>
-                            <div><p className="font-medium text-muted-foreground">Main Contractor</p><p>{formData.mainContractor}</p></div>
+                            <div><p className="font-medium text-muted-foreground">Project Executor</p><p>{formData.projectExecutor}</p></div>
                             <div><p className="font-medium text-muted-foreground">Project</p><p>{formData.project}</p></div>
                             <div><p className="font-medium text-muted-foreground">Job Location</p><p>{formData.jobLocation}</p></div>
                             <div><p className="font-medium text-muted-foreground">Date of Test</p><p>{formData.dateOfTest ? format(formData.dateOfTest, 'PPP') : 'N/A'}</p></div>

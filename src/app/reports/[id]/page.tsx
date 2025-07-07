@@ -64,6 +64,7 @@ export default function ReportDetailsPage() {
     }
     
     const details = report.details as PenetrantTestReportDetails;
+    const creator = report.approvalHistory?.[0];
 
     const allImages = details.testResults.flatMap(result =>
         (result.imageUrls || []).map(url => ({
@@ -93,13 +94,19 @@ export default function ReportDetailsPage() {
                     <CardHeader><CardTitle>General Information</CardTitle></CardHeader>
                     <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                         <div><p className="font-medium text-muted-foreground">Client</p><p>{details.client}</p></div>
-                        <div><p className="font-medium text-muted-foreground">Main Contractor</p><p>{details.mainContractor}</p></div>
+                        <div><p className="font-medium text-muted-foreground">Project Executor</p><p>{details.projectExecutor}</p></div>
                         <div><p className="font-medium text-muted-foreground">Project</p><p>{details.project}</p></div>
                         <div><p className="font-medium text-muted-foreground">Job Location</p><p>{report.jobLocation}</p></div>
                         <div><p className="font-medium text-muted-foreground">Date of Test</p><p>{details.dateOfTest ? format(new Date(details.dateOfTest), 'PPP') : 'N/A'}</p></div>
                         <div><p className="font-medium text-muted-foreground">Date of Creation</p><p>{report.creationDate ? format(new Date(report.creationDate), 'PPP') : 'N/A'}</p></div>
                         <div><p className="font-medium text-muted-foreground">Report Number</p><p>{report.reportNumber}</p></div>
                         <div><p className="font-medium text-muted-foreground">Line Type</p><p>{report.lineType}</p></div>
+                         {creator && (
+                            <div>
+                                <p className="font-medium text-muted-foreground">Created By</p>
+                                <p>{`${creator.actorName} (${creator.actorRole})`}</p>
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
 

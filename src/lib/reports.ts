@@ -22,7 +22,7 @@ export type PenetrantTestResult = {
 
 export type PenetrantTestReportDetails = {
     client: string;
-    mainContractor: string;
+    projectExecutor: string;
     project: string;
     dateOfTest?: string; // Storing as ISO string
     procedureNo: string;
@@ -67,7 +67,7 @@ export const reportStatuses: ReportStatus[] = ['Draft', 'Submitted', 'Approved',
 
 const mockPenetrantDetails: PenetrantTestReportDetails = {
     client: 'Acme Inc.',
-    mainContractor: 'Cabang Jakarta',
+    projectExecutor: 'Cabang Jakarta',
     project: 'Corporate Website Revamp',
     dateOfTest: '2024-07-20',
     procedureNo: 'P-123-PT',
@@ -122,5 +122,5 @@ export const initialReports: ReportItem[] = [
     { id: 'REP-002', reportNumber: 'MT-2024-001', jobLocation: 'Project Gamma Workshop', lineType: 'Structural Weld', jobType: 'Magnetic Particle Test', qtyJoint: 8, status: 'Submitted', details: null, creationDate: '2024-07-18', reviewerId: null, approverId: null, approvalHistory: [] },
     { id: 'REP-003', reportNumber: 'UT-2024-001', jobLocation: 'Project Alpha Site', lineType: 'Pressure Vessel', jobType: 'Ultrasonic Test', qtyJoint: 22, status: 'Draft', details: null, creationDate: '2024-07-15', reviewerId: null, approverId: null, approvalHistory: [] },
     { id: 'REP-004', reportNumber: 'RT-2024-001', jobLocation: 'Project Beta Facility', lineType: 'Pipeline', jobType: 'Radiographic Test', qtyJoint: 30, status: 'Rejected', details: null, creationDate: '2024-07-12', reviewerId: '5', approverId: '6', approvalHistory: [] },
-    { id: 'REP-005', reportNumber: 'PT-2024-002', jobLocation: 'Project Gamma Workshop', lineType: 'Structural Weld', jobType: 'Penetrant Test', qtyJoint: 2, status: 'Submitted', details: { ...mockPenetrantDetails, client: 'Wayne Enterprises', project: 'Data Analytics Platform', mainContractor: 'Cabang Jakarta' }, creationDate: '2024-07-21', reviewerId: null, approverId: null, approvalHistory: [] },
+    { id: 'REP-005', reportNumber: 'PT-2024-002', jobLocation: 'Project Gamma Workshop', lineType: 'Structural Weld', jobType: 'Penetrant Test', qtyJoint: 2, status: 'Submitted', details: { ...mockPenetrantDetails, client: 'Wayne Enterprises', project: 'Data Analytics Platform', projectExecutor: 'Cabang Jakarta' }, creationDate: '2024-07-21', reviewerId: null, approverId: null, approvalHistory: [] },
 ];

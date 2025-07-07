@@ -61,7 +61,7 @@ const procedureNoOptions = ['PO/AE.MIG-OPS/35'];
 export default function PenetrantTestPage() {
     const [currentStep, setCurrentStep] = useState(0);
     const { projects } = useProjects();
-    const { user, isHqUser } = useAuth();
+    const { user, isHqUser, roles } = useAuth();
     const { reports, addReport } = useReports();
     const router = useRouter();
     const { toast } = useToast();
@@ -77,7 +77,7 @@ export default function PenetrantTestPage() {
 
     const [formData, setFormData] = useState({
         client: '',
-        mainContractor: '',
+        projectExecutor: '',
         project: '',
         jobLocation: '',
         dateOfTest: undefined as Date | undefined,
@@ -145,7 +145,7 @@ export default function PenetrantTestPage() {
                     ...prev,
                     project: 'Non Project',
                     client: '',
-                    mainContractor: '',
+                    projectExecutor: '',
                     reportNumber: ''
                 }));
                 return;
@@ -163,7 +163,7 @@ export default function PenetrantTestPage() {
                     ...prev,
                     project: value,
                     client: selectedProject.client,
-                    mainContractor: selectedProject.contractExecutor,
+                    projectExecutor: selectedProject.contractExecutor,
                     reportNumber: newReportNumber
                 }));
             }
@@ -249,7 +249,7 @@ export default function PenetrantTestPage() {
     
         const reportDetails: PenetrantTestReportDetails = {
             client: formData.client,
-            mainContractor: formData.mainContractor,
+            projectExecutor: formData.projectExecutor,
             project: formData.project,
             dateOfTest: formData.dateOfTest ? format(formData.dateOfTest, 'yyyy-MM-dd') : undefined,
             procedureNo: formData.procedureNo,
@@ -294,6 +294,15 @@ export default function PenetrantTestPage() {
             status: 'Submitted',
             details: reportDetails,
             creationDate: format(new Date(), 'yyyy-MM-dd'),
+            approvalHistory: user ? [
+              {
+                actorName: user.name,
+                actorRole: roles.find(r => r.id === user.roleId)?.name || 'N/A',
+                status: 'Submitted',
+                timestamp: new Date().toISOString(),
+                comments: 'Report created.'
+              }
+            ] : [],
         };
     
         addReport(newReport);
@@ -372,8 +381,8 @@ export default function PenetrantTestPage() {
                         <Input id="client" value={formData.client} onChange={handleInputChange} disabled={!!formData.project && formData.project !== 'Non Project'} />
                     </div>
                      <div className="space-y-2">
-                        <Label htmlFor="mainContractor">Main Contractor</Label>
-                        <Input id="mainContractor" value={formData.mainContractor} onChange={handleInputChange} disabled={!!formData.project && formData.project !== 'Non Project'} />
+                        <Label htmlFor="projectExecutor">Project Executor</Label>
+                        <Input id="projectExecutor" value={formData.projectExecutor} onChange={handleInputChange} disabled={!!formData.project && formData.project !== 'Non Project'} />
                     </div>
                      <div className="space-y-2">
                         <Label htmlFor="jobLocation">Job Location</Label>
@@ -739,10 +748,6 @@ export default function PenetrantTestPage() {
                                     <TableHead>Subject ID</TableHead>
                                     <TableHead>Joint No.</TableHead>
                                     <TableHead>Weld/Part ID</TableHead>
-                                    <TableHead>Diameter</TableHead>
-                                    <TableHead>Thickness</TableHead>
-                                    <TableHead>Linear Ind.</TableHead>
-                                    <TableHead>Round Ind.</TableHead>
                                     <TableHead>Images</TableHead>
                                     <TableHead>Result</TableHead>
                                 </TableRow>
@@ -753,10 +758,6 @@ export default function PenetrantTestPage() {
                                         <TableCell>{result.subjectIdentification}</TableCell>
                                         <TableCell>{result.jointNo}</TableCell>
                                         <TableCell>{result.weldId}</TableCell>
-                                        <TableCell>{result.diameter}</TableCell>
-                                        <TableCell>{result.thickness}</TableCell>
-                                        <TableCell>{result.linearIndication}</TableCell>
-                                        <TableCell>{result.roundIndication}</TableCell>
                                         <TableCell>{result.images.length}</TableCell>
                                         <TableCell>
                                             <Badge variant={result.result === 'Accept' ? 'green' : 'destructive'}>{result.result}</Badge>
@@ -765,7 +766,7 @@ export default function PenetrantTestPage() {
                                 ))}
                                 {formData.testResults.length === 0 && (
                                     <TableRow>
-                                        <TableCell colSpan={9} className="text-center">No results added yet.</TableCell>
+                                        <TableCell colSpan={5} className="text-center">No results added yet.</TableCell>
                                     </TableRow>
                                 )}
                             </TableBody>
@@ -784,7 +785,7 @@ export default function PenetrantTestPage() {
                         <CardHeader><CardTitle>General Information</CardTitle></CardHeader>
                         <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                             <div><p className="font-medium text-muted-foreground">Client</p><p>{formData.client}</p></div>
-                            <div><p className="font-medium text-muted-foreground">Main Contractor</p><p>{formData.mainContractor}</p></div>
+                            <div><p className="font-medium text-muted-foreground">Project Executor</p><p>{formData.projectExecutor}</p></div>
                             <div><p className="font-medium text-muted-foreground">Project</p><p>{formData.project}</p></div>
                             <div><p className="font-medium text-muted-foreground">Job Location</p><p>{formData.jobLocation}</p></div>
                             <div><p className="font-medium text-muted-foreground">Date of Test</p><p>{formData.dateOfTest ? format(formData.dateOfTest, 'PPP') : 'N/A'}</p></div>
