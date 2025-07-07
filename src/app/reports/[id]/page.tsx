@@ -31,10 +31,28 @@ const PenetrantTestDetailsView = ({ details, report }: { details: Extract<Report
                     <div><p className="font-medium text-muted-foreground">Acceptance Criteria</p><p>{details.acceptanceCriteria}</p></div>
                     <div><p className="font-medium text-muted-foreground">Visual Inspection</p><p>{details.visualInspection}</p></div>
                     <div><p className="font-medium text-muted-foreground">Surface Condition</p><p>{details.surfaceCondition}</p></div>
+                    <div><p className="font-medium text-muted-foreground">Examination Stage</p><p>{details.examinationStage}</p></div>
+                    <div><p className="font-medium text-muted-foreground">Material</p><p>{details.material}</p></div>
+                    <div><p className="font-medium text-muted-foreground">Welding Process</p><p>{details.weldingProcess}</p></div>
+                    <div><p className="font-medium text-muted-foreground">Drawing Number</p><p>{details.drawingNumber}</p></div>
+                    <div><p className="font-medium text-muted-foreground">Test Extent</p><p>{details.testExtent}</p></div>
+                    <div><p className="font-medium text-muted-foreground">Test Temperature</p><p>{details.testTemperature}</p></div>
+                    <div className="col-span-full"><p className="font-medium text-muted-foreground">Test Equipment</p><p>{details.testEquipment}</p></div>
+
                     <div className="col-span-full"><h4 className="font-semibold text-base mt-2">Penetrant</h4></div>
                     <div><p className="font-medium text-muted-foreground">Type</p><p>{details.penetrantType}</p></div>
                     <div><p className="font-medium text-muted-foreground">Brand</p><p>{details.penetrantBrand}</p></div>
                     <div><p className="font-medium text-muted-foreground">Batch No.</p><p>{details.penetrantBatch}</p></div>
+
+                    <div className="col-span-full"><h4 className="font-semibold text-base mt-2">Remover</h4></div>
+                    <div><p className="font-medium text-muted-foreground">Type</p><p>{details.removerType}</p></div>
+                    <div><p className="font-medium text-muted-foreground">Brand</p><p>{details.removerBrand}</p></div>
+                    <div><p className="font-medium text-muted-foreground">Batch No.</p><p>{details.removerBatch}</p></div>
+
+                    <div className="col-span-full"><h4 className="font-semibold text-base mt-2">Developer</h4></div>
+                    <div><p className="font-medium text-muted-foreground">Type</p><p>{details.developerType}</p></div>
+                    <div><p className="font-medium text-muted-foreground">Brand</p><p>{details.developerBrand}</p></div>
+                    <div><p className="font-medium text-muted-foreground">Batch No.</p><p>{details.developerBatch}</p></div>
                 </CardContent>
             </Card>
             <Card>

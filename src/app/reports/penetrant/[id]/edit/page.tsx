@@ -463,6 +463,10 @@ export default function EditPenetrantTestPage() {
                         <Input id="projectExecutor" value={formData.projectExecutor} onChange={handleInputChange} disabled={!!formData.project && formData.project !== 'Non Project'} />
                     </div>
                     <div className="space-y-2">
+                        <Label htmlFor="jobLocation">Job Location</Label>
+                        <Input id="jobLocation" value={formData.jobLocation} onChange={handleInputChange} placeholder="e.g. Workshop or Site Name" />
+                    </div>
+                     <div className="space-y-2">
                         <Label htmlFor="dateOfTest">Date of Test</Label>
                         <Popover>
                             <PopoverTrigger asChild>
@@ -486,10 +490,6 @@ export default function EditPenetrantTestPage() {
                      <div className="space-y-2">
                         <Label htmlFor="lineType">Line Type</Label>
                         <Input id="lineType" value={formData.lineType} onChange={handleInputChange} placeholder="e.g. Pipeline, Structural Weld" />
-                    </div>
-                     <div className="space-y-2">
-                        <Label htmlFor="jobLocation">Job Location</Label>
-                        <Input id="jobLocation" value={formData.jobLocation} onChange={handleInputChange} placeholder="e.g. Workshop or Site Name" />
                     </div>
                      <div className="space-y-2">
                         <Label htmlFor="reportNumber">Report Number</Label>
@@ -875,6 +875,8 @@ export default function EditPenetrantTestPage() {
                             <div><p className="font-medium text-muted-foreground">Date of Test</p><p>{formData.dateOfTest ? format(formData.dateOfTest, 'PPP') : 'N/A'}</p></div>
                             <div><p className="font-medium text-muted-foreground">Report Number</p><p>{formData.reportNumber}</p></div>
                             <div><p className="font-medium text-muted-foreground">Line Type</p><p>{formData.lineType}</p></div>
+                             <div><p className="font-medium text-muted-foreground">Created By</p><p>{originalReport.approvalHistory?.[0]?.actorName || 'N/A'}</p></div>
+                            <div><p className="font-medium text-muted-foreground">Date of Creation</p><p>{originalReport.creationDate ? format(new Date(originalReport.creationDate), 'PPP') : 'N/A'}</p></div>
                         </CardContent>
                     </Card>
 
