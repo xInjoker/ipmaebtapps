@@ -131,16 +131,37 @@ export default function EditPenetrantTestPage() {
                 setOriginalReport(item);
                 const details = item.details as PenetrantTestReportDetails;
                 setFormData({
-                    ...details,
-                    jobLocation: item.jobLocation,
-                    reportNumber: item.reportNumber,
-                    lineType: item.lineType,
+                    jobLocation: item.jobLocation || '',
+                    reportNumber: item.reportNumber || '',
+                    lineType: item.lineType || '',
+                    client: details.client || '',
                     soNumber: details.soNumber || '',
+                    projectExecutor: details.projectExecutor || '',
+                    project: details.project || '',
                     dateOfTest: details.dateOfTest ? new Date(details.dateOfTest) : undefined,
-                    // Map existing test results and prepare them for the form state
-                    testResults: details.testResults.map(tr => ({
+                    procedureNo: details.procedureNo || '',
+                    acceptanceCriteria: details.acceptanceCriteria || '',
+                    visualInspection: details.visualInspection || 'Acceptable',
+                    surfaceCondition: details.surfaceCondition || 'As Welded',
+                    examinationStage: details.examinationStage || '',
+                    material: details.material || '',
+                    weldingProcess: details.weldingProcess || '',
+                    drawingNumber: details.drawingNumber || '',
+                    testExtent: details.testExtent || '100%',
+                    testTemperature: details.testTemperature || '',
+                    penetrantType: details.penetrantType || '',
+                    penetrantBrand: details.penetrantBrand || '',
+                    penetrantBatch: details.penetrantBatch || '',
+                    removerType: details.removerType || '',
+                    removerBrand: details.removerBrand || '',
+                    removerBatch: details.removerBatch || '',
+                    developerType: details.developerType || '',
+                    developerBrand: details.developerBrand || '',
+                    developerBatch: details.developerBatch || '',
+                    testEquipment: details.testEquipment || '',
+                    testResults: (details.testResults || []).map(tr => ({
                         ...tr,
-                        images: [], // New images start empty for each existing result
+                        images: [],
                         imageUrls: tr.imageUrls || [],
                     })),
                 });
@@ -442,10 +463,6 @@ export default function EditPenetrantTestPage() {
                         <Label htmlFor="projectExecutor">Project Executor</Label>
                         <Input id="projectExecutor" value={formData.projectExecutor} onChange={handleInputChange} disabled={!!formData.project && formData.project !== 'Non Project'} />
                     </div>
-                     <div className="space-y-2">
-                        <Label htmlFor="jobLocation">Job Location</Label>
-                        <Input id="jobLocation" value={formData.jobLocation} onChange={handleInputChange} placeholder="e.g. Workshop or Site Name" />
-                    </div>
                     <div className="space-y-2">
                         <Label htmlFor="dateOfTest">Date of Test</Label>
                         <Popover>
@@ -470,6 +487,10 @@ export default function EditPenetrantTestPage() {
                     <div className="space-y-2">
                         <Label htmlFor="lineType">Line Type</Label>
                         <Input id="lineType" value={formData.lineType} onChange={handleInputChange} placeholder="e.g. Pipeline, Structural Weld" />
+                    </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="jobLocation">Job Location</Label>
+                        <Input id="jobLocation" value={formData.jobLocation} onChange={handleInputChange} placeholder="e.g. Workshop or Site Name" />
                     </div>
                      <div className="space-y-2">
                         <Label htmlFor="reportNumber">Report Number</Label>

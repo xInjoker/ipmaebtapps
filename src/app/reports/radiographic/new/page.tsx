@@ -50,12 +50,6 @@ export default function RadiographicTestPage() {
     const router = useRouter();
     const { toast } = useToast();
 
-    const visibleProjects = useMemo(() => {
-        if (isHqUser) return projects;
-        if (!user) return [];
-        return projects.filter(p => p.branchId === user.branchId);
-    }, [projects, user, isHqUser]);
-
     const [formData, setFormData] = useState({
         client: '',
         soNumber: '',
@@ -80,6 +74,12 @@ export default function RadiographicTestPage() {
         density: '',
         testResults: [] as TestResult[],
     });
+
+    const visibleProjects = useMemo(() => {
+        if (isHqUser) return projects;
+        if (!user) return [];
+        return projects.filter(p => p.branchId === user.branchId);
+    }, [projects, user, isHqUser]);
 
     const selectedProject = useMemo(() => {
         if (!formData.project || formData.project === 'Non Project') {
@@ -283,9 +283,9 @@ export default function RadiographicTestPage() {
                                 )}
                             </div>
                             <div className="space-y-2"><Label htmlFor="projectExecutor">Project Executor</Label><Input id="projectExecutor" value={formData.projectExecutor} onChange={handleInputChange} disabled={!!formData.project && formData.project !== 'Non Project'} /></div>
-                            <div className="space-y-2"><Label htmlFor="jobLocation">Job Location</Label><Input id="jobLocation" value={formData.jobLocation} onChange={handleInputChange} placeholder="e.g. Workshop or Site Name" /></div>
                             <div className="space-y-2"><Label htmlFor="dateOfTest">Date of Test</Label><Popover><PopoverTrigger asChild><Button id="dateOfTest" variant={"outline"} className={cn("w-full justify-start text-left font-normal", !formData.dateOfTest && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{formData.dateOfTest ? format(formData.dateOfTest, "PPP") : <span>Pick a date</span>}</Button></PopoverTrigger><PopoverContent className="w-auto p-0"><Calendar mode="single" selected={formData.dateOfTest} onSelect={handleDateChange} initialFocus /></PopoverContent></Popover></div>
                             <div className="space-y-2"><Label htmlFor="lineType">Line Type</Label><Input id="lineType" value={formData.lineType} onChange={handleInputChange} placeholder="e.g. Pipeline, Structural Weld" /></div>
+                            <div className="space-y-2"><Label htmlFor="jobLocation">Job Location</Label><Input id="jobLocation" value={formData.jobLocation} onChange={handleInputChange} placeholder="e.g. Workshop or Site Name" /></div>
                             <div className="space-y-2"><Label htmlFor="reportNumber">Report Number</Label><Input id="reportNumber" value={formData.reportNumber} onChange={handleInputChange} disabled={!!formData.project && formData.project !== 'Non Project'} /></div>
                         </div>
                     )}
