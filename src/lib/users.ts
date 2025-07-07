@@ -1,5 +1,6 @@
 
 
+
 export const permissions = [
   'view-dashboard',
   'manage-projects',
@@ -10,6 +11,9 @@ export const permissions = [
   'manage-users',
   'view-settings',
   'view-profile',
+  'view-approvals',
+  'review-reports',
+  'approve-reports',
 ] as const;
 
 export type Permission = (typeof permissions)[number];
@@ -75,9 +79,48 @@ export const initialRoles: Role[] = [
     isEditable: true,
   },
   {
+    id: 'project-admin',
+    name: 'Project Admin',
+    permissions: [
+      'view-dashboard',
+      'manage-projects',
+      'manage-equipment',
+      'manage-inspectors',
+      'manage-reports',
+      'view-ai-sanity-check',
+      'view-settings',
+      'view-profile',
+    ],
+    isEditable: true,
+  },
+  {
     id: 'staff',
-    name: 'Staff',
+    name: 'Staff Cabang',
     permissions: ['view-dashboard', 'view-profile'],
+    isEditable: true,
+  },
+  {
+    id: 'client-qaqc',
+    name: 'Client QAQC',
+    permissions: [
+      'view-dashboard',
+      'manage-reports',
+      'view-approvals',
+      'review-reports',
+      'view-profile',
+    ],
+    isEditable: true,
+  },
+  {
+    id: 'client-rep',
+    name: 'Client Representative',
+    permissions: [
+      'view-dashboard',
+      'manage-reports',
+      'view-approvals',
+      'approve-reports',
+      'view-profile',
+    ],
     isEditable: true,
   },
 ];
@@ -87,4 +130,7 @@ export const initialUsers: User[] = [
   { id: 2, name: 'Project Manager', email: 'pm@example.com', roleId: 'project-manager', branchId: 'jakarta', avatarUrl: '' },
   { id: 3, name: 'Jane Doe', email: 'jane.doe@example.com', roleId: 'project-manager', branchId: 'jakarta', avatarUrl: '' },
   { id: 4, name: 'John Smith', email: 'john.smith@example.com', roleId: 'project-manager', branchId: 'surabaya', avatarUrl: '' },
+  { id: 5, name: 'QAQC Client', email: 'qaqc.client@example.com', roleId: 'client-qaqc', branchId: 'hq', avatarUrl: '' },
+  { id: 6, name: 'Rep Client', email: 'rep.client@example.com', roleId: 'client-rep', branchId: 'hq', avatarUrl: '' },
+  { id: 7, name: 'Project Admin User', email: 'pa@example.com', roleId: 'project-admin', branchId: 'jakarta', avatarUrl: '' },
 ];
