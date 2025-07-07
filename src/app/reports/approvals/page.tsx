@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import {
   Card,
   CardContent,
@@ -84,6 +85,11 @@ export default function ApprovalSetupPage() {
       return newSelection;
     });
   };
+
+  const selectedIds = useMemo(() => Object.keys(rowSelection), [rowSelection]);
+  const queryString = new URLSearchParams({
+    ids: selectedIds.join(','),
+  }).toString();
 
   if (!userHasPermission('view-approvals')) {
     return null;
@@ -175,8 +181,10 @@ export default function ApprovalSetupPage() {
           <div className="text-sm text-muted-foreground">
             {numSelected} of {numReports} row(s) selected.
           </div>
-          <Button disabled={numSelected === 0}>
-            Next: Assign Reviewer <ChevronRight className="ml-2 h-4 w-4" />
+          <Button asChild disabled={numSelected === 0}>
+            <Link href={`/reports/approvals/assign?${queryString}`}>
+                Next: Assign Reviewer <ChevronRight className="ml-2 h-4 w-4" />
+            </Link>
           </Button>
         </CardFooter>
       </Card>

@@ -2,7 +2,7 @@
 'use client';
 
 import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction } from 'react';
-import { initialReports, type ReportItem } from '@/lib/reports';
+import { initialReports, type ReportItem, type ApprovalAction, type ReportStatus } from '@/lib/reports';
 
 type ReportContextType = {
   reports: ReportItem[];
@@ -11,6 +11,7 @@ type ReportContextType = {
   updateReport: (id: string, item: ReportItem) => void;
   deleteReport: (id: string) => void;
   getReportById: (id: string) => ReportItem | undefined;
+  assignApproversAndSubmit: (reportIds: string[], reviewerId: string, approverId: string, actorName: string, actorRole: string) => void;
 };
 
 const ReportContext = createContext<ReportContextType | undefined>(undefined);
@@ -35,9 +36,37 @@ export function ReportProvider({ children }: { children: ReactNode }) {
   const getReportById = (id: string) => {
     return reports.find(item => item.id === id);
   };
+  
+  const assignApproversAndSubmit = (reportIds: string[], reviewerId: string, approverId: string, actorName: string, actorRole: string) => {
+    setReports(prevReports => {
+      const updatedReports = prevReports.map(report => {
+        if (reportIds.includes(report.id)) {
+          const newHistoryEntry: ApprovalAction = {
+            actorName: actorName,
+            actorRole: actorRole,
+            status: 'Submitted',
+            timestamp: new Date().toISOString(),
+            comments: 'Submitted for approval.'
+          };
+          
+          const existingHistory = report.approvalHistory || [];
+
+          return {
+            ...report,
+            status: 'Submitted' as ReportStatus,
+            reviewerId,
+            approverId,
+            approvalHistory: [...existingHistory, newHistoryEntry]
+          };
+        }
+        return report;
+      });
+      return updatedReports;
+    });
+  };
 
   return (
-    <ReportContext.Provider value={{ reports, setReports, addReport, updateReport, deleteReport, getReportById }}>
+    <ReportContext.Provider value={{ reports, setReports, addReport, updateReport, deleteReport, getReportById, assignApproversAndSubmit }}>
       {children}
     </ReportContext.Provider>
   );

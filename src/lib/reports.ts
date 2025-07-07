@@ -1,4 +1,12 @@
-export type ReportStatus = 'Draft' | 'Submitted' | 'Approved' | 'Rejected';
+export type ReportStatus = 'Draft' | 'Submitted' | 'Approved' | 'Rejected' | 'Reviewed';
+
+export type ApprovalAction = {
+    actorName: string;
+    actorRole: string;
+    status: ReportStatus;
+    timestamp: string; // ISO Date string
+    comments?: string;
+};
 
 export type PenetrantTestResult = {
     subjectIdentification: string;
@@ -50,9 +58,12 @@ export type ReportItem = {
     status: ReportStatus;
     details: PenetrantTestReportDetails | null;
     creationDate: string;
+    reviewerId?: string | null;
+    approverId?: string | null;
+    approvalHistory?: ApprovalAction[];
 };
 
-export const reportStatuses: ReportStatus[] = ['Draft', 'Submitted', 'Approved', 'Rejected'];
+export const reportStatuses: ReportStatus[] = ['Draft', 'Submitted', 'Approved', 'Rejected', 'Reviewed'];
 
 const mockPenetrantDetails: PenetrantTestReportDetails = {
     client: 'Acme Inc.',
@@ -107,9 +118,9 @@ const mockPenetrantDetails: PenetrantTestReportDetails = {
 
 
 export const initialReports: ReportItem[] = [
-    { id: 'REP-001', reportNumber: 'PT-2024-001', jobLocation: 'Project Alpha Site', lineType: 'Pipeline', jobType: 'Penetrant Test', qtyJoint: 2, status: 'Approved', details: mockPenetrantDetails, creationDate: '2024-07-20' },
-    { id: 'REP-002', reportNumber: 'MT-2024-001', jobLocation: 'Project Gamma Workshop', lineType: 'Structural Weld', jobType: 'Magnetic Particle Test', qtyJoint: 8, status: 'Submitted', details: null, creationDate: '2024-07-18' },
-    { id: 'REP-003', reportNumber: 'UT-2024-001', jobLocation: 'Project Alpha Site', lineType: 'Pressure Vessel', jobType: 'Ultrasonic Test', qtyJoint: 22, status: 'Draft', details: null, creationDate: '2024-07-15' },
-    { id: 'REP-004', reportNumber: 'RT-2024-001', jobLocation: 'Project Beta Facility', lineType: 'Pipeline', jobType: 'Radiographic Test', qtyJoint: 30, status: 'Rejected', details: null, creationDate: '2024-07-12' },
-    { id: 'REP-005', reportNumber: 'PT-2024-002', jobLocation: 'Project Gamma Workshop', lineType: 'Structural Weld', jobType: 'Penetrant Test', qtyJoint: 2, status: 'Submitted', details: { ...mockPenetrantDetails, client: 'Wayne Enterprises', project: 'Data Analytics Platform', mainContractor: 'Cabang Jakarta' }, creationDate: '2024-07-21' },
+    { id: 'REP-001', reportNumber: 'PT-2024-001', jobLocation: 'Project Alpha Site', lineType: 'Pipeline', jobType: 'Penetrant Test', qtyJoint: 2, status: 'Approved', details: mockPenetrantDetails, creationDate: '2024-07-20', reviewerId: '5', approverId: '6', approvalHistory: [] },
+    { id: 'REP-002', reportNumber: 'MT-2024-001', jobLocation: 'Project Gamma Workshop', lineType: 'Structural Weld', jobType: 'Magnetic Particle Test', qtyJoint: 8, status: 'Submitted', details: null, creationDate: '2024-07-18', reviewerId: null, approverId: null, approvalHistory: [] },
+    { id: 'REP-003', reportNumber: 'UT-2024-001', jobLocation: 'Project Alpha Site', lineType: 'Pressure Vessel', jobType: 'Ultrasonic Test', qtyJoint: 22, status: 'Draft', details: null, creationDate: '2024-07-15', reviewerId: null, approverId: null, approvalHistory: [] },
+    { id: 'REP-004', reportNumber: 'RT-2024-001', jobLocation: 'Project Beta Facility', lineType: 'Pipeline', jobType: 'Radiographic Test', qtyJoint: 30, status: 'Rejected', details: null, creationDate: '2024-07-12', reviewerId: '5', approverId: '6', approvalHistory: [] },
+    { id: 'REP-005', reportNumber: 'PT-2024-002', jobLocation: 'Project Gamma Workshop', lineType: 'Structural Weld', jobType: 'Penetrant Test', qtyJoint: 2, status: 'Submitted', details: { ...mockPenetrantDetails, client: 'Wayne Enterprises', project: 'Data Analytics Platform', mainContractor: 'Cabang Jakarta' }, creationDate: '2024-07-21', reviewerId: null, approverId: null, approvalHistory: [] },
 ];
