@@ -9,6 +9,7 @@ export type ApprovalAction = {
     comments?: string;
 };
 
+// --- Penetrant Test (PT) ---
 export type PenetrantTestResult = {
     subjectIdentification: string;
     jointNo: string;
@@ -22,10 +23,11 @@ export type PenetrantTestResult = {
 };
 
 export type PenetrantTestReportDetails = {
+    jobType: 'Penetrant Test';
     client: string;
     projectExecutor: string;
     project: string;
-    dateOfTest?: string; // Storing as ISO string
+    dateOfTest?: string;
     procedureNo: string;
     acceptanceCriteria: string;
     visualInspection: string;
@@ -49,6 +51,109 @@ export type PenetrantTestReportDetails = {
     testResults: PenetrantTestResult[];
 };
 
+// --- Magnetic Particle Test (MT) ---
+export type MagneticTestResult = {
+    subjectIdentification: string;
+    jointNo: string;
+    weldId: string;
+    indicationDetails: string;
+    result: 'Accept' | 'Reject';
+    imageUrls: string[];
+};
+
+export type MagneticParticleTestReportDetails = {
+    jobType: 'Magnetic Particle Test';
+    client: string;
+    projectExecutor: string;
+    project: string;
+    dateOfTest?: string;
+    procedureNo: string;
+    acceptanceCriteria: string;
+    surfaceCondition: string;
+    examinationStage: string;
+    drawingNumber: string;
+    magnetizationTechnique: string;
+    magneticParticlesType: string;
+    particleBrand: string;
+    particleBatch: string;
+    equipment: string;
+    currentType: string;
+    amperage: string;
+    testResults: MagneticTestResult[];
+};
+
+// --- Ultrasonic Test (UT) ---
+export type UltrasonicTestResult = {
+    subjectIdentification: string;
+    jointNo: string;
+    weldId: string;
+    indicationLocation: string;
+    indicationLength: string;
+    remarks: string;
+    result: 'Accept' | 'Reject';
+    imageUrls: string[];
+};
+
+export type UltrasonicTestReportDetails = {
+    jobType: 'Ultrasonic Test';
+    client: string;
+    projectExecutor: string;
+    project: string;
+    dateOfTest?: string;
+    procedureNo: string;
+    acceptanceCriteria: string;
+    surfaceCondition: string;
+    examinationStage: string;
+    drawingNumber: string;
+    equipment: string;
+    transducer: string;
+    calibrationBlock: string;
+    couplant: string;
+    scanningSensitivity: string;
+    testResults: UltrasonicTestResult[];
+};
+
+// --- Radiographic Test (RT) ---
+export type RadiographicTestResult = {
+    subjectIdentification: string;
+    jointNo: string;
+    weldId: string;
+    defectLocation: string;
+    defectType: string;
+    result: 'Accept' | 'Reject';
+    imageUrls: string[];
+};
+
+export type RadiographicTestReportDetails = {
+    jobType: 'Radiographic Test';
+    client: string;
+    projectExecutor: string;
+    project: string;
+    dateOfTest?: string;
+    procedureNo: string;
+    acceptanceCriteria: string;
+    surfaceCondition: string;
+    examinationStage: string;
+    drawingNumber: string;
+    source: string;
+    sourceSize: string;
+    sfd: string; // source to film distance
+    exposure: string;
+    filmBrandType: string;
+    screens: string;
+    sensitivityIQI: string;
+    density: string;
+    testResults: RadiographicTestResult[];
+};
+
+// --- Union Type for all Details ---
+export type ReportDetails = 
+    | PenetrantTestReportDetails 
+    | MagneticParticleTestReportDetails 
+    | UltrasonicTestReportDetails 
+    | RadiographicTestReportDetails;
+
+
 export type ReportItem = {
     id: string;
     reportNumber: string;
@@ -57,7 +162,7 @@ export type ReportItem = {
     jobType: 'Penetrant Test' | 'Magnetic Particle Test' | 'Ultrasonic Test' | 'Radiographic Test' | 'Other';
     qtyJoint: number;
     status: ReportStatus;
-    details: PenetrantTestReportDetails | null;
+    details: ReportDetails | null;
     creationDate: string;
     reviewerId?: string | null;
     approverId?: string | null;
@@ -67,6 +172,7 @@ export type ReportItem = {
 export const reportStatuses: ReportStatus[] = ['Draft', 'Submitted', 'Approved', 'Rejected', 'Reviewed'];
 
 const mockPenetrantDetails: PenetrantTestReportDetails = {
+    jobType: 'Penetrant Test',
     client: 'Acme Inc.',
     projectExecutor: 'Cabang Jakarta',
     project: 'Corporate Website Revamp',
@@ -92,28 +198,8 @@ const mockPenetrantDetails: PenetrantTestReportDetails = {
     developerBatch: 'SKD-S2-24680',
     testEquipment: 'PT Kit, Cleaning Cloth, Calipers',
     testResults: [
-        {
-            subjectIdentification: 'Pipe Weld A-1',
-            jointNo: 'J-01',
-            weldId: 'W-A-01',
-            diameter: '6"',
-            thickness: '12mm',
-            linearIndication: 'N/A',
-            roundIndication: 'N/A',
-            result: 'Accept',
-            imageUrls: ['https://placehold.co/400x225.png'],
-        },
-        {
-            subjectIdentification: 'Pipe Weld A-2',
-            jointNo: 'J-02',
-            weldId: 'W-A-02',
-            diameter: '6"',
-            thickness: '12mm',
-            linearIndication: '5mm',
-            roundIndication: 'N/A',
-            result: 'Reject',
-            imageUrls: ['https://placehold.co/400x225.png', 'https://placehold.co/400x225.png'],
-        },
+        { subjectIdentification: 'Pipe Weld A-1', jointNo: 'J-01', weldId: 'W-A-01', diameter: '6"', thickness: '12mm', linearIndication: 'N/A', roundIndication: 'N/A', result: 'Accept', imageUrls: ['https://placehold.co/400x225.png'], },
+        { subjectIdentification: 'Pipe Weld A-2', jointNo: 'J-02', weldId: 'W-A-02', diameter: '6"', thickness: '12mm', linearIndication: '5mm', roundIndication: 'N/A', result: 'Reject', imageUrls: ['https://placehold.co/400x225.png', 'https://placehold.co/400x225.png'], },
     ],
 };
 
@@ -131,25 +217,7 @@ export const initialReports: ReportItem[] = [
         creationDate: '2024-07-20', 
         reviewerId: '5', 
         approverId: '6', 
-        approvalHistory: [{
-            actorName: 'Budi Santoso',
-            actorRole: 'Lead Inspector',
-            status: 'Submitted',
-            timestamp: new Date('2024-07-20T09:00:00Z').toISOString(),
-            comments: 'Report created.'
-        }, {
-            actorName: 'QAQC Client',
-            actorRole: 'Client QAQC',
-            status: 'Reviewed',
-            timestamp: new Date('2024-07-21T10:00:00Z').toISOString(),
-            comments: 'Reviewed and looks good.'
-        }, {
-            actorName: 'Rep Client',
-            actorRole: 'Client Representative',
-            status: 'Approved',
-            timestamp: new Date('2024-07-21T14:00:00Z').toISOString(),
-            comments: 'Approved for processing.'
-        }] 
+        approvalHistory: [{ actorName: 'Budi Santoso', actorRole: 'Lead Inspector', status: 'Submitted', timestamp: new Date('2024-07-20T09:00:00Z').toISOString(), comments: 'Report created.' }, { actorName: 'QAQC Client', actorRole: 'Client QAQC', status: 'Reviewed', timestamp: new Date('2024-07-21T10:00:00Z').toISOString(), comments: 'Reviewed and looks good.' }, { actorName: 'Rep Client', actorRole: 'Client Representative', status: 'Approved', timestamp: new Date('2024-07-21T14:00:00Z').toISOString(), comments: 'Approved for processing.' }] 
     },
     { 
         id: 'REP-002', 
@@ -159,17 +227,11 @@ export const initialReports: ReportItem[] = [
         jobType: 'Magnetic Particle Test', 
         qtyJoint: 8, 
         status: 'Submitted', 
-        details: null, 
+        details: { jobType: 'Magnetic Particle Test', client: 'Wayne Enterprises', projectExecutor: 'Cabang Jakarta', project: 'Data Analytics Platform', dateOfTest: '2024-07-18', procedureNo: 'P-123-MT', acceptanceCriteria: 'AWS D1.1', surfaceCondition: 'As Welded', examinationStage: 'Final', drawingNumber: 'DWG-003', magnetizationTechnique: 'Yoke', magneticParticlesType: 'Wet Visible', particleBrand: 'Parker', particleBatch: 'WB-123', equipment: 'Yoke Y-7', currentType: 'AC', amperage: '100-120 Amps', testResults: [] },
         creationDate: '2024-07-18', 
         reviewerId: null, 
         approverId: null, 
-        approvalHistory: [{
-            actorName: 'Citra Dewi',
-            actorRole: 'Inspector',
-            status: 'Submitted',
-            timestamp: new Date('2024-07-18T11:00:00Z').toISOString(),
-            comments: 'Report created.'
-        }] 
+        approvalHistory: [{ actorName: 'Citra Dewi', actorRole: 'Inspector', status: 'Submitted', timestamp: new Date('2024-07-18T11:00:00Z').toISOString(), comments: 'Report created.' }] 
     },
     { 
         id: 'REP-003', 
@@ -183,13 +245,7 @@ export const initialReports: ReportItem[] = [
         creationDate: '2024-07-15', 
         reviewerId: null, 
         approverId: null, 
-        approvalHistory: [{
-            actorName: 'Budi Santoso',
-            actorRole: 'Lead Inspector',
-            status: 'Draft',
-            timestamp: new Date('2024-07-15T16:00:00Z').toISOString(),
-            comments: 'Initial draft created.'
-        }] 
+        approvalHistory: [{ actorName: 'Budi Santoso', actorRole: 'Lead Inspector', status: 'Draft', timestamp: new Date('2024-07-15T16:00:00Z').toISOString(), comments: 'Initial draft created.' }] 
     },
     { 
         id: 'REP-004', 
@@ -199,23 +255,11 @@ export const initialReports: ReportItem[] = [
         jobType: 'Radiographic Test', 
         qtyJoint: 30, 
         status: 'Rejected', 
-        details: null, 
+        details: { jobType: 'Radiographic Test', client: 'Stark Industries', projectExecutor: 'Cabang Surabaya', project: 'Mobile App Development', dateOfTest: '2024-07-12', procedureNo: 'P-123-RT', acceptanceCriteria: 'API 1104', surfaceCondition: 'As Welded', examinationStage: 'Final', drawingNumber: 'DWG-002', source: 'Ir-192', sourceSize: '3mm', sfd: '700mm', exposure: '2.5 min', filmBrandType: 'AGFA D7', screens: 'Lead 0.1mm', sensitivityIQI: '2-2T', density: '2.5', testResults: [] },
         creationDate: '2024-07-12', 
         reviewerId: '5', 
         approverId: '6', 
-        approvalHistory: [{
-            actorName: 'Eko Wahyudi',
-            actorRole: 'Trainee Inspector',
-            status: 'Submitted',
-            timestamp: new Date('2024-07-12T08:00:00Z').toISOString(),
-            comments: 'Report created.'
-        }, {
-            actorName: 'QAQC Client',
-            actorRole: 'Client QAQC',
-            status: 'Rejected',
-            timestamp: new Date('2024-07-13T11:30:00Z').toISOString(),
-            comments: 'Insufficient evidence provided. Please re-test joint RT-B-05.'
-        }]
+        approvalHistory: [{ actorName: 'Eko Wahyudi', actorRole: 'Trainee Inspector', status: 'Submitted', timestamp: new Date('2024-07-12T08:00:00Z').toISOString(), comments: 'Report created.' }, { actorName: 'QAQC Client', actorRole: 'Client QAQC', status: 'Rejected', timestamp: new Date('2024-07-13T11:30:00Z').toISOString(), comments: 'Insufficient evidence provided. Please re-test joint RT-B-05.' }]
     },
     { 
         id: 'REP-005', 
@@ -229,13 +273,7 @@ export const initialReports: ReportItem[] = [
         creationDate: '2024-07-21', 
         reviewerId: null, 
         approverId: null, 
-        approvalHistory: [{
-            actorName: 'Budi Santoso',
-            actorRole: 'Lead Inspector',
-            status: 'Submitted',
-            timestamp: new Date('2024-07-21T15:00:00Z').toISOString(),
-            comments: 'Report created.'
-        }] 
+        approvalHistory: [{ actorName: 'Budi Santoso', actorRole: 'Lead Inspector', status: 'Submitted', timestamp: new Date('2024-07-21T15:00:00Z').toISOString(), comments: 'Report created.' }] 
     },
     {
         id: 'REP-006',
@@ -249,13 +287,7 @@ export const initialReports: ReportItem[] = [
         creationDate: '2024-07-22',
         reviewerId: null,
         approverId: null,
-        approvalHistory: [{
-            actorName: 'Inspector1',
-            actorRole: 'Inspector',
-            status: 'Submitted',
-            timestamp: new Date('2024-07-22T10:00:00Z').toISOString(),
-            comments: 'Report created.'
-        }]
+        approvalHistory: [{ actorName: 'Inspector1', actorRole: 'Inspector', status: 'Submitted', timestamp: new Date('2024-07-22T10:00:00Z').toISOString(), comments: 'Report created.' }]
     },
     {
         id: 'REP-007',
@@ -269,32 +301,20 @@ export const initialReports: ReportItem[] = [
         creationDate: '2024-07-23',
         reviewerId: null,
         approverId: null,
-        approvalHistory: [{
-            actorName: 'Budi Santoso',
-            actorRole: 'Lead Inspector',
-            status: 'Draft',
-            timestamp: new Date('2024-07-23T14:30:00Z').toISOString(),
-            comments: 'Initial draft.'
-        }]
+        approvalHistory: [{ actorName: 'Budi Santoso', actorRole: 'Lead Inspector', status: 'Draft', timestamp: new Date('2024-07-23T14:30:00Z').toISOString(), comments: 'Initial draft.' }]
     },
     {
         id: 'REP-008',
         reportNumber: 'MT-2024-002',
-        jobLocation: 'Project Mobile App Site',
+        jobLocation: 'Mobile App Site',
         lineType: 'Structural',
         jobType: 'Magnetic Particle Test',
         qtyJoint: 12,
         status: 'Submitted',
-        details: null,
+        details: { jobType: 'Magnetic Particle Test', client: 'Stark Industries', projectExecutor: 'Cabang Surabaya', project: 'Mobile App Development', dateOfTest: '2024-07-24', procedureNo: 'P-123-MT', acceptanceCriteria: 'AWS D1.1', surfaceCondition: 'As Welded', examinationStage: 'Final', drawingNumber: 'DWG-002-rev1', magnetizationTechnique: 'Yoke', magneticParticlesType: 'Dry Powder', particleBrand: 'Magnaflux', particleBatch: '7HF', equipment: 'Y-1 Yoke', currentType: 'AC', amperage: '110 Amps', testResults: [] },
         creationDate: '2024-07-24',
         reviewerId: null,
         approverId: null,
-        approvalHistory: [{
-            actorName: 'Citra Dewi',
-            actorRole: 'Inspector',
-            status: 'Submitted',
-            timestamp: new Date('2024-07-24T09:00:00Z').toISOString(),
-            comments: 'Report created.'
-        }]
+        approvalHistory: [{ actorName: 'Citra Dewi', actorRole: 'Inspector', status: 'Submitted', timestamp: new Date('2024-07-24T09:00:00Z').toISOString(), comments: 'Report created.' }]
     }
 ];
