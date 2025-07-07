@@ -139,9 +139,18 @@ export default function PenetrantTestPage() {
     };
     
     const handleSelectChange = (id: string, value: string) => {
-        setFormData(prev => ({ ...prev, [id]: value }));
-    
         if (id === 'project') {
+            if (value === 'Non Project') {
+                setFormData(prev => ({
+                    ...prev,
+                    project: 'Non Project',
+                    client: '',
+                    mainContractor: '',
+                    reportNumber: ''
+                }));
+                return;
+            }
+    
             const selectedProject = visibleProjects.find(p => p.name === value);
             if (selectedProject) {
                 const currentYear = new Date().getFullYear();
@@ -157,16 +166,9 @@ export default function PenetrantTestPage() {
                     mainContractor: selectedProject.contractExecutor,
                     reportNumber: newReportNumber
                 }));
-            } else {
-                 setFormData(prev => ({
-                    ...prev,
-                    project: '',
-                    client: '',
-                    mainContractor: '',
-                    jobLocation: '',
-                    reportNumber: '',
-                }));
             }
+        } else {
+            setFormData(prev => ({ ...prev, [id]: value }));
         }
     };
     
@@ -230,7 +232,7 @@ export default function PenetrantTestPage() {
 
     const prev = () => {
         if (currentStep > 0) {
-            setCurrentStep(step => step + 1);
+            setCurrentStep(step => step - 1);
         }
     };
 
@@ -355,6 +357,7 @@ export default function PenetrantTestPage() {
                         <Select value={formData.project} onValueChange={(value) => handleSelectChange('project', value)}>
                             <SelectTrigger id="project"><SelectValue placeholder="Select a project" /></SelectTrigger>
                             <SelectContent>
+                                <SelectItem value="Non Project">Non Project</SelectItem>
                                 {visibleProjects.map((project) => (
                                     <SelectItem key={project.id} value={project.name}>
                                         {project.name}
@@ -365,11 +368,11 @@ export default function PenetrantTestPage() {
                     </div>
                      <div className="space-y-2">
                         <Label htmlFor="client">Client</Label>
-                        <Input id="client" value={formData.client} onChange={handleInputChange} disabled />
+                        <Input id="client" value={formData.client} onChange={handleInputChange} disabled={!!formData.project && formData.project !== 'Non Project'} />
                     </div>
                      <div className="space-y-2">
                         <Label htmlFor="mainContractor">Main Contractor</Label>
-                        <Input id="mainContractor" value={formData.mainContractor} onChange={handleInputChange} disabled />
+                        <Input id="mainContractor" value={formData.mainContractor} onChange={handleInputChange} disabled={!!formData.project && formData.project !== 'Non Project'} />
                     </div>
                      <div className="space-y-2">
                         <Label htmlFor="jobLocation">Job Location</Label>
@@ -398,7 +401,7 @@ export default function PenetrantTestPage() {
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="reportNumber">Report Number</Label>
-                        <Input id="reportNumber" value={formData.reportNumber} onChange={handleInputChange} disabled />
+                        <Input id="reportNumber" value={formData.reportNumber} onChange={handleInputChange} disabled={!!formData.project && formData.project !== 'Non Project'} />
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="lineType">Line Type</Label>
