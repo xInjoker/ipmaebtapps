@@ -97,6 +97,7 @@ export default function ReportDetailsPage() {
                         <div><p className="font-medium text-muted-foreground">Project</p><p>{details.project}</p></div>
                         <div><p className="font-medium text-muted-foreground">Job Location</p><p>{report.jobLocation}</p></div>
                         <div><p className="font-medium text-muted-foreground">Date of Test</p><p>{details.dateOfTest ? format(new Date(details.dateOfTest), 'PPP') : 'N/A'}</p></div>
+                        <div><p className="font-medium text-muted-foreground">Date of Creation</p><p>{report.creationDate ? format(new Date(report.creationDate), 'PPP') : 'N/A'}</p></div>
                         <div><p className="font-medium text-muted-foreground">Report Number</p><p>{report.reportNumber}</p></div>
                         <div><p className="font-medium text-muted-foreground">Line Type</p><p>{report.lineType}</p></div>
                     </CardContent>

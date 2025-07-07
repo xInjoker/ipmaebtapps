@@ -292,7 +292,8 @@ export default function PenetrantTestPage() {
             jobType: 'Penetrant Test',
             qtyJoint: formData.testResults.length,
             status: 'Submitted',
-            details: reportDetails
+            details: reportDetails,
+            creationDate: format(new Date(), 'yyyy-MM-dd'),
         };
     
         addReport(newReport);
