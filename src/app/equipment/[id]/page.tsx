@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
@@ -47,7 +46,7 @@ export default function EquipmentDetailsPage() {
   const params = useParams();
   const { getEquipmentById } = useEquipment();
   const { inspectors } = useInspectors();
-  const { branches } = useAuth();
+  const { branches, userHasPermission } = useAuth();
   const [equipment, setEquipment] = useState<EquipmentItem | null>(null);
 
   useEffect(() => {
@@ -120,12 +119,14 @@ export default function EquipmentDetailsPage() {
             </p>
             </div>
         </div>
-        <Button asChild>
-            <Link href={`/equipment/${equipment.id}/edit`}>
-                <Edit className="mr-2 h-4 w-4" />
-                Edit Equipment
-            </Link>
-        </Button>
+        {userHasPermission('manage-equipment') && (
+            <Button asChild>
+                <Link href={`/equipment/${equipment.id}/edit`}>
+                    <Edit className="mr-2 h-4 w-4" />
+                    Edit Equipment
+                </Link>
+            </Button>
+        )}
       </div>
 
       <Card>

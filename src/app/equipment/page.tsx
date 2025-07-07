@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo, useEffect, useRef } from 'react';
@@ -23,7 +22,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { EquipmentCard } from '@/components/equipment-card';
 
 export default function EquipmentPage() {
-  const { user, isHqUser, branches } = useAuth();
+  const { user, isHqUser, branches, userHasPermission } = useAuth();
   const { equipmentList } = useEquipment();
   const [isClient, setIsClient] = useState(false);
   const initialFilterSet = useRef(false);
@@ -82,12 +81,14 @@ export default function EquipmentPage() {
               Monitor and manage all operational equipment.
             </CardDescription>
           </div>
-          <Button asChild>
-            <Link href="/equipment/new">
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Add Equipment
-            </Link>
-          </Button>
+          {userHasPermission('manage-equipment') && (
+            <Button asChild>
+              <Link href="/equipment/new">
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Add Equipment
+              </Link>
+            </Button>
+          )}
         </CardHeader>
         <CardContent>
            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">

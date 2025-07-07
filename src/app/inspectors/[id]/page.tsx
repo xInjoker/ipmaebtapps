@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
@@ -48,7 +47,7 @@ export default function InspectorDetailsPage() {
   const router = useRouter();
   const params = useParams();
   const { getInspectorById } = useInspectors();
-  const { branches } = useAuth();
+  const { branches, userHasPermission } = useAuth();
   const [inspector, setInspector] = useState<Inspector | null>(null);
 
   useEffect(() => {
@@ -106,12 +105,14 @@ export default function InspectorDetailsPage() {
                 </div>
             </div>
         </div>
-        <Button asChild>
-            <Link href={`/inspectors/${inspector.id}/edit`}>
-                <Edit className="mr-2 h-4 w-4" />
-                Edit Inspector
-            </Link>
-        </Button>
+        {userHasPermission('manage-inspectors') && (
+            <Button asChild>
+                <Link href={`/inspectors/${inspector.id}/edit`}>
+                    <Edit className="mr-2 h-4 w-4" />
+                    Edit Inspector
+                </Link>
+            </Button>
+        )}
       </div>
 
       <Card>

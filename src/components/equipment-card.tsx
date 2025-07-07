@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -19,6 +18,7 @@ import { MoreHorizontal } from 'lucide-react';
 import { type EquipmentItem } from '@/lib/equipment';
 import { format, isPast, differenceInDays } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useAuth } from '@/context/AuthContext';
 
 type CalibrationStatus = {
   text: string;
@@ -43,6 +43,7 @@ const getCalibrationStatus = (dueDate: Date): CalibrationStatus => {
 
 export function EquipmentCard({ item, branchMap }: { item: EquipmentItem; branchMap: Record<string, string> }) {
   const [calibration, setCalibration] = useState<CalibrationStatus | null>(null);
+  const { userHasPermission } = useAuth();
 
   useEffect(() => {
     // This runs only on the client, after hydration
@@ -60,21 +61,23 @@ export function EquipmentCard({ item, branchMap }: { item: EquipmentItem; branch
             <CardDescription>{item.type} &bull; {item.serialNumber}</CardDescription>
           </Link>
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0 flex-shrink-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem asChild>
-              <Link href={`/equipment/${item.id}/edit`}>
-                Edit
-              </Link>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {userHasPermission('manage-equipment') && (
+            <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0 flex-shrink-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+                <DropdownMenuItem asChild>
+                <Link href={`/equipment/${item.id}/edit`}>
+                    Edit
+                </Link>
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+            </DropdownMenu>
+        )}
       </CardHeader>
       <CardContent className="space-y-4 flex-grow">
         <Link href={`/equipment/${item.id}`}>

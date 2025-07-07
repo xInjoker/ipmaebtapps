@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -15,7 +14,7 @@ import { useAuth } from '@/context/AuthContext';
 
 export default function InspectorsPage() {
   const { inspectors } = useInspectors();
-  const { branches } = useAuth();
+  const { branches, userHasPermission } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [positionFilter, setPositionFilter] = useState('all');
   const [branchFilter, setBranchFilter] = useState('all');
@@ -56,12 +55,14 @@ export default function InspectorsPage() {
               Manage all inspectors and their qualifications.
             </CardDescription>
           </div>
-          <Button asChild>
-            <Link href="/inspectors/new">
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Add Inspector
-            </Link>
-          </Button>
+          {userHasPermission('manage-inspectors') && (
+            <Button asChild>
+              <Link href="/inspectors/new">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add Inspector
+              </Link>
+            </Button>
+          )}
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
