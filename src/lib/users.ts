@@ -3,6 +3,7 @@
 
 
 
+
 export const permissions = [
   'view-dashboard',
   'manage-projects',
@@ -155,4 +156,5 @@ export const initialUsers: User[] = [
   { id: 6, name: 'Rep Client', email: 'rep.client@example.com', roleId: 'client-rep', branchId: 'hq', avatarUrl: '' },
   { id: 7, name: 'Project Admin User', email: 'pa@example.com', roleId: 'project-admin', branchId: 'jakarta', avatarUrl: '' },
   { id: 8, name: 'Inspector User', email: 'inspector@example.com', roleId: 'inspector', branchId: 'jakarta', avatarUrl: '' },
+  { id: 9, name: 'Inspector1', email: 'inspector1@example.com', roleId: 'inspector', branchId: 'hq', avatarUrl: '' },
 ];
