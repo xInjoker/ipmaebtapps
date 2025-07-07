@@ -389,6 +389,14 @@ export default function PenetrantTestPage() {
                         <Input id="jobLocation" value={formData.jobLocation} onChange={handleInputChange} placeholder="e.g. Workshop or Site Name" />
                     </div>
                     <div className="space-y-2">
+                        <Label htmlFor="lineType">Line Type</Label>
+                        <Input id="lineType" value={formData.lineType} onChange={handleInputChange} placeholder="e.g. Pipeline, Structural Weld" />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="reportNumber">Report Number</Label>
+                        <Input id="reportNumber" value={formData.reportNumber} onChange={handleInputChange} disabled={!!formData.project && formData.project !== 'Non Project'} />
+                    </div>
+                    <div className="space-y-2">
                         <Label htmlFor="dateOfTest">Date of Test</Label>
                         <Popover>
                             <PopoverTrigger asChild>
@@ -408,14 +416,6 @@ export default function PenetrantTestPage() {
                                 <Calendar mode="single" selected={formData.dateOfTest} onSelect={handleDateChange} initialFocus />
                             </PopoverContent>
                         </Popover>
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="reportNumber">Report Number</Label>
-                        <Input id="reportNumber" value={formData.reportNumber} onChange={handleInputChange} disabled={!!formData.project && formData.project !== 'Non Project'} />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="lineType">Line Type</Label>
-                        <Input id="lineType" value={formData.lineType} onChange={handleInputChange} placeholder="e.g. Pipeline, Structural Weld" />
                     </div>
                 </div>
             )}
