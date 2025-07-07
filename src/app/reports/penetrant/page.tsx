@@ -55,6 +55,7 @@ type TestResult = {
 };
 
 const acceptanceCriteriaOptions = ['ASME B31.3', 'API 1104', 'ASME Section V', 'AWS D1.1'];
+const procedureNoOptions = ['PO/AE.MIG-OPS/35'];
 
 
 export default function PenetrantTestPage() {
@@ -65,6 +66,7 @@ export default function PenetrantTestPage() {
     const router = useRouter();
     const { toast } = useToast();
     const [isAcceptanceCriteriaPopoverOpen, setIsAcceptanceCriteriaPopoverOpen] = useState(false);
+    const [isProcedureNoPopoverOpen, setIsProcedureNoPopoverOpen] = useState(false);
 
 
     const visibleProjects = useMemo(() => {
@@ -397,7 +399,51 @@ export default function PenetrantTestPage() {
                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-6">
                     <div className="space-y-2">
                         <Label htmlFor="procedureNo">Procedure No.</Label>
-                        <Input id="procedureNo" value={formData.procedureNo} onChange={handleInputChange} />
+                        <Popover open={isProcedureNoPopoverOpen} onOpenChange={setIsProcedureNoPopoverOpen}>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    role="combobox"
+                                    aria-expanded={isProcedureNoPopoverOpen}
+                                    className="w-full justify-between font-normal"
+                                >
+                                    {formData.procedureNo || "Select or type procedure..."}
+                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                <Command>
+                                    <CommandInput
+                                        placeholder="Search or type procedure..."
+                                        value={formData.procedureNo}
+                                        onValueChange={(value) => handleSelectChange('procedureNo', value)}
+                                    />
+                                    <CommandList>
+                                        <CommandEmpty>No procedure found.</CommandEmpty>
+                                        <CommandGroup>
+                                            {procedureNoOptions.map((option) => (
+                                                <CommandItem
+                                                    key={option}
+                                                    value={option}
+                                                    onSelect={(currentValue) => {
+                                                        handleSelectChange('procedureNo', currentValue === formData.procedureNo ? "" : currentValue);
+                                                        setIsProcedureNoPopoverOpen(false);
+                                                    }}
+                                                >
+                                                    <Check
+                                                        className={cn(
+                                                            "mr-2 h-4 w-4",
+                                                            formData.procedureNo.toLowerCase() === option.toLowerCase() ? "opacity-100" : "opacity-0"
+                                                        )}
+                                                    />
+                                                    {option}
+                                                </CommandItem>
+                                            ))}
+                                        </CommandGroup>
+                                    </CommandList>
+                                </Command>
+                            </PopoverContent>
+                        </Popover>
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="acceptanceCriteria">Acceptance Criteria</Label>
