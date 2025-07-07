@@ -20,7 +20,7 @@ import { cn } from '@/lib/utils';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { useProjects } from '@/context/ProjectContext';
 import { useAuth } from '@/context/AuthContext';
-import { initialReports, type ReportItem, type PenetrantTestReportDetails } from '@/lib/reports';
+import { type ReportItem, type PenetrantTestReportDetails } from '@/lib/reports';
 import { Badge } from '@/components/ui/badge';
 import { useReports } from '@/context/ReportContext';
 import { useToast } from '@/hooks/use-toast';
@@ -47,7 +47,7 @@ export default function PenetrantTestPage() {
     const [currentStep, setCurrentStep] = useState(0);
     const { projects } = useProjects();
     const { user, isHqUser } = useAuth();
-    const { addReport } = useReports();
+    const { reports, addReport } = useReports();
     const router = useRouter();
     const { toast } = useToast();
 
@@ -119,30 +119,26 @@ export default function PenetrantTestPage() {
     };
     
     const handleSelectChange = (id: string, value: string) => {
-        // Basic update for any select change
         setFormData(prev => ({ ...prev, [id]: value }));
     
-        // Special logic for project selection
         if (id === 'project') {
             const selectedProject = visibleProjects.find(p => p.name === value);
             if (selectedProject) {
-                // Autogenerate Report Number
                 const currentYear = new Date().getFullYear();
-                const penetrantReportsThisYear = initialReports.filter(r => 
+                const penetrantReportsThisYear = reports.filter(r => 
                     r.jobType === 'Penetrant Test' && r.reportNumber.includes(`-${currentYear}-`)
                 ).length;
                 const newReportNumber = `PT-${currentYear}-${String(penetrantReportsThisYear + 1).padStart(3, '0')}`;
     
                 setFormData(prev => ({
                     ...prev,
-                    project: value, // Ensure project value is also set in this single update
+                    project: value,
                     client: selectedProject.client,
                     mainContractor: selectedProject.contractExecutor,
                     jobLocation: `On-site at ${selectedProject.name}`,
                     reportNumber: newReportNumber
                 }));
             } else {
-                // Clear fields if project is deselected
                  setFormData(prev => ({
                     ...prev,
                     project: '',
@@ -214,14 +210,13 @@ export default function PenetrantTestPage() {
     };
 
     const handleSubmit = () => {
-        // Basic validation
         if (!formData.project || !formData.reportNumber || !formData.lineType) {
             toast({
                 variant: 'destructive',
                 title: 'Incomplete Information',
                 description: 'Please ensure all required fields are filled before submitting.',
             });
-            setCurrentStep(0); // Go back to the first step to fix errors
+            setCurrentStep(0);
             return;
         }
     
@@ -457,10 +452,16 @@ export default function PenetrantTestPage() {
                     </div>
 
                     <h3 className="text-lg font-semibold col-span-full pt-4">Equipment & Materials</h3>
-                    {/* Penetrant */}
                     <div className="space-y-2">
                         <Label htmlFor="penetrantType">Penetrant Type</Label>
-                        <Input id="penetrantType" value={formData.penetrantType} onChange={handleInputChange} />
+                        <Select value={formData.penetrantType} onValueChange={(value) => handleSelectChange('penetrantType', value)}>
+                            <SelectTrigger id="penetrantType"><SelectValue placeholder="Select type"/></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="Visible">Visible</SelectItem>
+                                <SelectItem value="Solvent Removable">Solvent Removable</SelectItem>
+                                <SelectItem value="Fluorescent">Fluorescent</SelectItem>
+                            </SelectContent>
+                        </Select>
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="penetrantBrand">Penetrant Brand</Label>
@@ -470,10 +471,16 @@ export default function PenetrantTestPage() {
                         <Label htmlFor="penetrantBatch">Penetrant Batch No.</Label>
                         <Input id="penetrantBatch" value={formData.penetrantBatch} onChange={handleInputChange} />
                     </div>
-                    {/* Remover */}
                      <div className="space-y-2">
                         <Label htmlFor="removerType">Remover Type</Label>
-                        <Input id="removerType" value={formData.removerType} onChange={handleInputChange} />
+                        <Select value={formData.removerType} onValueChange={(value) => handleSelectChange('removerType', value)}>
+                            <SelectTrigger id="removerType"><SelectValue placeholder="Select type"/></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="water-washable">Water-washable</SelectItem>
+                                <SelectItem value="solvent-removable">Solvent-removable</SelectItem>
+                                <SelectItem value="post-emulsifiable">Post-emulsifiable</SelectItem>
+                            </SelectContent>
+                        </Select>
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="removerBrand">Remover Brand</Label>
@@ -483,10 +490,17 @@ export default function PenetrantTestPage() {
                         <Label htmlFor="removerBatch">Remover Batch No.</Label>
                         <Input id="removerBatch" value={formData.removerBatch} onChange={handleInputChange} />
                     </div>
-                     {/* Developer */}
                      <div className="space-y-2">
                         <Label htmlFor="developerType">Developer Type</Label>
-                        <Input id="developerType" value={formData.developerType} onChange={handleInputChange} />
+                        <Select value={formData.developerType} onValueChange={(value) => handleSelectChange('developerType', value)}>
+                            <SelectTrigger id="developerType"><SelectValue placeholder="Select type"/></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="dry powder">Dry Powder</SelectItem>
+                                <SelectItem value="water soluble">Water Soluble</SelectItem>
+                                <SelectItem value="water suspendible">Water Suspendible</SelectItem>
+                                <SelectItem value="non-aqueous">Non-aqueous</SelectItem>
+                            </SelectContent>
+                        </Select>
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="developerBrand">Developer Brand</Label>
