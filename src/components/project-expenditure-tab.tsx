@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -155,7 +156,9 @@ export function ProjectExpenditureTab({ project, setProjects }: ProjectExpenditu
         setExpenditureToEdit(null);
     };
 
-    const budgetedCategories = expenditureCategories.filter(category => (project.budgets[category] ?? 0) > 0 || category === 'Other');
+    const budgetedCategories = useMemo(() => {
+        return expenditureCategories.filter(category => (project.budgets[category] ?? 0) > 0 || category === 'Other');
+    }, [project.budgets]);
 
     const spentByCategory = useMemo(() => {
         return project.expenditures.reduce((acc, item) => {

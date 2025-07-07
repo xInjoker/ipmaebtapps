@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal, PlusCircle, FileDown } from 'lucide-react';
@@ -128,7 +129,7 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
         URL.revokeObjectURL(url);
     };
 
-    const getSoDetails = (soNumber: string, value: number) => {
+    const getSoDetails = useCallback((soNumber: string, value: number) => {
         const so = serviceOrderMap.get(soNumber);
         if (!so) return { remaining: 0, warning: '' };
 
@@ -137,10 +138,13 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
         const warning = value > remaining ? `Warning: Amount exceeds remaining SO value of ${formatCurrency(remaining)}.` : '';
 
         return { remaining, warning };
-    };
+    }, [invoicedAmountsBySO, serviceOrderMap]);
     
-    const addSoDetails = getSoDetails(newInvoice.soNumber, newInvoice.value);
-    const editSoDetails = editedInvoice ? getSoDetails(editedInvoice.soNumber, editedInvoice.value) : { remaining: 0, warning: '' };
+    const addSoDetails = useMemo(() => getSoDetails(newInvoice.soNumber, newInvoice.value), [newInvoice.soNumber, newInvoice.value, getSoDetails]);
+    
+    const editSoDetails = useMemo(() => {
+        return editedInvoice ? getSoDetails(editedInvoice.soNumber, editedInvoice.value) : { remaining: 0, warning: '' };
+    }, [editedInvoice, getSoDetails]);
 
 
     return (
@@ -343,7 +347,7 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
                                 </div>
                                  {editSoDetails.warning && (
                                     <p className="col-span-4 text-center text-sm font-medium text-yellow-600">{editSoDetails.warning}</p>
-                                )}
+                                 )}
                             </div>
                             <DialogFooter>
                                 <Button onClick={handleUpdateInvoice}>Save Changes</Button>
