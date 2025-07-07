@@ -168,13 +168,20 @@ export default function PenetrantTestPage() {
     };
     
     const handleAddResult = () => {
-        if (newTestResult.jointNo && newTestResult.weldId) {
-            setFormData(prev => ({
-                ...prev,
-                testResults: [...prev.testResults, newTestResult]
-            }));
-            setNewTestResult({ jointNo: '', weldId: '', diameter: '', thickness: '', indication: 'No Indication', result: 'Accept', images: [] });
+        if (!newTestResult.jointNo || !newTestResult.weldId) {
+             toast({
+                variant: 'destructive',
+                title: 'Incomplete Result',
+                description: 'Please enter at least a Joint No. and Weld/Part ID.',
+            });
+            return;
         }
+
+        setFormData(prev => ({
+            ...prev,
+            testResults: [...prev.testResults, newTestResult]
+        }));
+        setNewTestResult({ jointNo: '', weldId: '', diameter: '', thickness: '', indication: 'No Indication', result: 'Accept', images: [] });
     };
     
     const handleNewResultImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -453,7 +460,7 @@ export default function PenetrantTestPage() {
                             <CardTitle>Add Test Result</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4 items-end">
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 items-end">
                                 <div className="space-y-2">
                                     <Label htmlFor="jointNo">Joint No.</Label>
                                     <Input id="jointNo" value={newTestResult.jointNo} onChange={handleNewResultChange} />
@@ -493,7 +500,6 @@ export default function PenetrantTestPage() {
                                         </SelectContent>
                                     </Select>
                                 </div>
-                                <Button onClick={handleAddResult}>Add Result</Button>
                             </div>
                             <div className="col-span-full space-y-2 mt-4">
                                 <Label>Evidence Images</Label>
@@ -531,6 +537,9 @@ export default function PenetrantTestPage() {
                                         ))}
                                     </div>
                                 )}
+                            </div>
+                            <div className="mt-4 flex justify-end">
+                                <Button onClick={handleAddResult}>Add Result</Button>
                             </div>
                         </CardContent>
                     </Card>
