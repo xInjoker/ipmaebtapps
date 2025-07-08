@@ -7,7 +7,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { ArrowLeft, Check, ChevronLeft, ChevronRight, Upload, X } from 'lucide-react';
+import { ArrowLeft, Check, ChevronLeft, ChevronRight, Upload, X, ChevronsUpDown } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -23,6 +23,7 @@ import { type ReportItem, type RadiographicTestReportDetails, type RadiographicT
 import { Badge } from '@/components/ui/badge';
 import { useReports } from '@/context/ReportContext';
 import { useToast } from '@/hooks/use-toast';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 
 const steps = [
     { id: '01', name: 'General Info' },
@@ -42,6 +43,11 @@ type TestResult = {
     imageUrls?: string[];
 };
 
+const techniqueOptions = ['SWSI', 'DWSI', 'DWDI', 'Panoramic'];
+const penetrameterOptions = ['ASTM #10', 'ASTM #12', 'ASTM #15', 'ASTM #20', 'ISO Wire 10-16', 'ISO Wire 6-12'];
+const acceptanceCriteriaOptions = ['API 1104', 'ASME B31.3', 'ASME Sec VIII Div 1', 'AWS D1.1'];
+const procedureNoOptions = ['PO/AE.MIG-OPS/35-RT', 'PROJ-SPEC-RT-001'];
+
 export default function RadiographicTestPage() {
     const router = useRouter();
     const { toast } = useToast();
@@ -50,6 +56,7 @@ export default function RadiographicTestPage() {
     const { reports, addReport } = useReports();
     
     const [currentStep, setCurrentStep] = useState(0);
+    const [isProcedureNoPopoverOpen, setIsProcedureNoPopoverOpen] = useState(false);
 
     const [formData, setFormData] = useState({
         client: '',
@@ -302,12 +309,54 @@ export default function RadiographicTestPage() {
                     )}
                     {currentStep === 1 && (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-6">
-                            <div className="space-y-2"><Label htmlFor="procedureNo">Procedure No.</Label><Input id="procedureNo" value={formData.procedureNo} onChange={handleInputChange}/></div>
-                            <div className="space-y-2"><Label htmlFor="acceptanceCriteria">Acceptance Criteria</Label><Input id="acceptanceCriteria" value={formData.acceptanceCriteria} onChange={handleInputChange}/></div>
+                            <div className="space-y-2">
+                                <Label htmlFor="procedureNo">Procedure No.</Label>
+                                <Popover open={isProcedureNoPopoverOpen} onOpenChange={setIsProcedureNoPopoverOpen}>
+                                    <PopoverTrigger asChild>
+                                        <Button variant="outline" role="combobox" aria-expanded={isProcedureNoPopoverOpen} className="w-full justify-between font-normal">
+                                            {formData.procedureNo || "Select or type procedure..."}
+                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                        <Command>
+                                            <CommandInput placeholder="Search or type procedure..." value={formData.procedureNo} onValueChange={(value) => handleSelectChange('procedureNo', value)} />
+                                            <CommandList>
+                                                <CommandEmpty>No procedure found.</CommandEmpty>
+                                                <CommandGroup>
+                                                    {procedureNoOptions.map((option) => (
+                                                        <CommandItem key={option} value={option} onSelect={(currentValue) => { handleSelectChange('procedureNo', currentValue === formData.procedureNo ? "" : currentValue); setIsProcedureNoPopoverOpen(false); }}>
+                                                            <Check className={cn("mr-2 h-4 w-4", formData.procedureNo.toLowerCase() === option.toLowerCase() ? "opacity-100" : "opacity-0")} />
+                                                            {option}
+                                                        </CommandItem>
+                                                    ))}
+                                                </CommandGroup>
+                                            </CommandList>
+                                        </Command>
+                                    </PopoverContent>
+                                </Popover>
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="acceptanceCriteria">Acceptance Criteria</Label>
+                                <Select value={formData.acceptanceCriteria} onValueChange={(v) => handleSelectChange('acceptanceCriteria', v)}>
+                                    <SelectTrigger id="acceptanceCriteria"><SelectValue placeholder="Select criteria"/></SelectTrigger>
+                                    <SelectContent>
+                                        {acceptanceCriteriaOptions.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
+                            </div>
                             <div className="space-y-2"><Label htmlFor="drawingNumber">Drawing Number</Label><Input id="drawingNumber" value={formData.drawingNumber} onChange={handleInputChange}/></div>
                             <div className="space-y-2"><Label htmlFor="examinationStage">Examination Stage</Label><Select value={formData.examinationStage} onValueChange={(v) => handleSelectChange('examinationStage', v)}><SelectTrigger><SelectValue placeholder="Select Stage"/></SelectTrigger><SelectContent><SelectItem value="Before PWHT">Before PWHT</SelectItem><SelectItem value="After PWHT">After PWHT</SelectItem></SelectContent></Select></div>
                             <div className="space-y-2"><Label htmlFor="material">Material</Label><Input id="material" value={formData.material} onChange={handleInputChange}/></div>
-                            <div className="space-y-2"><Label htmlFor="technique">Technique</Label><Input id="technique" value={formData.technique} onChange={handleInputChange} placeholder="e.g., SWSI, DWDI"/></div>
+                            <div className="space-y-2">
+                                <Label htmlFor="technique">Technique</Label>
+                                <Select value={formData.technique} onValueChange={(v) => handleSelectChange('technique', v)}>
+                                    <SelectTrigger id="technique"><SelectValue placeholder="Select technique"/></SelectTrigger>
+                                    <SelectContent>
+                                        {techniqueOptions.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
+                            </div>
                             <div className="space-y-2"><Label htmlFor="source">Source</Label><Select value={formData.source} onValueChange={(v) => handleSelectChange('source', v)}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent><SelectItem value="X-Ray">X-Ray</SelectItem><SelectItem value="Ir-192">Ir-192</SelectItem><SelectItem value="Se-75">Se-75</SelectItem><SelectItem value="Co-60">Co-60</SelectItem></SelectContent></Select></div>
                             <div className="space-y-2"><Label htmlFor="sourceSize">Source Size / Focal Spot</Label><Input id="sourceSize" value={formData.sourceSize} onChange={handleInputChange}/></div>
                             <div className="space-y-2"><Label htmlFor="curries">Curries</Label><Input id="curries" value={formData.curries} onChange={handleInputChange}/></div>
@@ -315,7 +364,15 @@ export default function RadiographicTestPage() {
                             <div className="space-y-2"><Label htmlFor="mA">mA</Label><Input id="mA" value={formData.mA} onChange={handleInputChange}/></div>
                             <div className="space-y-2"><Label htmlFor="sfd">Source to Film Distance</Label><Input id="sfd" value={formData.sfd} onChange={handleInputChange} placeholder="e.g. 700mm"/></div>
                             <div className="space-y-2"><Label htmlFor="screens">Screens</Label><Input id="screens" value={formData.screens} onChange={handleInputChange} placeholder="e.g. Lead 0.1mm"/></div>
-                            <div className="space-y-2"><Label htmlFor="penetrameter">Penetrameter (IQI)</Label><Input id="penetrameter" value={formData.penetrameter} onChange={handleInputChange} placeholder="e.g., ASTM #12"/></div>
+                            <div className="space-y-2">
+                                <Label htmlFor="penetrameter">Penetrameter (IQI)</Label>
+                                <Select value={formData.penetrameter} onValueChange={(v) => handleSelectChange('penetrameter', v)}>
+                                    <SelectTrigger id="penetrameter"><SelectValue placeholder="Select penetrameter"/></SelectTrigger>
+                                    <SelectContent>
+                                        {penetrameterOptions.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
+                            </div>
                             <div className="space-y-2"><Label htmlFor="density">Density</Label><Input id="density" value={formData.density} onChange={handleInputChange} placeholder="e.g. 2.0-4.0"/></div>
                             <div className="space-y-2"><Label htmlFor="cameraSerialNumber">Camera Serial Number</Label><Input id="cameraSerialNumber" value={formData.cameraSerialNumber} onChange={handleInputChange}/></div>
                             <div className="space-y-2"><Label htmlFor="surveyMeterSerialNumber">Survey Meter Serial Number</Label><Input id="surveyMeterSerialNumber" value={formData.surveyMeterSerialNumber} onChange={handleInputChange}/></div>
@@ -351,14 +408,14 @@ export default function RadiographicTestPage() {
                              <Card>
                                 <CardHeader><CardTitle>General Information</CardTitle></CardHeader>
                                 <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-                                    <div><p className="font-medium text-muted-foreground">Client</p><p>{formData.client}</p></div>
-                                    <div><p className="font-medium text-muted-foreground">Service Order</p><p>{formData.soNumber}</p></div>
-                                    <div><p className="font-medium text-muted-foreground">Project Executor</p><p>{formData.projectExecutor}</p></div>
-                                    <div><p className="font-medium text-muted-foreground">Project</p><p>{formData.project}</p></div>
-                                    <div><p className="font-medium text-muted-foreground">Job Location</p><p>{formData.jobLocation}</p></div>
-                                    <div><p className="font-medium text-muted-foreground">Date of Test</p><p>{formData.dateOfTest ? format(formData.dateOfTest, 'PPP') : 'N/A'}</p></div>
-                                    <div><p className="font-medium text-muted-foreground">Report Number</p><p>{formData.reportNumber}</p></div>
-                                    <div><p className="font-medium text-muted-foreground">Line Type</p><p>{formData.lineType}</p></div>
+                                    <div className="col-span-1"><p className="font-medium text-muted-foreground">Project</p><p>{formData.project}</p></div>
+                                    <div className="col-span-1"><p className="font-medium text-muted-foreground">Client</p><p>{formData.client}</p></div>
+                                    <div className="col-span-1"><p className="font-medium text-muted-foreground">Service Order</p><p>{formData.soNumber}</p></div>
+                                    <div className="col-span-1"><p className="font-medium text-muted-foreground">Project Executor</p><p>{formData.projectExecutor}</p></div>
+                                    <div className="col-span-1"><p className="font-medium text-muted-foreground">Job Location</p><p>{formData.jobLocation}</p></div>
+                                    <div className="col-span-1"><p className="font-medium text-muted-foreground">Date of Test</p><p>{formData.dateOfTest ? format(formData.dateOfTest, 'PPP') : 'N/A'}</p></div>
+                                    <div className="col-span-1"><p className="font-medium text-muted-foreground">Report Number</p><p>{formData.reportNumber}</p></div>
+                                    <div className="col-span-1"><p className="font-medium text-muted-foreground">Line Type</p><p>{formData.lineType}</p></div>
                                 </CardContent>
                             </Card>
                             <Card>
@@ -415,3 +472,5 @@ export default function RadiographicTestPage() {
         </div>
     );
 }
+
+    
