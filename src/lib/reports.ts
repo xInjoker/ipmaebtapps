@@ -1,6 +1,7 @@
 
 
 
+
 export type ReportStatus = 'Draft' | 'Submitted' | 'Approved' | 'Rejected' | 'Reviewed';
 
 export type ApprovalAction = {
@@ -152,17 +153,22 @@ export type RadiographicTestReportDetails = {
     dateOfTest?: string;
     procedureNo: string;
     acceptanceCriteria: string;
-    surfaceCondition: string;
     examinationStage: string;
     drawingNumber: string;
     source: string;
     sourceSize: string;
-    sfd: string; // source to film distance
-    exposure: string;
-    filmBrandType: string;
+    sfd: string;
     screens: string;
-    sensitivityIQI: string;
     density: string;
+    material: string;
+    technique: string;
+    penetrameter: string;
+    curries: string;
+    kvp: string;
+    mA: string;
+    cameraSerialNumber: string;
+    surveyMeterSerialNumber: string;
+    surveyMeterCertExpDate?: string;
     testResults: RadiographicTestResult[];
 };
 
@@ -321,7 +327,7 @@ export const initialReports: ReportItem[] = [
         jobType: 'Radiographic Test', 
         qtyJoint: 30, 
         status: 'Rejected', 
-        details: { jobType: 'Radiographic Test', client: 'Stark Industries', soNumber: 'SO-002-B', projectExecutor: 'Cabang Surabaya', project: 'Mobile App Development', dateOfTest: '2024-07-12', procedureNo: 'P-123-RT', acceptanceCriteria: 'API 1104', surfaceCondition: 'As Welded', examinationStage: 'Final', drawingNumber: 'DWG-002', source: 'Ir-192', sourceSize: '3mm', sfd: '700mm', exposure: '2.5 min', filmBrandType: 'AGFA D7', screens: 'Lead 0.1mm', sensitivityIQI: '2-2T', density: '2.5', testResults: [] },
+        details: { jobType: 'Radiographic Test', client: 'Stark Industries', soNumber: 'SO-002-B', projectExecutor: 'Cabang Surabaya', project: 'Mobile App Development', dateOfTest: '2024-07-12', procedureNo: 'P-123-RT', acceptanceCriteria: 'API 1104', examinationStage: 'Final', drawingNumber: 'DWG-002', source: 'Ir-192', sourceSize: '3mm', sfd: '700mm', screens: 'Lead 0.1mm', density: '2.5', material: 'Carbon Steel', technique: 'SWSI', penetrameter: 'ASTM #12', curries: '30', kvp: 'N/A', mA: 'N/A', cameraSerialNumber: 'CAM-IR-05', surveyMeterSerialNumber: 'SM-101', surveyMeterCertExpDate: '2025-06-30', testResults: [] },
         creationDate: '2024-07-12', 
         reviewerId: '5', 
         approverId: '6', 

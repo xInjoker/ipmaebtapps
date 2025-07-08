@@ -62,17 +62,22 @@ export default function RadiographicTestPage() {
         lineType: '',
         procedureNo: 'PO/AE.MIG-OPS/35-RT',
         acceptanceCriteria: 'API 1104',
-        surfaceCondition: 'As Welded',
         examinationStage: '',
         drawingNumber: '',
         source: 'Ir-192',
         sourceSize: '',
         sfd: '',
-        exposure: '',
-        filmBrandType: '',
         screens: '',
-        sensitivityIQI: '',
         density: '',
+        material: '',
+        technique: '',
+        penetrameter: '',
+        curries: '',
+        kvp: '',
+        mA: '',
+        cameraSerialNumber: '',
+        surveyMeterSerialNumber: '',
+        surveyMeterCertExpDate: undefined as Date | undefined,
         testResults: [] as TestResult[],
     });
 
@@ -137,8 +142,8 @@ export default function RadiographicTestPage() {
         }
     };
 
-    const handleDateChange = (date: Date | undefined) => {
-        setFormData(prev => ({ ...prev, dateOfTest: date }));
+    const handleDateChange = (date: Date | undefined, field: 'dateOfTest' | 'surveyMeterCertExpDate') => {
+        setFormData(prev => ({ ...prev, [field]: date }));
     };
 
     const handleNewResultChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -187,17 +192,22 @@ export default function RadiographicTestPage() {
             dateOfTest: formData.dateOfTest ? format(formData.dateOfTest, 'yyyy-MM-dd') : undefined,
             procedureNo: formData.procedureNo,
             acceptanceCriteria: formData.acceptanceCriteria,
-            surfaceCondition: formData.surfaceCondition,
             examinationStage: formData.examinationStage,
             drawingNumber: formData.drawingNumber,
             source: formData.source,
             sourceSize: formData.sourceSize,
             sfd: formData.sfd,
-            exposure: formData.exposure,
-            filmBrandType: formData.filmBrandType,
             screens: formData.screens,
-            sensitivityIQI: formData.sensitivityIQI,
             density: formData.density,
+            material: formData.material,
+            technique: formData.technique,
+            penetrameter: formData.penetrameter,
+            curries: formData.curries,
+            kvp: formData.kvp,
+            mA: formData.mA,
+            cameraSerialNumber: formData.cameraSerialNumber,
+            surveyMeterSerialNumber: formData.surveyMeterSerialNumber,
+            surveyMeterCertExpDate: formData.surveyMeterCertExpDate ? format(formData.surveyMeterCertExpDate, 'yyyy-MM-dd') : undefined,
             testResults: formData.testResults.map(r => ({ ...r, imageUrls: r.imageUrls || [] })),
         };
         const newReport: Omit<ReportItem, 'id'> = {
@@ -284,7 +294,7 @@ export default function RadiographicTestPage() {
                                 )}
                             </div>
                             <div className="space-y-2"><Label htmlFor="projectExecutor">Project Executor</Label><Input id="projectExecutor" value={formData.projectExecutor} onChange={handleInputChange} disabled={!!formData.project && formData.project !== 'Non Project'} /></div>
-                            <div className="space-y-2"><Label htmlFor="dateOfTest">Date of Test</Label><Popover><PopoverTrigger asChild><Button id="dateOfTest" variant={"outline"} className={cn("w-full justify-start text-left font-normal", !formData.dateOfTest && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{formData.dateOfTest ? format(formData.dateOfTest, "PPP") : <span>Pick a date</span>}</Button></PopoverTrigger><PopoverContent className="w-auto p-0"><Calendar mode="single" selected={formData.dateOfTest} onSelect={handleDateChange} initialFocus /></PopoverContent></Popover></div>
+                            <div className="space-y-2"><Label htmlFor="dateOfTest">Date of Test</Label><Popover><PopoverTrigger asChild><Button id="dateOfTest" variant={"outline"} className={cn("w-full justify-start text-left font-normal", !formData.dateOfTest && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{formData.dateOfTest ? format(formData.dateOfTest, "PPP") : <span>Pick a date</span>}</Button></PopoverTrigger><PopoverContent className="w-auto p-0"><Calendar mode="single" selected={formData.dateOfTest} onSelect={(date) => handleDateChange(date, 'dateOfTest')} initialFocus /></PopoverContent></Popover></div>
                             <div className="space-y-2"><Label htmlFor="lineType">Line Type</Label><Input id="lineType" value={formData.lineType} onChange={handleInputChange} placeholder="e.g. Pipeline, Structural Weld" /></div>
                             <div className="space-y-2"><Label htmlFor="jobLocation">Job Location</Label><Input id="jobLocation" value={formData.jobLocation} onChange={handleInputChange} placeholder="e.g. Workshop or Site Name" /></div>
                             <div className="space-y-2"><Label htmlFor="reportNumber">Report Number</Label><Input id="reportNumber" value={formData.reportNumber} onChange={handleInputChange} disabled={!!formData.project && formData.project !== 'Non Project'} /></div>
@@ -295,16 +305,21 @@ export default function RadiographicTestPage() {
                             <div className="space-y-2"><Label htmlFor="procedureNo">Procedure No.</Label><Input id="procedureNo" value={formData.procedureNo} onChange={handleInputChange}/></div>
                             <div className="space-y-2"><Label htmlFor="acceptanceCriteria">Acceptance Criteria</Label><Input id="acceptanceCriteria" value={formData.acceptanceCriteria} onChange={handleInputChange}/></div>
                             <div className="space-y-2"><Label htmlFor="drawingNumber">Drawing Number</Label><Input id="drawingNumber" value={formData.drawingNumber} onChange={handleInputChange}/></div>
-                            <div className="space-y-2"><Label htmlFor="surfaceCondition">Surface Condition</Label><Select value={formData.surfaceCondition} onValueChange={(v) => handleSelectChange('surfaceCondition', v)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="As Welded">As Welded</SelectItem><SelectItem value="Grinded">Grinded</SelectItem></SelectContent></Select></div>
                             <div className="space-y-2"><Label htmlFor="examinationStage">Examination Stage</Label><Select value={formData.examinationStage} onValueChange={(v) => handleSelectChange('examinationStage', v)}><SelectTrigger><SelectValue placeholder="Select Stage"/></SelectTrigger><SelectContent><SelectItem value="Before PWHT">Before PWHT</SelectItem><SelectItem value="After PWHT">After PWHT</SelectItem></SelectContent></Select></div>
+                            <div className="space-y-2"><Label htmlFor="material">Material</Label><Input id="material" value={formData.material} onChange={handleInputChange}/></div>
+                            <div className="space-y-2"><Label htmlFor="technique">Technique</Label><Input id="technique" value={formData.technique} onChange={handleInputChange} placeholder="e.g., SWSI, DWDI"/></div>
                             <div className="space-y-2"><Label htmlFor="source">Source</Label><Select value={formData.source} onValueChange={(v) => handleSelectChange('source', v)}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent><SelectItem value="X-Ray">X-Ray</SelectItem><SelectItem value="Ir-192">Ir-192</SelectItem><SelectItem value="Se-75">Se-75</SelectItem><SelectItem value="Co-60">Co-60</SelectItem></SelectContent></Select></div>
                             <div className="space-y-2"><Label htmlFor="sourceSize">Source Size / Focal Spot</Label><Input id="sourceSize" value={formData.sourceSize} onChange={handleInputChange}/></div>
+                            <div className="space-y-2"><Label htmlFor="curries">Curries</Label><Input id="curries" value={formData.curries} onChange={handleInputChange}/></div>
+                            <div className="space-y-2"><Label htmlFor="kvp">KVP</Label><Input id="kvp" value={formData.kvp} onChange={handleInputChange}/></div>
+                            <div className="space-y-2"><Label htmlFor="mA">mA</Label><Input id="mA" value={formData.mA} onChange={handleInputChange}/></div>
                             <div className="space-y-2"><Label htmlFor="sfd">Source to Film Distance</Label><Input id="sfd" value={formData.sfd} onChange={handleInputChange} placeholder="e.g. 700mm"/></div>
-                            <div className="space-y-2"><Label htmlFor="exposure">Exposure</Label><Input id="exposure" value={formData.exposure} onChange={handleInputChange} placeholder="e.g. 2m 30s"/></div>
-                            <div className="space-y-2"><Label htmlFor="filmBrandType">Film Brand & Type</Label><Input id="filmBrandType" value={formData.filmBrandType} onChange={handleInputChange} placeholder="e.g. AGFA D7"/></div>
                             <div className="space-y-2"><Label htmlFor="screens">Screens</Label><Input id="screens" value={formData.screens} onChange={handleInputChange} placeholder="e.g. Lead 0.1mm"/></div>
-                            <div className="space-y-2"><Label htmlFor="sensitivityIQI">Sensitivity (IQI)</Label><Input id="sensitivityIQI" value={formData.sensitivityIQI} onChange={handleInputChange} placeholder="e.g. 2-2T"/></div>
+                            <div className="space-y-2"><Label htmlFor="penetrameter">Penetrameter (IQI)</Label><Input id="penetrameter" value={formData.penetrameter} onChange={handleInputChange} placeholder="e.g., ASTM #12"/></div>
                             <div className="space-y-2"><Label htmlFor="density">Density</Label><Input id="density" value={formData.density} onChange={handleInputChange} placeholder="e.g. 2.0-4.0"/></div>
+                            <div className="space-y-2"><Label htmlFor="cameraSerialNumber">Camera Serial Number</Label><Input id="cameraSerialNumber" value={formData.cameraSerialNumber} onChange={handleInputChange}/></div>
+                            <div className="space-y-2"><Label htmlFor="surveyMeterSerialNumber">Survey Meter Serial Number</Label><Input id="surveyMeterSerialNumber" value={formData.surveyMeterSerialNumber} onChange={handleInputChange}/></div>
+                            <div className="space-y-2"><Label htmlFor="surveyMeterCertExpDate">Survey Meter Expiry Date</Label><Popover><PopoverTrigger asChild><Button id="surveyMeterCertExpDate" variant={"outline"} className={cn("w-full justify-start text-left font-normal", !formData.surveyMeterCertExpDate && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{formData.surveyMeterCertExpDate ? format(formData.surveyMeterCertExpDate, "PPP") : <span>Pick a date</span>}</Button></PopoverTrigger><PopoverContent className="w-auto p-0"><Calendar mode="single" selected={formData.surveyMeterCertExpDate} onSelect={(date) => handleDateChange(date, 'surveyMeterCertExpDate')} initialFocus /></PopoverContent></Popover></div>
                         </div>
                     )}
                     {currentStep === 2 && (
@@ -351,15 +366,17 @@ export default function RadiographicTestPage() {
                                 <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                                     <div><p className="font-medium text-muted-foreground">Procedure No.</p><p>{formData.procedureNo}</p></div>
                                     <div><p className="font-medium text-muted-foreground">Acceptance Criteria</p><p>{formData.acceptanceCriteria}</p></div>
-                                    <div><p className="font-medium text-muted-foreground">Drawing Number</p><p>{formData.drawingNumber}</p></div>
-                                    <div><p className="font-medium text-muted-foreground">Surface Condition</p><p>{formData.surfaceCondition}</p></div>
-                                    <div><p className="font-medium text-muted-foreground">Examination Stage</p><p>{formData.examinationStage}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Material</p><p>{formData.material}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Technique</p><p>{formData.technique}</p></div>
                                     <div><p className="font-medium text-muted-foreground">Source</p><p>{formData.source} ({formData.sourceSize})</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Curries</p><p>{formData.curries}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">KVP / mA</p><p>{formData.kvp || 'N/A'} / {formData.mA || 'N/A'}</p></div>
                                     <div><p className="font-medium text-muted-foreground">SFD</p><p>{formData.sfd}</p></div>
-                                    <div><p className="font-medium text-muted-foreground">Exposure</p><p>{formData.exposure}</p></div>
-                                    <div><p className="font-medium text-muted-foreground">Film/Screens</p><p>{formData.filmBrandType} / {formData.screens}</p></div>
-                                    <div><p className="font-medium text-muted-foreground">Sensitivity (IQI)</p><p>{formData.sensitivityIQI}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Screens</p><p>{formData.screens}</p></div>
                                     <div><p className="font-medium text-muted-foreground">Density</p><p>{formData.density}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Penetrameter (IQI)</p><p>{formData.penetrameter}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Camera S/N</p><p>{formData.cameraSerialNumber}</p></div>
+                                    <div className="col-span-2"><p className="font-medium text-muted-foreground">Survey Meter S/N</p><p>{formData.surveyMeterSerialNumber} (Expires: {formData.surveyMeterCertExpDate ? format(new Date(formData.surveyMeterCertExpDate), 'PPP') : 'N/A'})</p></div>
                                 </CardContent>
                             </Card>
                             <Card>

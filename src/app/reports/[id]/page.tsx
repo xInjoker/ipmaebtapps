@@ -253,12 +253,17 @@ const RadiographicTestDetailsCard = ({ details }: { details: Extract<ReportDetai
         <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
             <div><p className="font-medium text-muted-foreground">Procedure No.</p><p>{details.procedureNo}</p></div>
             <div><p className="font-medium text-muted-foreground">Acceptance Criteria</p><p>{details.acceptanceCriteria}</p></div>
+            <div><p className="font-medium text-muted-foreground">Material</p><p>{details.material}</p></div>
+            <div><p className="font-medium text-muted-foreground">Technique</p><p>{details.technique}</p></div>
             <div><p className="font-medium text-muted-foreground">Source</p><p>{details.source} ({details.sourceSize})</p></div>
+            <div><p className="font-medium text-muted-foreground">Curries</p><p>{details.curries}</p></div>
+            <div><p className="font-medium text-muted-foreground">KVP / mA</p><p>{details.kvp || 'N/A'} / {details.mA || 'N/A'}</p></div>
             <div><p className="font-medium text-muted-foreground">SFD</p><p>{details.sfd}</p></div>
-            <div><p className="font-medium text-muted-foreground">Exposure</p><p>{details.exposure}</p></div>
-            <div><p className="font-medium text-muted-foreground">Film/Screens</p><p>{details.filmBrandType} / {details.screens}</p></div>
-            <div><p className="font-medium text-muted-foreground">Sensitivity (IQI)</p><p>{details.sensitivityIQI}</p></div>
+            <div><p className="font-medium text-muted-foreground">Screens</p><p>{details.screens}</p></div>
             <div><p className="font-medium text-muted-foreground">Density</p><p>{details.density}</p></div>
+            <div><p className="font-medium text-muted-foreground">Penetrameter (IQI)</p><p>{details.penetrameter}</p></div>
+            <div><p className="font-medium text-muted-foreground">Camera S/N</p><p>{details.cameraSerialNumber}</p></div>
+            <div className="col-span-2"><p className="font-medium text-muted-foreground">Survey Meter S/N</p><p>{details.surveyMeterSerialNumber} (Expires: {details.surveyMeterCertExpDate ? format(new Date(details.surveyMeterCertExpDate), 'PPP') : 'N/A'})</p></div>
         </CardContent>
     </Card>
 );
@@ -313,7 +318,7 @@ export default function ReportDetailsPage() {
         );
     }
     
-    const backPath = report.jobType ? `/reports/${report.jobType.split(' ')[0].toLowerCase()}` : '/reports';
+    const backPath = report.jobType.replace(/ /g, '-').toLowerCase();
     const details = report.details;
     const creator = report.approvalHistory?.[0];
 
@@ -354,7 +359,7 @@ export default function ReportDetailsPage() {
     return (
         <div className="space-y-6">
              <div className="flex items-center gap-4">
-                <Button asChild variant="outline" size="icon"><Link href={backPath}><ArrowLeft className="h-4 w-4" /><span className="sr-only">Back to Report List</span></Link></Button>
+                <Button asChild variant="outline" size="icon"><Link href={`/reports/${backPath}`}><ArrowLeft className="h-4 w-4" /><span className="sr-only">Back to Report List</span></Link></Button>
                 <div>
                     <h1 className="font-headline text-2xl font-bold">{report.jobType} Report: {report.reportNumber}</h1>
                     <p className="text-muted-foreground">Viewing details for the submitted report.</p>
