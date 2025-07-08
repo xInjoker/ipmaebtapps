@@ -313,7 +313,7 @@ export default function ReportDetailsPage() {
         );
     }
     
-    const backPath = report.jobType ? `/reports/${report.jobType.toLowerCase().replace(/ /g, '-')}` : '/reports';
+    const backPath = report.jobType ? `/reports/${report.jobType.split(' ')[0].toLowerCase()}` : '/reports';
     const details = report.details;
     const creator = report.approvalHistory?.[0];
 
@@ -388,4 +388,3 @@ export default function ReportDetailsPage() {
         </div>
     );
 }
-
