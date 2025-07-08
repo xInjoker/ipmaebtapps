@@ -465,13 +465,14 @@ export default function RadiographicTestPage() {
                                     </div>
                                     <div className="rounded-md border">
                                         <Table>
-                                            <TableHeader><TableRow><TableHead>Film Location</TableHead><TableHead>Weld Indication</TableHead><TableHead>Result</TableHead><TableHead className="text-right">Action</TableHead></TableRow></TableHeader>
+                                            <TableHeader><TableRow><TableHead>Film Location</TableHead><TableHead>Weld Indication</TableHead><TableHead>Remarks</TableHead><TableHead>Result</TableHead><TableHead className="text-right">Action</TableHead></TableRow></TableHeader>
                                             <TableBody>
-                                                {newTestResult.findings.length === 0 && <TableRow><TableCell colSpan={4} className="text-center h-20">No findings added</TableCell></TableRow>}
+                                                {newTestResult.findings.length === 0 && <TableRow><TableCell colSpan={5} className="text-center h-20">No findings added</TableCell></TableRow>}
                                                 {newTestResult.findings.map((finding, index) => (
                                                     <TableRow key={index}>
                                                         <TableCell>{finding.filmLocation}</TableCell>
                                                         <TableCell>{finding.weldIndication}</TableCell>
+                                                        <TableCell>{finding.remarks}</TableCell>
                                                         <TableCell><Badge variant={finding.result === 'Accept' ? 'green' : 'destructive'}>{finding.result}</Badge></TableCell>
                                                         <TableCell className="text-right"><Button variant="ghost" size="icon" onClick={() => removeFinding(index)}><X className="h-4 w-4"/></Button></TableCell>
                                                     </TableRow>
