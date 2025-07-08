@@ -2,6 +2,7 @@
 
 
 
+
 export type ReportStatus = 'Draft' | 'Submitted' | 'Approved' | 'Rejected' | 'Reviewed';
 
 export type ApprovalAction = {
@@ -138,9 +139,8 @@ export type RadiographicTestResult = {
     subjectIdentification: string;
     jointNo: string;
     weldId: string;
-    defectLocation: string;
-    defectType: string;
-    result: 'Accept' | 'Reject';
+    diameter: string;
+    thickness: string;
     imageUrls: string[];
 };
 

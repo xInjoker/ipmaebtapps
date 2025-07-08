@@ -36,9 +36,8 @@ type TestResult = {
     subjectIdentification: string;
     jointNo: string;
     weldId: string;
-    defectLocation: string;
-    defectType: string;
-    result: 'Accept' | 'Reject';
+    diameter: string;
+    thickness: string;
     images: File[];
     imageUrls?: string[];
 };
@@ -105,9 +104,8 @@ export default function RadiographicTestPage() {
         subjectIdentification: '',
         jointNo: '',
         weldId: '',
-        defectLocation: '',
-        defectType: '',
-        result: 'Accept',
+        diameter: '',
+        thickness: '',
         images: [],
     });
 
@@ -158,10 +156,6 @@ export default function RadiographicTestPage() {
         setNewTestResult(prev => ({ ...prev, [id]: value }));
     };
 
-    const handleNewResultSelectChange = (id: 'result', value: string) => {
-        setNewTestResult(prev => ({ ...prev, [id]: value as 'Accept' | 'Reject' }));
-    };
-
     const handleAddResult = () => {
         if (!newTestResult.subjectIdentification || !newTestResult.jointNo || !newTestResult.weldId) {
             toast({ variant: 'destructive', title: 'Incomplete Result', description: 'Please enter at least a Subject ID, Joint No. and Weld/Part ID.' });
@@ -169,7 +163,7 @@ export default function RadiographicTestPage() {
         }
         const newResultWithUrls = { ...newTestResult, imageUrls: newTestResult.images.map(file => URL.createObjectURL(file)) };
         setFormData(prev => ({ ...prev, testResults: [...prev.testResults, newResultWithUrls] }));
-        setNewTestResult({ subjectIdentification: '', jointNo: '', weldId: '', defectLocation: '', defectType: '', result: 'Accept', images: [] });
+        setNewTestResult({ subjectIdentification: '', jointNo: '', weldId: '', diameter: '', thickness: '', images: [] });
     };
 
     const handleNewResultImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -388,9 +382,8 @@ export default function RadiographicTestPage() {
                                         <div className="space-y-2"><Label htmlFor="subjectIdentification">Subject ID</Label><Input id="subjectIdentification" value={newTestResult.subjectIdentification} onChange={handleNewResultChange} /></div>
                                         <div className="space-y-2"><Label htmlFor="jointNo">Joint No.</Label><Input id="jointNo" value={newTestResult.jointNo} onChange={handleNewResultChange} /></div>
                                         <div className="space-y-2"><Label htmlFor="weldId">Weld/Part ID</Label><Input id="weldId" value={newTestResult.weldId} onChange={handleNewResultChange} /></div>
-                                        <div className="space-y-2"><Label htmlFor="defectLocation">Defect Location</Label><Input id="defectLocation" value={newTestResult.defectLocation} onChange={handleNewResultChange} /></div>
-                                        <div className="space-y-2"><Label htmlFor="defectType">Defect Type</Label><Input id="defectType" value={newTestResult.defectType} onChange={handleNewResultChange} /></div>
-                                        <div className="space-y-2"><Label htmlFor="result">Result</Label><Select value={newTestResult.result} onValueChange={(v) => handleNewResultSelectChange('result', v)}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent><SelectItem value="Accept">Accept</SelectItem><SelectItem value="Reject">Reject</SelectItem></SelectContent></Select></div>
+                                        <div className="space-y-2"><Label htmlFor="diameter">Diameter</Label><Input id="diameter" value={newTestResult.diameter} onChange={handleNewResultChange} placeholder='e.g., 12"'/></div>
+                                        <div className="space-y-2"><Label htmlFor="thickness">Thickness</Label><Input id="thickness" value={newTestResult.thickness} onChange={handleNewResultChange} placeholder='e.g., 25.4mm' /></div>
                                     </div>
                                     <div className="col-span-full space-y-2"><Label>Evidence Images</Label><div className="flex items-center justify-center w-full"><label htmlFor="image-upload" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-card hover:bg-muted"><div className="flex flex-col items-center justify-center pt-5 pb-6"><Upload className="w-8 h-8 mb-3 text-muted-foreground" /><p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span></p></div><Input id="image-upload" type="file" className="hidden" multiple onChange={handleNewResultImageChange} accept="image/*" /></label></div>
                                         {newTestResultImagePreviews.length > 0 && (<div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">{newTestResultImagePreviews.map((url, index) => (<div key={index} className="relative group"><div className="aspect-square w-full overflow-hidden rounded-md border"><Image src={url} alt={`Preview ${index + 1}`} width={100} height={100} className="h-full w-full object-cover" data-ai-hint="test result" /></div><div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"><Button variant="destructive" size="icon" className="h-8 w-8" onClick={() => removeNewResultImage(index)}><X className="h-4 w-4" /></Button></div><p className="text-xs text-muted-foreground truncate mt-1">{newTestResult.images[index]?.name}</p></div>))}</div>)}
@@ -398,7 +391,37 @@ export default function RadiographicTestPage() {
                                     <div className="mt-4 flex justify-end"><Button onClick={handleAddResult}>Add Result</Button></div>
                                 </CardContent>
                             </Card>
-                            <div className="mt-6"><h3 className="text-lg font-semibold mb-2">Results Summary</h3><Table><TableHeader><TableRow><TableHead>Subject ID</TableHead><TableHead>Joint No.</TableHead><TableHead>Defect Type</TableHead><TableHead>Images</TableHead><TableHead>Result</TableHead></TableRow></TableHeader><TableBody>{formData.testResults.map((result, index) => (<TableRow key={index}><TableCell>{result.subjectIdentification}</TableCell><TableCell>{result.jointNo}</TableCell><TableCell>{result.defectType}</TableCell><TableCell>{result.images.length}</TableCell><TableCell><Badge variant={result.result === 'Accept' ? 'green' : 'destructive'}>{result.result}</Badge></TableCell></TableRow>))}{formData.testResults.length === 0 && (<TableRow><TableCell colSpan={5} className="text-center">No results added yet.</TableCell></TableRow>)}</TableBody></Table></div>
+                            <div className="mt-6"><h3 className="text-lg font-semibold mb-2">Results Summary</h3>
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Subject ID</TableHead>
+                                            <TableHead>Joint No.</TableHead>
+                                            <TableHead>Weld/Part ID</TableHead>
+                                            <TableHead>Diameter</TableHead>
+                                            <TableHead>Thickness</TableHead>
+                                            <TableHead>Images</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {formData.testResults.map((result, index) => (
+                                        <TableRow key={index}>
+                                            <TableCell>{result.subjectIdentification}</TableCell>
+                                            <TableCell>{result.jointNo}</TableCell>
+                                            <TableCell>{result.weldId}</TableCell>
+                                            <TableCell>{result.diameter}</TableCell>
+                                            <TableCell>{result.thickness}</TableCell>
+                                            <TableCell>{result.images.length}</TableCell>
+                                        </TableRow>
+                                        ))}
+                                        {formData.testResults.length === 0 && (
+                                        <TableRow>
+                                            <TableCell colSpan={6} className="text-center">No results added yet.</TableCell>
+                                        </TableRow>
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            </div>
                         </div>
                     )}
                     {currentStep === 3 && (
@@ -444,8 +467,9 @@ export default function RadiographicTestPage() {
                                             <TableRow>
                                                 <TableHead>Subject ID</TableHead>
                                                 <TableHead>Joint No.</TableHead>
-                                                <TableHead>Defect Type</TableHead>
-                                                <TableHead>Result</TableHead>
+                                                <TableHead>Weld/Part ID</TableHead>
+                                                <TableHead>Diameter</TableHead>
+                                                <TableHead>Thickness</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
@@ -453,8 +477,9 @@ export default function RadiographicTestPage() {
                                                 <TableRow key={i}>
                                                     <TableCell>{r.subjectIdentification}</TableCell>
                                                     <TableCell>{r.jointNo}</TableCell>
-                                                    <TableCell>{r.defectType}</TableCell>
-                                                    <TableCell><Badge variant={r.result === 'Accept' ? 'green' : 'destructive'}>{r.result}</Badge></TableCell>
+                                                    <TableCell>{r.weldId}</TableCell>
+                                                    <TableCell>{r.diameter}</TableCell>
+                                                    <TableCell>{r.thickness}</TableCell>
                                                 </TableRow>
                                             ))}
                                         </TableBody>
@@ -472,5 +497,3 @@ export default function RadiographicTestPage() {
         </div>
     );
 }
-
-    

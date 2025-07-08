@@ -278,10 +278,24 @@ const RadiographicTestResultsView = ({ details }: { details: Extract<ReportDetai
                 <CardHeader><CardTitle>Test Results</CardTitle></CardHeader>
                 <CardContent>
                     <Table>
-                        <TableHeader><TableRow><TableHead>Subject ID</TableHead><TableHead>Joint No.</TableHead><TableHead>Defect Type</TableHead><TableHead>Result</TableHead></TableRow></TableHeader>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Subject ID</TableHead>
+                                <TableHead>Joint No.</TableHead>
+                                <TableHead>Weld/Part ID</TableHead>
+                                <TableHead>Diameter</TableHead>
+                                <TableHead>Thickness</TableHead>
+                            </TableRow>
+                        </TableHeader>
                         <TableBody>
                             {details.testResults.map((result, index) => (
-                                <TableRow key={index}><TableCell>{result.subjectIdentification}</TableCell><TableCell>{result.jointNo}</TableCell><TableCell>{result.defectType}</TableCell><TableCell><Badge variant={result.result === 'Accept' ? 'green' : 'destructive'}>{result.result}</Badge></TableCell></TableRow>
+                                <TableRow key={index}>
+                                    <TableCell>{result.subjectIdentification}</TableCell>
+                                    <TableCell>{result.jointNo}</TableCell>
+                                    <TableCell>{result.weldId}</TableCell>
+                                    <TableCell>{result.diameter}</TableCell>
+                                    <TableCell>{result.thickness}</TableCell>
+                                </TableRow>
                             ))}
                         </TableBody>
                     </Table>
@@ -318,7 +332,7 @@ export default function ReportDetailsPage() {
         );
     }
     
-    const backPath = report.jobType.replace(/ /g, '-').toLowerCase();
+    const backPath = report.jobType.replace(/\s+/g, '-').toLowerCase();
     const details = report.details;
     const creator = report.approvalHistory?.[0];
 
