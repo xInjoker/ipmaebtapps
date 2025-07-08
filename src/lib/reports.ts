@@ -134,7 +134,7 @@ export type UltrasonicTestReportDetails = {
 // --- Radiographic Test (RT) ---
 export type RadiographicFinding = {
     filmLocation: string;
-    weldIndication: string;
+    weldIndication: string[];
     remarks: string;
     result: 'Accept' | 'Reject';
 };
@@ -316,7 +316,7 @@ const mockRadiographicDetails: RadiographicTestReportDetails = {
             findings: [
                 {
                     filmLocation: '0-250',
-                    weldIndication: 'Incomplete Penetration',
+                    weldIndication: ['Incomplete Penetration'],
                     remarks: 'IP noted at root pass.',
                     result: 'Reject'
                 }

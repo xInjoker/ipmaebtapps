@@ -7,7 +7,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { ArrowLeft, Check, ChevronLeft, ChevronRight, Upload, X, ChevronsUpDown } from 'lucide-react';
+import { ArrowLeft, Check, ChevronLeft, ChevronRight, Upload, X, ChevronsUpDown, Checkbox } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -34,9 +34,24 @@ const steps = [
     { id: '04', name: 'Summary & Submit' },
 ];
 
+const filmLocationOptions = ['0 - 4', '4 - 8', '8 - 0', '0', '90', '0 - 5', '5 - 10', '10 - 0'];
+const weldIndicationOptions = [
+    'NRI - No Recordable Indication',
+    'IP - Incomplete Penetration',
+    'IF - Incomplete Fusion',
+    'P - Porosity',
+    'CP - Cluster Porosity',
+    'LP - Linear Porosity',
+    'SI - Slag Inclusion',
+    'T - Tungsten Inclusion',
+    'UC - Undercut',
+    'CR - Crack',
+    'Hi-Lo',
+];
+
 type Finding = {
     filmLocation: string;
-    weldIndication: string;
+    weldIndication: string[];
     remarks: string;
     result: 'Accept' | 'Reject';
 };
@@ -66,6 +81,8 @@ export default function RadiographicTestPage() {
     
     const [currentStep, setCurrentStep] = useState(0);
     const [isProcedureNoPopoverOpen, setIsProcedureNoPopoverOpen] = useState(false);
+    const [isFilmLocationPopoverOpen, setIsFilmLocationPopoverOpen] = useState(false);
+    const [isWeldIndicationPopoverOpen, setIsWeldIndicationPopoverOpen] = useState(false);
 
     const [formData, setFormData] = useState({
         client: '',
@@ -122,7 +139,7 @@ export default function RadiographicTestPage() {
     
     const [newFinding, setNewFinding] = useState<Finding>({
         filmLocation: '',
-        weldIndication: 'NRI',
+        weldIndication: [],
         remarks: 'No Recordable Indication',
         result: 'Accept',
     });
@@ -176,8 +193,25 @@ export default function RadiographicTestPage() {
     
     const handleNewFindingChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { id, value } = e.target;
-        setNewFinding(prev => ({...prev, [id.replace('finding', '').toLowerCase()]: value}))
-    }
+        const fieldName = id.replace('finding', '').charAt(0).toLowerCase() + id.replace('finding', '').slice(1);
+        setNewFinding(prev => ({ ...prev, [fieldName]: value }));
+    };
+
+    const handleFilmLocationChange = (value: string) => {
+        setNewFinding(prev => ({ ...prev, filmLocation: value }));
+    };
+
+    const handleWeldIndicationChange = (indication: string) => {
+        setNewFinding(prev => {
+            const newWeldIndications = new Set(prev.weldIndication);
+            if (newWeldIndications.has(indication)) {
+                newWeldIndications.delete(indication);
+            } else {
+                newWeldIndications.add(indication);
+            }
+            return { ...prev, weldIndication: Array.from(newWeldIndications) };
+        });
+    };
     
     const handleNewFindingSelectChange = (value: string) => {
         setNewFinding(prev => ({...prev, result: value as 'Accept' | 'Reject'}));
@@ -188,11 +222,15 @@ export default function RadiographicTestPage() {
             toast({ variant: 'destructive', title: 'Incomplete Finding', description: 'Please enter a film location.' });
             return;
         }
+        if (newFinding.weldIndication.length === 0) {
+            toast({ variant: 'destructive', title: 'Incomplete Finding', description: 'Please select at least one weld indication.' });
+            return;
+        }
         setNewTestResult(prev => ({
             ...prev,
             findings: [...prev.findings, newFinding]
         }));
-        setNewFinding({ filmLocation: '', weldIndication: 'NRI', remarks: 'No Recordable Indication', result: 'Accept' });
+        setNewFinding({ filmLocation: '', weldIndication: [], remarks: 'No Recordable Indication', result: 'Accept' });
     }
     
     const removeFinding = (index: number) => {
@@ -454,8 +492,61 @@ export default function RadiographicTestPage() {
                                     <div className="space-y-4 rounded-md border p-4">
                                         <h4 className="font-semibold text-base">Add Finding</h4>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div className="space-y-2"><Label htmlFor="findingFilmLocation">Film Location</Label><Input id="findingFilmLocation" value={newFinding.filmLocation} onChange={handleNewFindingChange} /></div>
-                                            <div className="space-y-2"><Label htmlFor="findingWeldIndication">Weld Indication</Label><Input id="findingWeldIndication" value={newFinding.weldIndication} onChange={handleNewFindingChange} /></div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="findingFilmLocation">Film Location</Label>
+                                                <Popover open={isFilmLocationPopoverOpen} onOpenChange={setIsFilmLocationPopoverOpen}>
+                                                    <PopoverTrigger asChild>
+                                                        <Button variant="outline" role="combobox" aria-expanded={isFilmLocationPopoverOpen} className="w-full justify-between font-normal">
+                                                            {newFinding.filmLocation || "Select or type location..."}
+                                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                                        </Button>
+                                                    </PopoverTrigger>
+                                                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                                        <Command>
+                                                            <CommandInput placeholder="Search or type location..." value={newFinding.filmLocation} onValueChange={handleFilmLocationChange} />
+                                                            <CommandList>
+                                                                <CommandEmpty>No location found.</CommandEmpty>
+                                                                <CommandGroup>
+                                                                    {filmLocationOptions.map((option) => (
+                                                                        <CommandItem key={option} value={option} onSelect={(currentValue) => { handleFilmLocationChange(currentValue); setIsFilmLocationPopoverOpen(false); }}>
+                                                                            {option}
+                                                                        </CommandItem>
+                                                                    ))}
+                                                                </CommandGroup>
+                                                            </CommandList>
+                                                        </Command>
+                                                    </PopoverContent>
+                                                </Popover>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="findingWeldIndication">Weld Indication</Label>
+                                                <Popover open={isWeldIndicationPopoverOpen} onOpenChange={setIsWeldIndicationPopoverOpen}>
+                                                    <PopoverTrigger asChild>
+                                                        <Button variant="outline" className="w-full justify-between font-normal">
+                                                            <span className="truncate">
+                                                                {newFinding.weldIndication.length > 0 ? newFinding.weldIndication.join(', ') : "Select indications..."}
+                                                            </span>
+                                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                                        </Button>
+                                                    </PopoverTrigger>
+                                                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                                        <Command>
+                                                            <CommandInput placeholder="Search indications..." />
+                                                            <CommandList>
+                                                                <CommandEmpty>No indication found.</CommandEmpty>
+                                                                <CommandGroup>
+                                                                    {weldIndicationOptions.map((option) => (
+                                                                        <CommandItem key={option} onSelect={() => handleWeldIndicationChange(option)} className="cursor-pointer">
+                                                                            <Checkbox checked={newFinding.weldIndication.includes(option)} className="mr-2" />
+                                                                            <span>{option}</span>
+                                                                        </CommandItem>
+                                                                    ))}
+                                                                </CommandGroup>
+                                                            </CommandList>
+                                                        </Command>
+                                                    </PopoverContent>
+                                                </Popover>
+                                            </div>
                                             <div className="space-y-2 col-span-full"><Label htmlFor="findingRemarks">Remarks</Label><Textarea id="findingRemarks" value={newFinding.remarks} onChange={handleNewFindingChange} /></div>
                                             <div className="space-y-2"><Label htmlFor="findingResult">Result</Label><Select value={newFinding.result} onValueChange={handleNewFindingSelectChange}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent><SelectItem value="Accept">Accept</SelectItem><SelectItem value="Reject">Reject</SelectItem></SelectContent></Select></div>
                                         </div>
@@ -471,7 +562,11 @@ export default function RadiographicTestPage() {
                                                 {newTestResult.findings.map((finding, index) => (
                                                     <TableRow key={index}>
                                                         <TableCell>{finding.filmLocation}</TableCell>
-                                                        <TableCell>{finding.weldIndication}</TableCell>
+                                                        <TableCell>
+                                                            <div className="flex flex-wrap gap-1">
+                                                                {finding.weldIndication.map((ind, i) => <Badge key={i} variant="secondary">{ind}</Badge>)}
+                                                            </div>
+                                                        </TableCell>
                                                         <TableCell>{finding.remarks}</TableCell>
                                                         <TableCell><Badge variant={finding.result === 'Accept' ? 'green' : 'destructive'}>{finding.result}</Badge></TableCell>
                                                         <TableCell className="text-right"><Button variant="ghost" size="icon" onClick={() => removeFinding(index)}><X className="h-4 w-4"/></Button></TableCell>

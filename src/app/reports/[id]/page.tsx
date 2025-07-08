@@ -303,7 +303,13 @@ const RadiographicTestResultsView = ({ details }: { details: Extract<ReportDetai
                                     <TableCell>{item.diameter}</TableCell>
                                     <TableCell>{item.thickness}</TableCell>
                                     <TableCell>{item.filmLocation}</TableCell>
-                                    <TableCell>{item.weldIndication}</TableCell>
+                                    <TableCell>
+                                        <div className="flex flex-wrap gap-1">
+                                            {item.weldIndication.map((ind, i) => (
+                                                <Badge key={i} variant="outline" className="text-xs">{ind}</Badge>
+                                            ))}
+                                        </div>
+                                    </TableCell>
                                     <TableCell>{item.remarks}</TableCell>
                                     <TableCell><Badge variant={item.result === 'Accept' ? 'green' : 'destructive'}>{item.result}</Badge></TableCell>
                                 </TableRow>
