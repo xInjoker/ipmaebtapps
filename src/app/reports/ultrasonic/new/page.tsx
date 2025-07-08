@@ -428,7 +428,11 @@ export default function UltrasonicTestPage() {
                                     <div><p className="font-medium text-muted-foreground">Project</p><p>{formData.project}</p></div>
                                     <div><p className="font-medium text-muted-foreground">Client</p><p>{formData.client}</p></div>
                                     <div><p className="font-medium text-muted-foreground">Service Order</p><p>{formData.soNumber}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Project Executor</p><p>{formData.projectExecutor}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Job Location</p><p>{formData.jobLocation}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Date of Test</p><p>{formData.dateOfTest ? format(formData.dateOfTest, 'PPP') : 'N/A'}</p></div>
                                     <div><p className="font-medium text-muted-foreground">Report Number</p><p>{formData.reportNumber}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Line Type</p><p>{formData.lineType}</p></div>
                                 </CardContent>
                             </Card>
                              <Card>
@@ -440,14 +444,41 @@ export default function UltrasonicTestPage() {
                                     <div><p className="font-medium text-muted-foreground">Material</p><p>{formData.material}</p></div>
                                     <div><p className="font-medium text-muted-foreground">Surface Condition</p><p>{formData.surfaceCondition}</p></div>
                                     <div><p className="font-medium text-muted-foreground">Welding Process</p><p>{formData.weldingProcess}</p></div>
-                                    <div><p className="font-medium text-muted-foreground">Equipment</p><p>{formData.equipment}</p></div>
                                     <div><p className="font-medium text-muted-foreground">Scanning Technique</p><p>{formData.scanningTechnique}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Instrument</p><p>{formData.equipment}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Transducer</p><p>{formData.transducer}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Calibration Block</p><p>{formData.calibrationBlock}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Couplant</p><p>{formData.couplant}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Scanning Sensitivity</p><p>{formData.scanningSensitivity}</p></div>
                                 </CardContent>
                             </Card>
                             <Card>
                                 <CardHeader><CardTitle>Test Results</CardTitle></CardHeader>
-                                <CardContent>
-                                    <Table><TableHeader><TableRow><TableHead>Subject ID</TableHead><TableHead>Joint No.</TableHead><TableHead>Remarks</TableHead><TableHead>Result</TableHead></TableRow></TableHeader><TableBody>{formData.testResults.map((r, i) => (<TableRow key={i}><TableCell>{r.subjectIdentification}</TableCell><TableCell>{r.jointNo}</TableCell><TableCell>{r.remarks}</TableCell><TableCell><Badge variant={r.result === 'Accept' ? 'green' : 'destructive'}>{r.result}</Badge></TableCell></TableRow>))}</TableBody></Table>
+                                <CardContent className="overflow-x-auto">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Joint No.</TableHead>
+                                                <TableHead>Weld ID</TableHead>
+                                                <TableHead>Thickness</TableHead>
+                                                <TableHead>Discontinuity</TableHead>
+                                                <TableHead>Remarks</TableHead>
+                                                <TableHead>Result</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {formData.testResults.map((r, i) => (
+                                                <TableRow key={i}>
+                                                    <TableCell>{r.jointNo}</TableCell>
+                                                    <TableCell>{r.weldId}</TableCell>
+                                                    <TableCell>{r.thickness} mm</TableCell>
+                                                    <TableCell>{r.discontinuityType}</TableCell>
+                                                    <TableCell>{r.remarks}</TableCell>
+                                                    <TableCell><Badge variant={r.result === 'Accept' ? 'green' : 'destructive'}>{r.result}</Badge></TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
                                 </CardContent>
                             </Card>
                         </div>
