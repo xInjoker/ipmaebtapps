@@ -6,7 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useReports } from '@/context/ReportContext';
-import { type ReportItem, type ReportDetails } from '@/lib/reports';
+import { type ReportItem, type ReportDetails, RadiographicFinding } from '@/lib/reports';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -272,6 +272,11 @@ const RadiographicTestResultsView = ({ details }: { details: Extract<ReportDetai
     const allImages = details.testResults.flatMap(result =>
         (result.imageUrls || []).map(url => ({ url, jointNo: result.jointNo, weldId: result.weldId }))
     );
+
+    const flattenedResults = details.testResults.flatMap(result =>
+        result.findings.map(finding => ({ ...result, ...finding }))
+    );
+
     return (
         <div className="space-y-6">
              <Card>
@@ -282,7 +287,6 @@ const RadiographicTestResultsView = ({ details }: { details: Extract<ReportDetai
                             <TableRow>
                                 <TableHead>Subject ID</TableHead>
                                 <TableHead>Joint No.</TableHead>
-                                <TableHead>Weld/Part ID</TableHead>
                                 <TableHead>Diameter</TableHead>
                                 <TableHead>Thickness</TableHead>
                                 <TableHead>Film Location</TableHead>
@@ -292,17 +296,16 @@ const RadiographicTestResultsView = ({ details }: { details: Extract<ReportDetai
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {details.testResults.map((result, index) => (
+                            {flattenedResults.map((item, index) => (
                                 <TableRow key={index}>
-                                    <TableCell>{result.subjectIdentification}</TableCell>
-                                    <TableCell>{result.jointNo}</TableCell>
-                                    <TableCell>{result.weldId}</TableCell>
-                                    <TableCell>{result.diameter}</TableCell>
-                                    <TableCell>{result.thickness}</TableCell>
-                                    <TableCell>{result.filmLocation}</TableCell>
-                                    <TableCell>{result.weldIndication}</TableCell>
-                                    <TableCell>{result.remarks}</TableCell>
-                                    <TableCell><Badge variant={result.result === 'Accept' ? 'green' : 'destructive'}>{result.result}</Badge></TableCell>
+                                    <TableCell>{item.subjectIdentification}</TableCell>
+                                    <TableCell>{item.jointNo}</TableCell>
+                                    <TableCell>{item.diameter}</TableCell>
+                                    <TableCell>{item.thickness}</TableCell>
+                                    <TableCell>{item.filmLocation}</TableCell>
+                                    <TableCell>{item.weldIndication}</TableCell>
+                                    <TableCell>{item.remarks}</TableCell>
+                                    <TableCell><Badge variant={item.result === 'Accept' ? 'green' : 'destructive'}>{item.result}</Badge></TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>

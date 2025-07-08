@@ -1,4 +1,5 @@
 
+
 export type ReportStatus = 'Draft' | 'Submitted' | 'Approved' | 'Rejected' | 'Reviewed';
 
 export type ApprovalAction = {
@@ -131,6 +132,13 @@ export type UltrasonicTestReportDetails = {
 };
 
 // --- Radiographic Test (RT) ---
+export type RadiographicFinding = {
+    filmLocation: string;
+    weldIndication: string;
+    remarks: string;
+    result: 'Accept' | 'Reject';
+};
+
 export type RadiographicTestResult = {
     subjectIdentification: string;
     jointNo: string;
@@ -138,10 +146,7 @@ export type RadiographicTestResult = {
     diameter: string;
     thickness: string;
     imageUrls: string[];
-    filmLocation: string;
-    weldIndication: string;
-    remarks: string;
-    result: 'Accept' | 'Reject';
+    findings: RadiographicFinding[];
 };
 
 export type RadiographicTestReportDetails = {
@@ -308,10 +313,14 @@ const mockRadiographicDetails: RadiographicTestReportDetails = {
             diameter: '12"',
             thickness: '25.4mm',
             imageUrls: [],
-            filmLocation: '0-250',
-            weldIndication: 'Incomplete Penetration',
-            remarks: 'IP noted at root pass.',
-            result: 'Reject'
+            findings: [
+                {
+                    filmLocation: '0-250',
+                    weldIndication: 'Incomplete Penetration',
+                    remarks: 'IP noted at root pass.',
+                    result: 'Reject'
+                }
+            ]
         }
     ],
 };

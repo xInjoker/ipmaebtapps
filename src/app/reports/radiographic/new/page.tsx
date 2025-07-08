@@ -20,7 +20,7 @@ import { cn } from '@/lib/utils';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { useProjects } from '@/context/ProjectContext';
 import { useAuth } from '@/context/AuthContext';
-import { type ReportItem, type RadiographicTestReportDetails, type RadiographicTestResult } from '@/lib/reports';
+import { type ReportItem, type RadiographicTestReportDetails, type RadiographicFinding } from '@/lib/reports';
 import { Badge } from '@/components/ui/badge';
 import { useReports } from '@/context/ReportContext';
 import { useToast } from '@/hooks/use-toast';
@@ -34,16 +34,20 @@ const steps = [
     { id: '04', name: 'Summary & Submit' },
 ];
 
+type Finding = {
+    filmLocation: string;
+    weldIndication: string;
+    remarks: string;
+    result: 'Accept' | 'Reject';
+};
+
 type TestResult = {
     subjectIdentification: string;
     jointNo: string;
     weldId: string;
     diameter: string;
     thickness: string;
-    filmLocation: string;
-    weldIndication: string;
-    remarks: string;
-    result: 'Accept' | 'Reject';
+    findings: Finding[];
     images: File[];
     imageUrls?: string[];
 };
@@ -112,11 +116,15 @@ export default function RadiographicTestPage() {
         weldId: '',
         diameter: '',
         thickness: '',
+        findings: [],
+        images: [],
+    });
+    
+    const [newFinding, setNewFinding] = useState<Finding>({
         filmLocation: '',
         weldIndication: 'NRI',
         remarks: 'No Recordable Indication',
         result: 'Accept',
-        images: [],
     });
 
     const [newTestResultImagePreviews, setNewTestResultImagePreviews] = useState<string[]>([]);
@@ -165,9 +173,33 @@ export default function RadiographicTestPage() {
         const { id, value } = e.target;
         setNewTestResult(prev => ({ ...prev, [id]: value }));
     };
-
-    const handleNewResultSelectChange = (id: 'result', value: string) => {
-        setNewTestResult(prev => ({ ...prev, [id]: value as 'Accept' | 'Reject' }));
+    
+    const handleNewFindingChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const { id, value } = e.target;
+        setNewFinding(prev => ({...prev, [id.replace('finding', '').toLowerCase()]: value}))
+    }
+    
+    const handleNewFindingSelectChange = (value: string) => {
+        setNewFinding(prev => ({...prev, result: value as 'Accept' | 'Reject'}));
+    }
+    
+    const handleAddFinding = () => {
+        if (!newFinding.filmLocation) {
+            toast({ variant: 'destructive', title: 'Incomplete Finding', description: 'Please enter a film location.' });
+            return;
+        }
+        setNewTestResult(prev => ({
+            ...prev,
+            findings: [...prev.findings, newFinding]
+        }));
+        setNewFinding({ filmLocation: '', weldIndication: 'NRI', remarks: 'No Recordable Indication', result: 'Accept' });
+    }
+    
+    const removeFinding = (index: number) => {
+        setNewTestResult(prev => ({
+            ...prev,
+            findings: prev.findings.filter((_, i) => i !== index)
+        }));
     };
 
     const handleAddResult = () => {
@@ -175,9 +207,13 @@ export default function RadiographicTestPage() {
             toast({ variant: 'destructive', title: 'Incomplete Result', description: 'Please enter at least a Subject ID, Joint No. and Weld/Part ID.' });
             return;
         }
+        if (newTestResult.findings.length === 0) {
+            toast({ variant: 'destructive', title: 'No Findings', description: 'Please add at least one finding for this result.' });
+            return;
+        }
         const newResultWithUrls = { ...newTestResult, imageUrls: newTestResult.images.map(file => URL.createObjectURL(file)) };
         setFormData(prev => ({ ...prev, testResults: [...prev.testResults, newResultWithUrls] }));
-        setNewTestResult({ subjectIdentification: '', jointNo: '', weldId: '', diameter: '', thickness: '', filmLocation: '', weldIndication: 'NRI', remarks: 'No Recordable Indication', result: 'Accept', images: [] });
+        setNewTestResult({ subjectIdentification: '', jointNo: '', weldId: '', diameter: '', thickness: '', findings: [], images: [] });
     };
 
     const handleNewResultImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -230,7 +266,15 @@ export default function RadiographicTestPage() {
             cameraSerialNumber: formData.cameraSerialNumber,
             surveyMeterSerialNumber: formData.surveyMeterSerialNumber,
             surveyMeterCertExpDate: formData.surveyMeterCertExpDate ? format(formData.surveyMeterCertExpDate, 'yyyy-MM-dd') : undefined,
-            testResults: formData.testResults.map(r => ({ ...r, imageUrls: r.imageUrls || [] })),
+            testResults: formData.testResults.map(r => ({ 
+                subjectIdentification: r.subjectIdentification,
+                jointNo: r.jointNo,
+                weldId: r.weldId,
+                diameter: r.diameter,
+                thickness: r.thickness,
+                findings: r.findings,
+                imageUrls: r.imageUrls || [] 
+            })),
         };
         const newReport: Omit<ReportItem, 'id'> = {
             reportNumber: formData.reportNumber,
@@ -407,41 +451,66 @@ export default function RadiographicTestPage() {
                                         <div className="space-y-2"><Label htmlFor="thickness">Thickness</Label><Input id="thickness" value={newTestResult.thickness} onChange={handleNewResultChange} placeholder='e.g., 25.4mm' /></div>
                                     </div>
                                     <Separator className="my-4"/>
-                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div className="space-y-2"><Label htmlFor="filmLocation">Film Location</Label><Input id="filmLocation" value={newTestResult.filmLocation} onChange={handleNewResultChange} /></div>
-                                        <div className="space-y-2"><Label htmlFor="weldIndication">Weld Indication</Label><Input id="weldIndication" value={newTestResult.weldIndication} onChange={handleNewResultChange} /></div>
-                                        <div className="space-y-2 col-span-full"><Label htmlFor="remarks">Remarks</Label><Textarea id="remarks" value={newTestResult.remarks} onChange={handleNewResultChange} /></div>
-                                        <div className="space-y-2"><Label htmlFor="result">Result</Label><Select value={newTestResult.result} onValueChange={(v) => handleNewResultSelectChange('result', v)}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent><SelectItem value="Accept">Accept</SelectItem><SelectItem value="Reject">Reject</SelectItem></SelectContent></Select></div>
+                                    <div className="space-y-4 rounded-md border p-4">
+                                        <h4 className="font-semibold text-base">Add Finding</h4>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div className="space-y-2"><Label htmlFor="findingFilmLocation">Film Location</Label><Input id="findingFilmLocation" value={newFinding.filmLocation} onChange={handleNewFindingChange} /></div>
+                                            <div className="space-y-2"><Label htmlFor="findingWeldIndication">Weld Indication</Label><Input id="findingWeldIndication" value={newFinding.weldIndication} onChange={handleNewFindingChange} /></div>
+                                            <div className="space-y-2 col-span-full"><Label htmlFor="findingRemarks">Remarks</Label><Textarea id="findingRemarks" value={newFinding.remarks} onChange={handleNewFindingChange} /></div>
+                                            <div className="space-y-2"><Label htmlFor="findingResult">Result</Label><Select value={newFinding.result} onValueChange={handleNewFindingSelectChange}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent><SelectItem value="Accept">Accept</SelectItem><SelectItem value="Reject">Reject</SelectItem></SelectContent></Select></div>
+                                        </div>
+                                        <div className="flex justify-end">
+                                            <Button type="button" onClick={handleAddFinding}>Add Finding</Button>
+                                        </div>
+                                    </div>
+                                    <div className="rounded-md border">
+                                        <Table>
+                                            <TableHeader><TableRow><TableHead>Film Location</TableHead><TableHead>Weld Indication</TableHead><TableHead>Result</TableHead><TableHead className="text-right">Action</TableHead></TableRow></TableHeader>
+                                            <TableBody>
+                                                {newTestResult.findings.length === 0 && <TableRow><TableCell colSpan={4} className="text-center h-20">No findings added</TableCell></TableRow>}
+                                                {newTestResult.findings.map((finding, index) => (
+                                                    <TableRow key={index}>
+                                                        <TableCell>{finding.filmLocation}</TableCell>
+                                                        <TableCell>{finding.weldIndication}</TableCell>
+                                                        <TableCell><Badge variant={finding.result === 'Accept' ? 'green' : 'destructive'}>{finding.result}</Badge></TableCell>
+                                                        <TableCell className="text-right"><Button variant="ghost" size="icon" onClick={() => removeFinding(index)}><X className="h-4 w-4"/></Button></TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
                                     </div>
                                     <Separator className="my-4"/>
                                     <div className="space-y-2"><Label>Evidence Images</Label><div className="flex items-center justify-center w-full"><label htmlFor="image-upload" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-card hover:bg-muted"><div className="flex flex-col items-center justify-center pt-5 pb-6"><Upload className="w-8 h-8 mb-3 text-muted-foreground" /><p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span></p></div><Input id="image-upload" type="file" className="hidden" multiple onChange={handleNewResultImageChange} accept="image/*" /></label></div>
                                         {newTestResultImagePreviews.length > 0 && (<div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">{newTestResultImagePreviews.map((url, index) => (<div key={index} className="relative group"><div className="aspect-square w-full overflow-hidden rounded-md border"><Image src={url} alt={`Preview ${index + 1}`} width={100} height={100} className="h-full w-full object-cover" data-ai-hint="test result" /></div><div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"><Button variant="destructive" size="icon" className="h-8 w-8" onClick={() => removeNewResultImage(index)}><X className="h-4 w-4" /></Button></div><p className="text-xs text-muted-foreground truncate mt-1">{newTestResult.images[index]?.name}</p></div>))}</div>)}
                                     </div>
-                                    <div className="mt-4 flex justify-end"><Button onClick={handleAddResult}>Add Result</Button></div>
+                                    <div className="mt-4 flex justify-end"><Button onClick={handleAddResult}>Add Result to Report</Button></div>
                                 </CardContent>
                             </Card>
-                            <div className="mt-6"><h3 className="text-lg font-semibold mb-2">Results Summary</h3>
+                            <div className="mt-6"><h3 className="text-lg font-semibold mb-2">Report Results Summary</h3>
                                 <div className="rounded-md border">
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
                                             <TableHead>Joint No.</TableHead>
-                                            <TableHead>Film Location</TableHead>
-                                            <TableHead>Weld Indication</TableHead>
-                                            <TableHead>Result</TableHead>
+                                            <TableHead>Weld ID</TableHead>
+                                            <TableHead># Findings</TableHead>
+                                            <TableHead>Overall Result</TableHead>
                                             <TableHead className="text-right">Action</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {formData.testResults.map((result, index) => (
-                                        <TableRow key={index}>
-                                            <TableCell>{result.jointNo}</TableCell>
-                                            <TableCell>{result.filmLocation}</TableCell>
-                                            <TableCell>{result.weldIndication}</TableCell>
-                                            <TableCell><Badge variant={result.result === 'Accept' ? 'green' : 'destructive'}>{result.result}</Badge></TableCell>
-                                            <TableCell className="text-right"><Button variant="ghost" size="icon" onClick={() => removeTestResult(index)}><X className="h-4 w-4"/></Button></TableCell>
-                                        </TableRow>
-                                        ))}
+                                        {formData.testResults.map((result, index) => {
+                                            const overallResult = result.findings.some(f => f.result === 'Reject') ? 'Reject' : 'Accept';
+                                            return (
+                                                <TableRow key={index}>
+                                                    <TableCell>{result.jointNo}</TableCell>
+                                                    <TableCell>{result.weldId}</TableCell>
+                                                    <TableCell>{result.findings.length}</TableCell>
+                                                    <TableCell><Badge variant={overallResult === 'Accept' ? 'green' : 'destructive'}>{overallResult}</Badge></TableCell>
+                                                    <TableCell className="text-right"><Button variant="ghost" size="icon" onClick={() => removeTestResult(index)}><X className="h-4 w-4"/></Button></TableCell>
+                                                </TableRow>
+                                            );
+                                        })}
                                         {formData.testResults.length === 0 && (
                                         <TableRow>
                                             <TableCell colSpan={5} className="text-center h-24">No results added yet.</TableCell>
@@ -496,23 +565,24 @@ export default function RadiographicTestPage() {
                                             <TableRow>
                                                 <TableHead>Joint No.</TableHead>
                                                 <TableHead>Weld ID</TableHead>
-                                                <TableHead>Film Location</TableHead>
-                                                <TableHead>Weld Indication</TableHead>
-                                                <TableHead>Result</TableHead>
+                                                <TableHead># Findings</TableHead>
+                                                <TableHead>Overall Result</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
-                                            {formData.testResults.map((r, i) => (
-                                                <TableRow key={i}>
-                                                    <TableCell>{r.jointNo}</TableCell>
-                                                    <TableCell>{r.weldId}</TableCell>
-                                                    <TableCell>{r.filmLocation}</TableCell>
-                                                    <TableCell>{r.weldIndication}</TableCell>
-                                                    <TableCell><Badge variant={r.result === 'Accept' ? 'green' : 'destructive'}>{r.result}</Badge></TableCell>
-                                                </TableRow>
-                                            ))}
+                                            {formData.testResults.map((r, i) => {
+                                                const overallResult = r.findings.some(f => f.result === 'Reject') ? 'Reject' : 'Accept';
+                                                return (
+                                                    <TableRow key={i}>
+                                                        <TableCell>{r.jointNo}</TableCell>
+                                                        <TableCell>{r.weldId}</TableCell>
+                                                        <TableCell>{r.findings.length}</TableCell>
+                                                        <TableCell><Badge variant={overallResult === 'Accept' ? 'green' : 'destructive'}>{overallResult}</Badge></TableCell>
+                                                    </TableRow>
+                                                );
+                                            })}
                                             {formData.testResults.length === 0 && (
-                                                <TableRow><TableCell colSpan={5} className="text-center h-24">No results added.</TableCell></TableRow>
+                                                <TableRow><TableCell colSpan={4} className="text-center h-24">No results added.</TableCell></TableRow>
                                             )}
                                         </TableBody>
                                     </Table>
