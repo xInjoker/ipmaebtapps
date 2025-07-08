@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -7,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { MoreHorizontal, PlusCircle, ArrowLeft } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, ArrowLeft, FileText, Layers, CheckCircle, Clock } from 'lucide-react';
 import { type ReportItem, type ReportStatus } from '@/lib/reports';
 import { useReports } from '@/context/ReportContext';
 import { useAuth } from '@/context/AuthContext';
@@ -43,6 +44,21 @@ export default function UltrasonicTestListPage() {
     }
     return filteredByType;
   }, [reports, user, userRole]);
+
+  const dashboardStats = useMemo(() => {
+    const totalJoints = ultrasonicReports.reduce((acc, report) => acc + report.qtyJoint, 0);
+    const statusCounts = ultrasonicReports.reduce((acc, report) => {
+      acc[report.status] = (acc[report.status] || 0) + 1;
+      return acc;
+    }, {} as Record<ReportStatus, number>);
+
+    return {
+      totalReports: ultrasonicReports.length,
+      totalJoints,
+      approved: statusCounts['Approved'] || 0,
+      submitted: statusCounts['Submitted'] || 0,
+    };
+  }, [ultrasonicReports]);
   
   const handleConfirmDelete = () => {
     if (reportToDelete) {
@@ -70,6 +86,49 @@ export default function UltrasonicTestListPage() {
                 <h1 className="font-headline text-2xl font-bold">Ultrasonic Test Reports</h1>
                 <p className="text-muted-foreground">View and manage all ultrasonic test reports.</p>
             </div>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Reports</CardTitle>
+                <FileText className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{dashboardStats.totalReports}</div>
+                <p className="text-xs text-muted-foreground">reports generated</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Joints Tested</CardTitle>
+                <Layers className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{dashboardStats.totalJoints}</div>
+                <p className="text-xs text-muted-foreground">across all reports</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Approved Reports</CardTitle>
+                <CheckCircle className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{dashboardStats.approved}</div>
+                <p className="text-xs text-muted-foreground">fully approved reports</p>
+              </CardContent>
+            </Card>
+             <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Pending Approval</CardTitle>
+                <Clock className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{dashboardStats.submitted}</div>
+                <p className="text-xs text-muted-foreground">reports submitted</p>
+              </CardContent>
+            </Card>
         </div>
 
         <Card>

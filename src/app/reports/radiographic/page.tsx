@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { MoreHorizontal, PlusCircle, ArrowLeft } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, ArrowLeft, FileText, Layers, CheckCircle, XCircle } from 'lucide-react';
 import { type ReportItem, type ReportStatus, type RadiographicTestReportDetails } from '@/lib/reports';
 import { useReports } from '@/context/ReportContext';
 import { useAuth } from '@/context/AuthContext';
@@ -44,6 +44,37 @@ export default function RadiographicTestListPage() {
     }
     return filteredByType;
   }, [reports, user, userRole]);
+
+  const dashboardStats = useMemo(() => {
+    let totalJoints = 0;
+    let totalSheets = 0;
+    let totalAccepted = 0;
+    let totalRejected = 0;
+
+    radiographicReports.forEach(report => {
+        totalJoints += report.qtyJoint;
+        const details = report.details as RadiographicTestReportDetails | null;
+        if (details?.jobType === 'Radiographic Test' && details.testResults) {
+            details.testResults.forEach(result => {
+                if(result.findings) {
+                    totalSheets += result.findings.length;
+                    result.findings.forEach(finding => {
+                        if (finding.result === 'Accept') totalAccepted++;
+                        else totalRejected++;
+                    });
+                }
+            });
+        }
+    });
+
+    return {
+        totalReports: radiographicReports.length,
+        totalJoints,
+        totalSheets,
+        totalAccepted,
+        totalRejected,
+    };
+  }, [radiographicReports]);
   
   const handleConfirmDelete = () => {
     if (reportToDelete) {
@@ -71,6 +102,49 @@ export default function RadiographicTestListPage() {
                 <h1 className="font-headline text-2xl font-bold">Radiographic Test Reports</h1>
                 <p className="text-muted-foreground">View and manage all radiographic test reports.</p>
             </div>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Reports</CardTitle>
+                <FileText className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{dashboardStats.totalReports}</div>
+                <p className="text-xs text-muted-foreground">reports generated</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Joints Tested</CardTitle>
+                <Layers className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{dashboardStats.totalJoints}</div>
+                <p className="text-xs text-muted-foreground">across all reports</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Accepted Films</CardTitle>
+                <CheckCircle className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{dashboardStats.totalAccepted}</div>
+                <p className="text-xs text-muted-foreground">out of {dashboardStats.totalSheets} total films</p>
+              </CardContent>
+            </Card>
+             <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Rejected Films</CardTitle>
+                <XCircle className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{dashboardStats.totalRejected}</div>
+                <p className="text-xs text-muted-foreground">out of {dashboardStats.totalSheets} total films</p>
+              </CardContent>
+            </Card>
         </div>
 
         <Card>
@@ -198,4 +272,3 @@ export default function RadiographicTestListPage() {
     </>
   );
 }
-
