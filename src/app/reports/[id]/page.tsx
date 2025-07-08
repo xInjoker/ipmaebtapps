@@ -122,8 +122,12 @@ const UltrasonicTestDetailsView = ({ details }: { details: Extract<ReportDetails
             <Card>
                 <CardHeader><CardTitle>Test Details</CardTitle></CardHeader>
                 <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                     <div><p className="font-medium text-muted-foreground">Procedure No.</p><p>{details.procedureNo}</p></div>
+                    <div><p className="font-medium text-muted-foreground">Procedure No.</p><p>{details.procedureNo}</p></div>
                     <div><p className="font-medium text-muted-foreground">Acceptance Criteria</p><p>{details.acceptanceCriteria}</p></div>
+                    <div><p className="font-medium text-muted-foreground">Surface Condition</p><p>{details.surfaceCondition}</p></div>
+                    <div><p className="font-medium text-muted-foreground">Examination Stage</p><p>{details.examinationStage}</p></div>
+                    <div><p className="font-medium text-muted-foreground">Drawing Number</p><p>{details.drawingNumber}</p></div>
+                    <div><p className="font-medium text-muted-foreground">Material</p><p>{details.material}</p></div>
                     <div><p className="font-medium text-muted-foreground">Equipment</p><p>{details.equipment}</p></div>
                     <div><p className="font-medium text-muted-foreground">Transducer</p><p>{details.transducer}</p></div>
                     <div><p className="font-medium text-muted-foreground">Calibration Block</p><p>{details.calibrationBlock}</p></div>

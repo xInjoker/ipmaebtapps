@@ -108,6 +108,7 @@ export type UltrasonicTestReportDetails = {
     surfaceCondition: string;
     examinationStage: string;
     drawingNumber: string;
+    material: string;
     equipment: string;
     transducer: string;
     calibrationBlock: string;

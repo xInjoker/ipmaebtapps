@@ -65,6 +65,7 @@ export default function UltrasonicTestPage() {
         surfaceCondition: 'As Welded',
         examinationStage: '',
         drawingNumber: '',
+        material: '',
         equipment: 'Olympus EPOCH 650',
         transducer: 'A12, 5MHz, 60 deg',
         calibrationBlock: 'IIW Type 1',
@@ -188,6 +189,7 @@ export default function UltrasonicTestPage() {
             surfaceCondition: formData.surfaceCondition,
             examinationStage: formData.examinationStage,
             drawingNumber: formData.drawingNumber,
+            material: formData.material,
             equipment: formData.equipment,
             transducer: formData.transducer,
             calibrationBlock: formData.calibrationBlock,
@@ -290,6 +292,7 @@ export default function UltrasonicTestPage() {
                             <div className="space-y-2"><Label htmlFor="procedureNo">Procedure No.</Label><Input id="procedureNo" value={formData.procedureNo} onChange={handleInputChange}/></div>
                             <div className="space-y-2"><Label htmlFor="acceptanceCriteria">Acceptance Criteria</Label><Input id="acceptanceCriteria" value={formData.acceptanceCriteria} onChange={handleInputChange}/></div>
                             <div className="space-y-2"><Label htmlFor="drawingNumber">Drawing Number</Label><Input id="drawingNumber" value={formData.drawingNumber} onChange={handleInputChange}/></div>
+                            <div className="space-y-2"><Label htmlFor="material">Material</Label><Input id="material" value={formData.material} onChange={handleInputChange}/></div>
                             <div className="space-y-2 col-span-full"><h4 className="font-semibold text-base mt-2">Equipment</h4></div>
                             <div className="space-y-2"><Label htmlFor="equipment">Instrument</Label><Input id="equipment" value={formData.equipment} onChange={handleInputChange} placeholder="e.g., Olympus EPOCH 650"/></div>
                             <div className="space-y-2"><Label htmlFor="transducer">Transducer</Label><Input id="transducer" value={formData.transducer} onChange={handleInputChange} placeholder="e.g., A12, 5MHz, 60 deg"/></div>
@@ -325,13 +328,23 @@ export default function UltrasonicTestPage() {
                         <div className="pt-6 space-y-6">
                             <h2 className="text-xl font-bold">Report Summary</h2>
                             <p>Review the information before submitting.</p>
-                            <Card>
+                             <Card>
                                 <CardHeader><CardTitle>General Information</CardTitle></CardHeader>
                                 <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                                     <div><p className="font-medium text-muted-foreground">Project</p><p>{formData.project}</p></div>
                                     <div><p className="font-medium text-muted-foreground">Client</p><p>{formData.client}</p></div>
                                     <div><p className="font-medium text-muted-foreground">Service Order</p><p>{formData.soNumber}</p></div>
                                     <div><p className="font-medium text-muted-foreground">Report Number</p><p>{formData.reportNumber}</p></div>
+                                </CardContent>
+                            </Card>
+                             <Card>
+                                <CardHeader><CardTitle>Test Details</CardTitle></CardHeader>
+                                <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                                    <div><p className="font-medium text-muted-foreground">Procedure No.</p><p>{formData.procedureNo}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Acceptance Criteria</p><p>{formData.acceptanceCriteria}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Drawing Number</p><p>{formData.drawingNumber}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Material</p><p>{formData.material}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Equipment</p><p>{formData.equipment}</p></div>
                                 </CardContent>
                             </Card>
                             <Card>
