@@ -14,7 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowLeft } from 'lucide-react';
 import { format } from 'date-fns';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
 
 // --- Reusable Image Gallery ---
 const ImageGallery = ({ allImages }: { allImages: { url: string, jointNo: string, weldId: string }[] }) => (
@@ -41,7 +41,13 @@ const ImageGallery = ({ allImages }: { allImages: { url: string, jointNo: string
                                         </Card>
                                     </DialogTrigger>
                                     <DialogContent className="max-w-4xl p-0 border-0">
-                                        <Image src={image.url} alt="Evidence image preview" width={1280} height={720} className="h-auto w-full object-contain rounded-lg" />
+                                        <DialogHeader className="sr-only">
+                                            <DialogTitle>Enlarged Image</DialogTitle>
+                                            <DialogDescription>
+                                                Enlarged view of the evidence image for Joint {image.jointNo} / Weld ID: {image.weldId}.
+                                            </DialogDescription>
+                                        </DialogHeader>
+                                        <Image src={image.url} alt={`Enlarged evidence image for Joint ${image.jointNo}`} width={1280} height={720} className="h-auto w-full object-contain rounded-lg" />
                                     </DialogContent>
                                 </Dialog>
                             </div>
