@@ -43,12 +43,13 @@ type TestResult = {
 };
 
 export default function RadiographicTestPage() {
-    const [currentStep, setCurrentStep] = useState(0);
+    const router = useRouter();
+    const { toast } = useToast();
     const { projects } = useProjects();
     const { user, isHqUser, roles } = useAuth();
     const { reports, addReport } = useReports();
-    const router = useRouter();
-    const { toast } = useToast();
+    
+    const [currentStep, setCurrentStep] = useState(0);
 
     const [formData, setFormData] = useState({
         client: '',
@@ -294,6 +295,8 @@ export default function RadiographicTestPage() {
                             <div className="space-y-2"><Label htmlFor="procedureNo">Procedure No.</Label><Input id="procedureNo" value={formData.procedureNo} onChange={handleInputChange}/></div>
                             <div className="space-y-2"><Label htmlFor="acceptanceCriteria">Acceptance Criteria</Label><Input id="acceptanceCriteria" value={formData.acceptanceCriteria} onChange={handleInputChange}/></div>
                             <div className="space-y-2"><Label htmlFor="drawingNumber">Drawing Number</Label><Input id="drawingNumber" value={formData.drawingNumber} onChange={handleInputChange}/></div>
+                            <div className="space-y-2"><Label htmlFor="surfaceCondition">Surface Condition</Label><Select value={formData.surfaceCondition} onValueChange={(v) => handleSelectChange('surfaceCondition', v)}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="As Welded">As Welded</SelectItem><SelectItem value="Grinded">Grinded</SelectItem></SelectContent></Select></div>
+                            <div className="space-y-2"><Label htmlFor="examinationStage">Examination Stage</Label><Select value={formData.examinationStage} onValueChange={(v) => handleSelectChange('examinationStage', v)}><SelectTrigger><SelectValue placeholder="Select Stage"/></SelectTrigger><SelectContent><SelectItem value="Before PWHT">Before PWHT</SelectItem><SelectItem value="After PWHT">After PWHT</SelectItem></SelectContent></Select></div>
                             <div className="space-y-2"><Label htmlFor="source">Source</Label><Select value={formData.source} onValueChange={(v) => handleSelectChange('source', v)}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent><SelectItem value="X-Ray">X-Ray</SelectItem><SelectItem value="Ir-192">Ir-192</SelectItem><SelectItem value="Se-75">Se-75</SelectItem><SelectItem value="Co-60">Co-60</SelectItem></SelectContent></Select></div>
                             <div className="space-y-2"><Label htmlFor="sourceSize">Source Size / Focal Spot</Label><Input id="sourceSize" value={formData.sourceSize} onChange={handleInputChange}/></div>
                             <div className="space-y-2"><Label htmlFor="sfd">Source to Film Distance</Label><Input id="sfd" value={formData.sfd} onChange={handleInputChange} placeholder="e.g. 700mm"/></div>
@@ -333,16 +336,55 @@ export default function RadiographicTestPage() {
                              <Card>
                                 <CardHeader><CardTitle>General Information</CardTitle></CardHeader>
                                 <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-                                    <div><p className="font-medium text-muted-foreground">Project</p><p>{formData.project}</p></div>
                                     <div><p className="font-medium text-muted-foreground">Client</p><p>{formData.client}</p></div>
                                     <div><p className="font-medium text-muted-foreground">Service Order</p><p>{formData.soNumber}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Project Executor</p><p>{formData.projectExecutor}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Project</p><p>{formData.project}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Job Location</p><p>{formData.jobLocation}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Date of Test</p><p>{formData.dateOfTest ? format(formData.dateOfTest, 'PPP') : 'N/A'}</p></div>
                                     <div><p className="font-medium text-muted-foreground">Report Number</p><p>{formData.reportNumber}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Line Type</p><p>{formData.lineType}</p></div>
+                                </CardContent>
+                            </Card>
+                            <Card>
+                                <CardHeader><CardTitle>Test Details</CardTitle></CardHeader>
+                                <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                                    <div><p className="font-medium text-muted-foreground">Procedure No.</p><p>{formData.procedureNo}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Acceptance Criteria</p><p>{formData.acceptanceCriteria}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Drawing Number</p><p>{formData.drawingNumber}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Surface Condition</p><p>{formData.surfaceCondition}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Examination Stage</p><p>{formData.examinationStage}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Source</p><p>{formData.source} ({formData.sourceSize})</p></div>
+                                    <div><p className="font-medium text-muted-foreground">SFD</p><p>{formData.sfd}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Exposure</p><p>{formData.exposure}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Film/Screens</p><p>{formData.filmBrandType} / {formData.screens}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Sensitivity (IQI)</p><p>{formData.sensitivityIQI}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Density</p><p>{formData.density}</p></div>
                                 </CardContent>
                             </Card>
                             <Card>
                                 <CardHeader><CardTitle>Test Results</CardTitle></CardHeader>
                                 <CardContent>
-                                    <Table><TableHeader><TableRow><TableHead>Subject ID</TableHead><TableHead>Joint No.</TableHead><TableHead>Result</TableHead></TableRow></TableHeader><TableBody>{formData.testResults.map((r, i) => (<TableRow key={i}><TableCell>{r.subjectIdentification}</TableCell><TableCell>{r.jointNo}</TableCell><TableCell>{r.result}</TableCell></TableRow>))}</TableBody></Table>
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Subject ID</TableHead>
+                                                <TableHead>Joint No.</TableHead>
+                                                <TableHead>Defect Type</TableHead>
+                                                <TableHead>Result</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {formData.testResults.map((r, i) => (
+                                                <TableRow key={i}>
+                                                    <TableCell>{r.subjectIdentification}</TableCell>
+                                                    <TableCell>{r.jointNo}</TableCell>
+                                                    <TableCell>{r.defectType}</TableCell>
+                                                    <TableCell><Badge variant={r.result === 'Accept' ? 'green' : 'destructive'}>{r.result}</Badge></TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
                                 </CardContent>
                             </Card>
                         </div>

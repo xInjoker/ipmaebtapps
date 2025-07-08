@@ -42,13 +42,14 @@ type TestResult = {
 };
 
 export default function MagneticTestPage() {
-    const [currentStep, setCurrentStep] = useState(0);
+    const router = useRouter();
+    const { toast } = useToast();
     const { projects } = useProjects();
     const { user, isHqUser, roles } = useAuth();
     const { reports, addReport } = useReports();
-    const router = useRouter();
-    const { toast } = useToast();
-
+    
+    const [currentStep, setCurrentStep] = useState(0);
+    
     const [formData, setFormData] = useState({
         client: '',
         soNumber: '',
@@ -327,26 +328,53 @@ export default function MagneticTestPage() {
                              <Card>
                                 <CardHeader><CardTitle>General Information</CardTitle></CardHeader>
                                 <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-                                    <div><p className="font-medium text-muted-foreground">Project</p><p>{formData.project}</p></div>
                                     <div><p className="font-medium text-muted-foreground">Client</p><p>{formData.client}</p></div>
                                     <div><p className="font-medium text-muted-foreground">Service Order</p><p>{formData.soNumber}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Project Executor</p><p>{formData.projectExecutor}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Project</p><p>{formData.project}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Job Location</p><p>{formData.jobLocation}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Date of Test</p><p>{formData.dateOfTest ? format(formData.dateOfTest, 'PPP') : 'N/A'}</p></div>
                                     <div><p className="font-medium text-muted-foreground">Report Number</p><p>{formData.reportNumber}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Line Type</p><p>{formData.lineType}</p></div>
                                 </CardContent>
                             </Card>
                              <Card>
                                 <CardHeader><CardTitle>Test Details</CardTitle></CardHeader>
-                                <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                                <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                                     <div><p className="font-medium text-muted-foreground">Procedure No.</p><p>{formData.procedureNo}</p></div>
                                     <div><p className="font-medium text-muted-foreground">Acceptance Criteria</p><p>{formData.acceptanceCriteria}</p></div>
-                                    <div><p className="font-medium text-muted-foreground">Magnetization</p><p>{formData.magnetizationTechnique}</p></div>
-                                    <div><p className="font-medium text-muted-foreground">Current</p><p>{formData.currentType} / {formData.amperage}</p></div>
-                                    <div><p className="font-medium text-muted-foreground">Particles</p><p>{formData.magneticParticlesType}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Drawing Number</p><p>{formData.drawingNumber}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Magnetization Technique</p><p>{formData.magnetizationTechnique}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Current Type</p><p>{formData.currentType}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Amperage</p><p>{formData.amperage}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Magnetic Particles Type</p><p>{formData.magneticParticlesType}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Particle Brand/Batch</p><p>{formData.particleBrand} / {formData.particleBatch}</p></div>
+                                    <div className="col-span-full"><p className="font-medium text-muted-foreground">Equipment Used</p><p>{formData.equipment}</p></div>
                                 </CardContent>
                             </Card>
                             <Card>
                                 <CardHeader><CardTitle>Test Results</CardTitle></CardHeader>
                                 <CardContent>
-                                    <Table><TableHeader><TableRow><TableHead>Subject ID</TableHead><TableHead>Joint No.</TableHead><TableHead>Result</TableHead></TableRow></TableHeader><TableBody>{formData.testResults.map((r, i) => (<TableRow key={i}><TableCell>{r.subjectIdentification}</TableCell><TableCell>{r.jointNo}</TableCell><TableCell>{r.result}</TableCell></TableRow>))}</TableBody></Table>
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Subject ID</TableHead>
+                                                <TableHead>Joint No.</TableHead>
+                                                <TableHead>Indication Details</TableHead>
+                                                <TableHead>Result</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {formData.testResults.map((r, i) => (
+                                                <TableRow key={i}>
+                                                    <TableCell>{r.subjectIdentification}</TableCell>
+                                                    <TableCell>{r.jointNo}</TableCell>
+                                                    <TableCell>{r.indicationDetails}</TableCell>
+                                                    <TableCell><Badge variant={r.result === 'Accept' ? 'green' : 'destructive'}>{r.result}</Badge></TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
                                 </CardContent>
                             </Card>
                         </div>

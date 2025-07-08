@@ -59,21 +59,15 @@ const procedureNoOptions = ['PO/AE.MIG-OPS/35'];
 
 
 export default function PenetrantTestPage() {
-    const [currentStep, setCurrentStep] = useState(0);
+    const router = useRouter();
+    const { toast } = useToast();
     const { projects } = useProjects();
     const { user, isHqUser, roles } = useAuth();
     const { reports, addReport } = useReports();
-    const router = useRouter();
-    const { toast } = useToast();
+
+    const [currentStep, setCurrentStep] = useState(0);
     const [isAcceptanceCriteriaPopoverOpen, setIsAcceptanceCriteriaPopoverOpen] = useState(false);
     const [isProcedureNoPopoverOpen, setIsProcedureNoPopoverOpen] = useState(false);
-
-
-    const visibleProjects = useMemo(() => {
-        if (isHqUser) return projects;
-        if (!user) return [];
-        return projects.filter(p => p.branchId === user.branchId);
-    }, [projects, user, isHqUser]);
 
     const [formData, setFormData] = useState({
         client: '',
@@ -106,6 +100,12 @@ export default function PenetrantTestPage() {
         testEquipment: '',
         testResults: [] as TestResult[],
     });
+
+    const visibleProjects = useMemo(() => {
+        if (isHqUser) return projects;
+        if (!user) return [];
+        return projects.filter(p => p.branchId === user.branchId);
+    }, [projects, user, isHqUser]);
 
     const selectedProject = useMemo(() => {
         if (!formData.project || formData.project === 'Non Project') {
@@ -821,11 +821,11 @@ export default function PenetrantTestPage() {
                     <h2 className="text-xl font-bold">Report Summary</h2>
                     <p>Please review all the information below before submitting the report.</p>
                     
-                    {/* General Info */}
                     <Card>
                         <CardHeader><CardTitle>General Information</CardTitle></CardHeader>
                         <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                             <div><p className="font-medium text-muted-foreground">Client</p><p>{formData.client}</p></div>
+                            <div><p className="font-medium text-muted-foreground">Service Order</p><p>{formData.soNumber}</p></div>
                             <div><p className="font-medium text-muted-foreground">Project Executor</p><p>{formData.projectExecutor}</p></div>
                             <div><p className="font-medium text-muted-foreground">Project</p><p>{formData.project}</p></div>
                             <div><p className="font-medium text-muted-foreground">Job Location</p><p>{formData.jobLocation}</p></div>
@@ -835,7 +835,6 @@ export default function PenetrantTestPage() {
                         </CardContent>
                     </Card>
 
-                    {/* Test Details */}
                     <Card>
                         <CardHeader><CardTitle>Test Details</CardTitle></CardHeader>
                         <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
@@ -868,7 +867,6 @@ export default function PenetrantTestPage() {
                         </CardContent>
                     </Card>
 
-                    {/* Test Results */}
                     <Card>
                         <CardHeader><CardTitle>Test Results</CardTitle></CardHeader>
                         <CardContent>
