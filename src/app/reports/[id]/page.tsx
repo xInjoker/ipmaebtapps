@@ -16,45 +16,87 @@ import { format } from 'date-fns';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 
-// --- Detail View Components ---
+// --- Reusable Image Gallery ---
+const ImageGallery = ({ allImages }: { allImages: { url: string, jointNo: string, weldId: string }[] }) => (
+    <Card>
+        <CardHeader>
+            <CardTitle>Evidence Images</CardTitle>
+            <CardDescription>A gallery of all images uploaded as evidence for the test results. Click an image to enlarge.</CardDescription>
+        </CardHeader>
+        <CardContent>
+            <Carousel className="w-full" opts={{ align: "start", loop: true }}>
+                <CarouselContent className="-ml-4">
+                    {allImages.map((image, index) => (
+                        <CarouselItem key={index} className="pl-4 md:basis-1/2 lg:basis-1/3">
+                            <div className="p-1">
+                                <Dialog>
+                                    <DialogTrigger asChild>
+                                        <Card className="cursor-pointer">
+                                            <CardContent className="flex aspect-video items-center justify-center p-0 rounded-t-lg overflow-hidden">
+                                                <Image src={image.url} alt={`Image for Joint ${image.jointNo}`} width={400} height={225} className="h-full w-full object-cover" data-ai-hint="test result" />
+                                            </CardContent>
+                                            <CardFooter className="text-xs p-2 bg-muted/50 rounded-b-lg">
+                                                <p className="font-medium truncate">Joint: {image.jointNo} / Weld ID: {image.weldId}</p>
+                                            </CardFooter>
+                                        </Card>
+                                    </DialogTrigger>
+                                    <DialogContent className="max-w-4xl p-0 border-0">
+                                        <Image src={image.url} alt="Evidence image preview" width={1280} height={720} className="h-auto w-full object-contain rounded-lg" />
+                                    </DialogContent>
+                                </Dialog>
+                            </div>
+                        </CarouselItem>
+                    ))}
+                </CarouselContent>
+                <CarouselPrevious />
+                <CarouselNext />
+            </Carousel>
+        </CardContent>
+    </Card>
+);
 
-const PenetrantTestDetailsView = ({ details, report }: { details: Extract<ReportDetails, { jobType: 'Penetrant Test' }>, report: ReportItem }) => {
+// --- Detail Components Refactored ---
+
+const PenetrantTestDetailsCard = ({ details }: { details: Extract<ReportDetails, { jobType: 'Penetrant Test' }> }) => (
+    <Card>
+        <CardHeader><CardTitle>Test Details</CardTitle></CardHeader>
+        <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            <div><p className="font-medium text-muted-foreground">Procedure No.</p><p>{details.procedureNo}</p></div>
+            <div><p className="font-medium text-muted-foreground">Acceptance Criteria</p><p>{details.acceptanceCriteria}</p></div>
+            <div><p className="font-medium text-muted-foreground">Visual Inspection</p><p>{details.visualInspection}</p></div>
+            <div><p className="font-medium text-muted-foreground">Surface Condition</p><p>{details.surfaceCondition}</p></div>
+            <div><p className="font-medium text-muted-foreground">Examination Stage</p><p>{details.examinationStage}</p></div>
+            <div><p className="font-medium text-muted-foreground">Material</p><p>{details.material}</p></div>
+            <div><p className="font-medium text-muted-foreground">Welding Process</p><p>{details.weldingProcess}</p></div>
+            <div><p className="font-medium text-muted-foreground">Drawing Number</p><p>{details.drawingNumber}</p></div>
+            <div><p className="font-medium text-muted-foreground">Test Extent</p><p>{details.testExtent}</p></div>
+            <div><p className="font-medium text-muted-foreground">Test Temperature</p><p>{details.testTemperature}</p></div>
+            <div className="col-span-full"><p className="font-medium text-muted-foreground">Test Equipment</p><p>{details.testEquipment}</p></div>
+
+            <div className="col-span-full"><h4 className="font-semibold text-base mt-2">Penetrant</h4></div>
+            <div><p className="font-medium text-muted-foreground">Type</p><p>{details.penetrantType}</p></div>
+            <div><p className="font-medium text-muted-foreground">Brand</p><p>{details.penetrantBrand}</p></div>
+            <div><p className="font-medium text-muted-foreground">Batch No.</p><p>{details.penetrantBatch}</p></div>
+
+            <div className="col-span-full"><h4 className="font-semibold text-base mt-2">Remover</h4></div>
+            <div><p className="font-medium text-muted-foreground">Type</p><p>{details.removerType}</p></div>
+            <div><p className="font-medium text-muted-foreground">Brand</p><p>{details.removerBrand}</p></div>
+            <div><p className="font-medium text-muted-foreground">Batch No.</p><p>{details.removerBatch}</p></div>
+
+            <div className="col-span-full"><h4 className="font-semibold text-base mt-2">Developer</h4></div>
+            <div><p className="font-medium text-muted-foreground">Type</p><p>{details.developerType}</p></div>
+            <div><p className="font-medium text-muted-foreground">Brand</p><p>{details.developerBrand}</p></div>
+            <div><p className="font-medium text-muted-foreground">Batch No.</p><p>{details.developerBatch}</p></div>
+        </CardContent>
+    </Card>
+);
+
+const PenetrantTestResultsView = ({ details }: { details: Extract<ReportDetails, { jobType: 'Penetrant Test' }> }) => {
     const allImages = details.testResults.flatMap(result =>
         (result.imageUrls || []).map(url => ({ url, jointNo: result.jointNo, weldId: result.weldId }))
     );
     return (
         <div className="space-y-6">
-            <Card>
-                <CardHeader><CardTitle>Test Details</CardTitle></CardHeader>
-                <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                    <div><p className="font-medium text-muted-foreground">Procedure No.</p><p>{details.procedureNo}</p></div>
-                    <div><p className="font-medium text-muted-foreground">Acceptance Criteria</p><p>{details.acceptanceCriteria}</p></div>
-                    <div><p className="font-medium text-muted-foreground">Visual Inspection</p><p>{details.visualInspection}</p></div>
-                    <div><p className="font-medium text-muted-foreground">Surface Condition</p><p>{details.surfaceCondition}</p></div>
-                    <div><p className="font-medium text-muted-foreground">Examination Stage</p><p>{details.examinationStage}</p></div>
-                    <div><p className="font-medium text-muted-foreground">Material</p><p>{details.material}</p></div>
-                    <div><p className="font-medium text-muted-foreground">Welding Process</p><p>{details.weldingProcess}</p></div>
-                    <div><p className="font-medium text-muted-foreground">Drawing Number</p><p>{details.drawingNumber}</p></div>
-                    <div><p className="font-medium text-muted-foreground">Test Extent</p><p>{details.testExtent}</p></div>
-                    <div><p className="font-medium text-muted-foreground">Test Temperature</p><p>{details.testTemperature}</p></div>
-                    <div className="col-span-full"><p className="font-medium text-muted-foreground">Test Equipment</p><p>{details.testEquipment}</p></div>
-
-                    <div className="col-span-full"><h4 className="font-semibold text-base mt-2">Penetrant</h4></div>
-                    <div><p className="font-medium text-muted-foreground">Type</p><p>{details.penetrantType}</p></div>
-                    <div><p className="font-medium text-muted-foreground">Brand</p><p>{details.penetrantBrand}</p></div>
-                    <div><p className="font-medium text-muted-foreground">Batch No.</p><p>{details.penetrantBatch}</p></div>
-
-                    <div className="col-span-full"><h4 className="font-semibold text-base mt-2">Remover</h4></div>
-                    <div><p className="font-medium text-muted-foreground">Type</p><p>{details.removerType}</p></div>
-                    <div><p className="font-medium text-muted-foreground">Brand</p><p>{details.removerBrand}</p></div>
-                    <div><p className="font-medium text-muted-foreground">Batch No.</p><p>{details.removerBatch}</p></div>
-
-                    <div className="col-span-full"><h4 className="font-semibold text-base mt-2">Developer</h4></div>
-                    <div><p className="font-medium text-muted-foreground">Type</p><p>{details.developerType}</p></div>
-                    <div><p className="font-medium text-muted-foreground">Brand</p><p>{details.developerBrand}</p></div>
-                    <div><p className="font-medium text-muted-foreground">Batch No.</p><p>{details.developerBatch}</p></div>
-                </CardContent>
-            </Card>
             <Card>
                 <CardHeader><CardTitle>Test Results</CardTitle></CardHeader>
                 <CardContent>
@@ -76,25 +118,28 @@ const PenetrantTestDetailsView = ({ details, report }: { details: Extract<Report
     );
 };
 
-const MagneticParticleTestDetailsView = ({ details }: { details: Extract<ReportDetails, { jobType: 'Magnetic Particle Test' }> }) => {
+const MagneticParticleTestDetailsCard = ({ details }: { details: Extract<ReportDetails, { jobType: 'Magnetic Particle Test' }> }) => (
+    <Card>
+        <CardHeader><CardTitle>Test Details</CardTitle></CardHeader>
+        <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            <div><p className="font-medium text-muted-foreground">Procedure No.</p><p>{details.procedureNo}</p></div>
+            <div><p className="font-medium text-muted-foreground">Acceptance Criteria</p><p>{details.acceptanceCriteria}</p></div>
+            <div><p className="font-medium text-muted-foreground">Magnetization Technique</p><p>{details.magnetizationTechnique}</p></div>
+            <div><p className="font-medium text-muted-foreground">Current Type</p><p>{details.currentType}</p></div>
+            <div><p className="font-medium text-muted-foreground">Amperage</p><p>{details.amperage}</p></div>
+            <div><p className="font-medium text-muted-foreground">Particles Type</p><p>{details.magneticParticlesType}</p></div>
+            <div><p className="font-medium text-muted-foreground">Particle Brand/Batch</p><p>{details.particleBrand} / {details.particleBatch}</p></div>
+            <div><p className="font-medium text-muted-foreground">Equipment</p><p>{details.equipment}</p></div>
+        </CardContent>
+    </Card>
+);
+
+const MagneticParticleTestResultsView = ({ details }: { details: Extract<ReportDetails, { jobType: 'Magnetic Particle Test' }> }) => {
     const allImages = details.testResults.flatMap(result =>
         (result.imageUrls || []).map(url => ({ url, jointNo: result.jointNo, weldId: result.weldId }))
     );
     return (
         <div className="space-y-6">
-            <Card>
-                <CardHeader><CardTitle>Test Details</CardTitle></CardHeader>
-                <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                    <div><p className="font-medium text-muted-foreground">Procedure No.</p><p>{details.procedureNo}</p></div>
-                    <div><p className="font-medium text-muted-foreground">Acceptance Criteria</p><p>{details.acceptanceCriteria}</p></div>
-                    <div><p className="font-medium text-muted-foreground">Magnetization Technique</p><p>{details.magnetizationTechnique}</p></div>
-                    <div><p className="font-medium text-muted-foreground">Current Type</p><p>{details.currentType}</p></div>
-                    <div><p className="font-medium text-muted-foreground">Amperage</p><p>{details.amperage}</p></div>
-                    <div><p className="font-medium text-muted-foreground">Particles Type</p><p>{details.magneticParticlesType}</p></div>
-                    <div><p className="font-medium text-muted-foreground">Particle Brand/Batch</p><p>{details.particleBrand} / {details.particleBatch}</p></div>
-                    <div><p className="font-medium text-muted-foreground">Equipment</p><p>{details.equipment}</p></div>
-                </CardContent>
-            </Card>
              <Card>
                 <CardHeader><CardTitle>Test Results</CardTitle></CardHeader>
                 <CardContent>
@@ -113,30 +158,33 @@ const MagneticParticleTestDetailsView = ({ details }: { details: Extract<ReportD
     )
 }
 
-const UltrasonicTestDetailsView = ({ details }: { details: Extract<ReportDetails, { jobType: 'Ultrasonic Test' }> }) => {
+const UltrasonicTestDetailsCard = ({ details }: { details: Extract<ReportDetails, { jobType: 'Ultrasonic Test' }> }) => (
+    <Card>
+        <CardHeader><CardTitle>Test Details</CardTitle></CardHeader>
+        <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            <div><p className="font-medium text-muted-foreground">Procedure No.</p><p>{details.procedureNo}</p></div>
+            <div><p className="font-medium text-muted-foreground">Acceptance Criteria</p><p>{details.acceptanceCriteria}</p></div>
+            <div><p className="font-medium text-muted-foreground">Examination Stage</p><p>{details.examinationStage}</p></div>
+            <div><p className="font-medium text-muted-foreground">Drawing Number</p><p>{details.drawingNumber}</p></div>
+            <div><p className="font-medium text-muted-foreground">Material</p><p>{details.material}</p></div>
+            <div><p className="font-medium text-muted-foreground">Surface Condition</p><p>{details.surfaceCondition}</p></div>
+            <div><p className="font-medium text-muted-foreground">Welding Process</p><p>{details.weldingProcess}</p></div>
+            <div><p className="font-medium text-muted-foreground">Equipment</p><p>{details.equipment}</p></div>
+            <div><p className="font-medium text-muted-foreground">Transducer</p><p>{details.transducer}</p></div>
+            <div><p className="font-medium text-muted-foreground">Calibration Block</p><p>{details.calibrationBlock}</p></div>
+            <div><p className="font-medium text-muted-foreground">Couplant</p><p>{details.couplant}</p></div>
+            <div><p className="font-medium text-muted-foreground">Scanning Sensitivity</p><p>{details.scanningSensitivity}</p></div>
+            <div><p className="font-medium text-muted-foreground">Scanning Technique</p><p>{details.scanningTechnique}</p></div>
+        </CardContent>
+    </Card>
+);
+
+const UltrasonicTestResultsView = ({ details }: { details: Extract<ReportDetails, { jobType: 'Ultrasonic Test' }> }) => {
      const allImages = details.testResults.flatMap(result =>
         (result.imageUrls || []).map(url => ({ url, jointNo: result.jointNo, weldId: result.weldId }))
     );
     return (
         <div className="space-y-6">
-            <Card>
-                <CardHeader><CardTitle>Test Details</CardTitle></CardHeader>
-                <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                    <div><p className="font-medium text-muted-foreground">Procedure No.</p><p>{details.procedureNo}</p></div>
-                    <div><p className="font-medium text-muted-foreground">Acceptance Criteria</p><p>{details.acceptanceCriteria}</p></div>
-                    <div><p className="font-medium text-muted-foreground">Examination Stage</p><p>{details.examinationStage}</p></div>
-                    <div><p className="font-medium text-muted-foreground">Drawing Number</p><p>{details.drawingNumber}</p></div>
-                    <div><p className="font-medium text-muted-foreground">Material</p><p>{details.material}</p></div>
-                    <div><p className="font-medium text-muted-foreground">Surface Condition</p><p>{details.surfaceCondition}</p></div>
-                    <div><p className="font-medium text-muted-foreground">Welding Process</p><p>{details.weldingProcess}</p></div>
-                    <div><p className="font-medium text-muted-foreground">Equipment</p><p>{details.equipment}</p></div>
-                    <div><p className="font-medium text-muted-foreground">Transducer</p><p>{details.transducer}</p></div>
-                    <div><p className="font-medium text-muted-foreground">Calibration Block</p><p>{details.calibrationBlock}</p></div>
-                    <div><p className="font-medium text-muted-foreground">Couplant</p><p>{details.couplant}</p></div>
-                    <div><p className="font-medium text-muted-foreground">Scanning Sensitivity</p><p>{details.scanningSensitivity}</p></div>
-                    <div><p className="font-medium text-muted-foreground">Scanning Technique</p><p>{details.scanningTechnique}</p></div>
-                </CardContent>
-            </Card>
              <Card>
                 <CardHeader><CardTitle>Test Results</CardTitle></CardHeader>
                 <CardContent className="overflow-x-auto">
@@ -199,25 +247,28 @@ const UltrasonicTestDetailsView = ({ details }: { details: Extract<ReportDetails
     )
 }
 
-const RadiographicTestDetailsView = ({ details }: { details: Extract<ReportDetails, { jobType: 'Radiographic Test' }> }) => {
+const RadiographicTestDetailsCard = ({ details }: { details: Extract<ReportDetails, { jobType: 'Radiographic Test' }> }) => (
+    <Card>
+        <CardHeader><CardTitle>Test Details</CardTitle></CardHeader>
+        <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            <div><p className="font-medium text-muted-foreground">Procedure No.</p><p>{details.procedureNo}</p></div>
+            <div><p className="font-medium text-muted-foreground">Acceptance Criteria</p><p>{details.acceptanceCriteria}</p></div>
+            <div><p className="font-medium text-muted-foreground">Source</p><p>{details.source} ({details.sourceSize})</p></div>
+            <div><p className="font-medium text-muted-foreground">SFD</p><p>{details.sfd}</p></div>
+            <div><p className="font-medium text-muted-foreground">Exposure</p><p>{details.exposure}</p></div>
+            <div><p className="font-medium text-muted-foreground">Film/Screens</p><p>{details.filmBrandType} / {details.screens}</p></div>
+            <div><p className="font-medium text-muted-foreground">Sensitivity (IQI)</p><p>{details.sensitivityIQI}</p></div>
+            <div><p className="font-medium text-muted-foreground">Density</p><p>{details.density}</p></div>
+        </CardContent>
+    </Card>
+);
+
+const RadiographicTestResultsView = ({ details }: { details: Extract<ReportDetails, { jobType: 'Radiographic Test' }> }) => {
     const allImages = details.testResults.flatMap(result =>
         (result.imageUrls || []).map(url => ({ url, jointNo: result.jointNo, weldId: result.weldId }))
     );
     return (
         <div className="space-y-6">
-            <Card>
-                <CardHeader><CardTitle>Test Details</CardTitle></CardHeader>
-                <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                    <div><p className="font-medium text-muted-foreground">Procedure No.</p><p>{details.procedureNo}</p></div>
-                    <div><p className="font-medium text-muted-foreground">Acceptance Criteria</p><p>{details.acceptanceCriteria}</p></div>
-                    <div><p className="font-medium text-muted-foreground">Source</p><p>{details.source} ({details.sourceSize})</p></div>
-                    <div><p className="font-medium text-muted-foreground">SFD</p><p>{details.sfd}</p></div>
-                    <div><p className="font-medium text-muted-foreground">Exposure</p><p>{details.exposure}</p></div>
-                    <div><p className="font-medium text-muted-foreground">Film/Screens</p><p>{details.filmBrandType} / {details.screens}</p></div>
-                    <div><p className="font-medium text-muted-foreground">Sensitivity (IQI)</p><p>{details.sensitivityIQI}</p></div>
-                    <div><p className="font-medium text-muted-foreground">Density</p><p>{details.density}</p></div>
-                </CardContent>
-            </Card>
              <Card>
                 <CardHeader><CardTitle>Test Results</CardTitle></CardHeader>
                 <CardContent>
@@ -235,45 +286,6 @@ const RadiographicTestDetailsView = ({ details }: { details: Extract<ReportDetai
         </div>
     )
 }
-
-const ImageGallery = ({ allImages }: { allImages: { url: string, jointNo: string, weldId: string }[] }) => (
-    <Card>
-        <CardHeader>
-            <CardTitle>Evidence Images</CardTitle>
-            <CardDescription>A gallery of all images uploaded as evidence for the test results. Click an image to enlarge.</CardDescription>
-        </CardHeader>
-        <CardContent>
-            <Carousel className="w-full" opts={{ align: "start", loop: true }}>
-                <CarouselContent className="-ml-4">
-                    {allImages.map((image, index) => (
-                        <CarouselItem key={index} className="pl-4 md:basis-1/2 lg:basis-1/3">
-                            <div className="p-1">
-                                <Dialog>
-                                    <DialogTrigger asChild>
-                                        <Card className="cursor-pointer">
-                                            <CardContent className="flex aspect-video items-center justify-center p-0 rounded-t-lg overflow-hidden">
-                                                <Image src={image.url} alt={`Image for Joint ${image.jointNo}`} width={400} height={225} className="h-full w-full object-cover" data-ai-hint="test result" />
-                                            </CardContent>
-                                            <CardFooter className="text-xs p-2 bg-muted/50 rounded-b-lg">
-                                                <p className="font-medium truncate">Joint: {image.jointNo} / Weld ID: {image.weldId}</p>
-                                            </CardFooter>
-                                        </Card>
-                                    </DialogTrigger>
-                                    <DialogContent className="max-w-4xl p-0 border-0">
-                                        <Image src={image.url} alt="Evidence image preview" width={1280} height={720} className="h-auto w-full object-contain rounded-lg" />
-                                    </DialogContent>
-                                </Dialog>
-                            </div>
-                        </CarouselItem>
-                    ))}
-                </CarouselContent>
-                <CarouselPrevious />
-                <CarouselNext />
-            </Carousel>
-        </CardContent>
-    </Card>
-);
-
 
 // --- Main Page Component ---
 
@@ -300,41 +312,40 @@ export default function ReportDetailsPage() {
             </div>
         );
     }
-
-    const getReportListPath = (jobType: ReportItem['jobType']) => {
-        switch (jobType) {
-            case 'Penetrant Test':
-                return '/reports/penetrant';
-            case 'Magnetic Particle Test':
-                return '/reports/magnetic';
-            case 'Ultrasonic Test':
-                return '/reports/ultrasonic';
-            case 'Radiographic Test':
-                return '/reports/radiographic';
-            case 'Other':
-                return '/reports/other';
-            default:
-                return '/reports';
-        }
-    };
     
-    const backPath = getReportListPath(report.jobType);
+    const backPath = report.jobType ? `/reports/${report.jobType.toLowerCase().replace(/ /g, '-')}` : '/reports';
     const details = report.details;
     const creator = report.approvalHistory?.[0];
 
-    const renderDetails = () => {
+    const renderTestDetailsCard = () => {
+        if (!details) return null;
+        switch (details.jobType) {
+            case 'Penetrant Test':
+                return <PenetrantTestDetailsCard details={details} />;
+            case 'Magnetic Particle Test':
+                return <MagneticParticleTestDetailsCard details={details} />;
+            case 'Ultrasonic Test':
+                return <UltrasonicTestDetailsCard details={details} />;
+             case 'Radiographic Test':
+                return <RadiographicTestDetailsCard details={details} />;
+            default:
+                return null;
+        }
+    };
+
+    const renderResults = () => {
         if (!details) {
             return <p>This report type does not have a detailed view yet.</p>;
         }
         switch (details.jobType) {
             case 'Penetrant Test':
-                return <PenetrantTestDetailsView details={details} report={report} />;
+                return <PenetrantTestResultsView details={details} />;
             case 'Magnetic Particle Test':
-                return <MagneticParticleTestDetailsView details={details} />;
+                return <MagneticParticleTestResultsView details={details} />;
             case 'Ultrasonic Test':
-                return <UltrasonicTestDetailsView details={details} />;
+                return <UltrasonicTestResultsView details={details} />;
              case 'Radiographic Test':
-                return <RadiographicTestDetailsView details={details} />;
+                return <RadiographicTestResultsView details={details} />;
             default:
                 return <p>This report type does not have a detailed view yet.</p>;
         }
@@ -351,26 +362,30 @@ export default function ReportDetailsPage() {
             </div>
 
             <div className="pt-6 space-y-6">
-                <Card>
-                    <CardHeader><CardTitle>General Information</CardTitle></CardHeader>
-                    <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-                        {details && <>
-                            <div><p className="font-medium text-muted-foreground">Client</p><p>{details.client}</p></div>
-                            {details.soNumber && <div><p className="font-medium text-muted-foreground">Service Order</p><p>{details.soNumber}</p></div>}
-                            <div><p className="font-medium text-muted-foreground">Project Executor</p><p>{details.projectExecutor}</p></div>
-                            <div><p className="font-medium text-muted-foreground">Project</p><p>{details.project}</p></div>
-                            <div><p className="font-medium text-muted-foreground">Date of Test</p><p>{details.dateOfTest ? format(new Date(details.dateOfTest), 'PPP') : 'N/A'}</p></div>
-                        </>}
-                        <div><p className="font-medium text-muted-foreground">Job Location</p><p>{report.jobLocation}</p></div>
-                        <div><p className="font-medium text-muted-foreground">Date of Creation</p><p>{report.creationDate ? format(new Date(report.creationDate), 'PPP') : 'N/A'}</p></div>
-                        <div><p className="font-medium text-muted-foreground">Report Number</p><p>{report.reportNumber}</p></div>
-                        <div><p className="font-medium text-muted-foreground">Line Type</p><p>{report.lineType}</p></div>
-                         {creator && <div><p className="font-medium text-muted-foreground">Created By</p><p>{`${creator.actorName} (${creator.actorRole})`}</p></div>}
-                    </CardContent>
-                </Card>
+                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                    <Card>
+                        <CardHeader><CardTitle>General Information</CardTitle></CardHeader>
+                        <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                            {details && <>
+                                <div><p className="font-medium text-muted-foreground">Client</p><p>{details.client}</p></div>
+                                {details.soNumber && <div><p className="font-medium text-muted-foreground">Service Order</p><p>{details.soNumber}</p></div>}
+                                <div><p className="font-medium text-muted-foreground">Project Executor</p><p>{details.projectExecutor}</p></div>
+                                <div><p className="font-medium text-muted-foreground">Project</p><p>{details.project}</p></div>
+                                <div><p className="font-medium text-muted-foreground">Date of Test</p><p>{details.dateOfTest ? format(new Date(details.dateOfTest), 'PPP') : 'N/A'}</p></div>
+                            </>}
+                            <div><p className="font-medium text-muted-foreground">Job Location</p><p>{report.jobLocation}</p></div>
+                            <div><p className="font-medium text-muted-foreground">Date of Creation</p><p>{report.creationDate ? format(new Date(report.creationDate), 'PPP') : 'N/A'}</p></div>
+                            <div><p className="font-medium text-muted-foreground">Report Number</p><p>{report.reportNumber}</p></div>
+                            <div><p className="font-medium text-muted-foreground">Line Type</p><p>{report.lineType}</p></div>
+                            {creator && <div><p className="font-medium text-muted-foreground">Created By</p><p>{`${creator.actorName} (${creator.actorRole})`}</p></div>}
+                        </CardContent>
+                    </Card>
+                    {renderTestDetailsCard()}
+                </div>
 
-                {renderDetails()}
+                {renderResults()}
             </div>
         </div>
     );
 }
+
