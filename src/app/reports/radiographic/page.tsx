@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -8,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { MoreHorizontal, PlusCircle, ArrowLeft } from 'lucide-react';
-import { type ReportItem, type ReportStatus } from '@/lib/reports';
+import { type ReportItem, type ReportStatus, type RadiographicTestReportDetails } from '@/lib/reports';
 import { useReports } from '@/context/ReportContext';
 import { useAuth } from '@/context/AuthContext';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
@@ -90,6 +91,9 @@ export default function RadiographicTestListPage() {
                           <TableHead>Report Number</TableHead>
                           <TableHead>Project Name</TableHead>
                           <TableHead>Qty Joint</TableHead>
+                          <TableHead>Qty Sheet</TableHead>
+                          <TableHead>Qty Acc</TableHead>
+                          <TableHead>Qty Reject</TableHead>
                           <TableHead>Created By</TableHead>
                           <TableHead>Status</TableHead>
                           <TableHead className="w-[80px] text-right">Actions</TableHead>
@@ -99,11 +103,35 @@ export default function RadiographicTestListPage() {
                       {radiographicReports.length > 0 ? (
                         radiographicReports.map((report) => {
                           const creator = report.approvalHistory?.[0]?.actorName || 'N/A';
+                          const details = report.details as RadiographicTestReportDetails | null;
+                          
+                          let qtySheet = 0;
+                          let qtyAcc = 0;
+                          let qtyReject = 0;
+
+                          if (details && details.jobType === 'Radiographic Test' && details.testResults) {
+                              details.testResults.forEach(result => {
+                                  if(result.findings) {
+                                      qtySheet += result.findings.length;
+                                      result.findings.forEach(finding => {
+                                          if (finding.result === 'Accept') {
+                                              qtyAcc++;
+                                          } else if (finding.result === 'Reject') {
+                                              qtyReject++;
+                                          }
+                                      });
+                                  }
+                              });
+                          }
+
                           return (
                               <TableRow key={report.id}>
                                   <TableCell className="font-medium">{report.reportNumber}</TableCell>
                                   <TableCell>{report.details?.project || 'N/A'}</TableCell>
                                   <TableCell>{report.qtyJoint}</TableCell>
+                                  <TableCell>{qtySheet}</TableCell>
+                                  <TableCell>{qtyAcc}</TableCell>
+                                  <TableCell>{qtyReject}</TableCell>
                                   <TableCell>{creator}</TableCell>
                                   <TableCell>
                                       <Badge variant={getStatusVariant(report.status)}>{report.status}</Badge>
@@ -139,7 +167,7 @@ export default function RadiographicTestListPage() {
                         })
                       ) : (
                         <TableRow>
-                            <TableCell colSpan={6} className="h-24 text-center">
+                            <TableCell colSpan={9} className="h-24 text-center">
                                 No radiographic test reports found.
                             </TableCell>
                         </TableRow>
@@ -170,3 +198,4 @@ export default function RadiographicTestListPage() {
     </>
   );
 }
+
