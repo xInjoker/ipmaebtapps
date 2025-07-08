@@ -1,8 +1,4 @@
 
-
-
-
-
 export type ReportStatus = 'Draft' | 'Submitted' | 'Approved' | 'Rejected' | 'Reviewed';
 
 export type ApprovalAction = {
@@ -142,6 +138,10 @@ export type RadiographicTestResult = {
     diameter: string;
     thickness: string;
     imageUrls: string[];
+    filmLocation: string;
+    weldIndication: string;
+    remarks: string;
+    result: 'Accept' | 'Reject';
 };
 
 export type RadiographicTestReportDetails = {
@@ -275,6 +275,47 @@ const mockUltrasonicDetails: UltrasonicTestReportDetails = {
     ],
 };
 
+const mockRadiographicDetails: RadiographicTestReportDetails = {
+    jobType: 'Radiographic Test',
+    client: 'Stark Industries',
+    soNumber: 'SO-002-B',
+    projectExecutor: 'Cabang Surabaya',
+    project: 'Mobile App Development',
+    dateOfTest: '2024-07-12',
+    procedureNo: 'P-123-RT',
+    acceptanceCriteria: 'API 1104',
+    examinationStage: 'Final',
+    drawingNumber: 'DWG-002',
+    source: 'Ir-192',
+    sourceSize: '3mm',
+    sfd: '700mm',
+    screens: 'Lead 0.1mm',
+    density: '2.5',
+    material: 'Carbon Steel',
+    technique: 'SWSI',
+    penetrameter: 'ASTM #12',
+    curries: '30',
+    kvp: 'N/A',
+    mA: 'N/A',
+    cameraSerialNumber: 'CAM-IR-05',
+    surveyMeterSerialNumber: 'SM-101',
+    surveyMeterCertExpDate: '2025-06-30',
+    testResults: [
+        {
+            subjectIdentification: 'RT-B-05',
+            jointNo: 'J-B-05',
+            weldId: 'W-B-05',
+            diameter: '12"',
+            thickness: '25.4mm',
+            imageUrls: [],
+            filmLocation: '0-250',
+            weldIndication: 'Incomplete Penetration',
+            remarks: 'IP noted at root pass.',
+            result: 'Reject'
+        }
+    ],
+};
+
 
 export const initialReports: ReportItem[] = [
     { 
@@ -299,7 +340,7 @@ export const initialReports: ReportItem[] = [
         jobType: 'Magnetic Particle Test', 
         qtyJoint: 8, 
         status: 'Submitted', 
-        details: { jobType: 'Magnetic Particle Test', client: 'Wayne Enterprises', soNumber: 'SO-003-A', projectExecutor: 'Cabang Jakarta', project: 'Data Analytics Platform', dateOfTest: '2024-07-18', procedureNo: 'P-123-MT', acceptanceCriteria: 'AWS D1.1', surfaceCondition: 'As Welded', examinationStage: 'Final', drawingNumber: 'DWG-003', magnetizationTechnique: 'Yoke', magneticParticlesType: 'Wet Visible', particleBrand: 'Parker', particleBatch: 'WB-123', equipment: 'Yoke Y-7', currentType: 'AC', amperage: '100-120 Amps', testResults: [] },
+        details: { jobType: 'Magnetic Particle Test', client: 'Wayne Enterprises', soNumber: 'SO-003-A', projectExecutor: 'Cabang Jakarta', project: 'Data Analytics Platform', dateOfTest: '2024-07-18', procedureNo: 'P-123-MT', acceptanceCriteria: 'AWS D1.1', surfaceCondition: 'As Welded', examinationStage: 'Final', drawingNumber: 'DWG-003', magnetizationTechnique: 'Yoke', magneticParticlesType: 'Wet Visible', particleBrand: 'Parker', particleBatch: 'WB-123', equipment: 'Y-7 Yoke', currentType: 'AC', amperage: '100-120 Amps', testResults: [] },
         creationDate: '2024-07-18', 
         reviewerId: null, 
         approverId: null, 
@@ -325,9 +366,9 @@ export const initialReports: ReportItem[] = [
         jobLocation: 'Project Beta Facility', 
         lineType: 'Pipeline', 
         jobType: 'Radiographic Test', 
-        qtyJoint: 30, 
+        qtyJoint: 1, 
         status: 'Rejected', 
-        details: { jobType: 'Radiographic Test', client: 'Stark Industries', soNumber: 'SO-002-B', projectExecutor: 'Cabang Surabaya', project: 'Mobile App Development', dateOfTest: '2024-07-12', procedureNo: 'P-123-RT', acceptanceCriteria: 'API 1104', examinationStage: 'Final', drawingNumber: 'DWG-002', source: 'Ir-192', sourceSize: '3mm', sfd: '700mm', screens: 'Lead 0.1mm', density: '2.5', material: 'Carbon Steel', technique: 'SWSI', penetrameter: 'ASTM #12', curries: '30', kvp: 'N/A', mA: 'N/A', cameraSerialNumber: 'CAM-IR-05', surveyMeterSerialNumber: 'SM-101', surveyMeterCertExpDate: '2025-06-30', testResults: [] },
+        details: mockRadiographicDetails,
         creationDate: '2024-07-12', 
         reviewerId: '5', 
         approverId: '6', 

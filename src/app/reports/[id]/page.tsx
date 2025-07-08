@@ -285,6 +285,10 @@ const RadiographicTestResultsView = ({ details }: { details: Extract<ReportDetai
                                 <TableHead>Weld/Part ID</TableHead>
                                 <TableHead>Diameter</TableHead>
                                 <TableHead>Thickness</TableHead>
+                                <TableHead>Film Location</TableHead>
+                                <TableHead>Weld Indication</TableHead>
+                                <TableHead>Remarks</TableHead>
+                                <TableHead>Result</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -295,6 +299,10 @@ const RadiographicTestResultsView = ({ details }: { details: Extract<ReportDetai
                                     <TableCell>{result.weldId}</TableCell>
                                     <TableCell>{result.diameter}</TableCell>
                                     <TableCell>{result.thickness}</TableCell>
+                                    <TableCell>{result.filmLocation}</TableCell>
+                                    <TableCell>{result.weldIndication}</TableCell>
+                                    <TableCell>{result.remarks}</TableCell>
+                                    <TableCell><Badge variant={result.result === 'Accept' ? 'green' : 'destructive'}>{result.result}</Badge></TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
