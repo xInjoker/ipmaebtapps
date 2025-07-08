@@ -331,6 +331,12 @@ export default function RadiographicTestPage() {
         router.push('/reports/radiographic');
     };
 
+    const flattenedSummaryResults = useMemo(() => {
+        return formData.testResults.flatMap(result =>
+            result.findings.map(finding => ({ ...result, ...finding }))
+        );
+    }, [formData.testResults]);
+
     return (
         <div className="space-y-6">
             <div className="flex items-center gap-4">
@@ -626,14 +632,14 @@ export default function RadiographicTestPage() {
                              <Card>
                                 <CardHeader><CardTitle>General Information</CardTitle></CardHeader>
                                 <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-                                    <div className="col-span-1"><p className="font-medium text-muted-foreground">Project</p><p>{formData.project}</p></div>
-                                    <div className="col-span-1"><p className="font-medium text-muted-foreground">Client</p><p>{formData.client}</p></div>
-                                    <div className="col-span-1"><p className="font-medium text-muted-foreground">Service Order</p><p>{formData.soNumber}</p></div>
-                                    <div className="col-span-1"><p className="font-medium text-muted-foreground">Project Executor</p><p>{formData.projectExecutor}</p></div>
-                                    <div className="col-span-1"><p className="font-medium text-muted-foreground">Job Location</p><p>{formData.jobLocation}</p></div>
-                                    <div className="col-span-1"><p className="font-medium text-muted-foreground">Date of Test</p><p>{formData.dateOfTest ? format(formData.dateOfTest, 'PPP') : 'N/A'}</p></div>
-                                    <div className="col-span-1"><p className="font-medium text-muted-foreground">Report Number</p><p>{formData.reportNumber}</p></div>
-                                    <div className="col-span-1"><p className="font-medium text-muted-foreground">Line Type</p><p>{formData.lineType}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Project</p><p>{formData.project}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Client</p><p>{formData.client}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Service Order</p><p>{formData.soNumber || 'N/A'}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Project Executor</p><p>{formData.projectExecutor}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Job Location</p><p>{formData.jobLocation}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Date of Test</p><p>{formData.dateOfTest ? format(formData.dateOfTest, 'PPP') : 'N/A'}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Report Number</p><p>{formData.reportNumber}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Line Type</p><p>{formData.lineType}</p></div>
                                 </CardContent>
                             </Card>
                             <Card>
@@ -641,6 +647,8 @@ export default function RadiographicTestPage() {
                                 <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                                     <div><p className="font-medium text-muted-foreground">Procedure No.</p><p>{formData.procedureNo}</p></div>
                                     <div><p className="font-medium text-muted-foreground">Acceptance Criteria</p><p>{formData.acceptanceCriteria}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Drawing Number</p><p>{formData.drawingNumber || 'N/A'}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Examination Stage</p><p>{formData.examinationStage || 'N/A'}</p></div>
                                     <div><p className="font-medium text-muted-foreground">Material</p><p>{formData.material}</p></div>
                                     <div><p className="font-medium text-muted-foreground">Technique</p><p>{formData.technique}</p></div>
                                     <div><p className="font-medium text-muted-foreground">Source</p><p>{formData.source} ({formData.sourceSize})</p></div>
@@ -660,26 +668,38 @@ export default function RadiographicTestPage() {
                                     <Table>
                                         <TableHeader>
                                             <TableRow>
+                                                <TableHead>Subject ID</TableHead>
                                                 <TableHead>Joint No.</TableHead>
-                                                <TableHead>Weld ID</TableHead>
-                                                <TableHead># Findings</TableHead>
-                                                <TableHead>Overall Result</TableHead>
+                                                <TableHead>Diameter</TableHead>
+                                                <TableHead>Thickness</TableHead>
+                                                <TableHead>Film Location</TableHead>
+                                                <TableHead>Weld Indication</TableHead>
+                                                <TableHead>Remarks</TableHead>
+                                                <TableHead>Result</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
-                                            {formData.testResults.map((r, i) => {
-                                                const overallResult = r.findings.some(f => f.result === 'Reject') ? 'Reject' : 'Accept';
-                                                return (
-                                                    <TableRow key={i}>
-                                                        <TableCell>{r.jointNo}</TableCell>
-                                                        <TableCell>{r.weldId}</TableCell>
-                                                        <TableCell>{r.findings.length}</TableCell>
-                                                        <TableCell><Badge variant={overallResult === 'Accept' ? 'green' : 'destructive'}>{overallResult}</Badge></TableCell>
+                                            {flattenedSummaryResults.length === 0 ? (
+                                                <TableRow><TableCell colSpan={8} className="text-center h-24">No results added.</TableCell></TableRow>
+                                            ) : (
+                                                flattenedSummaryResults.map((item, index) => (
+                                                    <TableRow key={index}>
+                                                        <TableCell>{item.subjectIdentification}</TableCell>
+                                                        <TableCell>{item.jointNo}</TableCell>
+                                                        <TableCell>{item.diameter}</TableCell>
+                                                        <TableCell>{item.thickness}</TableCell>
+                                                        <TableCell>{item.filmLocation}</TableCell>
+                                                        <TableCell>
+                                                            <div className="flex flex-wrap gap-1">
+                                                                {item.weldIndication.map((ind, i) => (
+                                                                    <Badge key={i} variant="outline" className="text-xs">{ind}</Badge>
+                                                                ))}
+                                                            </div>
+                                                        </TableCell>
+                                                        <TableCell>{item.remarks}</TableCell>
+                                                        <TableCell><Badge variant={item.result === 'Accept' ? 'green' : 'destructive'}>{item.result}</Badge></TableCell>
                                                     </TableRow>
-                                                );
-                                            })}
-                                            {formData.testResults.length === 0 && (
-                                                <TableRow><TableCell colSpan={4} className="text-center h-24">No results added.</TableCell></TableRow>
+                                                ))
                                             )}
                                         </TableBody>
                                     </Table>
