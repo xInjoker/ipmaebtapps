@@ -105,10 +105,12 @@ export type UltrasonicTestReportDetails = {
     dateOfTest?: string;
     procedureNo: string;
     acceptanceCriteria: string;
-    surfaceCondition: string;
     examinationStage: string;
     drawingNumber: string;
     material: string;
+    surfaceCondition: string;
+    weldingProcess: string;
+    scanningTechnique: string;
     equipment: string;
     transducer: string;
     calibrationBlock: string;

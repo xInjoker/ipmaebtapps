@@ -62,10 +62,12 @@ export default function UltrasonicTestPage() {
         lineType: '',
         procedureNo: 'PO/AE.MIG-OPS/35-UT',
         acceptanceCriteria: 'ASME Sec VIII Div 1',
-        surfaceCondition: 'As Welded',
         examinationStage: '',
         drawingNumber: '',
         material: '',
+        surfaceCondition: 'As Welded',
+        weldingProcess: '',
+        scanningTechnique: '',
         equipment: 'Olympus EPOCH 650',
         transducer: 'A12, 5MHz, 60 deg',
         calibrationBlock: 'IIW Type 1',
@@ -186,10 +188,12 @@ export default function UltrasonicTestPage() {
             dateOfTest: formData.dateOfTest ? format(formData.dateOfTest, 'yyyy-MM-dd') : undefined,
             procedureNo: formData.procedureNo,
             acceptanceCriteria: formData.acceptanceCriteria,
-            surfaceCondition: formData.surfaceCondition,
             examinationStage: formData.examinationStage,
             drawingNumber: formData.drawingNumber,
             material: formData.material,
+            surfaceCondition: formData.surfaceCondition,
+            weldingProcess: formData.weldingProcess,
+            scanningTechnique: formData.scanningTechnique,
             equipment: formData.equipment,
             transducer: formData.transducer,
             calibrationBlock: formData.calibrationBlock,
@@ -293,12 +297,43 @@ export default function UltrasonicTestPage() {
                             <div className="space-y-2"><Label htmlFor="acceptanceCriteria">Acceptance Criteria</Label><Input id="acceptanceCriteria" value={formData.acceptanceCriteria} onChange={handleInputChange}/></div>
                             <div className="space-y-2"><Label htmlFor="drawingNumber">Drawing Number</Label><Input id="drawingNumber" value={formData.drawingNumber} onChange={handleInputChange}/></div>
                             <div className="space-y-2"><Label htmlFor="material">Material</Label><Input id="material" value={formData.material} onChange={handleInputChange}/></div>
+                            <div className="space-y-2">
+                                <Label htmlFor="surfaceCondition">Surface Condition</Label>
+                                <Select value={formData.surfaceCondition} onValueChange={(v) => handleSelectChange('surfaceCondition', v)}>
+                                    <SelectTrigger><SelectValue /></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="As Welded">As Welded</SelectItem>
+                                        <SelectItem value="Grinded">Grinded</SelectItem>
+                                        <SelectItem value="As Rolled">As Rolled</SelectItem>
+                                        <SelectItem value="Machined">Machined</SelectItem>
+                                        <SelectItem value="As Forged">As Forged</SelectItem>
+                                        <SelectItem value="Wire Brushed">Wire Brushed</SelectItem>
+                                        <SelectItem value="As Cast">As Cast</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="weldingProcess">Welding Process</Label>
+                                <Select value={formData.weldingProcess} onValueChange={(v) => handleSelectChange('weldingProcess', v)}>
+                                    <SelectTrigger><SelectValue placeholder="Select process" /></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="SMAW">SMAW</SelectItem>
+                                        <SelectItem value="GTAW">GTAW</SelectItem>
+                                        <SelectItem value="GMAW">GMAW</SelectItem>
+                                        <SelectItem value="FCAW">FCAW</SelectItem>
+                                        <SelectItem value="SAW">SAW</SelectItem>
+                                        <SelectItem value="Other">Other</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
                             <div className="space-y-2 col-span-full"><h4 className="font-semibold text-base mt-2">Equipment</h4></div>
                             <div className="space-y-2"><Label htmlFor="equipment">Instrument</Label><Input id="equipment" value={formData.equipment} onChange={handleInputChange} placeholder="e.g., Olympus EPOCH 650"/></div>
                             <div className="space-y-2"><Label htmlFor="transducer">Transducer</Label><Input id="transducer" value={formData.transducer} onChange={handleInputChange} placeholder="e.g., A12, 5MHz, 60 deg"/></div>
                             <div className="space-y-2"><Label htmlFor="calibrationBlock">Calibration Block</Label><Input id="calibrationBlock" value={formData.calibrationBlock} onChange={handleInputChange} placeholder="e.g., IIW Type 1"/></div>
                             <div className="space-y-2"><Label htmlFor="couplant">Couplant</Label><Input id="couplant" value={formData.couplant} onChange={handleInputChange} placeholder="e.g., Glycerin"/></div>
                             <div className="space-y-2"><Label htmlFor="scanningSensitivity">Scanning Sensitivity</Label><Input id="scanningSensitivity" value={formData.scanningSensitivity} onChange={handleInputChange} placeholder="e.g., 6 dB above reference"/></div>
+                            <div className="space-y-2"><Label htmlFor="scanningTechnique">Scanning Technique</Label><Input id="scanningTechnique" value={formData.scanningTechnique} onChange={handleInputChange} placeholder="e.g., Full Scan"/></div>
                         </div>
                     )}
                      {currentStep === 2 && (
@@ -344,7 +379,10 @@ export default function UltrasonicTestPage() {
                                     <div><p className="font-medium text-muted-foreground">Acceptance Criteria</p><p>{formData.acceptanceCriteria}</p></div>
                                     <div><p className="font-medium text-muted-foreground">Drawing Number</p><p>{formData.drawingNumber}</p></div>
                                     <div><p className="font-medium text-muted-foreground">Material</p><p>{formData.material}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Surface Condition</p><p>{formData.surfaceCondition}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Welding Process</p><p>{formData.weldingProcess}</p></div>
                                     <div><p className="font-medium text-muted-foreground">Equipment</p><p>{formData.equipment}</p></div>
+                                    <div><p className="font-medium text-muted-foreground">Scanning Technique</p><p>{formData.scanningTechnique}</p></div>
                                 </CardContent>
                             </Card>
                             <Card>

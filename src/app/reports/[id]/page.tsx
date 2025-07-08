@@ -124,15 +124,17 @@ const UltrasonicTestDetailsView = ({ details }: { details: Extract<ReportDetails
                 <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                     <div><p className="font-medium text-muted-foreground">Procedure No.</p><p>{details.procedureNo}</p></div>
                     <div><p className="font-medium text-muted-foreground">Acceptance Criteria</p><p>{details.acceptanceCriteria}</p></div>
-                    <div><p className="font-medium text-muted-foreground">Surface Condition</p><p>{details.surfaceCondition}</p></div>
                     <div><p className="font-medium text-muted-foreground">Examination Stage</p><p>{details.examinationStage}</p></div>
                     <div><p className="font-medium text-muted-foreground">Drawing Number</p><p>{details.drawingNumber}</p></div>
                     <div><p className="font-medium text-muted-foreground">Material</p><p>{details.material}</p></div>
+                    <div><p className="font-medium text-muted-foreground">Surface Condition</p><p>{details.surfaceCondition}</p></div>
+                    <div><p className="font-medium text-muted-foreground">Welding Process</p><p>{details.weldingProcess}</p></div>
                     <div><p className="font-medium text-muted-foreground">Equipment</p><p>{details.equipment}</p></div>
                     <div><p className="font-medium text-muted-foreground">Transducer</p><p>{details.transducer}</p></div>
                     <div><p className="font-medium text-muted-foreground">Calibration Block</p><p>{details.calibrationBlock}</p></div>
                     <div><p className="font-medium text-muted-foreground">Couplant</p><p>{details.couplant}</p></div>
                     <div><p className="font-medium text-muted-foreground">Scanning Sensitivity</p><p>{details.scanningSensitivity}</p></div>
+                    <div><p className="font-medium text-muted-foreground">Scanning Technique</p><p>{details.scanningTechnique}</p></div>
                 </CardContent>
             </Card>
              <Card>
