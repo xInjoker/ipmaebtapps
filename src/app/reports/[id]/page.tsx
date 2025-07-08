@@ -250,7 +250,25 @@ export default function ReportDetailsPage() {
             </div>
         );
     }
+
+    const getReportListPath = (jobType: ReportItem['jobType']) => {
+        switch (jobType) {
+            case 'Penetrant Test':
+                return '/reports/penetrant';
+            case 'Magnetic Particle Test':
+                return '/reports/magnetic';
+            case 'Ultrasonic Test':
+                return '/reports/ultrasonic';
+            case 'Radiographic Test':
+                return '/reports/radiographic';
+            case 'Other':
+                return '/reports/other';
+            default:
+                return '/reports';
+        }
+    };
     
+    const backPath = getReportListPath(report.jobType);
     const details = report.details;
     const creator = report.approvalHistory?.[0];
 
@@ -275,7 +293,7 @@ export default function ReportDetailsPage() {
     return (
         <div className="space-y-6">
              <div className="flex items-center gap-4">
-                <Button asChild variant="outline" size="icon"><Link href="/reports"><ArrowLeft className="h-4 w-4" /><span className="sr-only">Back to Reports</span></Link></Button>
+                <Button asChild variant="outline" size="icon"><Link href={backPath}><ArrowLeft className="h-4 w-4" /><span className="sr-only">Back to Report List</span></Link></Button>
                 <div>
                     <h1 className="font-headline text-2xl font-bold">{report.jobType} Report: {report.reportNumber}</h1>
                     <p className="text-muted-foreground">Viewing details for the submitted report.</p>
