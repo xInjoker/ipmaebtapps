@@ -349,7 +349,7 @@ export default function ReportDetailsPage() {
         );
     }
     
-    const backPath = report.jobType.replace(/\s+/g, '-').toLowerCase();
+    const backPath = report.jobType.split(' ')[0].toLowerCase();
     const details = report.details;
     const creator = report.approvalHistory?.[0];
 
