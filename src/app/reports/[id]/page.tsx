@@ -146,8 +146,11 @@ const UltrasonicTestDetailsView = ({ details }: { details: Extract<ReportDetails
                                 <TableHead rowSpan={2} className="align-bottom">Subject ID</TableHead>
                                 <TableHead rowSpan={2} className="align-bottom">Joint No.</TableHead>
                                 <TableHead rowSpan={2} className="align-bottom">Weld ID</TableHead>
-                                <TableHead colSpan={3} className="text-center border-b">Decibels (dB)</TableHead>
-                                <TableHead colSpan={4} className="text-center border-b">Discontinuity Records</TableHead>
+                                <TableHead rowSpan={2} className="align-bottom">Thickness</TableHead>
+                                <TableHead rowSpan={2} className="align-bottom">Probe Angle</TableHead>
+                                <TableHead rowSpan={2} className="align-bottom">Frequency</TableHead>
+                                <TableHead colSpan={5} className="text-center border-b">Decibels (dB)</TableHead>
+                                <TableHead colSpan={5} className="text-center border-b">Discontinuity Records</TableHead>
                                 <TableHead rowSpan={2} className="align-bottom">Remarks</TableHead>
                                 <TableHead rowSpan={2} className="align-bottom text-right">Result</TableHead>
                             </TableRow>
@@ -155,9 +158,12 @@ const UltrasonicTestDetailsView = ({ details }: { details: Extract<ReportDetails
                                 <TableHead className="text-center">Ref. Level</TableHead>
                                 <TableHead className="text-center">Ind. Level</TableHead>
                                 <TableHead className="text-center">Attn. Factor</TableHead>
-                                <TableHead className="text-center">Location</TableHead>
+                                <TableHead className="text-center">Ind. Rating</TableHead>
+                                <TableHead className="text-center">Scan Level</TableHead>
                                 <TableHead className="text-center">Length</TableHead>
-                                <TableHead className="text-center">From Face</TableHead>
+                                <TableHead className="text-center">Angular Dist.</TableHead>
+                                <TableHead className="text-center">Surface Dist.</TableHead>
+                                <TableHead className="text-center">Type</TableHead>
                                 <TableHead className="text-center">Depth</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -167,12 +173,18 @@ const UltrasonicTestDetailsView = ({ details }: { details: Extract<ReportDetails
                                     <TableCell>{result.subjectIdentification}</TableCell>
                                     <TableCell>{result.jointNo}</TableCell>
                                     <TableCell>{result.weldId}</TableCell>
+                                    <TableCell className="text-center">{result.thickness}</TableCell>
+                                    <TableCell className="text-center">{result.probeAngle}</TableCell>
+                                    <TableCell className="text-center">{result.frequency}</TableCell>
                                     <TableCell className="text-center">{result.referenceLevelDb}</TableCell>
                                     <TableCell className="text-center">{result.indicationLevelDb}</TableCell>
                                     <TableCell className="text-center">{result.attenuationFactorDb}</TableCell>
-                                    <TableCell className="text-center">{result.indicationLocation}</TableCell>
-                                    <TableCell className="text-center">{result.indicationLength}</TableCell>
-                                    <TableCell className="text-center">{result.fromFace}</TableCell>
+                                    <TableCell className="text-center">{result.indicationRating}</TableCell>
+                                    <TableCell className="text-center">{result.scanningLevel}</TableCell>
+                                    <TableCell className="text-center">{result.length}</TableCell>
+                                    <TableCell className="text-center">{result.angularDistance}</TableCell>
+                                    <TableCell className="text-center">{result.surfaceDistance}</TableCell>
+                                    <TableCell className="text-center">{result.discontinuityType}</TableCell>
                                     <TableCell className="text-center">{result.depth}</TableCell>
                                     <TableCell>{result.remarks}</TableCell>
                                     <TableCell className="text-right"><Badge variant={result.result === 'Accept' ? 'green' : 'destructive'}>{result.result}</Badge></TableCell>

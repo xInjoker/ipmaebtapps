@@ -35,12 +35,18 @@ type TestResult = {
     subjectIdentification: string;
     jointNo: string;
     weldId: string;
+    probeAngle: string;
+    frequency: string;
+    thickness: string;
     referenceLevelDb: string;
     indicationLevelDb: string;
     attenuationFactorDb: string;
-    indicationLocation: string;
-    indicationLength: string;
-    fromFace: string;
+    indicationRating: string;
+    scanningLevel: string;
+    length: string;
+    angularDistance: string;
+    surfaceDistance: string;
+    discontinuityType: string;
     depth: string;
     remarks: string;
     result: 'Accept' | 'Reject';
@@ -85,12 +91,18 @@ export default function UltrasonicTestPage() {
         subjectIdentification: '',
         jointNo: '',
         weldId: '',
+        probeAngle: '',
+        frequency: '',
+        thickness: '',
         referenceLevelDb: '',
         indicationLevelDb: '',
         attenuationFactorDb: '',
-        indicationLocation: '',
-        indicationLength: '',
-        fromFace: '',
+        indicationRating: '',
+        scanningLevel: '',
+        length: '',
+        angularDistance: '',
+        surfaceDistance: '',
+        discontinuityType: 'No Recordable Indication',
         depth: '',
         remarks: 'No Recordable Indication',
         result: 'Accept',
@@ -168,7 +180,7 @@ export default function UltrasonicTestPage() {
         }
         const newResultWithUrls = { ...newTestResult, imageUrls: newTestResult.images.map(file => URL.createObjectURL(file)) };
         setFormData(prev => ({ ...prev, testResults: [...prev.testResults, newResultWithUrls] }));
-        setNewTestResult({ subjectIdentification: '', jointNo: '', weldId: '', referenceLevelDb: '', indicationLevelDb: '', attenuationFactorDb: '', indicationLocation: '', indicationLength: '', fromFace: '', depth: '', remarks: 'No Recordable Indication', result: 'Accept', images: [] });
+        setNewTestResult({ subjectIdentification: '', jointNo: '', weldId: '', probeAngle: '', frequency: '', thickness: '', referenceLevelDb: '', indicationLevelDb: '', attenuationFactorDb: '', indicationRating: '', scanningLevel: '', length: '', angularDistance: '', surfaceDistance: '', discontinuityType: 'No Recordable Indication', depth: '', remarks: 'No Recordable Indication', result: 'Accept', images: [] });
     };
 
     const handleNewResultImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -307,7 +319,7 @@ export default function UltrasonicTestPage() {
                             <div className="space-y-2"><Label htmlFor="acceptanceCriteria">Acceptance Criteria</Label><Input id="acceptanceCriteria" value={formData.acceptanceCriteria} onChange={handleInputChange}/></div>
                             <div className="space-y-2"><Label htmlFor="drawingNumber">Drawing Number</Label><Input id="drawingNumber" value={formData.drawingNumber} onChange={handleInputChange}/></div>
                             <div className="space-y-2"><Label htmlFor="material">Material</Label><Input id="material" value={formData.material} onChange={handleInputChange}/></div>
-                            <div className="space-y-2">
+                             <div className="space-y-2">
                                 <Label htmlFor="surfaceCondition">Surface Condition</Label>
                                 <Select value={formData.surfaceCondition} onValueChange={(v) => handleSelectChange('surfaceCondition', v)}>
                                     <SelectTrigger><SelectValue /></SelectTrigger>
@@ -351,10 +363,13 @@ export default function UltrasonicTestPage() {
                             <Card>
                                 <CardHeader><CardTitle>Add Test Result</CardTitle></CardHeader>
                                 <CardContent className="space-y-4">
-                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 items-end">
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 items-end">
                                         <div className="space-y-2"><Label htmlFor="subjectIdentification">Subject ID</Label><Input id="subjectIdentification" value={newTestResult.subjectIdentification} onChange={handleNewResultChange} /></div>
                                         <div className="space-y-2"><Label htmlFor="jointNo">Joint No.</Label><Input id="jointNo" value={newTestResult.jointNo} onChange={handleNewResultChange} /></div>
                                         <div className="space-y-2"><Label htmlFor="weldId">Weld/Part ID</Label><Input id="weldId" value={newTestResult.weldId} onChange={handleNewResultChange} /></div>
+                                        <div className="space-y-2"><Label htmlFor="probeAngle">Probe Angle</Label><Input id="probeAngle" value={newTestResult.probeAngle} onChange={handleNewResultChange} /></div>
+                                        <div className="space-y-2"><Label htmlFor="frequency">Frequency (MHz)</Label><Input id="frequency" value={newTestResult.frequency} onChange={handleNewResultChange} /></div>
+                                        <div className="space-y-2"><Label htmlFor="thickness">Thickness (mm)</Label><Input id="thickness" value={newTestResult.thickness} onChange={handleNewResultChange} /></div>
                                     </div>
 
                                     <h4 className="font-semibold text-base mt-4 pt-4 border-t">Decibels</h4>
@@ -362,16 +377,19 @@ export default function UltrasonicTestPage() {
                                         <div className="space-y-2"><Label htmlFor="referenceLevelDb">Reference Level (dB)</Label><Input id="referenceLevelDb" value={newTestResult.referenceLevelDb} onChange={handleNewResultChange} /></div>
                                         <div className="space-y-2"><Label htmlFor="indicationLevelDb">Indication Level (dB)</Label><Input id="indicationLevelDb" value={newTestResult.indicationLevelDb} onChange={handleNewResultChange} /></div>
                                         <div className="space-y-2"><Label htmlFor="attenuationFactorDb">Attenuation Factor (dB)</Label><Input id="attenuationFactorDb" value={newTestResult.attenuationFactorDb} onChange={handleNewResultChange} /></div>
+                                        <div className="space-y-2"><Label htmlFor="indicationRating">Indication Rating</Label><Input id="indicationRating" value={newTestResult.indicationRating} onChange={handleNewResultChange} /></div>
+                                        <div className="space-y-2"><Label htmlFor="scanningLevel">Scanning Level (dB)</Label><Input id="scanningLevel" value={newTestResult.scanningLevel} onChange={handleNewResultChange} /></div>
                                     </div>
                                     
                                     <h4 className="font-semibold text-base mt-4 pt-4 border-t">Discontinuity Records</h4>
-                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 items-end">
-                                        <div className="space-y-2"><Label htmlFor="indicationLocation">Location</Label><Input id="indicationLocation" value={newTestResult.indicationLocation} onChange={handleNewResultChange} /></div>
-                                        <div className="space-y-2"><Label htmlFor="indicationLength">Length</Label><Input id="indicationLength" value={newTestResult.indicationLength} onChange={handleNewResultChange} /></div>
-                                        <div className="space-y-2"><Label htmlFor="fromFace">From Face</Label><Input id="fromFace" value={newTestResult.fromFace} onChange={handleNewResultChange} /></div>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 items-end">
+                                        <div className="space-y-2"><Label htmlFor="length">Length</Label><Input id="length" value={newTestResult.length} onChange={handleNewResultChange} /></div>
+                                        <div className="space-y-2"><Label htmlFor="angularDistance">Angular Distance</Label><Input id="angularDistance" value={newTestResult.angularDistance} onChange={handleNewResultChange} /></div>
+                                        <div className="space-y-2"><Label htmlFor="surfaceDistance">Surface Distance</Label><Input id="surfaceDistance" value={newTestResult.surfaceDistance} onChange={handleNewResultChange} /></div>
+                                        <div className="space-y-2"><Label htmlFor="discontinuityType">Discontinuity Type</Label><Input id="discontinuityType" value={newTestResult.discontinuityType} onChange={handleNewResultChange} /></div>
                                         <div className="space-y-2"><Label htmlFor="depth">Depth</Label><Input id="depth" value={newTestResult.depth} onChange={handleNewResultChange} /></div>
-                                        <div className="space-y-2 md:col-span-2"><Label htmlFor="remarks">Remarks</Label><Input id="remarks" value={newTestResult.remarks} onChange={handleNewResultChange} /></div>
                                         <div className="space-y-2"><Label htmlFor="result">Result</Label><Select value={newTestResult.result} onValueChange={(v) => handleNewResultSelectChange('result', v)}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent><SelectItem value="Accept">Accept</SelectItem><SelectItem value="Reject">Reject</SelectItem></SelectContent></Select></div>
+                                        <div className="space-y-2 col-span-full"><Label htmlFor="remarks">Remarks</Label><Input id="remarks" value={newTestResult.remarks} onChange={handleNewResultChange} /></div>
                                     </div>
                                     
                                     <div className="col-span-full space-y-2 pt-4 border-t mt-4"><Label>Evidence Images</Label><div className="flex items-center justify-center w-full"><label htmlFor="image-upload" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-card hover:bg-muted"><div className="flex flex-col items-center justify-center pt-5 pb-6"><Upload className="w-8 h-8 mb-3 text-muted-foreground" /><p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span></p></div><Input id="image-upload" type="file" className="hidden" multiple onChange={handleNewResultImageChange} accept="image/*" /></label></div>

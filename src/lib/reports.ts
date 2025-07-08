@@ -1,5 +1,6 @@
 
 
+
 export type ReportStatus = 'Draft' | 'Submitted' | 'Approved' | 'Rejected' | 'Reviewed';
 
 export type ApprovalAction = {
@@ -90,12 +91,18 @@ export type UltrasonicTestResult = {
     subjectIdentification: string;
     jointNo: string;
     weldId: string;
+    probeAngle: string;
+    frequency: string;
+    thickness: string;
     referenceLevelDb: string;
     indicationLevelDb: string;
     attenuationFactorDb: string;
-    indicationLocation: string;
-    indicationLength: string;
-    fromFace: string;
+    indicationRating: string;
+    scanningLevel: string;
+    length: string;
+    angularDistance: string;
+    surfaceDistance: string;
+    discontinuityType: string;
     depth: string;
     remarks: string;
     result: 'Accept' | 'Reject';
@@ -217,6 +224,51 @@ const mockPenetrantDetails: PenetrantTestReportDetails = {
     ],
 };
 
+const mockUltrasonicDetails: UltrasonicTestReportDetails = {
+    jobType: 'Ultrasonic Test',
+    client: 'Stark Industries',
+    soNumber: 'SO-002-C',
+    projectExecutor: 'Cabang Surabaya',
+    project: 'Mobile App Development',
+    dateOfTest: '2024-07-25',
+    procedureNo: 'P-456-UT',
+    acceptanceCriteria: 'ASME Sec VIII Div 1',
+    examinationStage: 'Final',
+    drawingNumber: 'DWG-002-rev3',
+    material: 'Stainless Steel',
+    surfaceCondition: 'Grinded',
+    weldingProcess: 'GTAW',
+    scanningTechnique: 'Full Scan, 2 Angles',
+    equipment: 'Olympus EPOCH 650',
+    transducer: 'A12, 5MHz, 60 deg',
+    calibrationBlock: 'IIW Type 1',
+    couplant: 'Glycerin',
+    scanningSensitivity: '6 dB above reference',
+    testResults: [
+      {
+        subjectIdentification: 'Vessel Seam 1',
+        jointNo: 'VS-01',
+        weldId: 'W-V-01',
+        probeAngle: '60',
+        frequency: '5 MHz',
+        thickness: '25mm',
+        referenceLevelDb: '50',
+        indicationLevelDb: '48',
+        attenuationFactorDb: '2',
+        indicationRating: 'Class B',
+        scanningLevel: '56 dB',
+        length: 'N/A',
+        angularDistance: 'N/A',
+        surfaceDistance: 'N/A',
+        discontinuityType: 'No Recordable Indication',
+        depth: 'N/A',
+        remarks: 'No recordable indications found.',
+        result: 'Accept',
+        imageUrls: [],
+      }
+    ],
+};
+
 
 export const initialReports: ReportItem[] = [
     { 
@@ -253,13 +305,13 @@ export const initialReports: ReportItem[] = [
         jobLocation: 'Project Alpha Site', 
         lineType: 'Pressure Vessel', 
         jobType: 'Ultrasonic Test', 
-        qtyJoint: 22, 
-        status: 'Draft', 
-        details: null, 
-        creationDate: '2024-07-15', 
+        qtyJoint: 1, 
+        status: 'Approved', 
+        details: mockUltrasonicDetails, 
+        creationDate: '2024-07-25', 
         reviewerId: null, 
         approverId: null, 
-        approvalHistory: [{ actorName: 'Budi Santoso', actorRole: 'Lead Inspector', status: 'Draft', timestamp: new Date('2024-07-15T16:00:00Z').toISOString(), comments: 'Initial draft created.' }] 
+        approvalHistory: [{ actorName: 'Budi Santoso', actorRole: 'Lead Inspector', status: 'Submitted', timestamp: new Date('2024-07-25T16:00:00Z').toISOString(), comments: 'Initial draft created.' }] 
     },
     { 
         id: 'REP-004', 
