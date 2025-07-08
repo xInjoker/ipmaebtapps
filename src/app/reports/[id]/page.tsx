@@ -139,12 +139,44 @@ const UltrasonicTestDetailsView = ({ details }: { details: Extract<ReportDetails
             </Card>
              <Card>
                 <CardHeader><CardTitle>Test Results</CardTitle></CardHeader>
-                <CardContent>
+                <CardContent className="overflow-x-auto">
                     <Table>
-                        <TableHeader><TableRow><TableHead>Subject ID</TableHead><TableHead>Joint No.</TableHead><TableHead>Remarks</TableHead><TableHead>Result</TableHead></TableRow></TableHeader>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead rowSpan={2} className="align-bottom">Subject ID</TableHead>
+                                <TableHead rowSpan={2} className="align-bottom">Joint No.</TableHead>
+                                <TableHead rowSpan={2} className="align-bottom">Weld ID</TableHead>
+                                <TableHead colSpan={3} className="text-center border-b">Decibels (dB)</TableHead>
+                                <TableHead colSpan={4} className="text-center border-b">Discontinuity Records</TableHead>
+                                <TableHead rowSpan={2} className="align-bottom">Remarks</TableHead>
+                                <TableHead rowSpan={2} className="align-bottom text-right">Result</TableHead>
+                            </TableRow>
+                            <TableRow>
+                                <TableHead className="text-center">Ref. Level</TableHead>
+                                <TableHead className="text-center">Ind. Level</TableHead>
+                                <TableHead className="text-center">Attn. Factor</TableHead>
+                                <TableHead className="text-center">Location</TableHead>
+                                <TableHead className="text-center">Length</TableHead>
+                                <TableHead className="text-center">From Face</TableHead>
+                                <TableHead className="text-center">Depth</TableHead>
+                            </TableRow>
+                        </TableHeader>
                         <TableBody>
                             {details.testResults.map((result, index) => (
-                                <TableRow key={index}><TableCell>{result.subjectIdentification}</TableCell><TableCell>{result.jointNo}</TableCell><TableCell>{result.remarks}</TableCell><TableCell><Badge variant={result.result === 'Accept' ? 'green' : 'destructive'}>{result.result}</Badge></TableCell></TableRow>
+                                <TableRow key={index}>
+                                    <TableCell>{result.subjectIdentification}</TableCell>
+                                    <TableCell>{result.jointNo}</TableCell>
+                                    <TableCell>{result.weldId}</TableCell>
+                                    <TableCell className="text-center">{result.referenceLevelDb}</TableCell>
+                                    <TableCell className="text-center">{result.indicationLevelDb}</TableCell>
+                                    <TableCell className="text-center">{result.attenuationFactorDb}</TableCell>
+                                    <TableCell className="text-center">{result.indicationLocation}</TableCell>
+                                    <TableCell className="text-center">{result.indicationLength}</TableCell>
+                                    <TableCell className="text-center">{result.fromFace}</TableCell>
+                                    <TableCell className="text-center">{result.depth}</TableCell>
+                                    <TableCell>{result.remarks}</TableCell>
+                                    <TableCell className="text-right"><Badge variant={result.result === 'Accept' ? 'green' : 'destructive'}>{result.result}</Badge></TableCell>
+                                </TableRow>
                             ))}
                         </TableBody>
                     </Table>

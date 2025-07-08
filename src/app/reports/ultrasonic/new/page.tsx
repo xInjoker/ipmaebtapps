@@ -35,8 +35,13 @@ type TestResult = {
     subjectIdentification: string;
     jointNo: string;
     weldId: string;
+    referenceLevelDb: string;
+    indicationLevelDb: string;
+    attenuationFactorDb: string;
     indicationLocation: string;
     indicationLength: string;
+    fromFace: string;
+    depth: string;
     remarks: string;
     result: 'Accept' | 'Reject';
     images: File[];
@@ -44,13 +49,13 @@ type TestResult = {
 };
 
 export default function UltrasonicTestPage() {
-    const [currentStep, setCurrentStep] = useState(0);
+    const router = useRouter();
+    const { toast } = useToast();
     const { projects } = useProjects();
     const { user, isHqUser, roles } = useAuth();
     const { reports, addReport } = useReports();
-    const router = useRouter();
-    const { toast } = useToast();
-
+    
+    const [currentStep, setCurrentStep] = useState(0);
     const [formData, setFormData] = useState({
         client: '',
         soNumber: '',
@@ -76,6 +81,24 @@ export default function UltrasonicTestPage() {
         testResults: [] as TestResult[],
     });
 
+    const [newTestResult, setNewTestResult] = useState<TestResult>({
+        subjectIdentification: '',
+        jointNo: '',
+        weldId: '',
+        referenceLevelDb: '',
+        indicationLevelDb: '',
+        attenuationFactorDb: '',
+        indicationLocation: '',
+        indicationLength: '',
+        fromFace: '',
+        depth: '',
+        remarks: 'No Recordable Indication',
+        result: 'Accept',
+        images: [],
+    });
+
+    const [newTestResultImagePreviews, setNewTestResultImagePreviews] = useState<string[]>([]);
+    
     const visibleProjects = useMemo(() => {
         if (isHqUser) return projects;
         if (!user) return [];
@@ -89,19 +112,6 @@ export default function UltrasonicTestPage() {
         return visibleProjects.find(p => p.name === formData.project);
     }, [formData.project, visibleProjects]);
 
-    const [newTestResult, setNewTestResult] = useState<TestResult>({
-        subjectIdentification: '',
-        jointNo: '',
-        weldId: '',
-        indicationLocation: '',
-        indicationLength: '',
-        remarks: 'No Recordable Indication',
-        result: 'Accept',
-        images: [],
-    });
-
-     const [newTestResultImagePreviews, setNewTestResultImagePreviews] = useState<string[]>([]);
-    
     useEffect(() => {
         if (!newTestResult.images || newTestResult.images.length === 0) {
             setNewTestResultImagePreviews([]);
@@ -158,7 +168,7 @@ export default function UltrasonicTestPage() {
         }
         const newResultWithUrls = { ...newTestResult, imageUrls: newTestResult.images.map(file => URL.createObjectURL(file)) };
         setFormData(prev => ({ ...prev, testResults: [...prev.testResults, newResultWithUrls] }));
-        setNewTestResult({ subjectIdentification: '', jointNo: '', weldId: '', indicationLocation: '', indicationLength: '', remarks: 'No Recordable Indication', result: 'Accept', images: [] });
+        setNewTestResult({ subjectIdentification: '', jointNo: '', weldId: '', referenceLevelDb: '', indicationLevelDb: '', attenuationFactorDb: '', indicationLocation: '', indicationLength: '', fromFace: '', depth: '', remarks: 'No Recordable Indication', result: 'Accept', images: [] });
     };
 
     const handleNewResultImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -345,12 +355,26 @@ export default function UltrasonicTestPage() {
                                         <div className="space-y-2"><Label htmlFor="subjectIdentification">Subject ID</Label><Input id="subjectIdentification" value={newTestResult.subjectIdentification} onChange={handleNewResultChange} /></div>
                                         <div className="space-y-2"><Label htmlFor="jointNo">Joint No.</Label><Input id="jointNo" value={newTestResult.jointNo} onChange={handleNewResultChange} /></div>
                                         <div className="space-y-2"><Label htmlFor="weldId">Weld/Part ID</Label><Input id="weldId" value={newTestResult.weldId} onChange={handleNewResultChange} /></div>
-                                        <div className="space-y-2"><Label htmlFor="indicationLocation">Indication Location</Label><Input id="indicationLocation" value={newTestResult.indicationLocation} onChange={handleNewResultChange} /></div>
-                                        <div className="space-y-2"><Label htmlFor="indicationLength">Indication Length</Label><Input id="indicationLength" value={newTestResult.indicationLength} onChange={handleNewResultChange} /></div>
-                                        <div className="space-y-2"><Label htmlFor="remarks">Remarks</Label><Input id="remarks" value={newTestResult.remarks} onChange={handleNewResultChange} /></div>
+                                    </div>
+
+                                    <h4 className="font-semibold text-base mt-4 pt-4 border-t">Decibels</h4>
+                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 items-end">
+                                        <div className="space-y-2"><Label htmlFor="referenceLevelDb">Reference Level (dB)</Label><Input id="referenceLevelDb" value={newTestResult.referenceLevelDb} onChange={handleNewResultChange} /></div>
+                                        <div className="space-y-2"><Label htmlFor="indicationLevelDb">Indication Level (dB)</Label><Input id="indicationLevelDb" value={newTestResult.indicationLevelDb} onChange={handleNewResultChange} /></div>
+                                        <div className="space-y-2"><Label htmlFor="attenuationFactorDb">Attenuation Factor (dB)</Label><Input id="attenuationFactorDb" value={newTestResult.attenuationFactorDb} onChange={handleNewResultChange} /></div>
+                                    </div>
+                                    
+                                    <h4 className="font-semibold text-base mt-4 pt-4 border-t">Discontinuity Records</h4>
+                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 items-end">
+                                        <div className="space-y-2"><Label htmlFor="indicationLocation">Location</Label><Input id="indicationLocation" value={newTestResult.indicationLocation} onChange={handleNewResultChange} /></div>
+                                        <div className="space-y-2"><Label htmlFor="indicationLength">Length</Label><Input id="indicationLength" value={newTestResult.indicationLength} onChange={handleNewResultChange} /></div>
+                                        <div className="space-y-2"><Label htmlFor="fromFace">From Face</Label><Input id="fromFace" value={newTestResult.fromFace} onChange={handleNewResultChange} /></div>
+                                        <div className="space-y-2"><Label htmlFor="depth">Depth</Label><Input id="depth" value={newTestResult.depth} onChange={handleNewResultChange} /></div>
+                                        <div className="space-y-2 md:col-span-2"><Label htmlFor="remarks">Remarks</Label><Input id="remarks" value={newTestResult.remarks} onChange={handleNewResultChange} /></div>
                                         <div className="space-y-2"><Label htmlFor="result">Result</Label><Select value={newTestResult.result} onValueChange={(v) => handleNewResultSelectChange('result', v)}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent><SelectItem value="Accept">Accept</SelectItem><SelectItem value="Reject">Reject</SelectItem></SelectContent></Select></div>
                                     </div>
-                                    <div className="col-span-full space-y-2"><Label>Evidence Images</Label><div className="flex items-center justify-center w-full"><label htmlFor="image-upload" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-card hover:bg-muted"><div className="flex flex-col items-center justify-center pt-5 pb-6"><Upload className="w-8 h-8 mb-3 text-muted-foreground" /><p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span></p></div><Input id="image-upload" type="file" className="hidden" multiple onChange={handleNewResultImageChange} accept="image/*" /></label></div>
+                                    
+                                    <div className="col-span-full space-y-2 pt-4 border-t mt-4"><Label>Evidence Images</Label><div className="flex items-center justify-center w-full"><label htmlFor="image-upload" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-card hover:bg-muted"><div className="flex flex-col items-center justify-center pt-5 pb-6"><Upload className="w-8 h-8 mb-3 text-muted-foreground" /><p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span></p></div><Input id="image-upload" type="file" className="hidden" multiple onChange={handleNewResultImageChange} accept="image/*" /></label></div>
                                         {newTestResultImagePreviews.length > 0 && (<div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">{newTestResultImagePreviews.map((url, index) => (<div key={index} className="relative group"><div className="aspect-square w-full overflow-hidden rounded-md border"><Image src={url} alt={`Preview ${index + 1}`} width={100} height={100} className="h-full w-full object-cover" data-ai-hint="test result" /></div><div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"><Button variant="destructive" size="icon" className="h-8 w-8" onClick={() => removeNewResultImage(index)}><X className="h-4 w-4" /></Button></div><p className="text-xs text-muted-foreground truncate mt-1">{newTestResult.images[index]?.name}</p></div>))}</div>)}
                                     </div>
                                     <div className="mt-4 flex justify-end"><Button onClick={handleAddResult}>Add Result</Button></div>
@@ -388,7 +412,7 @@ export default function UltrasonicTestPage() {
                             <Card>
                                 <CardHeader><CardTitle>Test Results</CardTitle></CardHeader>
                                 <CardContent>
-                                    <Table><TableHeader><TableRow><TableHead>Subject ID</TableHead><TableHead>Joint No.</TableHead><TableHead>Result</TableHead></TableRow></TableHeader><TableBody>{formData.testResults.map((r, i) => (<TableRow key={i}><TableCell>{r.subjectIdentification}</TableCell><TableCell>{r.jointNo}</TableCell><TableCell>{r.result}</TableCell></TableRow>))}</TableBody></Table>
+                                    <Table><TableHeader><TableRow><TableHead>Subject ID</TableHead><TableHead>Joint No.</TableHead><TableHead>Remarks</TableHead><TableHead>Result</TableHead></TableRow></TableHeader><TableBody>{formData.testResults.map((r, i) => (<TableRow key={i}><TableCell>{r.subjectIdentification}</TableCell><TableCell>{r.jointNo}</TableCell><TableCell>{r.remarks}</TableCell><TableCell><Badge variant={r.result === 'Accept' ? 'green' : 'destructive'}>{r.result}</Badge></TableCell></TableRow>))}</TableBody></Table>
                                 </CardContent>
                             </Card>
                         </div>

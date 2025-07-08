@@ -1,4 +1,5 @@
 
+
 export type ReportStatus = 'Draft' | 'Submitted' | 'Approved' | 'Rejected' | 'Reviewed';
 
 export type ApprovalAction = {
@@ -89,8 +90,13 @@ export type UltrasonicTestResult = {
     subjectIdentification: string;
     jointNo: string;
     weldId: string;
+    referenceLevelDb: string;
+    indicationLevelDb: string;
+    attenuationFactorDb: string;
     indicationLocation: string;
     indicationLength: string;
+    fromFace: string;
+    depth: string;
     remarks: string;
     result: 'Accept' | 'Reject';
     imageUrls: string[];
