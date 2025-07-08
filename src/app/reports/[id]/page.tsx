@@ -289,6 +289,7 @@ const RadiographicTestResultsView = ({ details }: { details: Extract<ReportDetai
                                 <TableHead>Joint No.</TableHead>
                                 <TableHead>Diameter</TableHead>
                                 <TableHead>Thickness</TableHead>
+                                <TableHead>Film Size</TableHead>
                                 <TableHead>Film Location</TableHead>
                                 <TableHead>Weld Indication</TableHead>
                                 <TableHead>Remarks</TableHead>
@@ -302,6 +303,7 @@ const RadiographicTestResultsView = ({ details }: { details: Extract<ReportDetai
                                     <TableCell>{item.jointNo}</TableCell>
                                     <TableCell>{item.diameter}</TableCell>
                                     <TableCell>{item.thickness}</TableCell>
+                                    <TableCell>{item.filmSize}</TableCell>
                                     <TableCell>{item.filmLocation}</TableCell>
                                     <TableCell>
                                         <div className="flex flex-wrap gap-1">
@@ -349,7 +351,7 @@ export default function ReportDetailsPage() {
         );
     }
     
-    const backPath = report.jobType.split(' ')[0].toLowerCase();
+    const backPath = report.jobType.split(' ')[0].toLowerCase().replace(/[^a-z]/g, '');
     const details = report.details;
     const creator = report.approvalHistory?.[0];
 

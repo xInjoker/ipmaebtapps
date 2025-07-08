@@ -63,6 +63,7 @@ type TestResult = {
     weldId: string;
     diameter: string;
     thickness: string;
+    filmSize: string;
     findings: Finding[];
     images: File[];
     imageUrls?: string[];
@@ -134,6 +135,7 @@ export default function RadiographicTestPage() {
         weldId: '',
         diameter: '',
         thickness: '',
+        filmSize: '',
         findings: [],
         images: [],
     });
@@ -252,7 +254,7 @@ export default function RadiographicTestPage() {
         }
         const newResultWithUrls = { ...newTestResult, imageUrls: newTestResult.images.map(file => URL.createObjectURL(file)) };
         setFormData(prev => ({ ...prev, testResults: [...prev.testResults, newResultWithUrls] }));
-        setNewTestResult({ subjectIdentification: '', jointNo: '', weldId: '', diameter: '', thickness: '', findings: [], images: [] });
+        setNewTestResult({ subjectIdentification: '', jointNo: '', weldId: '', diameter: '', thickness: '', filmSize: '', findings: [], images: [] });
     };
 
     const handleNewResultImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -311,6 +313,7 @@ export default function RadiographicTestPage() {
                 weldId: r.weldId,
                 diameter: r.diameter,
                 thickness: r.thickness,
+                filmSize: r.filmSize,
                 findings: r.findings,
                 imageUrls: r.imageUrls || [] 
             })),
@@ -494,6 +497,17 @@ export default function RadiographicTestPage() {
                                         <div className="space-y-2"><Label htmlFor="weldId">Weld/Part ID</Label><Input id="weldId" value={newTestResult.weldId} onChange={handleNewResultChange} /></div>
                                         <div className="space-y-2"><Label htmlFor="diameter">Diameter</Label><Input id="diameter" value={newTestResult.diameter} onChange={handleNewResultChange} placeholder='e.g., 12"'/></div>
                                         <div className="space-y-2"><Label htmlFor="thickness">Thickness</Label><Input id="thickness" value={newTestResult.thickness} onChange={handleNewResultChange} placeholder='e.g., 25.4mm' /></div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="filmSize">Film Size</Label>
+                                            <Select value={newTestResult.filmSize} onValueChange={(v) => setNewTestResult(prev => ({...prev, filmSize: v}))}>
+                                                <SelectTrigger id="filmSize"><SelectValue placeholder="Select film size" /></SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="4 x 10">4 x 10</SelectItem>
+                                                    <SelectItem value="4 x 15">4 x 15</SelectItem>
+                                                    <SelectItem value="14 x 17">14 x 17</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
                                     </div>
                                     <Separator className="my-4"/>
                                     <div className="space-y-4 rounded-md border p-4">
@@ -672,6 +686,7 @@ export default function RadiographicTestPage() {
                                                 <TableHead>Joint No.</TableHead>
                                                 <TableHead>Diameter</TableHead>
                                                 <TableHead>Thickness</TableHead>
+                                                <TableHead>Film Size</TableHead>
                                                 <TableHead>Film Location</TableHead>
                                                 <TableHead>Weld Indication</TableHead>
                                                 <TableHead>Remarks</TableHead>
@@ -680,7 +695,7 @@ export default function RadiographicTestPage() {
                                         </TableHeader>
                                         <TableBody>
                                             {flattenedSummaryResults.length === 0 ? (
-                                                <TableRow><TableCell colSpan={8} className="text-center h-24">No results added.</TableCell></TableRow>
+                                                <TableRow><TableCell colSpan={9} className="text-center h-24">No results added.</TableCell></TableRow>
                                             ) : (
                                                 flattenedSummaryResults.map((item, index) => (
                                                     <TableRow key={index}>
@@ -688,6 +703,7 @@ export default function RadiographicTestPage() {
                                                         <TableCell>{item.jointNo}</TableCell>
                                                         <TableCell>{item.diameter}</TableCell>
                                                         <TableCell>{item.thickness}</TableCell>
+                                                        <TableCell>{item.filmSize}</TableCell>
                                                         <TableCell>{item.filmLocation}</TableCell>
                                                         <TableCell>
                                                             <div className="flex flex-wrap gap-1">

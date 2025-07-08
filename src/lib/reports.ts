@@ -145,6 +145,7 @@ export type RadiographicTestResult = {
     weldId: string;
     diameter: string;
     thickness: string;
+    filmSize: string;
     imageUrls: string[];
     findings: RadiographicFinding[];
 };
@@ -312,6 +313,7 @@ const mockRadiographicDetails: RadiographicTestReportDetails = {
             weldId: 'W-B-05',
             diameter: '12"',
             thickness: '25.4mm',
+            filmSize: '4 x 15',
             imageUrls: [],
             findings: [
                 {
