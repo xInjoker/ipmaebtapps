@@ -31,6 +31,16 @@ const steps = [
     { id: '04', name: 'Summary & Submit' },
 ];
 
+const discontinuityTypeOptions = [
+    'No Recordable Indication',
+    'Porosity',
+    'Slag Inclusion',
+    'Lack of Fusion',
+    'Lack of Penetration',
+    'Crack',
+    'Other'
+];
+
 type TestResult = {
     subjectIdentification: string;
     jointNo: string;
@@ -169,8 +179,8 @@ export default function UltrasonicTestPage() {
         setNewTestResult(prev => ({ ...prev, [id]: value }));
     };
 
-    const handleNewResultSelectChange = (id: 'result', value: string) => {
-        setNewTestResult(prev => ({ ...prev, [id]: value as 'Accept' | 'Reject' }));
+    const handleNewResultSelectChange = (id: keyof Pick<TestResult, 'result' | 'discontinuityType'>, value: string) => {
+        setNewTestResult(prev => ({ ...prev, [id]: value }));
     };
 
     const handleAddResult = () => {
@@ -348,14 +358,13 @@ export default function UltrasonicTestPage() {
                                     </SelectContent>
                                 </Select>
                             </div>
-
+                             <div className="space-y-2"><Label htmlFor="scanningTechnique">Scanning Technique</Label><Input id="scanningTechnique" value={formData.scanningTechnique} onChange={handleInputChange} placeholder="e.g., Full Scan"/></div>
                             <div className="space-y-2 col-span-full"><h4 className="font-semibold text-base mt-2">Equipment</h4></div>
                             <div className="space-y-2"><Label htmlFor="equipment">Instrument</Label><Input id="equipment" value={formData.equipment} onChange={handleInputChange} placeholder="e.g., Olympus EPOCH 650"/></div>
                             <div className="space-y-2"><Label htmlFor="transducer">Transducer</Label><Input id="transducer" value={formData.transducer} onChange={handleInputChange} placeholder="e.g., A12, 5MHz, 60 deg"/></div>
                             <div className="space-y-2"><Label htmlFor="calibrationBlock">Calibration Block</Label><Input id="calibrationBlock" value={formData.calibrationBlock} onChange={handleInputChange} placeholder="e.g., IIW Type 1"/></div>
                             <div className="space-y-2"><Label htmlFor="couplant">Couplant</Label><Input id="couplant" value={formData.couplant} onChange={handleInputChange} placeholder="e.g., Glycerin"/></div>
                             <div className="space-y-2"><Label htmlFor="scanningSensitivity">Scanning Sensitivity</Label><Input id="scanningSensitivity" value={formData.scanningSensitivity} onChange={handleInputChange} placeholder="e.g., 6 dB above reference"/></div>
-                            <div className="space-y-2"><Label htmlFor="scanningTechnique">Scanning Technique</Label><Input id="scanningTechnique" value={formData.scanningTechnique} onChange={handleInputChange} placeholder="e.g., Full Scan"/></div>
                         </div>
                     )}
                      {currentStep === 2 && (
@@ -386,7 +395,15 @@ export default function UltrasonicTestPage() {
                                         <div className="space-y-2"><Label htmlFor="length">Length</Label><Input id="length" value={newTestResult.length} onChange={handleNewResultChange} /></div>
                                         <div className="space-y-2"><Label htmlFor="angularDistance">Angular Distance</Label><Input id="angularDistance" value={newTestResult.angularDistance} onChange={handleNewResultChange} /></div>
                                         <div className="space-y-2"><Label htmlFor="surfaceDistance">Surface Distance</Label><Input id="surfaceDistance" value={newTestResult.surfaceDistance} onChange={handleNewResultChange} /></div>
-                                        <div className="space-y-2"><Label htmlFor="discontinuityType">Discontinuity Type</Label><Input id="discontinuityType" value={newTestResult.discontinuityType} onChange={handleNewResultChange} /></div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="discontinuityType">Discontinuity Type</Label>
+                                            <Select value={newTestResult.discontinuityType} onValueChange={(v) => handleNewResultSelectChange('discontinuityType', v)}>
+                                                <SelectTrigger id="discontinuityType"><SelectValue placeholder="Select type" /></SelectTrigger>
+                                                <SelectContent>
+                                                    {discontinuityTypeOptions.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
                                         <div className="space-y-2"><Label htmlFor="depth">Depth</Label><Input id="depth" value={newTestResult.depth} onChange={handleNewResultChange} /></div>
                                         <div className="space-y-2"><Label htmlFor="result">Result</Label><Select value={newTestResult.result} onValueChange={(v) => handleNewResultSelectChange('result', v)}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent><SelectItem value="Accept">Accept</SelectItem><SelectItem value="Reject">Reject</SelectItem></SelectContent></Select></div>
                                         <div className="space-y-2 col-span-full"><Label htmlFor="remarks">Remarks</Label><Input id="remarks" value={newTestResult.remarks} onChange={handleNewResultChange} /></div>
