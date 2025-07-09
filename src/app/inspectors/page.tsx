@@ -9,11 +9,10 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { PlusCircle, Search, X, Users2, BadgeCheck, Clock, XCircle } from 'lucide-react';
 import { useInspectors } from '@/context/InspectorContext';
-import { inspectorPositions } from '@/lib/inspectors';
 import { InspectorCard } from '@/components/inspector-card';
 import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getDocumentStatus } from '@/lib/utils';
+import { getDocumentStatus, formatQualificationName } from '@/lib/utils';
 
 export default function InspectorsPage() {
   const { inspectors } = useInspectors();
@@ -25,7 +24,7 @@ export default function InspectorsPage() {
   }, []);
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [positionFilter, setPositionFilter] = useState('all');
+  const [qualificationFilter, setQualificationFilter] = useState('all');
   const [branchFilter, setBranchFilter] = useState('all');
 
   const branchMap = useMemo(() => {
@@ -35,18 +34,28 @@ export default function InspectorsPage() {
     }, {} as Record<string, string>);
   }, [branches]);
 
+  const allQualifications = useMemo(() => {
+    const qualifications = new Set<string>();
+    inspectors.forEach(inspector => {
+        inspector.qualifications.forEach(q => {
+            qualifications.add(q.name);
+        });
+    });
+    return Array.from(qualifications).sort();
+  }, [inspectors]);
+
   const filteredInspectors = useMemo(() => {
     return inspectors.filter(inspector => {
       const searchMatch = searchTerm.toLowerCase() === '' ||
                           inspector.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           inspector.email.toLowerCase().includes(searchTerm.toLowerCase());
       
-      const positionMatch = positionFilter === 'all' || inspector.position === positionFilter;
+      const qualificationMatch = qualificationFilter === 'all' || inspector.qualifications.some(q => q.name === qualificationFilter);
       const branchMatch = branchFilter === 'all' || inspector.branchId === branchFilter;
 
-      return searchMatch && positionMatch && branchMatch;
+      return searchMatch && qualificationMatch && branchMatch;
     });
-  }, [inspectors, searchTerm, positionFilter, branchFilter]);
+  }, [inspectors, searchTerm, qualificationFilter, branchFilter]);
 
   const dashboardStats = useMemo(() => {
     const total = filteredInspectors.length;
@@ -90,7 +99,7 @@ export default function InspectorsPage() {
 
   const handleClearFilters = () => {
     setSearchTerm('');
-    setPositionFilter('all');
+    setQualificationFilter('all');
     setBranchFilter('all');
   };
 
@@ -125,13 +134,13 @@ export default function InspectorsPage() {
               />
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <Select value={positionFilter} onValueChange={setPositionFilter}>
+              <Select value={qualificationFilter} onValueChange={setQualificationFilter}>
                 <SelectTrigger className="w-full sm:w-[180px]">
-                  <SelectValue placeholder="Filter by position" />
+                  <SelectValue placeholder="Filter by qualification" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Positions</SelectItem>
-                  {inspectorPositions.map(pos => <SelectItem key={pos} value={pos}>{pos}</SelectItem>)}
+                  <SelectItem value="all">All Qualifications</SelectItem>
+                  {allQualifications.map(qual => <SelectItem key={qual} value={qual}>{formatQualificationName(qual)}</SelectItem>)}
                 </SelectContent>
               </Select>
                <Select value={branchFilter} onValueChange={setBranchFilter}>

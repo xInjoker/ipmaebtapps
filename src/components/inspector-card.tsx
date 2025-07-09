@@ -8,19 +8,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Mail, MapPin, Award } from 'lucide-react';
 import { type Inspector } from '@/lib/inspectors';
-import { getInitials, getAvatarColor } from '@/lib/utils';
+import { getInitials, getAvatarColor, formatQualificationName } from '@/lib/utils';
 
 export function InspectorCard({ inspector, branchMap }: { inspector: Inspector, branchMap: Record<string, string> }) {
   const avatarColor = getAvatarColor(inspector.name);
   
-  function formatQualificationName(name: string) {
-    return name
-        .replace(/\.pdf$|\.jpg$|\.png$/i, '') // Remove common extensions
-        .replace(/[_-]/g, ' ') // Replace underscores/hyphens with spaces
-        .replace(/level/i, 'Lvl') // Abbreviate "Level"
-        .trim();
-  }
-
   return (
     <Card className="flex flex-col">
       <CardHeader>

@@ -107,3 +107,12 @@ export const getDocumentStatus = (dueDateString?: string): DocumentStatus => {
     }
     return { text: 'Valid', variant: 'green' as const };
 };
+
+export function formatQualificationName(name: string) {
+    if (!name) return 'Untitled';
+    return name
+        .replace(/\.pdf$|\.jpg$|\.png$/i, '') // Remove common extensions
+        .replace(/[_-]/g, ' ') // Replace underscores/hyphens with spaces
+        .replace(/level/i, 'Lvl') // Abbreviate "Level"
+        .trim();
+}
