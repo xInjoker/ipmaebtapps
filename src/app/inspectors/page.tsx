@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { PlusCircle, Search, X, Users2, Award, Clock, XCircle } from 'lucide-react';
+import { PlusCircle, Search, X, Users2, BadgeCheck, Clock, XCircle } from 'lucide-react';
 import { useInspectors } from '@/context/InspectorContext';
 import { inspectorPositions } from '@/lib/inspectors';
 import { InspectorCard } from '@/components/inspector-card';
@@ -50,8 +50,7 @@ export default function InspectorsPage() {
 
   const dashboardStats = useMemo(() => {
     const total = filteredInspectors.length;
-    const leads = filteredInspectors.filter(i => i.position === 'Lead Inspector').length;
-    
+    let validCerts = 0;
     const inspectorHasExpiringCert = new Set<string>();
     const inspectorHasExpiredCert = new Set<string>();
 
@@ -61,26 +60,28 @@ export default function InspectorsPage() {
         let hasExpired = false;
 
         allDocs.forEach(doc => {
-            if (doc.expirationDate) {
-                const status = getDocumentStatus(doc.expirationDate);
-                if (status.variant === 'destructive') {
-                    hasExpired = true;
-                } else if (status.variant === 'yellow') {
-                    hasExpiring = true;
-                }
+            const status = getDocumentStatus(doc.expirationDate);
+            if (status.variant !== 'destructive') {
+                validCerts++;
+            }
+
+            if (status.variant === 'destructive') {
+                hasExpired = true;
+            } else if (status.variant === 'yellow') {
+                hasExpiring = true;
             }
         });
 
         if (hasExpired) {
             inspectorHasExpiredCert.add(inspector.id);
-        } else if (hasExpiring) { // else if, so an inspector with an expired cert isn't also counted as expiring
+        } else if (hasExpiring) {
             inspectorHasExpiringCert.add(inspector.id);
         }
     });
 
     return { 
         total, 
-        leads, 
+        validCerts,
         expiringSoon: inspectorHasExpiringCert.size,
         expired: inspectorHasExpiredCert.size
     };
@@ -163,12 +164,12 @@ export default function InspectorsPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Lead Inspectors</CardTitle>
-            <Award className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Total Valid Certificates</CardTitle>
+            <BadgeCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{dashboardStats.leads}</div>
-            <p className="text-xs text-muted-foreground">team leads available</p>
+            <div className="text-2xl font-bold">{dashboardStats.validCerts}</div>
+            <p className="text-xs text-muted-foreground">certificates are currently valid</p>
           </CardContent>
         </Card>
         <Card>
