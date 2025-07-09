@@ -7,12 +7,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { PlusCircle, Search, X } from 'lucide-react';
+import { PlusCircle, Search, X, Users2, Award, Clock, XCircle } from 'lucide-react';
 import { useInspectors } from '@/context/InspectorContext';
 import { inspectorPositions } from '@/lib/inspectors';
 import { InspectorCard } from '@/components/inspector-card';
 import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
+import { getDocumentStatus } from '@/lib/utils';
 
 export default function InspectorsPage() {
   const { inspectors } = useInspectors();
@@ -46,6 +47,45 @@ export default function InspectorsPage() {
       return searchMatch && positionMatch && branchMatch;
     });
   }, [inspectors, searchTerm, positionFilter, branchFilter]);
+
+  const dashboardStats = useMemo(() => {
+    const total = filteredInspectors.length;
+    const leads = filteredInspectors.filter(i => i.position === 'Lead Inspector').length;
+    
+    const inspectorHasExpiringCert = new Set<string>();
+    const inspectorHasExpiredCert = new Set<string>();
+
+    filteredInspectors.forEach(inspector => {
+        const allDocs = [...inspector.qualifications, ...inspector.otherDocuments];
+        let hasExpiring = false;
+        let hasExpired = false;
+
+        allDocs.forEach(doc => {
+            if (doc.expirationDate) {
+                const status = getDocumentStatus(doc.expirationDate);
+                if (status.variant === 'destructive') {
+                    hasExpired = true;
+                } else if (status.variant === 'yellow') {
+                    hasExpiring = true;
+                }
+            }
+        });
+
+        if (hasExpired) {
+            inspectorHasExpiredCert.add(inspector.id);
+        } else if (hasExpiring) { // else if, so an inspector with an expired cert isn't also counted as expiring
+            inspectorHasExpiringCert.add(inspector.id);
+        }
+    });
+
+    return { 
+        total, 
+        leads, 
+        expiringSoon: inspectorHasExpiringCert.size,
+        expired: inspectorHasExpiredCert.size
+    };
+  }, [filteredInspectors]);
+
 
   const handleClearFilters = () => {
     setSearchTerm('');
@@ -109,6 +149,49 @@ export default function InspectorsPage() {
           </div>
         </CardContent>
       </Card>
+      
+       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Inspectors</CardTitle>
+            <Users2 className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{dashboardStats.total}</div>
+            <p className="text-xs text-muted-foreground">inspectors in the database</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Lead Inspectors</CardTitle>
+            <Award className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{dashboardStats.leads}</div>
+            <p className="text-xs text-muted-foreground">team leads available</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Expiring Certificates</CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{dashboardStats.expiringSoon}</div>
+            <p className="text-xs text-muted-foreground">inspectors with certs expiring soon</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Expired Certificates</CardTitle>
+            <XCircle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{dashboardStats.expired}</div>
+            <p className="text-xs text-muted-foreground">inspectors with expired certs</p>
+          </CardContent>
+        </Card>
+      </div>
 
       {!isClient ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

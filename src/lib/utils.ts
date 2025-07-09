@@ -82,3 +82,28 @@ export const getCalibrationStatus = (dueDate: Date): CalibrationStatus => {
   }
   return { text: 'Valid', variant: 'green' };
 };
+
+export type DocumentStatus = {
+  text: string;
+  variant: 'destructive' | 'yellow' | 'green' | 'secondary';
+};
+
+export const getDocumentStatus = (dueDateString?: string): DocumentStatus => {
+    if (!dueDateString) {
+        return { text: 'No Expiry', variant: 'secondary' as const };
+    }
+    const dueDate = new Date(dueDateString);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const cleanDueDate = new Date(dueDate);
+    cleanDueDate.setHours(0, 0, 0, 0);
+
+    if (isPast(cleanDueDate)) {
+      return { text: 'Expired', variant: 'destructive' as const };
+    }
+    const daysLeft = differenceInDays(cleanDueDate, today);
+    if (daysLeft <= 30) {
+      return { text: `Expires in ${daysLeft} days`, variant: 'yellow' as const };
+    }
+    return { text: 'Valid', variant: 'green' as const };
+};

@@ -11,31 +11,12 @@ import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ArrowLeft, Edit, Mail, Phone, FileText, Download, Award, Paperclip, CalendarDays, MapPin } from 'lucide-react';
 import { type Inspector } from '@/lib/inspectors';
-import { getInitials, getAvatarColor } from '@/lib/utils';
+import { getInitials, getAvatarColor, getDocumentStatus } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
-import { format, isPast, differenceInDays } from 'date-fns';
+import { format } from 'date-fns';
 import { useAuth } from '@/context/AuthContext';
 
-const getDocumentStatus = (dueDateString?: string) => {
-    if (!dueDateString) {
-        return { text: 'No Expiry', variant: 'secondary' as const };
-    }
-    const dueDate = new Date(dueDateString);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const cleanDueDate = new Date(dueDate);
-    cleanDueDate.setHours(0, 0, 0, 0);
-
-    if (isPast(cleanDueDate)) {
-      return { text: 'Expired', variant: 'destructive' as const };
-    }
-    const daysLeft = differenceInDays(cleanDueDate, today);
-    if (daysLeft <= 30) {
-      return { text: `Expires in ${daysLeft} days`, variant: 'yellow' as const };
-    }
-    return { text: 'Valid', variant: 'green' as const };
-};
 
 function formatDocumentName(name?: string) {
     if (!name) return 'Untitled Document';
