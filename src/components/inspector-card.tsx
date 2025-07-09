@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Mail, MapPin, Award } from 'lucide-react';
 import { type Inspector } from '@/lib/inspectors';
-import { getInitials, getAvatarColor, formatQualificationName } from '@/lib/utils';
+import { getInitials, getAvatarColor, formatQualificationName, getDocumentStatus } from '@/lib/utils';
 
 export function InspectorCard({ inspector, branchMap }: { inspector: Inspector, branchMap: Record<string, string> }) {
   const avatarColor = getAvatarColor(inspector.name);
@@ -55,9 +55,12 @@ export function InspectorCard({ inspector, branchMap }: { inspector: Inspector, 
             </div>
             <div className="flex flex-wrap gap-1 pl-6">
                 {inspector.qualifications.length > 0 ? (
-                    inspector.qualifications.map(q => (
-                        <Badge key={q.name} variant="secondary" className="font-normal">{formatQualificationName(q.name)}</Badge>
-                    ))
+                    inspector.qualifications.map(q => {
+                        const status = getDocumentStatus(q.expirationDate);
+                        return (
+                            <Badge key={q.name} variant={status.variant} className="font-normal">{formatQualificationName(q.name)}</Badge>
+                        );
+                    })
                 ) : (
                     <span className="text-xs text-muted-foreground pl-1">No qualifications listed</span>
                 )}
