@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -37,6 +38,10 @@
     --sidebar-accent-foreground: 271 100% 25.1%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+    --success: 142 76% 36%;
+    --warning: 48 96% 51%;
+    --info: 217 91% 60%;
+    --indigo: 263 90% 65%;
   }
 
   .dark {
@@ -72,6 +77,10 @@
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+    --success: 142 71% 45%;
+    --warning: 48 96% 61%;
+    --info: 217 91% 70%;
+    --indigo: 263 90% 75%;
   }
 
   /* Green Theme */

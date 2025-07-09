@@ -1,3 +1,4 @@
+
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 
@@ -13,22 +14,14 @@ const badgeVariants = cva(
         secondary:
           "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
         destructive:
-          "border-transparent bg-error text-white hover:bg-error/80",
+          "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
         outline: "text-foreground",
-        green:
-          "border-transparent bg-green-500 text-primary-foreground hover:bg-green-500/80",
-        yellow:
-          "border-transparent bg-yellow-400 text-yellow-950 hover:bg-yellow-400/80",
-        orange:
-          "border-transparent bg-orange-500 text-primary-foreground hover:bg-orange-500/80",
-        blue:
-          "border-transparent bg-blue-500 text-primary-foreground hover:bg-blue-500/80",
-        purple:
-          "border-transparent bg-purple-500 text-primary-foreground hover:bg-purple-500/80",
-        success: "border-transparent bg-success text-white",
-        warning: "border-transparent bg-warning text-dark",
-        info: "border-transparent bg-info text-white",
-        indigo: "border-transparent bg-indigo text-white",
+        success: "border-transparent bg-success text-primary-foreground",
+        warning: "border-transparent bg-warning text-secondary-foreground",
+        info: "border-transparent bg-info text-primary-foreground",
+        indigo: "border-transparent bg-indigo text-primary-foreground",
+        green: "border-transparent bg-success text-primary-foreground",
+        yellow: "border-transparent bg-warning text-secondary-foreground",
       },
     },
     defaultVariants: {
