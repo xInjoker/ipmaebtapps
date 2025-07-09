@@ -1,10 +1,4 @@
 
-
-
-
-
-
-
 export const permissions = [
   'view-dashboard',
   'manage-projects',

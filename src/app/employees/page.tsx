@@ -25,6 +25,16 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { MoreHorizontal, PlusCircle, Upload, Download, Trash2, Edit } from 'lucide-react';
 import { useEmployees } from '@/context/EmployeeContext';
@@ -48,7 +58,10 @@ export default function EmployeesPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [isCustomizeExportOpen, setIsCustomizeExportOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  
   const [employeeToEdit, setEmployeeToEdit] = useState<Employee | null>(null);
+  const [employeeToDelete, setEmployeeToDelete] = useState<Employee | null>(null);
   const [exportFields, setExportFields] = useState<(keyof Employee)[]>(['name', 'position', 'projectName', 'email', 'employmentStatus']);
 
   const handleAddNew = () => {
@@ -59,6 +72,22 @@ export default function EmployeesPage() {
   const handleEdit = (employee: Employee) => {
     setEmployeeToEdit(employee);
     setIsFormOpen(true);
+  };
+
+  const handleDeleteRequest = (employee: Employee) => {
+    setEmployeeToDelete(employee);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!employeeToDelete) return;
+    deleteEmployee(employeeToDelete.id);
+    toast({
+      title: 'Employee Deleted',
+      description: `${employeeToDelete.name} has been removed from the system.`,
+    });
+    setIsDeleteDialogOpen(false);
+    setEmployeeToDelete(null);
   };
 
   const handleSave = (data: Employee) => {
@@ -200,7 +229,7 @@ export default function EmployeesPage() {
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               className="text-destructive"
-                              onSelect={() => deleteEmployee(employee.id)}
+                              onSelect={() => handleDeleteRequest(employee)}
                             >
                               <Trash2 className="mr-2 h-4 w-4" />
                               <span>Delete</span>
@@ -234,6 +263,20 @@ export default function EmployeesPage() {
         allFields={allEmployeeFields}
         defaultSelectedFields={exportFields}
       />
+       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete {employeeToDelete?.name}'s record from the database.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setEmployeeToDelete(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
