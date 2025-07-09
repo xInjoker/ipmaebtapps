@@ -54,7 +54,7 @@ export function InspectorCard({ inspector, branchMap }: { inspector: Inspector, 
                 <Award className="h-4 w-4 flex-shrink-0" />
                 <span>Qualifications</span>
             </div>
-            <div className="flex flex-wrap justify-center gap-1">
+            <div className="flex flex-wrap justify-center gap-x-1 gap-y-2">
                 {inspector.qualifications.length > 0 ? (
                     inspector.qualifications.map(q => {
                         const status = getDocumentStatus(q.expirationDate);
