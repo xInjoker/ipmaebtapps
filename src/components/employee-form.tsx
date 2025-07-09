@@ -179,15 +179,15 @@ export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
                         <div><Label>RAB Number</Label><Input {...form.register('rabNumber')} /></div>
                         <div>
                         <Label>Portfolio</Label>
-                        <Select onValueChange={(v) => form.setValue('portfolio', v as any)} defaultValue={form.getValues('portfolio')}>
-                            <SelectTrigger><SelectValue /></SelectTrigger>
+                        <Select onValueChange={(v) => form.setValue('portfolio', v as any)} value={form.watch('portfolio') || ''}>
+                            <SelectTrigger><SelectValue placeholder="Select a portfolio..."/></SelectTrigger>
                             <SelectContent><SelectItem value="AEBT">AEBT</SelectItem><SelectItem value="others">Others</SelectItem></SelectContent>
                         </Select>
                         </div>
                         <div>
                         <Label>Sub-Portfolio</Label>
-                        <Select onValueChange={(v) => form.setValue('subPortfolio', v as any)} defaultValue={form.getValues('subPortfolio')}>
-                            <SelectTrigger><SelectValue /></SelectTrigger>
+                        <Select onValueChange={(v) => form.setValue('subPortfolio', v as any)} value={form.watch('subPortfolio') || ''}>
+                            <SelectTrigger><SelectValue placeholder="Select a sub-portfolio..."/></SelectTrigger>
                             <SelectContent><SelectItem value="IAPPM">IAPPM</SelectItem><SelectItem value="EBT">EBT</SelectItem></SelectContent>
                         </Select>
                         </div>
@@ -207,8 +207,8 @@ export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
                         </div>
                         <div>
                         <Label>Gender</Label>
-                        <Select onValueChange={(v) => form.setValue('gender', v as any)} defaultValue={form.getValues('gender')}>
-                            <SelectTrigger><SelectValue /></SelectTrigger>
+                        <Select onValueChange={(v) => form.setValue('gender', v as any)} value={form.watch('gender') || ''}>
+                            <SelectTrigger><SelectValue placeholder="Select a gender..."/></SelectTrigger>
                             <SelectContent><SelectItem value="Male">Male</SelectItem><SelectItem value="Female">Female</SelectItem></SelectContent>
                         </Select>
                         </div>
@@ -222,8 +222,8 @@ export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                         <Label>Employment Status</Label>
-                        <Select onValueChange={(v) => form.setValue('employmentStatus', v as any)} defaultValue={form.getValues('employmentStatus')}>
-                            <SelectTrigger><SelectValue /></SelectTrigger>
+                        <Select onValueChange={(v) => form.setValue('employmentStatus', v as any)} value={form.watch('employmentStatus') || ''}>
+                            <SelectTrigger><SelectValue placeholder="Select a status..."/></SelectTrigger>
                             <SelectContent><SelectItem value="Active">Active</SelectItem><SelectItem value="Inactive">Inactive</SelectItem><SelectItem value="On Leave">On Leave</SelectItem></SelectContent>
                         </Select>
                         </div>
@@ -235,8 +235,8 @@ export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                         <Label>Contract Type</Label>
-                        <Select onValueChange={(v) => form.setValue('contractType', v as any)} defaultValue={form.getValues('contractType')}>
-                            <SelectTrigger><SelectValue /></SelectTrigger>
+                        <Select onValueChange={(v) => form.setValue('contractType', v as any)} value={form.watch('contractType') || ''}>
+                            <SelectTrigger><SelectValue placeholder="Select a type..."/></SelectTrigger>
                             <SelectContent><SelectItem value="Full-time">Full-time</SelectItem><SelectItem value="Part-time">Part-time</SelectItem><SelectItem value="Contract">Contract</SelectItem></SelectContent>
                         </Select>
                         </div>

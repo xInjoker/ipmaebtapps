@@ -7,7 +7,7 @@ import { initialEmployees, type Employee } from '@/lib/employees';
 type EmployeeContextType = {
   employees: Employee[];
   setEmployees: Dispatch<SetStateAction<Employee[]>>;
-  addEmployee: (item: Omit<Employee, 'id'>) => void;
+  addEmployee: (item: Employee) => void;
   updateEmployee: (id: string, item: Employee) => void;
   deleteEmployee: (id: string) => void;
   getEmployeeById: (id: string) => Employee | undefined;
@@ -18,10 +18,8 @@ const EmployeeContext = createContext<EmployeeContextType | undefined>(undefined
 export function EmployeeProvider({ children }: { children: ReactNode }) {
   const [employees, setEmployees] = useState<Employee[]>(initialEmployees);
 
-  const addEmployee = (item: Omit<Employee, 'id'>) => {
-    const newId = `EMP-${String(employees.length + 1).padStart(3, '0')}`;
-    const newItem = { ...item, id: newId };
-    setEmployees(prev => [...prev, newItem]);
+  const addEmployee = (item: Employee) => {
+    setEmployees(prev => [...prev, item]);
   };
   
   const updateEmployee = (id: string, updatedItem: Employee) => {
