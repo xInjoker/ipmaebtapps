@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useInspectors } from '@/context/InspectorContext';
-import { inspectorPositions, type Inspector } from '@/lib/inspectors';
+import { inspectorPositions, employmentStatuses, type Inspector } from '@/lib/inspectors';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -40,6 +40,8 @@ export default function NewInspectorPage() {
     phone: '',
     position: '' as Inspector['position'] | '',
     branchId: '',
+    employmentStatus: '' as Inspector['employmentStatus'] | '',
+    yearsOfExperience: 0,
   });
 
   const handleFileChange = (setter: React.Dispatch<React.SetStateAction<UploadableDocument[]>>, e: React.ChangeEvent<HTMLInputElement>) => {
@@ -68,11 +70,11 @@ export default function NewInspectorPage() {
   };
 
   const handleSave = () => {
-    if (!newInspector.name || !newInspector.email || !newInspector.position || !newInspector.branchId) {
+    if (!newInspector.name || !newInspector.email || !newInspector.position || !newInspector.branchId || !newInspector.employmentStatus) {
       toast({
         variant: 'destructive',
         title: 'Missing Information',
-        description: 'Please fill out all required fields (Name, Email, Position, Branch).',
+        description: 'Please fill out all required fields (Name, Email, Position, Branch, Employment Status).',
       });
       return;
     }
@@ -80,6 +82,7 @@ export default function NewInspectorPage() {
     addInspector({
       ...newInspector,
       position: newInspector.position as Inspector['position'],
+      employmentStatus: newInspector.employmentStatus as Inspector['employmentStatus'],
       avatarUrl: '', // Placeholder
       cvUrl: cvFile ? cvFile.name : '', // In real app, upload and get URL
       qualifications: qualifications.map(doc => ({
@@ -140,6 +143,19 @@ export default function NewInspectorPage() {
                         {inspectorPositions.map(pos => <SelectItem key={pos} value={pos}>{pos}</SelectItem>)}
                     </SelectContent>
                 </Select>
+            </div>
+             <div className="space-y-2">
+                <Label htmlFor="employmentStatus">Employment Status</Label>
+                <Select value={newInspector.employmentStatus} onValueChange={(value: Inspector['employmentStatus']) => setNewInspector({...newInspector, employmentStatus: value})}>
+                    <SelectTrigger id="employmentStatus"><SelectValue placeholder="Select status" /></SelectTrigger>
+                    <SelectContent>
+                        {employmentStatuses.map(status => <SelectItem key={status} value={status}>{status}</SelectItem>)}
+                    </SelectContent>
+                </Select>
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="yearsOfExperience">Years of Experience</Label>
+                <Input id="yearsOfExperience" type="number" value={newInspector.yearsOfExperience || ''} onChange={e => setNewInspector({...newInspector, yearsOfExperience: parseInt(e.target.value) || 0})} placeholder="e.g., 5" />
             </div>
             <div className="space-y-2">
                 <Label htmlFor="branch">Branch</Label>

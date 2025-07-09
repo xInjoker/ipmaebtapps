@@ -6,7 +6,7 @@ import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useInspectors } from '@/context/InspectorContext';
 import { type Inspector, type InspectorDocument } from '@/lib/inspectors';
-import { inspectorPositions } from '@/lib/inspectors';
+import { inspectorPositions, employmentStatuses } from '@/lib/inspectors';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -179,6 +179,19 @@ export default function EditInspectorPage() {
                         {inspectorPositions.map(pos => <SelectItem key={pos} value={pos}>{pos}</SelectItem>)}
                     </SelectContent>
                 </Select>
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="employmentStatus">Employment Status</Label>
+                <Select value={inspector.employmentStatus} onValueChange={(value: Inspector['employmentStatus']) => setInspector(inspector ? {...inspector, employmentStatus: value} : null)}>
+                    <SelectTrigger id="employmentStatus"><SelectValue placeholder="Select status" /></SelectTrigger>
+                    <SelectContent>
+                        {employmentStatuses.map(status => <SelectItem key={status} value={status}>{status}</SelectItem>)}
+                    </SelectContent>
+                </Select>
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="yearsOfExperience">Years of Experience</Label>
+                <Input id="yearsOfExperience" type="number" value={inspector.yearsOfExperience || ''} onChange={e => setInspector(inspector ? {...inspector, yearsOfExperience: parseInt(e.target.value) || 0} : null)} />
             </div>
             <div className="space-y-2">
                 <Label htmlFor="branch">Branch</Label>

@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, Edit, Mail, Phone, FileText, Download, Award, Paperclip, CalendarDays, MapPin } from 'lucide-react';
+import { ArrowLeft, Edit, Mail, Phone, FileText, Download, Award, Paperclip, CalendarDays, MapPin, Briefcase, Star } from 'lucide-react';
 import { type Inspector } from '@/lib/inspectors';
 import { getInitials, getAvatarColor, getDocumentStatus } from '@/lib/utils';
 import { cn } from '@/lib/utils';
@@ -124,6 +124,24 @@ export default function InspectorDetailsPage() {
                     <div>
                         <p className="text-sm text-muted-foreground">Phone</p>
                         <p className="font-medium">{inspector.phone}</p>
+                    </div>
+                </div>
+                 <div className="flex items-center gap-4">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
+                        <Briefcase className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
+                    </div>
+                    <div>
+                        <p className="text-sm text-muted-foreground">Employment Status</p>
+                        <p className="font-medium">{inspector.employmentStatus || 'N/A'}</p>
+                    </div>
+                </div>
+                 <div className="flex items-center gap-4">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
+                        <Star className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
+                    </div>
+                    <div>
+                        <p className="text-sm text-muted-foreground">Years of Experience</p>
+                        <p className="font-medium">{inspector.yearsOfExperience ? `${inspector.yearsOfExperience} years` : 'N/A'}</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-4">

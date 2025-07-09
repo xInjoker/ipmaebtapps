@@ -11,6 +11,8 @@ export type Inspector = {
   email: string;
   phone: string;
   position: 'Lead Inspector' | 'Inspector' | 'Trainee Inspector';
+  employmentStatus?: 'Organik' | 'Freelance';
+  yearsOfExperience?: number;
   avatarUrl: string;
   cvUrl: string; // URL for a single CV file
   qualifications: InspectorDocument[];
@@ -19,6 +21,8 @@ export type Inspector = {
 };
 
 export const inspectorPositions: Inspector['position'][] = ['Lead Inspector', 'Inspector', 'Trainee Inspector'];
+export const employmentStatuses: Exclude<Inspector['employmentStatus'], undefined>[] = ['Organik', 'Freelance'];
+
 
 export const initialInspectors: Inspector[] = [
   {
@@ -27,6 +31,8 @@ export const initialInspectors: Inspector[] = [
     email: 'budi.s@example.com',
     phone: '0812-3456-7890',
     position: 'Lead Inspector',
+    employmentStatus: 'Organik',
+    yearsOfExperience: 15,
     avatarUrl: '',
     cvUrl: 'Budi_Santoso_CV.pdf',
     qualifications: [
@@ -44,6 +50,8 @@ export const initialInspectors: Inspector[] = [
     email: 'citra.d@example.com',
     phone: '0823-4567-8901',
     position: 'Inspector',
+    employmentStatus: 'Freelance',
+    yearsOfExperience: 8,
     avatarUrl: '',
     cvUrl: 'Citra_Dewi_CV.pdf',
     qualifications: [
@@ -59,6 +67,8 @@ export const initialInspectors: Inspector[] = [
     email: 'eko.w@example.com',
     phone: '0834-5678-9012',
     position: 'Trainee Inspector',
+    employmentStatus: 'Organik',
+    yearsOfExperience: 1,
     avatarUrl: '',
     cvUrl: 'Eko_Wahyudi_CV.pdf',
     qualifications: [],
