@@ -62,8 +62,12 @@ export function SidebarNav() {
         label: project.contractNumber,
       })),
     },
-    { href: '/equipment', label: 'Equipment', icon: Wrench, permission: 'view-equipment' },
-    { href: '/inspectors', label: 'Inspectors', icon: Users2, permission: 'view-inspector' },
+    {
+      href: '/employees',
+      label: 'Employees',
+      icon: Users,
+      permission: 'manage-employees',
+    },
     { 
       href: '/reports', 
       label: 'Reporting', 
@@ -71,12 +75,8 @@ export function SidebarNav() {
       permission: 'manage-reports',
       subItems: userHasPermission('view-approvals') ? [{ href: '/reports/approvals', label: 'Approvals' }] : [],
     },
-    {
-      href: '/employees',
-      label: 'Employees',
-      icon: Users,
-      permission: 'manage-employees',
-    },
+    { href: '/equipment', label: 'Equipment', icon: Wrench, permission: 'view-equipment' },
+    { href: '/inspectors', label: 'Inspectors', icon: Users2, permission: 'view-inspector' },
     {
       href: '/user-management',
       label: 'User Management',
