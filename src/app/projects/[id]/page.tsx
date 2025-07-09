@@ -177,7 +177,7 @@ export default function ProjectDetailsPage() {
                 <span className="sr-only">Back</span>
               </Link>
             </Button>
-            <div>
+            <div className="space-y-1.5">
               <CardTitle>{project.name}</CardTitle>
               <CardDescription>{project.description}</CardDescription>
             </div>

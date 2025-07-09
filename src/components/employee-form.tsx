@@ -169,23 +169,23 @@ export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
 
 
   return (
-    <div className="space-y-6">
-       <div className="flex items-center gap-4">
-        <Button asChild variant="outline" size="icon">
-          <Link href="/employees">
-            <ArrowLeft className="h-4 w-4" />
-            <span className="sr-only">Back to Employees</span>
-          </Link>
-        </Button>
-        <div>
-          <h1 className="font-headline text-2xl font-bold">{pageTitle}</h1>
-          <p className="text-muted-foreground">{pageDescription}</p>
-        </div>
-      </div>
+    <>
         <Card>
             <CardHeader>
+                 <div className="flex items-center gap-4">
+                    <Button asChild variant="outline" size="icon">
+                    <Link href="/employees">
+                        <ArrowLeft className="h-4 w-4" />
+                        <span className="sr-only">Back to Employees</span>
+                    </Link>
+                    </Button>
+                    <div className="space-y-1.5">
+                        <CardTitle>{pageTitle}</CardTitle>
+                        <CardDescription>{pageDescription}</CardDescription>
+                    </div>
+                </div>
                 {/* Progress Indicator */}
-                <div className="flex justify-between items-center px-4 py-2">
+                <div className="flex justify-between items-center px-4 py-2 mt-4">
                     {steps.map((step, index) => (
                         <div key={step.id} className="flex items-center">
                             <div className={cn(
@@ -419,6 +419,6 @@ export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
-    </div>
+    </>
   );
 }

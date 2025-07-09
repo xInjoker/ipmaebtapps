@@ -113,7 +113,7 @@ export default function NewInspectorPage() {
                 <span className="sr-only">Back to Inspectors</span>
               </Link>
             </Button>
-            <div>
+            <div className="space-y-1.5">
               <CardTitle>Add New Inspector</CardTitle>
               <CardDescription>Fill in the details for the new inspector.</CardDescription>
             </div>

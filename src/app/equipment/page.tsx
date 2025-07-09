@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useEffect, useRef } from 'react';
@@ -74,8 +75,8 @@ export default function EquipmentPage() {
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
+        <CardHeader className="flex flex-row items-start justify-between">
+          <div className="space-y-1.5">
             <CardTitle className="font-headline">Equipment Management</CardTitle>
             <CardDescription>
               Monitor and manage all operational equipment.

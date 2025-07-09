@@ -56,8 +56,8 @@ export default function InspectorsPage() {
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
+        <CardHeader className="flex flex-row items-start justify-between">
+          <div className="space-y-1.5">
             <CardTitle className="font-headline">Inspector Database</CardTitle>
             <CardDescription>
               Manage all inspectors and their qualifications.

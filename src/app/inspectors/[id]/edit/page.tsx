@@ -152,7 +152,7 @@ export default function EditInspectorPage() {
                 <span className="sr-only">Back to Inspector</span>
               </Link>
             </Button>
-            <div>
+            <div className="space-y-1.5">
               <CardTitle>Edit Inspector</CardTitle>
               <CardDescription>Update the details for {inspector.name}.</CardDescription>
             </div>

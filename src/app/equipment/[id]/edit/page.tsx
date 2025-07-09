@@ -216,7 +216,7 @@ export default function EditEquipmentPage() {
                 <span className="sr-only">Back to Equipment</span>
               </Link>
             </Button>
-            <div>
+            <div className="space-y-1.5">
               <CardTitle>Edit Equipment</CardTitle>
               <CardDescription>Update the details for {equipment.name}.</CardDescription>
             </div>

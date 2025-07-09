@@ -89,7 +89,7 @@ export default function InspectorDetailsPage() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-4">
               <Button asChild variant="outline" size="icon">
                 <Link href="/inspectors">
@@ -100,11 +100,11 @@ export default function InspectorDetailsPage() {
               <div className="flex items-center gap-4">
                 <Avatar className="h-16 w-16">
                   {inspector.avatarUrl ? <AvatarImage src={inspector.avatarUrl} alt={inspector.name} /> : null}
-                  <AvatarFallback className={cn('text-2xl', avatarColor.background, avatarColor.text)}>
+                  <AvatarFallback style={{ backgroundColor: avatarColor.background, color: avatarColor.color }} className="text-2xl">
                     {getInitials(inspector.name)}
                   </AvatarFallback>
                 </Avatar>
-                <div>
+                <div className="space-y-1.5">
                   <CardTitle>{inspector.name}</CardTitle>
                   <CardDescription><Badge>{inspector.position}</Badge></CardDescription>
                 </div>

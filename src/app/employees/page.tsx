@@ -196,51 +196,49 @@ export default function EmployeesPage() {
     <>
       <div className="space-y-6">
         <Card>
-          <CardHeader>
-            <div className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle className="font-headline">All Employees</CardTitle>
-                <CardDescription>
-                  View, manage, and track all employees in the organization.
-                </CardDescription>
-              </div>
-              {userHasPermission('manage-employees') && (
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" onClick={() => setIsImportOpen(true)}>
-                    <Upload className="mr-2 h-4 w-4" />
-                    Import
-                  </Button>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline">
-                        <Download className="mr-2 h-4 w-4" />
-                        Export
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      <DropdownMenuItem onSelect={() => handleExport('excel')}>
-                        Export as Excel
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onSelect={() => handleExport('pdf')}>
-                        Export as PDF
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onSelect={() => setIsCustomizeExportOpen(true)}
-                      >
-                        Customize Export Fields
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                  <Button asChild>
-                    <Link href="/employees/new">
-                      <PlusCircle className="mr-2 h-4 w-4" />
-                      Add Employee
-                    </Link>
-                  </Button>
-                </div>
-              )}
+          <CardHeader className="flex flex-row items-start justify-between">
+            <div className="space-y-1.5">
+              <CardTitle className="font-headline">All Employees</CardTitle>
+              <CardDescription>
+                View, manage, and track all employees in the organization.
+              </CardDescription>
             </div>
+            {userHasPermission('manage-employees') && (
+              <div className="flex items-center gap-2">
+                <Button variant="outline" onClick={() => setIsImportOpen(true)}>
+                  <Upload className="mr-2 h-4 w-4" />
+                  Import
+                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline">
+                      <Download className="mr-2 h-4 w-4" />
+                      Export
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem onSelect={() => handleExport('excel')}>
+                      Export as Excel
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => handleExport('pdf')}>
+                      Export as PDF
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onSelect={() => setIsCustomizeExportOpen(true)}
+                    >
+                      Customize Export Fields
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <Button asChild>
+                  <Link href="/employees/new">
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Add Employee
+                  </Link>
+                </Button>
+              </div>
+            )}
           </CardHeader>
           <CardContent>
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center">

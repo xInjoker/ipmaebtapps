@@ -163,7 +163,7 @@ export default function NewEquipmentPage() {
                 <span className="sr-only">Back to Equipment</span>
               </Link>
             </Button>
-            <div>
+            <div className="space-y-1.5">
               <CardTitle>Add New Equipment</CardTitle>
               <CardDescription>Fill in the details for the new equipment.</CardDescription>
             </div>

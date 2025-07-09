@@ -93,7 +93,7 @@ export default function EquipmentDetailsPage() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-4">
               <Button asChild variant="outline" size="icon">
                 <Link href="/equipment">
@@ -101,7 +101,7 @@ export default function EquipmentDetailsPage() {
                   <span className="sr-only">Back to Equipment</span>
                 </Link>
               </Button>
-              <div>
+              <div className="space-y-1.5">
                 <CardTitle>{equipment.name}</CardTitle>
                 <CardDescription>
                   {equipment.type} &bull; {equipment.serialNumber}
@@ -207,7 +207,7 @@ export default function EquipmentDetailsPage() {
                     <div key={inspector.id} className="flex items-center gap-3 rounded-md border p-2">
                       <Avatar className="h-9 w-9">
                         {inspector.avatarUrl ? <AvatarImage src={inspector.avatarUrl} alt={inspector.name} /> : null}
-                        <AvatarFallback className={cn(avatarColor.background, avatarColor.text)}>
+                        <AvatarFallback style={{ backgroundColor: avatarColor.background, color: avatarColor.color }}>
                           {getInitials(inspector.name)}
                         </AvatarFallback>
                       </Avatar>
