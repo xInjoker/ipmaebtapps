@@ -93,9 +93,9 @@ export default function EmployeeDetailsPage() {
             </Button>
             <div>
             <h1 className="font-headline text-2xl font-bold">{employee.name}</h1>
-            <p className="text-muted-foreground">
+            <div className="text-muted-foreground">
                 {employee.position} &bull; <Badge variant={getEmployeeStatusVariant(employee.employmentStatus)}>{employee.employmentStatus}</Badge>
-            </p>
+            </div>
             </div>
         </div>
         {userHasPermission('manage-employees') && (
