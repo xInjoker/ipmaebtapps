@@ -47,8 +47,8 @@
   .dark {
     --background: 222 47% 11%;
     --foreground: 210 40% 98%;
-    --card: 222 47% 13%;
-    --card-foreground: 210 40% 98%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
     --primary: 217 89% 55%;
@@ -116,8 +116,8 @@
   .dark.theme-green {
     --background: 143 65.2% 12.5%;
     --foreground: 143 25% 90.8%;
-    --card: 143 65.2% 12.5%;
-    --card-foreground: 143 25% 90.8%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
     --primary: 142.1 70.6% 45.3%;
@@ -170,8 +170,8 @@
   .dark.theme-rose {
     --background: 348 61.5% 12.5%;
     --foreground: 347 33.3% 90.8%;
-    --card: 348 61.5% 12.5%;
-    --card-foreground: 347 33.3% 90.8%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
     --primary: 346.8 83.3% 60%;
