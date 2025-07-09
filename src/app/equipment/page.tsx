@@ -14,8 +14,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
-import { PlusCircle, X, Search } from 'lucide-react';
+import { PlusCircle, X, Search, Wrench, CheckCircle, Clock, XCircle } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useEquipment } from '@/context/EquipmentContext';
 import { equipmentTypes, equipmentStatuses } from '@/lib/equipment';
@@ -51,6 +50,14 @@ export default function EquipmentPage() {
     }, {} as Record<string, string>);
   }, [branches]);
 
+  const dashboardStats = useMemo(() => {
+    const total = equipmentList.length;
+    const normal = equipmentList.filter(e => e.status === 'Normal').length;
+    const inMaintenance = equipmentList.filter(e => e.status === 'In Maintenance').length;
+    const broken = equipmentList.filter(e => e.status === 'Broken').length;
+    return { total, normal, inMaintenance, broken };
+  }, [equipmentList]);
+
   const filteredEquipment = useMemo(() => {
     return equipmentList.filter(item => {
         const searchMatch = searchTerm.toLowerCase() === '' ||
@@ -69,11 +76,58 @@ export default function EquipmentPage() {
     setSearchTerm('');
     setStatusFilter('all');
     setTypeFilter('all');
-    setBranchFilter('all');
+    if (isHqUser) {
+        setBranchFilter('all');
+    } else if (user) {
+        setBranchFilter(user.branchId);
+    }
   };
 
   return (
     <div className="space-y-6">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Equipment</CardTitle>
+            <Wrench className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{dashboardStats.total}</div>
+            <p className="text-xs text-muted-foreground">items in inventory</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Normal Status</CardTitle>
+            <CheckCircle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{dashboardStats.normal}</div>
+            <p className="text-xs text-muted-foreground">equipment are operational</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">In Maintenance</CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{dashboardStats.inMaintenance}</div>
+            <p className="text-xs text-muted-foreground">items under maintenance</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Broken Status</CardTitle>
+            <XCircle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{dashboardStats.broken}</div>
+            <p className="text-xs text-muted-foreground">items need repair</p>
+          </CardContent>
+        </Card>
+      </div>
+
       <Card>
         <CardHeader className="flex flex-row items-start justify-between">
           <div className="space-y-1.5">
@@ -121,7 +175,7 @@ export default function EquipmentPage() {
                         {equipmentTypes.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
                     </SelectContent>
                 </Select>
-                <Select value={branchFilter} onValueChange={setBranchFilter}>
+                <Select value={branchFilter} onValueChange={setBranchFilter} disabled={!isHqUser}>
                     <SelectTrigger className="w-full sm:w-[160px]">
                         <SelectValue placeholder="Filter by branch" />
                     </SelectTrigger>
@@ -135,45 +189,46 @@ export default function EquipmentPage() {
                 </Button>
             </div>
            </div>
-           <Separator className="my-6" />
-
-           {!isClient ? (
-             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-               {[...Array(6)].map((_, i) => (
-                 <Card key={i}>
-                   <CardHeader>
-                     <Skeleton className="h-5 w-3/4" />
-                     <Skeleton className="h-4 w-1/2" />
-                   </CardHeader>
-                   <CardContent>
-                     <Skeleton className="aspect-video w-full rounded-md" />
-                     <div className="space-y-2 mt-4">
-                       <Skeleton className="h-4 w-full" />
-                       <Skeleton className="h-4 w-full" />
-                       <Skeleton className="h-4 w-2/3" />
-                     </div>
-                   </CardContent>
-                   <CardFooter className="flex-col items-start gap-2 border-t bg-muted/50 p-4">
-                     <Skeleton className="h-4 w-full" />
-                     <Skeleton className="h-6 w-1/3" />
-                   </CardFooter>
-                 </Card>
-               ))}
-             </div>
-           ) : filteredEquipment.length > 0 ? (
-             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {filteredEquipment.map((item) => (
-                  <EquipmentCard key={item.id} item={item} branchMap={branchMap} />
-              ))}
-            </div>
-           ) : (
-            <div className="text-center text-muted-foreground col-span-full py-12">
-              <h3 className="text-lg font-semibold">No Equipment Found</h3>
-              <p>Try adjusting your search or filter criteria.</p>
-            </div>
-           )}
         </CardContent>
       </Card>
+      
+       {!isClient ? (
+         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+           {[...Array(6)].map((_, i) => (
+             <Card key={i}>
+               <CardHeader>
+                 <Skeleton className="h-5 w-3/4" />
+                 <Skeleton className="h-4 w-1/2" />
+               </CardHeader>
+               <CardContent>
+                 <Skeleton className="aspect-video w-full rounded-md" />
+                 <div className="space-y-2 mt-4">
+                   <Skeleton className="h-4 w-full" />
+                   <Skeleton className="h-4 w-full" />
+                   <Skeleton className="h-4 w-2/3" />
+                 </div>
+               </CardContent>
+               <CardFooter className="flex-col items-start gap-2 border-t bg-muted/50 p-4">
+                 <Skeleton className="h-4 w-full" />
+                 <Skeleton className="h-6 w-1/3" />
+               </CardFooter>
+             </Card>
+           ))}
+         </div>
+       ) : filteredEquipment.length > 0 ? (
+         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {filteredEquipment.map((item) => (
+              <EquipmentCard key={item.id} item={item} branchMap={branchMap} />
+          ))}
+        </div>
+       ) : (
+        <Card>
+            <CardContent className="flex flex-col items-center justify-center py-20 text-center">
+                <h3 className="text-lg font-semibold text-muted-foreground">No Equipment Found</h3>
+                <p className="text-sm text-muted-foreground">Try adjusting your search or filter criteria.</p>
+            </CardContent>
+        </Card>
+       )}
     </div>
   );
 }
