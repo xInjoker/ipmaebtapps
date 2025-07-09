@@ -51,27 +51,6 @@ export default function EquipmentPage() {
     }, {} as Record<string, string>);
   }, [branches]);
 
-  const dashboardStats = useMemo(() => {
-    const total = equipmentList.length;
-    const normal = equipmentList.filter(e => e.status === 'Normal').length;
-    
-    let validCerts = 0;
-    let expiredCerts = 0;
-
-    equipmentList.forEach(e => {
-        if (e.calibrationDueDate) {
-            const status = getCalibrationStatus(new Date(e.calibrationDueDate));
-            if (status.variant === 'destructive') {
-                expiredCerts++;
-            } else {
-                validCerts++;
-            }
-        }
-    });
-
-    return { total, normal, validCerts, expiredCerts };
-  }, [equipmentList]);
-
   const filteredEquipment = useMemo(() => {
     return equipmentList.filter(item => {
         const searchMatch = searchTerm.toLowerCase() === '' ||
@@ -85,6 +64,27 @@ export default function EquipmentPage() {
         return searchMatch && statusMatch && typeMatch && branchMatch;
     });
   }, [equipmentList, searchTerm, statusFilter, typeFilter, branchFilter]);
+
+  const dashboardStats = useMemo(() => {
+    const total = filteredEquipment.length;
+    const normal = filteredEquipment.filter(e => e.status === 'Normal').length;
+    
+    let validCerts = 0;
+    let expiredCerts = 0;
+
+    filteredEquipment.forEach(e => {
+        if (e.calibrationDueDate) {
+            const status = getCalibrationStatus(new Date(e.calibrationDueDate));
+            if (status.variant === 'destructive') {
+                expiredCerts++;
+            } else {
+                validCerts++;
+            }
+        }
+    });
+
+    return { total, normal, validCerts, expiredCerts };
+  }, [filteredEquipment]);
 
   const handleClearFilters = () => {
     setSearchTerm('');
