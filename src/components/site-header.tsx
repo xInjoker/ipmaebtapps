@@ -1,3 +1,4 @@
+
 'use client';
 
 import { SidebarTrigger } from '@/components/ui/sidebar';
@@ -8,7 +9,7 @@ import { Search } from 'lucide-react';
 
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/95 px-4 backdrop-blur-sm sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-card px-4 sm:px-6 lg:px-8">
       <div className="flex items-center gap-4">
         <SidebarTrigger className="md:hidden" />
         <form className="hidden sm:block">

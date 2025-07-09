@@ -1,3 +1,4 @@
+
 'use client';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
@@ -65,7 +66,7 @@ export function AppWrapper({ children }: { children: React.ReactNode }) {
         <SidebarInset>
           <SiteHeader />
           <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
-          <footer className="border-t py-4 text-center text-sm text-muted-foreground">
+          <footer className="border-t bg-card py-4 text-center text-sm text-muted-foreground">
             Copyright © 2025 IAPPM
           </footer>
         </SidebarInset>
