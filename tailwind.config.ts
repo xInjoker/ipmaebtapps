@@ -70,6 +70,14 @@ export default {
           border: 'hsl(var(--sidebar-border))',
           ring: 'hsl(var(--sidebar-ring))',
         },
+        avatar: {
+          '1': 'hsl(var(--avatar-1))',
+          '2': 'hsl(var(--avatar-2))',
+          '3': 'hsl(var(--avatar-3))',
+          '4': 'hsl(var(--avatar-4))',
+          '5': 'hsl(var(--avatar-5))',
+          '6': 'hsl(var(--avatar-6))',
+        },
       },
       borderRadius: {
         lg: 'var(--radius)',

@@ -42,6 +42,12 @@
     --warning: 48 96% 51%;
     --info: 217 89% 35%;
     --indigo: 217 89% 35%;
+    --avatar-1: 15 85% 55%;
+    --avatar-2: 195 90% 40%;
+    --avatar-3: 265 80% 60%;
+    --avatar-4: 110 70% 45%;
+    --avatar-5: 340 85% 65%;
+    --avatar-6: 210 90% 50%;
   }
 
   .dark {
@@ -69,8 +75,8 @@
     --chart-3: 49 100% 71%;
     --chart-4: 33 100% 76%;
     --chart-5: 162 100% 59%;
-    --sidebar-background: 222 47% 13%;
-    --sidebar-foreground: 210 40% 98%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 217 89% 55%;
     --sidebar-primary-foreground: 222 47% 11%;
     --sidebar-accent: 222 47% 18%;
