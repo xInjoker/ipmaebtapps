@@ -71,7 +71,6 @@ export function SidebarNav() {
       permission: 'manage-reports',
       subItems: userHasPermission('view-approvals') ? [{ href: '/reports/approvals', label: 'Approvals' }] : [],
     },
-    { href: '/sanity-checker', label: 'AI Sanity Check', icon: BrainCircuit, permission: 'view-ai-sanity-check' },
     {
       href: '/employees',
       label: 'Employees',
