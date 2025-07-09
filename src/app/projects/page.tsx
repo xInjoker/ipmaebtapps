@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import {
@@ -30,7 +30,7 @@ import {
   } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { PlusCircle, Calendar as CalendarIcon, CircleDollarSign, Wallet, TrendingUp, Landmark } from 'lucide-react';
+import { PlusCircle, Calendar as CalendarIcon, CircleDollarSign, Wallet, TrendingUp, Landmark, Search, X } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { cn, formatCurrency } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -48,6 +48,11 @@ export default function ProjectsPage() {
   const { user, isHqUser, branches, userHasPermission } = useAuth();
   const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const initialFilterSet = useRef(false);
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [branchFilter, setBranchFilter] = useState('all');
+
   const [newProject, setNewProject] = useState({
     contractNumber: '',
     rabNumber: '',
@@ -58,6 +63,13 @@ export default function ProjectsPage() {
     contractExecutor: '',
   });
   const [date, setDate] = useState<DateRange | undefined>(undefined);
+
+  useEffect(() => {
+    if (user && !isHqUser && !initialFilterSet.current) {
+        setBranchFilter(user.branchId);
+        initialFilterSet.current = true;
+    }
+  }, [user, isHqUser]);
 
   useEffect(() => {
     if (isDialogOpen) {
@@ -75,10 +87,23 @@ export default function ProjectsPage() {
   }, [isDialogOpen, isHqUser, user?.branchId]);
 
   const visibleProjects = useMemo(() => {
-    if (isHqUser) return projects;
-    if (!user) return [];
-    return projects.filter(p => p.branchId === user.branchId);
-  }, [projects, user, isHqUser]);
+    return projects.filter(project => {
+      // User permission based filtering (non-HQ can only see their branch)
+      if (!isHqUser && user && project.branchId !== user.branchId) {
+        return false;
+      }
+
+      // UI-based filtering
+      const searchMatch = searchTerm.toLowerCase() === '' ||
+                          project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          project.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          project.contractNumber.toLowerCase().includes(searchTerm.toLowerCase());
+
+      const branchMatch = branchFilter === 'all' || project.branchId === branchFilter;
+
+      return searchMatch && branchMatch;
+    });
+  }, [projects, user, isHqUser, searchTerm, branchFilter]);
 
   const { totalProjectValue, totalCost, totalInvoiced, totalPaid } = useMemo(() => {
     const totalProjectValue = visibleProjects.reduce(
@@ -195,6 +220,14 @@ export default function ProjectsPage() {
       description: `Project "${projectToAdd.name}" has been successfully created.`,
     });
   };
+
+  const handleClearFilters = () => {
+    setSearchTerm('');
+    if (isHqUser) {
+        setBranchFilter('all');
+    }
+  };
+
 
   return (
     <div className="space-y-6">
@@ -388,6 +421,33 @@ export default function ProjectsPage() {
             </Dialog>
           )}
         </CardHeader>
+        <CardContent>
+           <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                <div className="relative flex-1">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                        placeholder="Search by name, client, or contract..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-8 w-full"
+                    />
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                    <Select value={branchFilter} onValueChange={setBranchFilter} disabled={!isHqUser}>
+                        <SelectTrigger className="w-full sm:w-[180px]">
+                            <SelectValue placeholder="Filter by branch" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Branches</SelectItem>
+                            {branches.map(branch => <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                    <Button variant="ghost" onClick={handleClearFilters} className="w-full sm:w-auto">
+                        <X className="mr-2 h-4 w-4" /> Clear
+                    </Button>
+                </div>
+           </div>
+        </CardContent>
       </Card>
 
        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -458,63 +518,70 @@ export default function ProjectsPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {visibleProjects.map((project) => {
-          const progress = project.value > 0 ? Math.round((project.invoiced / project.value) * 100) : 0;
-          return (
-            <Card key={project.id}>
-              <CardHeader>
-                <CardTitle className="font-headline">{project.name}</CardTitle>
-                <CardDescription>{project.description}</CardDescription>
-              </CardHeader>
-              <CardContent className="pt-4">
-                <div className="space-y-4">
-                  <div className="flex justify-between text-sm">
-                      <p className="text-muted-foreground">Client</p>
-                      <p className="font-medium">{project.client}</p>
-                  </div>
-                   <div className="flex justify-between text-sm">
-                      <p className="text-muted-foreground">Contract No.</p>
-                      <p className="font-medium">{project.contractNumber}</p>
-                  </div>
-                   <div className="flex justify-between text-sm">
-                      <p className="text-muted-foreground">RAB No.</p>
-                      <p className="font-medium">{project.rabNumber}</p>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <p className="text-muted-foreground">Contract Executor</p>
-                    <p className="font-medium">{project.contractExecutor}</p>
-                  </div>
-                   <div className="flex justify-between text-sm">
-                      <p className="text-muted-foreground">Period</p>
-                      <p className="font-medium">{project.period}</p>
-                  </div>
-                   <div className="flex justify-between text-sm">
-                      <p className="text-muted-foreground">Duration</p>
-                      <p className="font-medium">{project.duration}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Contract Value</p>
-                    <p className="text-2xl font-bold text-primary">
-                      {formatCurrency(project.value)}
-                    </p>
-                  </div>
-                  <div>
-                    <div className="flex justify-between items-baseline mb-1">
-                      <p className="text-sm text-muted-foreground">Progress</p>
-                      <p className="text-sm font-semibold">{progress}%</p>
+        {visibleProjects.length > 0 ? (
+          visibleProjects.map((project) => {
+            const progress = project.value > 0 ? Math.round((project.invoiced / project.value) * 100) : 0;
+            return (
+              <Card key={project.id}>
+                <CardHeader>
+                  <CardTitle className="font-headline">{project.name}</CardTitle>
+                  <CardDescription>{project.description}</CardDescription>
+                </CardHeader>
+                <CardContent className="pt-4">
+                  <div className="space-y-4">
+                    <div className="flex justify-between text-sm">
+                        <p className="text-muted-foreground">Client</p>
+                        <p className="font-medium">{project.client}</p>
                     </div>
-                    <Progress value={progress} className="h-2" />
+                     <div className="flex justify-between text-sm">
+                        <p className="text-muted-foreground">Contract No.</p>
+                        <p className="font-medium">{project.contractNumber}</p>
+                    </div>
+                     <div className="flex justify-between text-sm">
+                        <p className="text-muted-foreground">RAB No.</p>
+                        <p className="font-medium">{project.rabNumber}</p>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <p className="text-muted-foreground">Contract Executor</p>
+                      <p className="font-medium">{project.contractExecutor}</p>
+                    </div>
+                     <div className="flex justify-between text-sm">
+                        <p className="text-muted-foreground">Period</p>
+                        <p className="font-medium">{project.period}</p>
+                    </div>
+                     <div className="flex justify-between text-sm">
+                        <p className="text-muted-foreground">Duration</p>
+                        <p className="font-medium">{project.duration}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Contract Value</p>
+                      <p className="text-2xl font-bold text-primary">
+                        {formatCurrency(project.value)}
+                      </p>
+                    </div>
+                    <div>
+                      <div className="flex justify-between items-baseline mb-1">
+                        <p className="text-sm text-muted-foreground">Progress</p>
+                        <p className="text-sm font-semibold">{progress}%</p>
+                      </div>
+                      <Progress value={progress} className="h-2" />
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-              <CardFooter>
-                 <Button variant="outline" className="w-full" asChild>
-                  <Link href={`/projects/${project.id}`}>View Details</Link>
-                </Button>
-              </CardFooter>
-            </Card>
-          );
-        })}
+                </CardContent>
+                <CardFooter>
+                   <Button variant="outline" className="w-full" asChild>
+                    <Link href={`/projects/${project.id}`}>View Details</Link>
+                  </Button>
+                </CardFooter>
+              </Card>
+            );
+          })
+        ) : (
+          <div className="col-span-full text-center text-muted-foreground py-12">
+            <h3 className="text-lg font-semibold">No Projects Found</h3>
+            <p>Try adjusting your search or filter criteria.</p>
+          </div>
+        )}
       </div>
     </div>
   );
