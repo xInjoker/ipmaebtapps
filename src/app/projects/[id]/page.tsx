@@ -22,6 +22,9 @@ import {
   Building,
   FileSpreadsheet,
   FilePen,
+  ClipboardList,
+  Receipt,
+  Wallet,
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
@@ -170,17 +173,17 @@ export default function ProjectDetailsPage() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <div className="flex items-center gap-4">
-            <Button asChild variant="outline" size="icon">
+          <div className="flex items-start justify-between">
+            <div className="space-y-1.5">
+              <CardTitle>{project.name}</CardTitle>
+              <CardDescription>{project.description}</CardDescription>
+            </div>
+             <Button asChild variant="outline" size="icon">
               <Link href="/projects">
                 <ArrowLeft className="h-4 w-4" />
                 <span className="sr-only">Back</span>
               </Link>
             </Button>
-            <div className="space-y-1.5">
-              <CardTitle>{project.name}</CardTitle>
-              <CardDescription>{project.description}</CardDescription>
-            </div>
           </div>
         </CardHeader>
       </Card>
@@ -354,9 +357,18 @@ export default function ProjectDetailsPage() {
 
       <Tabs defaultValue="service-orders" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="service-orders">Service Order</TabsTrigger>
-          <TabsTrigger value="invoices">Invoicing Progress</TabsTrigger>
-          <TabsTrigger value="expenditure">Expenditure Management</TabsTrigger>
+          <TabsTrigger value="service-orders">
+            <ClipboardList className="mr-2 h-4 w-4" />
+            Service Order
+          </TabsTrigger>
+          <TabsTrigger value="invoices">
+            <Receipt className="mr-2 h-4 w-4" />
+            Invoicing Progress
+          </TabsTrigger>
+          <TabsTrigger value="expenditure">
+            <Wallet className="mr-2 h-4 w-4" />
+            Expenditure Management
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="service-orders">
           <ProjectServiceOrderTab project={project} setProjects={setProjects} />
