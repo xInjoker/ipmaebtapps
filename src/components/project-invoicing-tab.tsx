@@ -225,7 +225,7 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
                                         <Input id="value" type="number" value={newInvoice.value || ''} onChange={(e) => setNewInvoice({ ...newInvoice, value: parseInt(e.target.value) || 0 })} className="col-span-3" />
                                     </div>
                                     {addSoDetails.warning && (
-                                        <p className="col-span-4 text-center text-sm font-medium text-destructive">{addSoDetails.warning}</p>
+                                        <p className="text-center text-sm font-medium text-destructive">{addSoDetails.warning}</p>
                                     )}
                                 </div>
                                 <DialogFooter>
@@ -306,7 +306,7 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
                                  <div className="grid grid-cols-4 items-center gap-4">
                                     <Label className="text-right">SO Remaining</Label>
                                     <p className="col-span-3 text-sm font-medium">{formatCurrency(editSoDetails.remaining)}</p>
-                                </div>
+                                 </div>
                                 <div className="grid grid-cols-4 items-center gap-4">
                                     <Label htmlFor="editServiceCategory" className="text-right">Service</Label>
                                     <Input id="editServiceCategory" value={editedInvoice.serviceCategory} onChange={(e) => setEditedInvoice({ ...editedInvoice, serviceCategory: e.target.value })} className="col-span-3" />
@@ -346,7 +346,7 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
                                     <Input id="editValue" type="number" value={editedInvoice.value || ''} onChange={(e) => setEditedInvoice({ ...editedInvoice, value: parseInt(e.target.value) || 0 })} className="col-span-3" />
                                 </div>
                                  {editSoDetails.warning && (
-                                    <p className="col-span-4 text-center text-sm font-medium text-destructive">{editSoDetails.warning}</p>
+                                    <p className="text-center text-sm font-medium text-destructive">{editSoDetails.warning}</p>
                                  )}
                             </div>
                             <DialogFooter>
