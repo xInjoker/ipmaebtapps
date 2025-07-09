@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -323,15 +322,7 @@ export default function ProjectDetailsPage() {
           </CardContent>
         </Card>
         
-        <Card>
-          <CardHeader>
-            <CardTitle>Monthly Recap</CardTitle>
-            <CardDescription>Recapitulation of Invoiced, PAD, and Expenditures.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ProjectMonthlyRecapChart data={monthlyRecapData} />
-          </CardContent>
-        </Card>
+        <ProjectMonthlyRecapChart data={monthlyRecapData} />
       </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
