@@ -14,12 +14,13 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { PlusCircle, X, Search, Wrench, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { PlusCircle, X, Search, Wrench, CheckCircle, BadgeCheck, XCircle } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useEquipment } from '@/context/EquipmentContext';
 import { equipmentTypes, equipmentStatuses } from '@/lib/equipment';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EquipmentCard } from '@/components/equipment-card';
+import { getCalibrationStatus } from '@/lib/utils';
 
 export default function EquipmentPage() {
   const { user, isHqUser, branches, userHasPermission } = useAuth();
@@ -53,9 +54,22 @@ export default function EquipmentPage() {
   const dashboardStats = useMemo(() => {
     const total = equipmentList.length;
     const normal = equipmentList.filter(e => e.status === 'Normal').length;
-    const inMaintenance = equipmentList.filter(e => e.status === 'In Maintenance').length;
-    const broken = equipmentList.filter(e => e.status === 'Broken').length;
-    return { total, normal, inMaintenance, broken };
+    
+    let validCerts = 0;
+    let expiredCerts = 0;
+
+    equipmentList.forEach(e => {
+        if (e.calibrationDueDate) {
+            const status = getCalibrationStatus(new Date(e.calibrationDueDate));
+            if (status.variant === 'destructive') {
+                expiredCerts++;
+            } else {
+                validCerts++;
+            }
+        }
+    });
+
+    return { total, normal, validCerts, expiredCerts };
   }, [equipmentList]);
 
   const filteredEquipment = useMemo(() => {
@@ -172,22 +186,22 @@ export default function EquipmentPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">In Maintenance</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Valid Certificates</CardTitle>
+            <BadgeCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{dashboardStats.inMaintenance}</div>
-            <p className="text-xs text-muted-foreground">items under maintenance</p>
+            <div className="text-2xl font-bold">{dashboardStats.validCerts}</div>
+            <p className="text-xs text-muted-foreground">equipment with valid calibration</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Broken Status</CardTitle>
+            <CardTitle className="text-sm font-medium">Expired Certificates</CardTitle>
             <XCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{dashboardStats.broken}</div>
-            <p className="text-xs text-muted-foreground">items need repair</p>
+            <div className="text-2xl font-bold">{dashboardStats.expiredCerts}</div>
+            <p className="text-xs text-muted-foreground">items require calibration</p>
           </CardContent>
         </Card>
       </div>
