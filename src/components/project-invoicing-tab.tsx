@@ -225,7 +225,7 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
                                         <Input id="value" type="number" value={newInvoice.value || ''} onChange={(e) => setNewInvoice({ ...newInvoice, value: parseInt(e.target.value) || 0 })} className="col-span-3" />
                                     </div>
                                     {addSoDetails.warning && (
-                                        <p className="col-span-4 text-center text-sm font-medium text-yellow-600">{addSoDetails.warning}</p>
+                                        <p className="col-span-4 text-center text-sm font-medium text-destructive">{addSoDetails.warning}</p>
                                     )}
                                 </div>
                                 <DialogFooter>
@@ -259,7 +259,7 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
                                     <TableCell>{invoice.period}</TableCell>
                                     <TableCell className="text-right">{formatCurrency(invoice.value)}</TableCell>
                                     <TableCell>
-                                        <Badge variant={invoice.status === 'Paid' ? 'green' : invoice.status === 'PAD' ? 'yellow' : invoice.status === 'Invoiced' ? 'orange' : invoice.status === 'Cancel' ? 'destructive' : invoice.status === 'Re-invoiced' ? 'blue' : invoice.status === 'Document Preparation' ? 'purple' : 'secondary'}>{invoice.status}</Badge>
+                                        <Badge variant={invoice.status === 'Paid' ? 'success' : invoice.status === 'PAD' ? 'warning' : invoice.status === 'Invoiced' ? 'info' : invoice.status === 'Cancel' ? 'destructive' : invoice.status === 'Re-invoiced' ? 'indigo' : invoice.status === 'Document Preparation' ? 'secondary' : 'secondary'}>{invoice.status}</Badge>
                                     </TableCell>
                                     <TableCell className="text-right">
                                         <DropdownMenu>
@@ -346,7 +346,7 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
                                     <Input id="editValue" type="number" value={editedInvoice.value || ''} onChange={(e) => setEditedInvoice({ ...editedInvoice, value: parseInt(e.target.value) || 0 })} className="col-span-3" />
                                 </div>
                                  {editSoDetails.warning && (
-                                    <p className="col-span-4 text-center text-sm font-medium text-yellow-600">{editSoDetails.warning}</p>
+                                    <p className="col-span-4 text-center text-sm font-medium text-destructive">{editSoDetails.warning}</p>
                                  )}
                             </div>
                             <DialogFooter>
