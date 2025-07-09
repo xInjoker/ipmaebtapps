@@ -6,14 +6,20 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Mail, Phone, FileText, MapPin } from 'lucide-react';
+import { Mail, MapPin, Award } from 'lucide-react';
 import { type Inspector } from '@/lib/inspectors';
 import { getInitials, getAvatarColor } from '@/lib/utils';
-import { cn } from '@/lib/utils';
 
 export function InspectorCard({ inspector, branchMap }: { inspector: Inspector, branchMap: Record<string, string> }) {
   const avatarColor = getAvatarColor(inspector.name);
-  const totalDocs = inspector.qualifications.length + inspector.otherDocuments.length + (inspector.cvUrl ? 1 : 0);
+  
+  function formatQualificationName(name: string) {
+    return name
+        .replace(/\.pdf$|\.jpg$|\.png$/i, '') // Remove common extensions
+        .replace(/[_-]/g, ' ') // Replace underscores/hyphens with spaces
+        .replace(/level/i, 'Lvl') // Abbreviate "Level"
+        .trim();
+  }
 
   return (
     <Card className="flex flex-col">
@@ -41,22 +47,29 @@ export function InspectorCard({ inspector, branchMap }: { inspector: Inspector, 
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-3 text-sm flex-grow">
+      <CardContent className="space-y-4 text-sm flex-grow">
         <div className="flex items-center gap-2 text-muted-foreground">
           <Mail className="h-4 w-4 flex-shrink-0" />
           <span className="truncate">{inspector.email}</span>
         </div>
         <div className="flex items-center gap-2 text-muted-foreground">
-          <Phone className="h-4 w-4 flex-shrink-0" />
-          <span className="truncate">{inspector.phone}</span>
-        </div>
-        <div className="flex items-center gap-2 text-muted-foreground">
           <MapPin className="h-4 w-4 flex-shrink-0" />
           <span className="truncate">{branchMap[inspector.branchId] || 'Unknown Branch'}</span>
         </div>
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <FileText className="h-4 w-4 flex-shrink-0" />
-          <span>{totalDocs} document{totalDocs !== 1 ? 's' : ''} uploaded</span>
+         <div className="space-y-2">
+            <div className="flex items-center gap-2 text-muted-foreground">
+                <Award className="h-4 w-4 flex-shrink-0" />
+                <span>Qualifications</span>
+            </div>
+            <div className="flex flex-wrap gap-1 pl-6">
+                {inspector.qualifications.length > 0 ? (
+                    inspector.qualifications.map(q => (
+                        <Badge key={q.name} variant="secondary" className="font-normal">{formatQualificationName(q.name)}</Badge>
+                    ))
+                ) : (
+                    <span className="text-xs text-muted-foreground pl-1">No qualifications listed</span>
+                )}
+            </div>
         </div>
       </CardContent>
       <CardFooter>
