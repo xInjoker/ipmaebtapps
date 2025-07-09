@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Mail, MapPin, Award } from 'lucide-react';
 import { type Inspector } from '@/lib/inspectors';
 import { getInitials, getAvatarColor, formatQualificationName, getDocumentStatus } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 
 export function InspectorCard({ inspector, branchMap }: { inspector: Inspector, branchMap: Record<string, string> }) {
   const avatarColor = getAvatarColor(inspector.name);
@@ -53,16 +54,16 @@ export function InspectorCard({ inspector, branchMap }: { inspector: Inspector, 
                 <Award className="h-4 w-4 flex-shrink-0" />
                 <span>Qualifications</span>
             </div>
-            <div className="flex flex-wrap gap-1 pl-6">
+            <div className="flex flex-wrap justify-center gap-1">
                 {inspector.qualifications.length > 0 ? (
                     inspector.qualifications.map(q => {
                         const status = getDocumentStatus(q.expirationDate);
                         return (
-                            <Badge key={q.name} variant={status.variant}>{formatQualificationName(q.name)}</Badge>
+                            <Badge key={q.name} variant={status.variant} className={cn('font-bold')}>{formatQualificationName(q.name)}</Badge>
                         );
                     })
                 ) : (
-                    <span className="text-xs text-muted-foreground pl-1">No qualifications listed</span>
+                    <span className="text-xs text-muted-foreground">No qualifications listed</span>
                 )}
             </div>
         </div>
