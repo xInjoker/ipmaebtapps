@@ -71,8 +71,8 @@ export const initialEmployees: Employee[] = [
     },
 ];
 
-export const employeeFieldLabels: Record<keyof Employee, string> = {
-    id: 'ID',
+export const employeeFieldLabels: Record<keyof Employee | 'id', string> = {
+    id: 'Employee ID',
     nationalId: 'National ID',
     name: 'Name',
     placeOfBirth: 'Place of Birth',

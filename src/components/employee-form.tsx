@@ -84,6 +84,7 @@ export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const { branches } = useAuth();
   const { projects } = useProjects();
+  const [generatedId, setGeneratedId] = useState('');
 
   const form = useForm<EmployeeFormData>({
     resolver: zodResolver(employeeSchema),
@@ -98,6 +99,13 @@ export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
     if (!watchedWorkUnit) return [];
     return projects.filter(p => p.branchId === watchedWorkUnit);
   }, [projects, watchedWorkUnit]);
+
+  useEffect(() => {
+    if (!employee) {
+      const newId = `EMP-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+      setGeneratedId(newId);
+    }
+  }, [employee]);
 
   useEffect(() => {
     if (watchedProjectName) {
@@ -136,9 +144,9 @@ export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
   
   const onSubmit = (data: EmployeeFormData) => {
     const finalData: Employee = {
-      ...employee, // Keep existing fields like ID
+      ...employee,
       ...data,
-      id: employee?.id || `EMP-${Date.now()}`,
+      id: employee?.id || generatedId,
       dateOfBirth: data.dateOfBirth ? format(data.dateOfBirth, 'yyyy-MM-dd') : undefined,
       contractStartDate: data.contractStartDate ? format(data.contractStartDate, 'yyyy-MM-dd') : undefined,
       contractEndDate: data.contractEndDate ? format(data.contractEndDate, 'yyyy-MM-dd') : undefined,
@@ -250,6 +258,7 @@ export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
                 )}
                 {currentStep === 1 && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div><Label>Employee ID</Label><Input value={employee?.id || generatedId} readOnly /></div>
                         <div><Label>Full Name</Label><Input {...form.register('name')} /></div>
                         <div><Label>National ID (KTP)</Label><Input {...form.register('nationalId')} /></div>
                         <div><Label>Place of Birth</Label><Input {...form.register('placeOfBirth')} /></div>
@@ -360,6 +369,7 @@ export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
                         <div>
                             <h3 className="font-semibold mb-2 text-lg border-b pb-1">Personal Details</h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2 text-sm mt-2">
+                                <p><span className="font-medium text-muted-foreground">{employeeFieldLabels.id}:</span> {employee?.id || generatedId}</p>
                                 <p><span className="font-medium text-muted-foreground">{employeeFieldLabels.name}:</span> {formData.name || 'N/A'}</p>
                                 <p><span className="font-medium text-muted-foreground">{employeeFieldLabels.nationalId}:</span> {formData.nationalId || 'N/A'}</p>
                                 <p><span className="font-medium text-muted-foreground">{employeeFieldLabels.placeOfBirth}:</span> {formData.placeOfBirth || 'N/A'}</p>
