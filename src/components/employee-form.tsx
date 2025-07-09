@@ -17,9 +17,11 @@ import { Textarea } from './ui/textarea';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { type Employee, employeeFieldLabels } from '@/lib/employees';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { ScrollArea } from './ui/scroll-area';
+import { useAuth } from '@/context/AuthContext';
+import { useProjects } from '@/context/ProjectContext';
 
 const employeeSchema = z.object({
   // Step 1: Work & Project
@@ -80,6 +82,8 @@ const steps = [
 export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const { branches } = useAuth();
+  const { projects } = useProjects();
 
   const form = useForm<EmployeeFormData>({
     resolver: zodResolver(employeeSchema),
@@ -87,6 +91,33 @@ export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
   });
 
   const formData = form.watch();
+  const watchedWorkUnit = form.watch('workUnit');
+  const watchedProjectName = form.watch('projectName');
+
+  const availableProjects = useMemo(() => {
+    if (!watchedWorkUnit) return [];
+    return projects.filter(p => p.branchId === watchedWorkUnit);
+  }, [projects, watchedWorkUnit]);
+
+  useEffect(() => {
+    if (watchedProjectName) {
+        const selectedProject = projects.find(p => p.name === watchedProjectName);
+        if (selectedProject) {
+            form.setValue('rabNumber', selectedProject.rabNumber);
+        }
+    } else {
+        form.setValue('rabNumber', '');
+    }
+  }, [watchedProjectName, projects, form]);
+
+  useEffect(() => {
+    if (watchedWorkUnit) {
+        const selectedBranch = branches.find(b => b.id === watchedWorkUnit);
+        if (selectedBranch) {
+            form.setValue('workUnitName', selectedBranch.name);
+        }
+    }
+  }, [watchedWorkUnit, branches, form]);
 
   useEffect(() => {
     if (employee) {
@@ -173,10 +204,33 @@ export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
                 {currentStep === 0 && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div><Label>Position</Label><Input {...form.register('position')} /></div>
-                        <div><Label>Work Unit</Label><Input {...form.register('workUnit')} /></div>
-                        <div><Label>Work Unit Name</Label><Input {...form.register('workUnitName')} /></div>
-                        <div><Label>Project Name</Label><Input {...form.register('projectName')} /></div>
-                        <div><Label>RAB Number</Label><Input {...form.register('rabNumber')} /></div>
+                        
+                        <div>
+                            <Label>Work Unit</Label>
+                            <Select onValueChange={(v) => { form.setValue('workUnit', v); form.setValue('projectName', ''); form.setValue('rabNumber', ''); }} value={form.watch('workUnit') || ''}>
+                                <SelectTrigger><SelectValue placeholder="Select a work unit..."/></SelectTrigger>
+                                <SelectContent>
+                                    {branches.map(branch => (
+                                        <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div>
+                            <Label>Project Name</Label>
+                            <Select onValueChange={(v) => form.setValue('projectName', v)} value={form.watch('projectName') || ''} disabled={!watchedWorkUnit}>
+                                <SelectTrigger><SelectValue placeholder="Select a project..."/></SelectTrigger>
+                                <SelectContent>
+                                    {availableProjects.map(project => (
+                                        <SelectItem key={project.id} value={project.name}>{project.name}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div><Label>RAB Number</Label><Input {...form.register('rabNumber')} readOnly /></div>
+
                         <div>
                         <Label>Portfolio</Label>
                         <Select onValueChange={(v) => form.setValue('portfolio', v as any)} value={form.watch('portfolio') || ''}>
@@ -294,7 +348,6 @@ export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
                             <h3 className="font-semibold mb-2 text-lg border-b pb-1">Work & Project</h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2 text-sm mt-2">
                                 <p><span className="font-medium text-muted-foreground">{employeeFieldLabels.position}:</span> {formData.position || 'N/A'}</p>
-                                <p><span className="font-medium text-muted-foreground">{employeeFieldLabels.workUnit}:</span> {formData.workUnit || 'N/A'}</p>
                                 <p><span className="font-medium text-muted-foreground">{employeeFieldLabels.workUnitName}:</span> {formData.workUnitName || 'N/A'}</p>
                                 <p><span className="font-medium text-muted-foreground">{employeeFieldLabels.projectName}:</span> {formData.projectName || 'N/A'}</p>
                                 <p><span className="font-medium text-muted-foreground">{employeeFieldLabels.rabNumber}:</span> {formData.rabNumber || 'N/A'}</p>
