@@ -2,6 +2,8 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   Card,
   CardContent,
@@ -40,7 +42,6 @@ import { MoreHorizontal, PlusCircle, Upload, Download, Trash2, Edit } from 'luci
 import { useEmployees } from '@/context/EmployeeContext';
 import { formatCurrency } from '@/lib/utils';
 import { format } from 'date-fns';
-import { EmployeeForm } from '@/components/employee-form';
 import { EmployeeImportDialog } from '@/components/employee-import-dialog';
 import { EmployeeExportDialog } from '@/components/employee-export-dialog';
 import { type Employee, employeeFieldLabels } from '@/lib/employees';
@@ -52,27 +53,16 @@ import 'jspdf-autotable';
 const allEmployeeFields = Object.keys(employeeFieldLabels) as (keyof Employee)[];
 
 export default function EmployeesPage() {
-  const { employees, addEmployee, updateEmployee, deleteEmployee } = useEmployees();
+  const { employees, addEmployee, deleteEmployee } = useEmployees();
   const { toast } = useToast();
+  const router = useRouter();
 
-  const [isFormOpen, setIsFormOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [isCustomizeExportOpen, setIsCustomizeExportOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   
-  const [employeeToEdit, setEmployeeToEdit] = useState<Employee | null>(null);
   const [employeeToDelete, setEmployeeToDelete] = useState<Employee | null>(null);
   const [exportFields, setExportFields] = useState<(keyof Employee)[]>(['name', 'position', 'projectName', 'email', 'employmentStatus']);
-
-  const handleAddNew = () => {
-    setEmployeeToEdit(null);
-    setIsFormOpen(true);
-  };
-
-  const handleEdit = (employee: Employee) => {
-    setEmployeeToEdit(employee);
-    setIsFormOpen(true);
-  };
 
   const handleDeleteRequest = (employee: Employee) => {
     setEmployeeToDelete(employee);
@@ -88,16 +78,6 @@ export default function EmployeesPage() {
     });
     setIsDeleteDialogOpen(false);
     setEmployeeToDelete(null);
-  };
-
-  const handleSave = (data: Employee) => {
-    if (employeeToEdit) {
-      updateEmployee(employeeToEdit.id, data);
-      toast({ title: 'Employee Updated', description: `${data.name}'s details have been updated.` });
-    } else {
-      addEmployee(data);
-      toast({ title: 'Employee Added', description: `${data.name} has been added to the system.` });
-    }
   };
 
   const handleImport = (importedEmployees: Omit<Employee, 'id'>[]) => {
@@ -179,9 +159,11 @@ export default function EmployeesPage() {
                   <DropdownMenuItem onSelect={() => setIsCustomizeExportOpen(true)}>Customize Export Fields</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-              <Button onClick={handleAddNew}>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Add Employee
+              <Button asChild>
+                <Link href="/employees/new">
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Add Employee
+                </Link>
               </Button>
             </div>
           </CardHeader>
@@ -223,7 +205,7 @@ export default function EmployeesPage() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onSelect={() => handleEdit(employee)}>
+                            <DropdownMenuItem onSelect={() => router.push(`/employees/${employee.id}/edit`)}>
                               <Edit className="mr-2 h-4 w-4" />
                               <span>Edit</span>
                             </DropdownMenuItem>
@@ -245,12 +227,6 @@ export default function EmployeesPage() {
           </CardContent>
         </Card>
       </div>
-      <EmployeeForm
-        isOpen={isFormOpen}
-        onOpenChange={setIsFormOpen}
-        employee={employeeToEdit}
-        onSave={handleSave}
-      />
       <EmployeeImportDialog
         isOpen={isImportOpen}
         onOpenChange={setIsImportOpen}
