@@ -163,6 +163,9 @@ export default function ProjectDetailsPage() {
       ? Math.round((totalInvoiced / project.value) * 100)
       : 0;
 
+  const iconColors = ['#0D5EA6', '#0ABAB5', '#00C897', '#FFA955', '#FFD63A', '#FFBE98'];
+  let colorIndex = 0;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
@@ -188,8 +191,8 @@ export default function ProjectDetailsPage() {
                 <div className="grid gap-6 md:grid-cols-2">
                 <div className="space-y-6">
                     <div className="flex items-center gap-4">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                          <User className="h-5 w-5 text-primary" />
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
+                          <User className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
                       </div>
                       <div>
                           <p className="text-sm text-muted-foreground">Client</p>
@@ -197,8 +200,8 @@ export default function ProjectDetailsPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                          <Building className="h-5 w-5 text-primary" />
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
+                          <Building className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">
@@ -208,8 +211,8 @@ export default function ProjectDetailsPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                          <Briefcase className="h-5 w-5 text-primary" />
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
+                          <Briefcase className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
                       </div>
                       <div>
                           <p className="text-sm text-muted-foreground">
@@ -219,8 +222,8 @@ export default function ProjectDetailsPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                          <FileSpreadsheet className="h-5 w-5 text-primary" />
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
+                          <FileSpreadsheet className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">
@@ -230,8 +233,8 @@ export default function ProjectDetailsPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                          <Calendar className="h-5 w-5 text-primary" />
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
+                          <Calendar className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
                       </div>
                       <div>
                           <p className="text-sm text-muted-foreground">Period</p>
@@ -239,8 +242,8 @@ export default function ProjectDetailsPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                          <Clock className="h-5 w-5 text-primary" />
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
+                          <Clock className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
                       </div>
                       <div>
                           <p className="text-sm text-muted-foreground">Duration</p>
@@ -250,8 +253,8 @@ export default function ProjectDetailsPage() {
                 </div>
                 <div className="space-y-6">
                     <div className="flex items-center gap-4">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                          <CircleDollarSign className="h-5 w-5 text-primary" />
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
+                          <CircleDollarSign className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
                       </div>
                       <div>
                           <p className="text-sm text-muted-foreground">
@@ -261,8 +264,8 @@ export default function ProjectDetailsPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                          <FileSpreadsheet className="h-5 w-5 text-primary" />
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
+                          <FileSpreadsheet className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">
@@ -272,8 +275,8 @@ export default function ProjectDetailsPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                          <CircleDollarSign className="h-5 w-5 text-primary" />
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
+                          <CircleDollarSign className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
                       </div>
                       <div>
                           <p className="text-sm text-muted-foreground">
@@ -285,8 +288,8 @@ export default function ProjectDetailsPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                          <CircleDollarSign className="h-5 w-5 text-primary" />
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
+                          <CircleDollarSign className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
                       </div>
                       <div>
                           <p className="text-sm text-muted-foreground">
@@ -296,8 +299,8 @@ export default function ProjectDetailsPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                          <FilePen className="h-5 w-5 text-primary" />
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
+                          <FilePen className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">
@@ -307,8 +310,8 @@ export default function ProjectDetailsPage() {
                     </div>
                     </div>
                     <div className="flex items-center gap-4">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                          <CircleDollarSign className="h-5 w-5 text-primary" />
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
+                          <CircleDollarSign className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
                       </div>
                       <div>
                           <p className="text-sm text-muted-foreground">Total Cost</p>

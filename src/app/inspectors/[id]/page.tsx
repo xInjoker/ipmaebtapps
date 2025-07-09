@@ -82,6 +82,8 @@ export default function InspectorDetailsPage() {
   }
 
   const avatarColor = getAvatarColor(inspector.name);
+  const iconColors = ['#0D5EA6', '#0ABAB5', '#00C897', '#FFA955', '#FFD63A', '#FFBE98'];
+  let colorIndex = 0;
   
   return (
     <div className="space-y-6">
@@ -122,8 +124,8 @@ export default function InspectorDetailsPage() {
             <h3 className="font-semibold text-lg">Contact Information</h3>
              <div className="space-y-4">
                 <div className="flex items-center gap-4">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                        <Mail className="h-5 w-5 text-primary" />
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
+                        <Mail className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
                     </div>
                     <div>
                         <p className="text-sm text-muted-foreground">Email</p>
@@ -131,8 +133,8 @@ export default function InspectorDetailsPage() {
                     </div>
                 </div>
                 <div className="flex items-center gap-4">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                        <Phone className="h-5 w-5 text-primary" />
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
+                        <Phone className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
                     </div>
                     <div>
                         <p className="text-sm text-muted-foreground">Phone</p>
@@ -140,8 +142,8 @@ export default function InspectorDetailsPage() {
                     </div>
                 </div>
                 <div className="flex items-center gap-4">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                        <MapPin className="h-5 w-5 text-primary" />
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
+                        <MapPin className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
                     </div>
                     <div>
                         <p className="text-sm text-muted-foreground">Location</p>

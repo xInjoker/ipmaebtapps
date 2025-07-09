@@ -86,6 +86,8 @@ export default function EquipmentDetailsPage() {
   }
   
   const calibration = getCalibrationStatus(new Date(equipment.calibrationDueDate));
+  const iconColors = ['#0D5EA6', '#0ABAB5', '#00C897', '#FFA955', '#FFD63A', '#FFBE98'];
+  let colorIndex = 0;
 
   return (
     <div className="space-y-6">
@@ -120,8 +122,8 @@ export default function EquipmentDetailsPage() {
             <h3 className="font-semibold text-lg">Equipment Details</h3>
             <div className="space-y-4">
                 <div className="flex items-center gap-4">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                        <Tag className="h-5 w-5 text-primary" />
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
+                        <Tag className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
                     </div>
                     <div>
                         <p className="text-sm text-muted-foreground">Serial Number</p>
@@ -129,8 +131,8 @@ export default function EquipmentDetailsPage() {
                     </div>
                 </div>
                  <div className="flex items-center gap-4">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                        <Wrench className="h-5 w-5 text-primary" />
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
+                        <Wrench className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
                     </div>
                     <div>
                         <p className="text-sm text-muted-foreground">Type</p>
@@ -138,8 +140,8 @@ export default function EquipmentDetailsPage() {
                     </div>
                 </div>
                 <div className="flex items-center gap-4">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                        <HardDrive className="h-5 w-5 text-primary" />
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
+                        <HardDrive className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
                     </div>
                     <div>
                         <p className="text-sm text-muted-foreground">Status</p>
@@ -149,8 +151,8 @@ export default function EquipmentDetailsPage() {
                     </div>
                 </div>
                 <div className="flex items-center gap-4">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                        <Building className="h-5 w-5 text-primary" />
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
+                        <Building className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
                     </div>
                     <div>
                         <p className="text-sm text-muted-foreground">Owning Branch</p>
@@ -158,8 +160,8 @@ export default function EquipmentDetailsPage() {
                     </div>
                 </div>
                 <div className="flex items-center gap-4">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                        <MapPin className="h-5 w-5 text-primary" />
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
+                        <MapPin className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
                     </div>
                     <div>
                         <p className="text-sm text-muted-foreground">Current Location</p>
@@ -171,8 +173,8 @@ export default function EquipmentDetailsPage() {
             <h3 className="font-semibold text-lg">Calibration Details</h3>
              <div className="space-y-4">
                 <div className="flex items-center gap-4">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                        <Calendar className="h-5 w-5 text-primary" />
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
+                        <Calendar className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
                     </div>
                     <div>
                         <p className="text-sm text-muted-foreground">Calibration Due Date</p>
@@ -180,8 +182,8 @@ export default function EquipmentDetailsPage() {
                     </div>
                 </div>
                 <div className="flex items-center gap-4">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                        <Calendar className="h-5 w-5 text-primary" />
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
+                        <Calendar className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
                     </div>
                     <div>
                         <p className="text-sm text-muted-foreground">Validity</p>
