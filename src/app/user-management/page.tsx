@@ -399,10 +399,12 @@ export default function UserManagementPage() {
             </CardHeader>
             <CardContent>
               <div className="mb-4 flex justify-end">
-                <Button onClick={handleAddNewRole}>
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  Add New Role
-                </Button>
+                {userHasPermission('manage-users') && (
+                  <Button onClick={handleAddNewRole}>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Add New Role
+                  </Button>
+                )}
               </div>
               <div className="overflow-x-auto">
                 <Table>

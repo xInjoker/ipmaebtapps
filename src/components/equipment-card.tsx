@@ -16,30 +16,10 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { MoreHorizontal } from 'lucide-react';
 import { type EquipmentItem } from '@/lib/equipment';
-import { format, isPast, differenceInDays } from 'date-fns';
+import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/context/AuthContext';
-
-type CalibrationStatus = {
-  text: string;
-  variant: 'destructive' | 'yellow' | 'green';
-};
-
-const getCalibrationStatus = (dueDate: Date): CalibrationStatus => {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const cleanDueDate = new Date(dueDate);
-  cleanDueDate.setHours(0, 0, 0, 0);
-
-  if (isPast(cleanDueDate)) {
-    return { text: 'Expired', variant: 'destructive' };
-  }
-  const daysLeft = differenceInDays(cleanDueDate, today);
-  if (daysLeft <= 30) {
-    return { text: `Expires in ${daysLeft} days`, variant: 'yellow' };
-  }
-  return { text: 'Valid', variant: 'green' };
-};
+import { getCalibrationStatus, type CalibrationStatus } from '@/lib/utils';
 
 export function EquipmentCard({ item, branchMap }: { item: EquipmentItem; branchMap: Record<string, string> }) {
   const [calibration, setCalibration] = useState<CalibrationStatus | null>(null);

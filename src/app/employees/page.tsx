@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -40,7 +40,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { MoreHorizontal, PlusCircle, Upload, Download, Trash2, Edit } from 'lucide-react';
 import { useEmployees } from '@/context/EmployeeContext';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, getEmployeeStatusVariant } from '@/lib/utils';
 import { format } from 'date-fns';
 import { EmployeeImportDialog } from '@/components/employee-import-dialog';
 import { EmployeeExportDialog } from '@/components/employee-export-dialog';
@@ -49,13 +49,21 @@ import { useToast } from '@/hooks/use-toast';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import { useAuth } from '@/context/AuthContext';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const allEmployeeFields = Object.keys(employeeFieldLabels) as (keyof Employee)[];
 
 export default function EmployeesPage() {
   const { employees, addEmployee, deleteEmployee } = useEmployees();
+  const { userHasPermission } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [isCustomizeExportOpen, setIsCustomizeExportOpen] = useState(false);
@@ -81,7 +89,10 @@ export default function EmployeesPage() {
   };
 
   const handleImport = (importedEmployees: Omit<Employee, 'id'>[]) => {
-    importedEmployees.forEach(emp => addEmployee(emp));
+    importedEmployees.forEach(emp => {
+      const newId = `EMP-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+      addEmployee({ ...emp, id: newId });
+    });
     toast({
       title: 'Import Successful',
       description: `${importedEmployees.length} employees have been added.`,
@@ -116,19 +127,6 @@ export default function EmployeesPage() {
     }
   };
 
-  const getStatusVariant = (status?: 'Active' | 'Inactive' | 'On Leave') => {
-    switch (status) {
-      case 'Active':
-        return 'green';
-      case 'On Leave':
-        return 'yellow';
-      case 'Inactive':
-        return 'destructive';
-      default:
-        return 'secondary';
-    }
-  };
-
   return (
     <>
       <div className="space-y-6">
@@ -140,32 +138,34 @@ export default function EmployeesPage() {
                 View, manage, and track all employees in the organization.
               </CardDescription>
             </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" onClick={() => setIsImportOpen(true)}>
-                <Upload className="mr-2 h-4 w-4" />
-                Import
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline">
-                    <Download className="mr-2 h-4 w-4" />
-                    Export
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem onSelect={() => handleExport('excel')}>Export as Excel</DropdownMenuItem>
-                  <DropdownMenuItem onSelect={() => handleExport('pdf')}>Export as PDF</DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onSelect={() => setIsCustomizeExportOpen(true)}>Customize Export Fields</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <Button asChild>
-                <Link href="/employees/new">
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  Add Employee
-                </Link>
-              </Button>
-            </div>
+            {userHasPermission('manage-employees') && (
+              <div className="flex items-center gap-2">
+                <Button variant="outline" onClick={() => setIsImportOpen(true)}>
+                  <Upload className="mr-2 h-4 w-4" />
+                  Import
+                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline">
+                      <Download className="mr-2 h-4 w-4" />
+                      Export
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem onSelect={() => handleExport('excel')}>Export as Excel</DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => handleExport('pdf')}>Export as PDF</DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onSelect={() => setIsCustomizeExportOpen(true)}>Customize Export Fields</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <Button asChild>
+                  <Link href="/employees/new">
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Add Employee
+                  </Link>
+                </Button>
+              </div>
+            )}
           </CardHeader>
           <CardContent>
             <div className="rounded-md border">
@@ -182,45 +182,65 @@ export default function EmployeesPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {employees.map((employee) => (
-                    <TableRow key={employee.id}>
-                      <TableCell className="font-medium">{employee.name || 'N/A'}</TableCell>
-                      <TableCell>{employee.position || 'N/A'}</TableCell>
-                      <TableCell>{employee.projectName || 'N/A'}</TableCell>
-                      <TableCell>{employee.salary ? formatCurrency(employee.salary) : 'N/A'}</TableCell>
-                      <TableCell>
-                        {employee.contractEndDate ? format(new Date(employee.contractEndDate), 'PPP') : 'N/A'}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={getStatusVariant(employee.employmentStatus)}>
-                          {employee.employmentStatus || 'Unknown'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                              <span className="sr-only">Open menu</span>
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onSelect={() => router.push(`/employees/${employee.id}/edit`)}>
-                              <Edit className="mr-2 h-4 w-4" />
-                              <span>Edit</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              className="text-destructive"
-                              onSelect={() => handleDeleteRequest(employee)}
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              <span>Delete</span>
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                  {!isClient ? (
+                     [...Array(5)].map((_, i) => (
+                      <TableRow key={i}>
+                        <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                        <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                        <TableCell><Skeleton className="h-5 w-40" /></TableCell>
+                        <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+                        <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                        <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
+                        <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
+                      </TableRow>
+                     ))
+                  ) : employees.length > 0 ? (
+                    employees.map((employee) => (
+                      <TableRow key={employee.id}>
+                        <TableCell className="font-medium">{employee.name || 'N/A'}</TableCell>
+                        <TableCell>{employee.position || 'N/A'}</TableCell>
+                        <TableCell>{employee.projectName || 'N/A'}</TableCell>
+                        <TableCell>{employee.salary ? formatCurrency(employee.salary) : 'N/A'}</TableCell>
+                        <TableCell>
+                          {employee.contractEndDate ? format(new Date(employee.contractEndDate), 'PPP') : 'N/A'}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={getEmployeeStatusVariant(employee.employmentStatus)}>
+                            {employee.employmentStatus || 'Unknown'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <span className="sr-only">Open menu</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onSelect={() => router.push(`/employees/${employee.id}/edit`)}>
+                                <Edit className="mr-2 h-4 w-4" />
+                                <span>Edit</span>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="text-destructive"
+                                onSelect={() => handleDeleteRequest(employee)}
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                <span>Delete</span>
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={7} className="h-24 text-center">
+                        No employees found.
                       </TableCell>
                     </TableRow>
-                  ))}
+                  )}
                 </TableBody>
               </Table>
             </div>

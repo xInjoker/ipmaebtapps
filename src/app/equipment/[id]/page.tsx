@@ -34,12 +34,12 @@ import {
   Image as ImageIcon,
   Edit,
 } from 'lucide-react';
-import { format, isPast, differenceInDays } from 'date-fns';
+import { format } from 'date-fns';
 import { useAuth } from '@/context/AuthContext';
 import { type EquipmentItem } from '@/lib/equipment';
 import { useInspectors } from '@/context/InspectorContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { cn, getAvatarColor, getInitials } from '@/lib/utils';
+import { cn, getAvatarColor, getInitials, getCalibrationStatus } from '@/lib/utils';
 
 export default function EquipmentDetailsPage() {
   const router = useRouter();
@@ -68,22 +68,6 @@ export default function EquipmentDetailsPage() {
     if (!equipment) return [];
     return inspectors.filter(inspector => (equipment.assignedPersonnelIds || []).includes(inspector.id));
   }, [equipment, inspectors]);
-
-  const getCalibrationStatus = (dueDate: Date) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const cleanDueDate = new Date(dueDate);
-    cleanDueDate.setHours(0, 0, 0, 0);
-
-    if (isPast(cleanDueDate)) {
-      return { text: 'Expired', variant: 'destructive' as const };
-    }
-    const daysLeft = differenceInDays(cleanDueDate, today);
-    if (daysLeft <= 30) {
-      return { text: `Expires in ${daysLeft} days`, variant: 'yellow' as const };
-    }
-    return { text: 'Valid', variant: 'green' as const };
-  };
 
   if (!equipment) {
     return (
