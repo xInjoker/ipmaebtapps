@@ -4,6 +4,7 @@
 
 
 
+
 export const permissions = [
   'view-dashboard',
   'manage-projects',
@@ -19,6 +20,7 @@ export const permissions = [
   'view-approvals',
   'review-reports',
   'approve-reports',
+  'manage-employees',
 ] as const;
 
 export type Permission = (typeof permissions)[number];
@@ -82,6 +84,7 @@ export const initialRoles: Role[] = [
       'view-ai-sanity-check',
       'view-settings',
       'view-profile',
+      'manage-employees',
     ],
     isEditable: true,
   },
