@@ -15,6 +15,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import type { Project, InvoiceItem, ServiceOrderItem } from '@/lib/data';
 import { formatCurrency } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 type ProjectInvoicingTabProps = {
     project: Project;
@@ -24,6 +25,7 @@ type ProjectInvoicingTabProps = {
 export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTabProps) {
     const [isAddInvoiceDialogOpen, setIsAddInvoiceDialogOpen] = useState(false);
     const [isEditInvoiceDialogOpen, setIsEditInvoiceDialogOpen] = useState(false);
+    const { toast } = useToast();
     
     const [invoiceToEdit, setInvoiceToEdit] = useState<InvoiceItem | null>(null);
     const [editedInvoice, setEditedInvoice] = useState<InvoiceItem & { periodMonth: string; periodYear: string; } | null>(null);
@@ -77,6 +79,12 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
 
             setNewInvoice({ soNumber: '', serviceCategory: '', description: '', status: 'Invoiced', periodMonth: '', periodYear: '', value: 0 });
             setIsAddInvoiceDialogOpen(false);
+        } else {
+             toast({
+                variant: 'destructive',
+                title: 'Incomplete Information',
+                description: 'Please fill out all fields for the invoice, including a value greater than zero.',
+            });
         }
     };
 
@@ -225,7 +233,10 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
                                         <Input id="value" type="number" value={newInvoice.value || ''} onChange={(e) => setNewInvoice({ ...newInvoice, value: parseInt(e.target.value) || 0 })} className="col-span-3" />
                                     </div>
                                     {addSoDetails.warning && (
-                                        <p className="text-center text-sm font-medium text-destructive">{addSoDetails.warning}</p>
+                                        <div className="grid grid-cols-4 items-center gap-4">
+                                            <div/>
+                                            <p className="col-span-3 text-sm font-medium text-destructive">{addSoDetails.warning}</p>
+                                        </div>
                                     )}
                                 </div>
                                 <DialogFooter>
@@ -346,7 +357,10 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
                                     <Input id="editValue" type="number" value={editedInvoice.value || ''} onChange={(e) => setEditedInvoice({ ...editedInvoice, value: parseInt(e.target.value) || 0 })} className="col-span-3" />
                                 </div>
                                  {editSoDetails.warning && (
-                                    <p className="text-center text-sm font-medium text-destructive">{editSoDetails.warning}</p>
+                                    <div className="grid grid-cols-4 items-center gap-4">
+                                        <div/>
+                                        <p className="col-span-3 text-sm font-medium text-destructive">{editSoDetails.warning}</p>
+                                    </div>
                                  )}
                             </div>
                             <DialogFooter>

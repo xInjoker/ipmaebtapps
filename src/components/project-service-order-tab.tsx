@@ -17,6 +17,7 @@ import { Badge } from '@/components/ui/badge';
 import type { Project, ServiceOrderItem } from '@/lib/data';
 import { formatCurrency, cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { useToast } from '@/hooks/use-toast';
 
 type ProjectServiceOrderTabProps = {
     project: Project;
@@ -26,6 +27,7 @@ type ProjectServiceOrderTabProps = {
 export function ProjectServiceOrderTab({ project, setProjects }: ProjectServiceOrderTabProps) {
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+    const { toast } = useToast();
 
     const [itemToEdit, setItemToEdit] = useState<Omit<ServiceOrderItem, 'status'> & { date?: Date } | null>(null);
 
@@ -69,6 +71,12 @@ export function ProjectServiceOrderTab({ project, setProjects }: ProjectServiceO
 
             setNewItem({ soNumber: '', description: '', date: undefined, value: 0 });
             setIsAddDialogOpen(false);
+        } else {
+            toast({
+                variant: 'destructive',
+                title: 'Incomplete Information',
+                description: 'Please fill out all fields, including a date and a value greater than zero.',
+            });
         }
     };
 
