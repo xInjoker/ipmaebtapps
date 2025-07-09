@@ -16,8 +16,10 @@ import { ArrowLeft, CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react
 import { Textarea } from './ui/textarea';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import { type Employee } from '@/lib/employees';
+import { type Employee, employeeFieldLabels } from '@/lib/employees';
 import { useState, useEffect } from 'react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { ScrollArea } from './ui/scroll-area';
 
 const employeeSchema = z.object({
   // Step 1: Work & Project
@@ -77,11 +79,14 @@ const steps = [
 
 export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
   const [currentStep, setCurrentStep] = useState(0);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   const form = useForm<EmployeeFormData>({
     resolver: zodResolver(employeeSchema),
     defaultValues: {},
   });
+
+  const formData = form.watch();
 
   useEffect(() => {
     if (employee) {
@@ -108,6 +113,13 @@ export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
       contractEndDate: data.contractEndDate ? format(data.contractEndDate, 'yyyy-MM-dd') : undefined,
     };
     onSave(finalData);
+  };
+
+  const handleReview = async () => {
+    const isValid = await form.trigger();
+    if (isValid) {
+      setIsConfirmOpen(true);
+    }
   };
 
   const nextStep = () => setCurrentStep((prev) => (prev < steps.length - 1 ? prev + 1 : prev));
@@ -263,10 +275,87 @@ export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
                         Next <ChevronRight className="ml-2 h-4 w-4"/>
                     </Button>
                 ) : (
-                    <Button type="submit" form="employee-form">Save Employee</Button>
+                    <Button type="button" onClick={handleReview}>Review Employee</Button>
                 )}
             </CardFooter>
         </Card>
+        <AlertDialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
+            <AlertDialogContent className="max-w-3xl">
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Confirm Employee Details</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        Please review the information below. If everything is correct, click "Confirm & Save".
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <ScrollArea className="max-h-[60vh] rounded-md border p-4">
+                    <div className="space-y-6">
+                        {/* Step 1: Work & Project */}
+                        <div>
+                            <h3 className="font-semibold mb-2 text-lg border-b pb-1">Work & Project</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2 text-sm mt-2">
+                                <p><span className="font-medium text-muted-foreground">{employeeFieldLabels.position}:</span> {formData.position || 'N/A'}</p>
+                                <p><span className="font-medium text-muted-foreground">{employeeFieldLabels.workUnit}:</span> {formData.workUnit || 'N/A'}</p>
+                                <p><span className="font-medium text-muted-foreground">{employeeFieldLabels.workUnitName}:</span> {formData.workUnitName || 'N/A'}</p>
+                                <p><span className="font-medium text-muted-foreground">{employeeFieldLabels.projectName}:</span> {formData.projectName || 'N/A'}</p>
+                                <p><span className="font-medium text-muted-foreground">{employeeFieldLabels.rabNumber}:</span> {formData.rabNumber || 'N/A'}</p>
+                                <p><span className="font-medium text-muted-foreground">{employeeFieldLabels.portfolio}:</span> {formData.portfolio || 'N/A'}</p>
+                                <p><span className="font-medium text-muted-foreground">{employeeFieldLabels.subPortfolio}:</span> {formData.subPortfolio || 'N/A'}</p>
+                                <p className="md:col-span-2"><span className="font-medium text-muted-foreground">{employeeFieldLabels.competency}:</span> {formData.competency || 'N/A'}</p>
+                            </div>
+                        </div>
+                        {/* Step 2: Personal Details */}
+                        <div>
+                            <h3 className="font-semibold mb-2 text-lg border-b pb-1">Personal Details</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2 text-sm mt-2">
+                                <p><span className="font-medium text-muted-foreground">{employeeFieldLabels.name}:</span> {formData.name || 'N/A'}</p>
+                                <p><span className="font-medium text-muted-foreground">{employeeFieldLabels.nationalId}:</span> {formData.nationalId || 'N/A'}</p>
+                                <p><span className="font-medium text-muted-foreground">{employeeFieldLabels.placeOfBirth}:</span> {formData.placeOfBirth || 'N/A'}</p>
+                                <p><span className="font-medium text-muted-foreground">{employeeFieldLabels.dateOfBirth}:</span> {formData.dateOfBirth ? format(formData.dateOfBirth, 'PPP') : 'N/A'}</p>
+                                <p><span className="font-medium text-muted-foreground">{employeeFieldLabels.gender}:</span> {formData.gender || 'N/A'}</p>
+                                <p><span className="font-medium text-muted-foreground">{employeeFieldLabels.religion}:</span> {formData.religion || 'N/A'}</p>
+                                <p className="md:col-span-2"><span className="font-medium text-muted-foreground">{employeeFieldLabels.address}:</span> {formData.address || 'N/A'}</p>
+                                <p><span className="font-medium text-muted-foreground">{employeeFieldLabels.email}:</span> {formData.email || 'N/A'}</p>
+                                <p><span className="font-medium text-muted-foreground">{employeeFieldLabels.phoneNumber}:</span> {formData.phoneNumber || 'N/A'}</p>
+                            </div>
+                        </div>
+                        {/* Step 3: Employment */}
+                        <div>
+                            <h3 className="font-semibold mb-2 text-lg border-b pb-1">Employment</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2 text-sm mt-2">
+                                <p><span className="font-medium text-muted-foreground">{employeeFieldLabels.employmentStatus}:</span> {formData.employmentStatus || 'N/A'}</p>
+                                <p><span className="font-medium text-muted-foreground">{employeeFieldLabels.bpjsHealth}:</span> {formData.bpjsHealth || 'N/A'}</p>
+                                <p><span className="font-medium text-muted-foreground">{employeeFieldLabels.bpjsEmployment}:</span> {formData.bpjsEmployment || 'N/A'}</p>
+                            </div>
+                        </div>
+                        {/* Step 4: Contract */}
+                        <div>
+                            <h3 className="font-semibold mb-2 text-lg border-b pb-1">Contract</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2 text-sm mt-2">
+                                <p><span className="font-medium text-muted-foreground">{employeeFieldLabels.contractType}:</span> {formData.contractType || 'N/A'}</p>
+                                <p><span className="font-medium text-muted-foreground">{employeeFieldLabels.contractNumber}:</span> {formData.contractNumber || 'N/A'}</p>
+                                <p><span className="font-medium text-muted-foreground">{employeeFieldLabels.contractStartDate}:</span> {formData.contractStartDate ? format(formData.contractStartDate, 'PPP') : 'N/A'}</p>
+                                <p><span className="font-medium text-muted-foreground">{employeeFieldLabels.contractEndDate}:</span> {formData.contractEndDate ? format(formData.contractEndDate, 'PPP') : 'N/A'}</p>
+                            </div>
+                        </div>
+                        {/* Step 5: Financial & Tax */}
+                        <div>
+                            <h3 className="font-semibold mb-2 text-lg border-b pb-1">Financial & Tax</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2 text-sm mt-2">
+                                <p><span className="font-medium text-muted-foreground">{employeeFieldLabels.salary}:</span> {formData.salary ? new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(formData.salary) : 'N/A'}</p>
+                                <p><span className="font-medium text-muted-foreground">{employeeFieldLabels.bankName}:</span> {formData.bankName || 'N/A'}</p>
+                                <p><span className="font-medium text-muted-foreground">{employeeFieldLabels.bankAccountNumber}:</span> {formData.bankAccountNumber || 'N/A'}</p>
+                                <p><span className="font-medium text-muted-foreground">{employeeFieldLabels.npwp}:</span> {formData.npwp || 'N/A'}</p>
+                                <p><span className="font-medium text-muted-foreground">{employeeFieldLabels.ptkpStatus}:</span> {formData.ptkpStatus || 'N/A'}</p>
+                            </div>
+                        </div>
+                    </div>
+                </ScrollArea>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>Go Back & Edit</AlertDialogCancel>
+                    <AlertDialogAction onClick={form.handleSubmit(onSubmit)}>Confirm & Save</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
     </div>
   );
 }
