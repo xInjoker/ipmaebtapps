@@ -38,7 +38,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
-import { MoreHorizontal, PlusCircle, Upload, Download, Trash2, Edit } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Upload, Download, Trash2, Edit, Eye } from 'lucide-react';
 import { useEmployees } from '@/context/EmployeeContext';
 import { formatCurrency, getEmployeeStatusVariant } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -218,6 +218,10 @@ export default function EmployeesPage() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
+                               <DropdownMenuItem onSelect={() => router.push(`/employees/${employee.id}`)}>
+                                <Eye className="mr-2 h-4 w-4" />
+                                <span>View</span>
+                              </DropdownMenuItem>
                               <DropdownMenuItem onSelect={() => router.push(`/employees/${employee.id}/edit`)}>
                                 <Edit className="mr-2 h-4 w-4" />
                                 <span>Edit</span>
