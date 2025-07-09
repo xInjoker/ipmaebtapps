@@ -41,11 +41,11 @@ const chartData = [
 const chartConfig: ChartConfig = {
   invoiced: {
     label: 'Invoiced',
-    color: 'hsl(var(--primary))',
+    color: 'hsl(var(--chart-1))',
   },
   paid: {
     label: 'Paid',
-    color: 'hsl(var(--accent))',
+    color: 'hsl(var(--chart-2))',
   },
 };
 
