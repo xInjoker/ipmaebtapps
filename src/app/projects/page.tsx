@@ -198,72 +198,6 @@ export default function ProjectsPage() {
 
   return (
     <div className="space-y-6">
-       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total Project Value
-            </CardTitle>
-            <CircleDollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold font-headline">
-               {formatCurrency(totalProjectValue)}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Across {visibleProjects.length} projects
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total Cost
-            </CardTitle>
-            <Wallet className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold font-headline">
-               {formatCurrency(totalCost)}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Total costs realized across all projects
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total Invoiced
-            </CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold font-headline">
-               {formatCurrency(totalInvoiced)}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Total invoiced across all projects
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total Paid
-            </CardTitle>
-            <Landmark className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold font-headline">
-               {formatCurrency(totalPaid)}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Total paid across all projects
-            </p>
-          </CardContent>
-        </Card>
-      </div>
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold font-headline">Projects</h1>
@@ -452,6 +386,73 @@ export default function ProjectsPage() {
             </DialogContent>
           </Dialog>
         )}
+      </div>
+
+       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Total Project Value
+            </CardTitle>
+            <CircleDollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold font-headline">
+               {formatCurrency(totalProjectValue)}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Across {visibleProjects.length} projects
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Total Cost
+            </CardTitle>
+            <Wallet className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold font-headline">
+               {formatCurrency(totalCost)}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Total costs realized across all projects
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Total Invoiced
+            </CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold font-headline">
+               {formatCurrency(totalInvoiced)}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Total invoiced across all projects
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Total Paid
+            </CardTitle>
+            <Landmark className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold font-headline">
+               {formatCurrency(totalPaid)}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Total paid across all projects
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
