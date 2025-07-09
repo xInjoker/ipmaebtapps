@@ -15,28 +15,30 @@ export function getInitials(name: string) {
     .toUpperCase();
 }
 
-export function getAvatarColor(name: string) {
-  if (!name) {
-    return { background: 'bg-muted', text: 'text-muted-foreground' };
-  }
-  
-  const colorPairs = [
-    { background: 'bg-avatar-1', text: 'text-primary-foreground' },
-    { background: 'bg-avatar-2', text: 'text-primary-foreground' },
-    { background: 'bg-avatar-3', text: 'text-primary-foreground' },
-    { background: 'bg-avatar-4', text: 'text-primary-foreground' },
-    { background: 'bg-avatar-5', text: 'text-primary-foreground' },
-    { background: 'bg-avatar-6', text: 'text-primary-foreground' },
-  ];
+export function getAvatarColor(name:string): { background: string; color: string } {
+    if (!name) {
+        // Fallback to a neutral theme color
+        return { background: 'hsl(var(--muted))', color: 'hsl(var(--muted-foreground))' };
+    }
+    
+    // Vibrant, non-white colors
+    const colors = [
+        { background: 'hsl(15 85% 55%)', color: 'hsl(0 0% 100%)' }, // Orange-Red
+        { background: 'hsl(195 90% 40%)', color: 'hsl(0 0% 100%)' }, // Cyan-Blue
+        { background: 'hsl(265 80% 60%)', color: 'hsl(0 0% 100%)' }, // Purple
+        { background: 'hsl(110 70% 45%)', color: 'hsl(0 0% 100%)' }, // Green
+        { background: 'hsl(340 85% 65%)', color: 'hsl(0 0% 100%)' }, // Pink-Red
+        { background: 'hsl(210 90% 50%)', color: 'hsl(0 0% 100%)' }, // Blue
+    ];
 
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash);
-    hash = hash & hash; 
-  }
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+        hash = name.charCodeAt(i) + ((hash << 5) - hash);
+        hash = hash & hash;
+    }
 
-  const index = Math.abs(hash % colorPairs.length);
-  return colorPairs[index];
+    const index = Math.abs(hash % colors.length);
+    return colors[index];
 }
 
 export function formatCurrency(value: number) {

@@ -1,3 +1,4 @@
+
 'use client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -43,7 +44,10 @@ export function UserNav() {
               <AvatarImage src={user.avatarUrl} alt={user.name} />
             ) : null}
             <AvatarFallback
-              className={cn(avatarColor.background, avatarColor.text)}
+              style={{
+                backgroundColor: avatarColor.background,
+                color: avatarColor.color,
+              }}
             >
               {getInitials(user.name)}
             </AvatarFallback>

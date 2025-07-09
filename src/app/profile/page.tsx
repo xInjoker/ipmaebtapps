@@ -80,11 +80,11 @@ export default function ProfilePage() {
                   <AvatarImage src={user.avatarUrl} alt={user.name} />
                 ) : null}
                 <AvatarFallback
-                  className={cn(
-                    'text-3xl',
-                    avatarColor.background,
-                    avatarColor.text
-                  )}
+                  className="text-3xl"
+                  style={{
+                    backgroundColor: avatarColor.background,
+                    color: avatarColor.color,
+                  }}
                 >
                   {getInitials(user.name)}
                 </AvatarFallback>

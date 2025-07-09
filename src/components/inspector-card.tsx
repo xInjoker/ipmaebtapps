@@ -23,7 +23,13 @@ export function InspectorCard({ inspector, branchMap }: { inspector: Inspector, 
             {inspector.avatarUrl ? (
               <AvatarImage src={inspector.avatarUrl} alt={inspector.name} />
             ) : null}
-            <AvatarFallback className={cn('text-2xl', avatarColor.background, avatarColor.text)}>
+            <AvatarFallback
+              className="text-2xl"
+              style={{
+                backgroundColor: avatarColor.background,
+                color: avatarColor.color,
+              }}
+            >
               {getInitials(inspector.name)}
             </AvatarFallback>
           </Avatar>

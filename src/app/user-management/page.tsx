@@ -295,10 +295,10 @@ export default function UserManagementPage() {
                                   />
                                 ) : null}
                                 <AvatarFallback
-                                  className={cn(
-                                    avatarColor.background,
-                                    avatarColor.text
-                                  )}
+                                  style={{
+                                    backgroundColor: avatarColor.background,
+                                    color: avatarColor.color,
+                                  }}
                                 >
                                   {getInitials(managedUser.name)}
                                 </AvatarFallback>
