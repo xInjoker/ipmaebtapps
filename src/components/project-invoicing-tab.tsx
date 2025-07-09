@@ -159,7 +159,7 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
         <>
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
-                    <div>
+                    <div className="space-y-1.5">
                         <CardTitle>Invoicing Progress</CardTitle>
                         <CardDescription>A detailed breakdown of all invoices for this project.</CardDescription>
                     </div>

@@ -195,7 +195,7 @@ export function ProjectServiceOrderTab({ project, setProjects }: ProjectServiceO
         <>
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
-                    <div>
+                    <div className="space-y-1.5">
                         <CardTitle>Service Orders (SO)</CardTitle>
                         <CardDescription>Manage all service orders for this project.</CardDescription>
                     </div>

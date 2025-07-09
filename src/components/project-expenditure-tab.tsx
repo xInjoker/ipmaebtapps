@@ -230,7 +230,7 @@ export function ProjectExpenditureTab({ project, setProjects }: ProjectExpenditu
             ) : (
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between">
-                        <div>
+                        <div className="space-y-1.5">
                             <CardTitle className="font-headline">Project Expenditure</CardTitle>
                             <CardDescription>
                                 Track and manage all expenditures for this project.
