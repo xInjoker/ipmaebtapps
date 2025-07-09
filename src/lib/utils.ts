@@ -22,10 +22,11 @@ export function getAvatarColor(name: string) {
   
   const colorPairs = [
     { background: 'bg-primary', text: 'text-primary-foreground' },
-    { background: 'bg-accent', text: 'text-accent-foreground' },
-    { background: 'bg-chart-1', text: 'text-primary-foreground' },
-    { background: 'bg-chart-2', text: 'text-primary-foreground' },
     { background: 'bg-destructive', text: 'text-destructive-foreground' },
+    { background: 'bg-chart-2', text: 'text-primary-foreground' },
+    { background: 'bg-chart-3', text: 'text-secondary-foreground' },
+    { background: 'bg-chart-4', text: 'text-primary-foreground' },
+    { background: 'bg-chart-5', text: 'text-primary-foreground' },
   ];
 
   let hash = 0;
