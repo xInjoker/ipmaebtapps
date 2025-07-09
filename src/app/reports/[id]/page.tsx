@@ -397,13 +397,22 @@ export default function ReportDetailsPage() {
 
     return (
         <div className="space-y-6">
-             <div className="flex items-center gap-4">
-                <Button asChild variant="outline" size="icon"><Link href={`/reports/${backPath}`}><ArrowLeft className="h-4 w-4" /><span className="sr-only">Back to Report List</span></Link></Button>
-                <div>
-                    <h1 className="font-headline text-2xl font-bold">{report.jobType} Report: {report.reportNumber}</h1>
-                    <p className="text-muted-foreground">Viewing details for the submitted report.</p>
-                </div>
-            </div>
+             <Card>
+                <CardHeader>
+                    <div className="flex items-center gap-4">
+                        <Button asChild variant="outline" size="icon">
+                            <Link href={`/reports/${backPath}`}>
+                                <ArrowLeft className="h-4 w-4" />
+                                <span className="sr-only">Back to Report List</span>
+                            </Link>
+                        </Button>
+                        <div>
+                            <CardTitle>{report.jobType} Report: {report.reportNumber}</CardTitle>
+                            <CardDescription>Viewing details for the submitted report.</CardDescription>
+                        </div>
+                    </div>
+                </CardHeader>
+             </Card>
 
             <div className="pt-6 space-y-6">
                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">

@@ -104,22 +104,20 @@ export default function NewInspectorPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button asChild variant="outline" size="icon">
-          <Link href="/inspectors">
-            <ArrowLeft className="h-4 w-4" />
-            <span className="sr-only">Back to Inspectors</span>
-          </Link>
-        </Button>
-        <div>
-          <h1 className="font-headline text-2xl font-bold">Add New Inspector</h1>
-          <p className="text-muted-foreground">Fill in the details for the new inspector.</p>
-        </div>
-      </div>
       <Card>
         <CardHeader>
-          <CardTitle>Inspector Information</CardTitle>
-          <CardDescription>Enter the personal and professional details of the inspector.</CardDescription>
+          <div className="flex items-center gap-4">
+            <Button asChild variant="outline" size="icon">
+              <Link href="/inspectors">
+                <ArrowLeft className="h-4 w-4" />
+                <span className="sr-only">Back to Inspectors</span>
+              </Link>
+            </Button>
+            <div>
+              <CardTitle>Add New Inspector</CardTitle>
+              <CardDescription>Fill in the details for the new inspector.</CardDescription>
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="grid gap-6 md:grid-cols-2">
             <div className="space-y-2">

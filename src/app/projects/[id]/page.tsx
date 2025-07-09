@@ -168,18 +168,22 @@ export default function ProjectDetailsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button asChild variant="outline" size="icon">
-          <Link href="/projects">
-            <ArrowLeft className="h-4 w-4" />
-            <span className="sr-only">Back</span>
-          </Link>
-        </Button>
-        <div>
-          <h1 className="font-headline text-2xl font-bold">{project.name}</h1>
-          <p className="text-muted-foreground">{project.description}</p>
-        </div>
-      </div>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-4">
+            <Button asChild variant="outline" size="icon">
+              <Link href="/projects">
+                <ArrowLeft className="h-4 w-4" />
+                <span className="sr-only">Back</span>
+              </Link>
+            </Button>
+            <div>
+              <CardTitle>{project.name}</CardTitle>
+              <CardDescription>{project.description}</CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+      </Card>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div className="lg:col-span-1">

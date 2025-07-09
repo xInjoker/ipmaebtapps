@@ -91,30 +91,34 @@ export default function EquipmentDetailsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-            <Button asChild variant="outline" size="icon">
-            <Link href="/equipment">
-                <ArrowLeft className="h-4 w-4" />
-                <span className="sr-only">Back to Equipment</span>
-            </Link>
-            </Button>
-            <div>
-            <h1 className="font-headline text-2xl font-bold">{equipment.name}</h1>
-            <p className="text-muted-foreground">
-                {equipment.type} &bull; {equipment.serialNumber}
-            </p>
-            </div>
-        </div>
-        {userHasPermission('manage-equipment') && (
-            <Button asChild>
-                <Link href={`/equipment/${equipment.id}/edit`}>
-                    <Edit className="mr-2 h-4 w-4" />
-                    Edit Equipment
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <Button asChild variant="outline" size="icon">
+                <Link href="/equipment">
+                  <ArrowLeft className="h-4 w-4" />
+                  <span className="sr-only">Back to Equipment</span>
                 </Link>
-            </Button>
-        )}
-      </div>
+              </Button>
+              <div>
+                <CardTitle>{equipment.name}</CardTitle>
+                <CardDescription>
+                  {equipment.type} &bull; {equipment.serialNumber}
+                </CardDescription>
+              </div>
+            </div>
+            {userHasPermission('manage-equipment') && (
+              <Button asChild>
+                <Link href={`/equipment/${equipment.id}/edit`}>
+                  <Edit className="mr-2 h-4 w-4" />
+                  Edit Equipment
+                </Link>
+              </Button>
+            )}
+          </div>
+        </CardHeader>
+      </Card>
 
       <Card>
         <CardContent className="grid gap-6 p-6 md:grid-cols-2 lg:grid-cols-3">

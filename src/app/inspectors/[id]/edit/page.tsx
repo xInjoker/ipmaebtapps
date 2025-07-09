@@ -143,22 +143,20 @@ export default function EditInspectorPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button asChild variant="outline" size="icon">
-          <Link href={`/inspectors/${inspector.id}`}>
-            <ArrowLeft className="h-4 w-4" />
-            <span className="sr-only">Back to Inspector</span>
-          </Link>
-        </Button>
-        <div>
-          <h1 className="font-headline text-2xl font-bold">Edit Inspector</h1>
-          <p className="text-muted-foreground">Update the details for {inspector.name}.</p>
-        </div>
-      </div>
       <Card>
         <CardHeader>
-          <CardTitle>Inspector Information</CardTitle>
-          <CardDescription>Modify the personal and professional details of the inspector.</CardDescription>
+          <div className="flex items-center gap-4">
+            <Button asChild variant="outline" size="icon">
+              <Link href={`/inspectors/${inspector.id}`}>
+                <ArrowLeft className="h-4 w-4" />
+                <span className="sr-only">Back to Inspector</span>
+              </Link>
+            </Button>
+            <div>
+              <CardTitle>Edit Inspector</CardTitle>
+              <CardDescription>Update the details for {inspector.name}.</CardDescription>
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="grid gap-6 md:grid-cols-2">
             <div className="space-y-2">

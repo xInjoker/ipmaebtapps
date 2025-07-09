@@ -42,7 +42,7 @@ export default function SettingsPage() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="font-headline">Settings</CardTitle>
+          <CardTitle>Settings</CardTitle>
           <CardDescription>
             Manage your application settings and preferences.
           </CardDescription>

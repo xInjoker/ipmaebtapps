@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -114,12 +115,14 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold font-headline">Welcome, {user?.name}</h1>
-        <p className="text-muted-foreground">
-          Here's an overview of your projects from {branchName}.
-        </p>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Welcome, {user?.name}</CardTitle>
+          <CardDescription>
+            Here's an overview of your projects from {branchName}.
+          </CardDescription>
+        </CardHeader>
+      </Card>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

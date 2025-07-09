@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -153,22 +154,20 @@ export default function NewEquipmentPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button asChild variant="outline" size="icon">
-          <Link href="/equipment">
-            <ArrowLeft className="h-4 w-4" />
-            <span className="sr-only">Back to Equipment</span>
-          </Link>
-        </Button>
-        <div>
-          <h1 className="font-headline text-2xl font-bold">Add New Equipment</h1>
-          <p className="text-muted-foreground">Fill in the details for the new equipment.</p>
-        </div>
-      </div>
       <Card>
         <CardHeader>
-          <CardTitle>Equipment Details</CardTitle>
-          <CardDescription>Enter the information for the new piece of equipment.</CardDescription>
+          <div className="flex items-center gap-4">
+            <Button asChild variant="outline" size="icon">
+              <Link href="/equipment">
+                <ArrowLeft className="h-4 w-4" />
+                <span className="sr-only">Back to Equipment</span>
+              </Link>
+            </Button>
+            <div>
+              <CardTitle>Add New Equipment</CardTitle>
+              <CardDescription>Fill in the details for the new equipment.</CardDescription>
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="grid gap-6 md:grid-cols-2">
             <div className="space-y-2">

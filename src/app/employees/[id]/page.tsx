@@ -91,30 +91,34 @@ export default function EmployeeDetailsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-            <Button asChild variant="outline" size="icon">
-            <Link href="/employees">
-                <ArrowLeft className="h-4 w-4" />
-                <span className="sr-only">Back to Employees</span>
-            </Link>
-            </Button>
-            <div>
-            <h1 className="font-headline text-2xl font-bold">{employee.name}</h1>
-            <div className="text-muted-foreground">
-                {employee.position} &bull; <Badge variant={getEmployeeStatusVariant(employee.employmentStatus)}>{employee.employmentStatus}</Badge>
-            </div>
-            </div>
-        </div>
-        {userHasPermission('manage-employees') && (
-            <Button asChild>
-                <Link href={`/employees/${employee.id}/edit`}>
-                    <Edit className="mr-2 h-4 w-4" />
-                    Edit Employee
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <Button asChild variant="outline" size="icon">
+                <Link href="/employees">
+                  <ArrowLeft className="h-4 w-4" />
+                  <span className="sr-only">Back to Employees</span>
                 </Link>
-            </Button>
-        )}
-      </div>
+              </Button>
+              <div>
+                <CardTitle>{employee.name}</CardTitle>
+                <CardDescription>
+                  {employee.position} &bull; <Badge variant={getEmployeeStatusVariant(employee.employmentStatus)}>{employee.employmentStatus}</Badge>
+                </CardDescription>
+              </div>
+            </div>
+            {userHasPermission('manage-employees') && (
+              <Button asChild>
+                <Link href={`/employees/${employee.id}/edit`}>
+                  <Edit className="mr-2 h-4 w-4" />
+                  Edit Employee
+                </Link>
+              </Button>
+            )}
+          </div>
+        </CardHeader>
+      </Card>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-1">

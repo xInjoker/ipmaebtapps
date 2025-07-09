@@ -198,195 +198,197 @@ export default function ProjectsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold font-headline">Projects</h1>
-          <p className="text-muted-foreground">A list of all your projects.</p>
-        </div>
-        {userHasPermission('manage-projects') && (
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Add New Project
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-lg">
-              <DialogHeader>
-                <DialogTitle>Add New Project</DialogTitle>
-                <DialogDescription>
-                  Fill in the details below to add a new project.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="contractNumber" className="text-right">
-                    Contract No.
-                  </Label>
-                  <Input
-                    id="contractNumber"
-                    value={newProject.contractNumber}
-                    onChange={(e) => setNewProject({ ...newProject, contractNumber: e.target.value })}
-                    className="col-span-3"
-                    placeholder="Contract number"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="rabNumber" className="text-right">
-                    RAB No.
-                  </Label>
-                  <Input
-                    id="rabNumber"
-                    value={newProject.rabNumber}
-                    onChange={(e) => setNewProject({ ...newProject, rabNumber: e.target.value })}
-                    className="col-span-3"
-                    placeholder="RAB number"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="name" className="text-right">
-                    Name
-                  </Label>
-                  <Input
-                    id="name"
-                    value={newProject.name}
-                    onChange={(e) => setNewProject({ ...newProject, name: e.target.value })}
-                    className="col-span-3"
-                    placeholder="Contract name"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="client" className="text-right">
-                    Client
-                  </Label>
-                  <Input
-                    id="client"
-                    value={newProject.client}
-                    onChange={(e) => setNewProject({ ...newProject, client: e.target.value })}
-                    className="col-span-3"
-                    placeholder="Client name"
-                  />
-                </div>
-                 <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="contractExecutor" className="text-right">
-                    Contract Executor
-                  </Label>
-                  {isHqUser ? (
-                    <Select
-                      value={newProject.contractExecutor}
-                      onValueChange={(value) =>
-                        setNewProject({ ...newProject, contractExecutor: value })
-                      }
-                    >
-                      <SelectTrigger className="col-span-3" id="contractExecutor">
-                        <SelectValue placeholder="Select a branch" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {branches.map((branch) => (
-                          <SelectItem key={branch.id} value={branch.id}>
-                            {branch.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <Input
-                      id="contractExecutor"
-                      value={branches.find((b) => b.id === user?.branchId)?.name || ''}
-                      className="col-span-3"
-                      disabled
-                    />
-                  )}
-                </div>
-                <div className="grid grid-cols-4 items-start gap-4">
-                  <Label htmlFor="description" className="text-right pt-2">
-                    Description
-                  </Label>
-                  <Textarea
-                    id="description"
-                    value={newProject.description}
-                    onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
-                    className="col-span-3"
-                    placeholder="A short description of the project."
-                    rows={3}
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="value" className="text-right">
-                    Value (IDR)
-                  </Label>
-                  <Input
-                    id="value"
-                    type="number"
-                    value={newProject.value || ''}
-                    onChange={(e) => setNewProject({ ...newProject, value: parseInt(e.target.value) || 0 })}
-                    className="col-span-3"
-                    placeholder="Contract value"
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="period" className="text-right">
-                    Period
-                  </Label>
-                   <Popover>
-                      <PopoverTrigger asChild>
-                          <Button
-                              id="period"
-                              variant={"outline"}
-                              className={cn(
-                                  "col-span-3 justify-start text-left font-normal",
-                                  !date && "text-muted-foreground"
-                              )}
-                          >
-                              <CalendarIcon className="mr-2 h-4 w-4" />
-                              {date?.from ? (
-                                  date.to ? (
-                                      <>
-                                          {format(date.from, "LLL dd, y")} -{" "}
-                                          {format(date.to, "LLL dd, y")}
-                                      </>
-                                  ) : (
-                                      format(date.from, "LLL dd, y")
-                                  )
-                              ) : (
-                                  <span>Pick a date range</span>
-                              )}
-                          </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                              initialFocus
-                              mode="range"
-                              defaultMonth={date?.from}
-                              selected={date}
-                              onSelect={setDate}
-                              numberOfMonths={2}
-                          />
-                      </PopoverContent>
-                  </Popover>
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="duration" className="text-right">
-                    Duration
-                  </Label>
-                  <Input
-                    id="duration"
-                    value={duration}
-                    className="col-span-3"
-                    placeholder="Calculated automatically"
-                    readOnly
-                  />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button type="submit" onClick={handleAddProject}>
-                  Add Project
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>Projects</CardTitle>
+            <CardDescription>A list of all your projects.</CardDescription>
+          </div>
+          {userHasPermission('manage-projects') && (
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Add New Project
                 </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        )}
-      </div>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-lg">
+                <DialogHeader>
+                  <DialogTitle>Add New Project</DialogTitle>
+                  <DialogDescription>
+                    Fill in the details below to add a new project.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="contractNumber" className="text-right">
+                      Contract No.
+                    </Label>
+                    <Input
+                      id="contractNumber"
+                      value={newProject.contractNumber}
+                      onChange={(e) => setNewProject({ ...newProject, contractNumber: e.target.value })}
+                      className="col-span-3"
+                      placeholder="Contract number"
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="rabNumber" className="text-right">
+                      RAB No.
+                    </Label>
+                    <Input
+                      id="rabNumber"
+                      value={newProject.rabNumber}
+                      onChange={(e) => setNewProject({ ...newProject, rabNumber: e.target.value })}
+                      className="col-span-3"
+                      placeholder="RAB number"
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="name" className="text-right">
+                      Name
+                    </Label>
+                    <Input
+                      id="name"
+                      value={newProject.name}
+                      onChange={(e) => setNewProject({ ...newProject, name: e.target.value })}
+                      className="col-span-3"
+                      placeholder="Contract name"
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="client" className="text-right">
+                      Client
+                    </Label>
+                    <Input
+                      id="client"
+                      value={newProject.client}
+                      onChange={(e) => setNewProject({ ...newProject, client: e.target.value })}
+                      className="col-span-3"
+                      placeholder="Client name"
+                    />
+                  </div>
+                   <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="contractExecutor" className="text-right">
+                      Contract Executor
+                    </Label>
+                    {isHqUser ? (
+                      <Select
+                        value={newProject.contractExecutor}
+                        onValueChange={(value) =>
+                          setNewProject({ ...newProject, contractExecutor: value })
+                        }
+                      >
+                        <SelectTrigger className="col-span-3" id="contractExecutor">
+                          <SelectValue placeholder="Select a branch" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {branches.map((branch) => (
+                            <SelectItem key={branch.id} value={branch.id}>
+                              {branch.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Input
+                        id="contractExecutor"
+                        value={branches.find((b) => b.id === user?.branchId)?.name || ''}
+                        className="col-span-3"
+                        disabled
+                      />
+                    )}
+                  </div>
+                  <div className="grid grid-cols-4 items-start gap-4">
+                    <Label htmlFor="description" className="text-right pt-2">
+                      Description
+                    </Label>
+                    <Textarea
+                      id="description"
+                      value={newProject.description}
+                      onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
+                      className="col-span-3"
+                      placeholder="A short description of the project."
+                      rows={3}
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="value" className="text-right">
+                      Value (IDR)
+                    </Label>
+                    <Input
+                      id="value"
+                      type="number"
+                      value={newProject.value || ''}
+                      onChange={(e) => setNewProject({ ...newProject, value: parseInt(e.target.value) || 0 })}
+                      className="col-span-3"
+                      placeholder="Contract value"
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="period" className="text-right">
+                      Period
+                    </Label>
+                     <Popover>
+                        <PopoverTrigger asChild>
+                            <Button
+                                id="period"
+                                variant={"outline"}
+                                className={cn(
+                                    "col-span-3 justify-start text-left font-normal",
+                                    !date && "text-muted-foreground"
+                                )}
+                            >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {date?.from ? (
+                                    date.to ? (
+                                        <>
+                                            {format(date.from, "LLL dd, y")} -{" "}
+                                            {format(date.to, "LLL dd, y")}
+                                        </>
+                                    ) : (
+                                        format(date.from, "LLL dd, y")
+                                    )
+                                ) : (
+                                    <span>Pick a date range</span>
+                                )}
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                                initialFocus
+                                mode="range"
+                                defaultMonth={date?.from}
+                                selected={date}
+                                onSelect={setDate}
+                                numberOfMonths={2}
+                            />
+                        </PopoverContent>
+                    </Popover>
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="duration" className="text-right">
+                      Duration
+                    </Label>
+                    <Input
+                      id="duration"
+                      value={duration}
+                      className="col-span-3"
+                      placeholder="Calculated automatically"
+                      readOnly
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button type="submit" onClick={handleAddProject}>
+                    Add Project
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          )}
+        </CardHeader>
+      </Card>
 
        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>

@@ -87,36 +87,40 @@ export default function InspectorDetailsPage() {
   
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-            <Button asChild variant="outline" size="icon">
-            <Link href="/inspectors">
-                <ArrowLeft className="h-4 w-4" />
-                <span className="sr-only">Back to Inspectors</span>
-            </Link>
-            </Button>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-4">
+              <Button asChild variant="outline" size="icon">
+                <Link href="/inspectors">
+                  <ArrowLeft className="h-4 w-4" />
+                  <span className="sr-only">Back to Inspectors</span>
+                </Link>
+              </Button>
+              <div className="flex items-center gap-4">
                 <Avatar className="h-16 w-16">
-                    {inspector.avatarUrl ? <AvatarImage src={inspector.avatarUrl} alt={inspector.name} /> : null}
-                    <AvatarFallback className={cn('text-2xl', avatarColor.background, avatarColor.text)}>
-                        {getInitials(inspector.name)}
-                    </AvatarFallback>
+                  {inspector.avatarUrl ? <AvatarImage src={inspector.avatarUrl} alt={inspector.name} /> : null}
+                  <AvatarFallback className={cn('text-2xl', avatarColor.background, avatarColor.text)}>
+                    {getInitials(inspector.name)}
+                  </AvatarFallback>
                 </Avatar>
                 <div>
-                    <h1 className="font-headline text-2xl font-bold">{inspector.name}</h1>
-                    <Badge>{inspector.position}</Badge>
+                  <CardTitle>{inspector.name}</CardTitle>
+                  <CardDescription><Badge>{inspector.position}</Badge></CardDescription>
                 </div>
+              </div>
             </div>
-        </div>
-        {userHasPermission('manage-inspectors') && (
-            <Button asChild>
+            {userHasPermission('manage-inspectors') && (
+              <Button asChild>
                 <Link href={`/inspectors/${inspector.id}/edit`}>
-                    <Edit className="mr-2 h-4 w-4" />
-                    Edit Inspector
+                  <Edit className="mr-2 h-4 w-4" />
+                  Edit Inspector
                 </Link>
-            </Button>
-        )}
-      </div>
+              </Button>
+            )}
+          </div>
+        </CardHeader>
+      </Card>
 
       <Card>
         <CardContent className="grid gap-6 p-6 md:grid-cols-3">

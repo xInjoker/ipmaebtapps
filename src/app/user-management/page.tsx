@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
@@ -250,7 +251,7 @@ export default function UserManagementPage() {
         <TabsContent value="users">
           <Card>
             <CardHeader>
-              <CardTitle className="font-headline">User Assignments</CardTitle>
+              <CardTitle>User Assignments</CardTitle>
               <CardDescription>
                 Assign roles and branches to users. Click "Save Changes" to
                 apply your modifications.

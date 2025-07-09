@@ -91,18 +91,22 @@ export default function RadiographicTestListPage() {
   return (
     <>
       <div className="space-y-6">
-        <div className="flex items-center gap-4">
-            <Button asChild variant="outline" size="icon">
-                <Link href="/reports">
-                    <ArrowLeft className="h-4 w-4" />
-                    <span className="sr-only">Back to Reports</span>
-                </Link>
-            </Button>
-            <div>
-                <h1 className="font-headline text-2xl font-bold">Radiographic Test Reports</h1>
-                <p className="text-muted-foreground">View and manage all radiographic test reports.</p>
-            </div>
-        </div>
+        <Card>
+            <CardHeader>
+                <div className="flex items-center gap-4">
+                    <Button asChild variant="outline" size="icon">
+                        <Link href="/reports">
+                            <ArrowLeft className="h-4 w-4" />
+                            <span className="sr-only">Back to Reports</span>
+                        </Link>
+                    </Button>
+                    <div>
+                        <CardTitle>Radiographic Test Reports</CardTitle>
+                        <CardDescription>View and manage all radiographic test reports.</CardDescription>
+                    </div>
+                </div>
+            </CardHeader>
+        </Card>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>

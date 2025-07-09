@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -16,12 +17,14 @@ const reportTypes = [
 export default function ReportsPage() {
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-headline text-2xl font-bold">Reporting</h1>
-        <p className="text-muted-foreground">
-          Select a non-destructive testing method to view existing reports or create a new one.
-        </p>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Reporting</CardTitle>
+          <CardDescription>
+            Select a non-destructive testing method to view existing reports or create a new one.
+          </CardDescription>
+        </CardHeader>
+      </Card>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {reportTypes.map((reportType) => (
           <Card key={reportType.name} className="flex flex-col">
