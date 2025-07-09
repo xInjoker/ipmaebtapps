@@ -41,6 +41,7 @@ import { ProjectExpenditureTab } from '@/components/project-expenditure-tab';
 import { ProjectServiceOrderTab } from '@/components/project-service-order-tab';
 import { formatCurrency } from '@/lib/utils';
 import { ProjectBudgetExpenditureChart } from '@/components/project-budget-expenditure-chart';
+import { ProjectServiceOrderChart } from '@/components/project-service-order-chart';
 
 export default function ProjectDetailsPage() {
   const params = useParams();
@@ -147,18 +148,22 @@ export default function ProjectDetailsPage() {
 
   if (!project) {
     return (
-      <div className="flex h-[calc(100vh-10rem)] flex-col items-center justify-center text-center">
-        <h1 className="text-2xl font-bold">Project Not Found</h1>
-        <p className="text-muted-foreground">
-          The project you are looking for does not exist.
-        </p>
-        <Button asChild className="mt-4">
-          <Link href="/projects">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Projects
-          </Link>
-        </Button>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Project Not Found</CardTitle>
+          <CardDescription>
+            The project you are looking for does not exist.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button asChild className="mt-4">
+            <Link href="/projects">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Projects
+            </Link>
+          </Button>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -173,19 +178,17 @@ export default function ProjectDetailsPage() {
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader>
-          <div className="flex items-start justify-between">
-            <div className="space-y-1.5">
-              <CardTitle>{project.name}</CardTitle>
-              <CardDescription>{project.description}</CardDescription>
-            </div>
-             <Button asChild variant="outline" size="icon">
-              <Link href="/projects">
-                <ArrowLeft className="h-4 w-4" />
-                <span className="sr-only">Back</span>
-              </Link>
-            </Button>
+        <CardHeader className="flex flex-row items-start justify-between">
+          <div className="space-y-1.5">
+            <CardTitle>{project.name}</CardTitle>
+            <CardDescription>{project.description}</CardDescription>
           </div>
+           <Button asChild variant="outline" size="icon">
+            <Link href="/projects">
+              <ArrowLeft className="h-4 w-4" />
+              <span className="sr-only">Back</span>
+            </Link>
+          </Button>
         </CardHeader>
       </Card>
 
@@ -364,11 +367,22 @@ export default function ProjectDetailsPage() {
                     <ProjectBudgetExpenditureChart project={project} />
                 </CardContent>
             </Card>
+            <Card>
+               <CardHeader>
+                   <CardTitle>Service Order Progress</CardTitle>
+                   <CardDescription>
+                       Comparison of SO value vs invoiced amount.
+                   </CardDescription>
+               </CardHeader>
+               <CardContent>
+                   <ProjectServiceOrderChart project={project} />
+               </CardContent>
+            </Card>
         </div>
       </div>
 
       <Tabs defaultValue="service-orders" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full h-12 grid-cols-3">
           <TabsTrigger value="service-orders">
             <ClipboardList className="mr-2 h-4 w-4" />
             Service Order
