@@ -58,7 +58,7 @@ export function InspectorCard({ inspector, branchMap }: { inspector: Inspector, 
                     inspector.qualifications.map(q => {
                         const status = getDocumentStatus(q.expirationDate);
                         return (
-                            <Badge key={q.name} variant={status.variant} className="font-normal">{formatQualificationName(q.name)}</Badge>
+                            <Badge key={q.name} variant={status.variant}>{formatQualificationName(q.name)}</Badge>
                         );
                     })
                 ) : (
