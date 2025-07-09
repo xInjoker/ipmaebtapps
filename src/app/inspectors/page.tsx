@@ -26,6 +26,7 @@ export default function InspectorsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [qualificationFilter, setQualificationFilter] = useState('all');
   const [branchFilter, setBranchFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
 
   const branchMap = useMemo(() => {
     return branches.reduce((acc, branch) => {
@@ -53,9 +54,17 @@ export default function InspectorsPage() {
       const qualificationMatch = qualificationFilter === 'all' || inspector.qualifications.some(q => q.name === qualificationFilter);
       const branchMatch = branchFilter === 'all' || inspector.branchId === branchFilter;
 
-      return searchMatch && qualificationMatch && branchMatch;
+      const statusMatch = statusFilter === 'all' || inspector.qualifications.some(q => {
+          const status = getDocumentStatus(q.expirationDate);
+          if (statusFilter === 'valid') return status.variant === 'green';
+          if (statusFilter === 'expiring') return status.variant === 'yellow';
+          if (statusFilter === 'expired') return status.variant === 'destructive';
+          return false;
+      });
+
+      return searchMatch && qualificationMatch && branchMatch && statusMatch;
     });
-  }, [inspectors, searchTerm, qualificationFilter, branchFilter]);
+  }, [inspectors, searchTerm, qualificationFilter, branchFilter, statusFilter]);
 
   const dashboardStats = useMemo(() => {
     const total = filteredInspectors.length;
@@ -101,6 +110,7 @@ export default function InspectorsPage() {
     setSearchTerm('');
     setQualificationFilter('all');
     setBranchFilter('all');
+    setStatusFilter('all');
   };
 
   return (
@@ -150,6 +160,17 @@ export default function InspectorsPage() {
                 <SelectContent>
                   <SelectItem value="all">All Branches</SelectItem>
                   {branches.map(branch => <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="valid">Valid</SelectItem>
+                  <SelectItem value="expiring">Expiring Soon</SelectItem>
+                  <SelectItem value="expired">Expired</SelectItem>
                 </SelectContent>
               </Select>
               <Button variant="ghost" onClick={handleClearFilters} className="w-full sm:w-auto">
