@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
@@ -120,22 +121,28 @@ export default function InspectorDetailsPage() {
           <div className="space-y-6 md:col-span-1">
             <h3 className="font-semibold text-lg">Contact Information</h3>
              <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                    <Mail className="mt-1 h-5 w-5 flex-shrink-0 text-muted-foreground" />
+                <div className="flex items-center gap-4">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                        <Mail className="h-5 w-5 text-primary" />
+                    </div>
                     <div>
                         <p className="text-sm text-muted-foreground">Email</p>
                         <p className="font-medium">{inspector.email}</p>
                     </div>
                 </div>
-                <div className="flex items-start gap-3">
-                    <Phone className="mt-1 h-5 w-5 flex-shrink-0 text-muted-foreground" />
+                <div className="flex items-center gap-4">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                        <Phone className="h-5 w-5 text-primary" />
+                    </div>
                     <div>
                         <p className="text-sm text-muted-foreground">Phone</p>
                         <p className="font-medium">{inspector.phone}</p>
                     </div>
                 </div>
-                <div className="flex items-start gap-3">
-                    <MapPin className="mt-1 h-5 w-5 flex-shrink-0 text-muted-foreground" />
+                <div className="flex items-center gap-4">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                        <MapPin className="h-5 w-5 text-primary" />
+                    </div>
                     <div>
                         <p className="text-sm text-muted-foreground">Location</p>
                         <p className="font-medium">{branchMap[inspector.branchId] || 'Unknown Branch'}</p>

@@ -187,15 +187,19 @@ export default function ProjectDetailsPage() {
             <CardContent className="flex flex-1 flex-col">
                 <div className="grid gap-6 md:grid-cols-2">
                 <div className="space-y-6">
-                    <div className="flex items-start gap-3">
-                    <User className="mt-0.5 h-5 w-5 flex-shrink-0 text-muted-foreground" />
-                    <div>
-                        <p className="text-sm text-muted-foreground">Client</p>
-                        <p className="font-medium">{project.client}</p>
+                    <div className="flex items-center gap-4">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                          <User className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                          <p className="text-sm text-muted-foreground">Client</p>
+                          <p className="font-medium">{project.client}</p>
+                      </div>
                     </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <Building className="mt-0.5 h-5 w-5 flex-shrink-0 text-muted-foreground" />
+                    <div className="flex items-center gap-4">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                          <Building className="h-5 w-5 text-primary" />
+                      </div>
                       <div>
                         <p className="text-sm text-muted-foreground">
                           Contract Executor
@@ -203,17 +207,21 @@ export default function ProjectDetailsPage() {
                         <p className="font-medium">{project.contractExecutor}</p>
                       </div>
                     </div>
-                    <div className="flex items-start gap-3">
-                    <Briefcase className="mt-0.5 h-5 w-5 flex-shrink-0 text-muted-foreground" />
-                    <div>
-                        <p className="text-sm text-muted-foreground">
-                        Contract No.
-                        </p>
-                        <p className="font-medium">{project.contractNumber}</p>
+                    <div className="flex items-center gap-4">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                          <Briefcase className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                          <p className="text-sm text-muted-foreground">
+                          Contract No.
+                          </p>
+                          <p className="font-medium">{project.contractNumber}</p>
+                      </div>
                     </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <FileSpreadsheet className="mt-0.5 h-5 w-5 flex-shrink-0 text-muted-foreground" />
+                    <div className="flex items-center gap-4">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                          <FileSpreadsheet className="h-5 w-5 text-primary" />
+                      </div>
                       <div>
                         <p className="text-sm text-muted-foreground">
                           RAB No.
@@ -221,33 +229,41 @@ export default function ProjectDetailsPage() {
                         <p className="font-medium">{project.rabNumber}</p>
                       </div>
                     </div>
-                    <div className="flex items-start gap-3">
-                    <Calendar className="mt-0.5 h-5 w-5 flex-shrink-0 text-muted-foreground" />
-                    <div>
-                        <p className="text-sm text-muted-foreground">Period</p>
-                        <p className="font-medium">{project.period}</p>
+                    <div className="flex items-center gap-4">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                          <Calendar className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                          <p className="text-sm text-muted-foreground">Period</p>
+                          <p className="font-medium">{project.period}</p>
+                      </div>
                     </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                    <Clock className="mt-0.5 h-5 w-5 flex-shrink-0 text-muted-foreground" />
-                    <div>
-                        <p className="text-sm text-muted-foreground">Duration</p>
-                        <p className="font-medium">{project.duration}</p>
-                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                          <Clock className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                          <p className="text-sm text-muted-foreground">Duration</p>
+                          <p className="font-medium">{project.duration}</p>
+                      </div>
                     </div>
                 </div>
                 <div className="space-y-6">
-                    <div className="flex items-start gap-3">
-                    <CircleDollarSign className="mt-0.5 h-5 w-5 flex-shrink-0 text-muted-foreground" />
-                    <div>
-                        <p className="text-sm text-muted-foreground">
-                        Contract Value
-                        </p>
-                        <p className="font-medium">{formatCurrency(project.value)}</p>
+                    <div className="flex items-center gap-4">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                          <CircleDollarSign className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                          <p className="text-sm text-muted-foreground">
+                          Contract Value
+                          </p>
+                          <p className="font-medium">{formatCurrency(project.value)}</p>
+                      </div>
                     </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <FileSpreadsheet className="mt-0.5 h-5 w-5 flex-shrink-0 text-muted-foreground" />
+                    <div className="flex items-center gap-4">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                          <FileSpreadsheet className="h-5 w-5 text-primary" />
+                      </div>
                       <div>
                         <p className="text-sm text-muted-foreground">
                           Total Service Order
@@ -255,41 +271,49 @@ export default function ProjectDetailsPage() {
                         <p className="font-medium">{formatCurrency(totalServiceOrderValue)}</p>
                       </div>
                     </div>
-                    <div className="flex items-start gap-3">
-                    <CircleDollarSign className="mt-0.5 h-5 w-5 flex-shrink-0 text-muted-foreground" />
-                    <div>
-                        <p className="text-sm text-muted-foreground">
-                        Total Invoiced
-                        </p>
-                        <p className="font-medium">
-                        {formatCurrency(totalInvoiced)}
-                        </p>
+                    <div className="flex items-center gap-4">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                          <CircleDollarSign className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                          <p className="text-sm text-muted-foreground">
+                          Total Invoiced
+                          </p>
+                          <p className="font-medium">
+                          {formatCurrency(totalInvoiced)}
+                          </p>
+                      </div>
                     </div>
+                    <div className="flex items-center gap-4">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                          <CircleDollarSign className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                          <p className="text-sm text-muted-foreground">
+                          Total PAD
+                          </p>
+                          <p className="font-medium">{formatCurrency(totalPad)}</p>
+                      </div>
                     </div>
-                    <div className="flex items-start gap-3">
-                    <CircleDollarSign className="mt-0.5 h-5 w-5 flex-shrink-0 text-muted-foreground" />
-                    <div>
-                        <p className="text-sm text-muted-foreground">
-                        Total PAD
-                        </p>
-                        <p className="font-medium">{formatCurrency(totalPad)}</p>
-                    </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                    <FilePen className="mt-0.5 h-5 w-5 flex-shrink-0 text-muted-foreground" />
-                    <div>
+                    <div className="flex items-center gap-4">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                          <FilePen className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
                         <p className="text-sm text-muted-foreground">
                         Total Document Preparation
                         </p>
                         <p className="font-medium">{formatCurrency(totalDocumentPreparation)}</p>
                     </div>
                     </div>
-                    <div className="flex items-start gap-3">
-                    <CircleDollarSign className="mt-0.5 h-5 w-5 flex-shrink-0 text-muted-foreground" />
-                    <div>
-                        <p className="text-sm text-muted-foreground">Total Cost</p>
-                        <p className="font-medium">{formatCurrency(totalCost)}</p>
-                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                          <CircleDollarSign className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                          <p className="text-sm text-muted-foreground">Total Cost</p>
+                          <p className="font-medium">{formatCurrency(totalCost)}</p>
+                      </div>
                     </div>
                 </div>
                 </div>

@@ -41,8 +41,10 @@ import { employeeFieldLabels } from '@/lib/employees';
 function DetailItem({ icon: Icon, label, value }: { icon: React.ElementType, label: string, value: React.ReactNode }) {
     if (!value && typeof value !== 'number') return null;
     return (
-        <div className="flex items-start gap-3">
-            <Icon className="mt-1 h-5 w-5 flex-shrink-0 text-muted-foreground" />
+        <div className="flex items-center gap-4">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                <Icon className="h-5 w-5 text-primary" />
+            </div>
             <div>
                 <p className="text-sm text-muted-foreground">{label}</p>
                 <div className="font-medium">{value}</div>

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
@@ -118,22 +119,28 @@ export default function EquipmentDetailsPage() {
           <div className="space-y-6 lg:col-span-1">
             <h3 className="font-semibold text-lg">Equipment Details</h3>
             <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                    <Tag className="mt-1 h-5 w-5 flex-shrink-0 text-muted-foreground" />
+                <div className="flex items-center gap-4">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                        <Tag className="h-5 w-5 text-primary" />
+                    </div>
                     <div>
                         <p className="text-sm text-muted-foreground">Serial Number</p>
                         <p className="font-medium">{equipment.serialNumber}</p>
                     </div>
                 </div>
-                 <div className="flex items-start gap-3">
-                    <Wrench className="mt-1 h-5 w-5 flex-shrink-0 text-muted-foreground" />
+                 <div className="flex items-center gap-4">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                        <Wrench className="h-5 w-5 text-primary" />
+                    </div>
                     <div>
                         <p className="text-sm text-muted-foreground">Type</p>
                         <p className="font-medium">{equipment.type}</p>
                     </div>
                 </div>
-                <div className="flex items-start gap-3">
-                    <HardDrive className="mt-1 h-5 w-5 flex-shrink-0 text-muted-foreground" />
+                <div className="flex items-center gap-4">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                        <HardDrive className="h-5 w-5 text-primary" />
+                    </div>
                     <div>
                         <p className="text-sm text-muted-foreground">Status</p>
                         <Badge variant={equipment.status === 'Normal' ? 'green' : equipment.status === 'Broken' ? 'destructive' : 'yellow'}>
@@ -141,15 +148,19 @@ export default function EquipmentDetailsPage() {
                         </Badge>
                     </div>
                 </div>
-                <div className="flex items-start gap-3">
-                    <Building className="mt-1 h-5 w-5 flex-shrink-0 text-muted-foreground" />
+                <div className="flex items-center gap-4">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                        <Building className="h-5 w-5 text-primary" />
+                    </div>
                     <div>
                         <p className="text-sm text-muted-foreground">Owning Branch</p>
                         <p className="font-medium">{branchMap[equipment.owningBranchId] || equipment.owningBranchId}</p>
                     </div>
                 </div>
-                <div className="flex items-start gap-3">
-                    <MapPin className="mt-1 h-5 w-5 flex-shrink-0 text-muted-foreground" />
+                <div className="flex items-center gap-4">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                        <MapPin className="h-5 w-5 text-primary" />
+                    </div>
                     <div>
                         <p className="text-sm text-muted-foreground">Current Location</p>
                         <p className="font-medium">{equipment.currentLocation}</p>
@@ -159,15 +170,19 @@ export default function EquipmentDetailsPage() {
             <Separator />
             <h3 className="font-semibold text-lg">Calibration Details</h3>
              <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                    <Calendar className="mt-1 h-5 w-5 flex-shrink-0 text-muted-foreground" />
+                <div className="flex items-center gap-4">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                        <Calendar className="h-5 w-5 text-primary" />
+                    </div>
                     <div>
                         <p className="text-sm text-muted-foreground">Calibration Due Date</p>
                         <p className="font-medium">{format(new Date(equipment.calibrationDueDate), 'PPP')}</p>
                     </div>
                 </div>
-                <div className="flex items-start gap-3">
-                    <Calendar className="mt-1 h-5 w-5 flex-shrink-0 text-muted-foreground" />
+                <div className="flex items-center gap-4">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                        <Calendar className="h-5 w-5 text-primary" />
+                    </div>
                     <div>
                         <p className="text-sm text-muted-foreground">Validity</p>
                         <Badge variant={calibration.variant} className="text-xs">
