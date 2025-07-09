@@ -153,15 +153,6 @@ export default function InspectorsPage() {
                   {allQualifications.map(qual => <SelectItem key={qual} value={qual}>{formatQualificationName(qual)}</SelectItem>)}
                 </SelectContent>
               </Select>
-               <Select value={branchFilter} onValueChange={setBranchFilter}>
-                <SelectTrigger className="w-full sm:w-[180px]">
-                  <SelectValue placeholder="Filter by branch" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Branches</SelectItem>
-                  {branches.map(branch => <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-full sm:w-[180px]">
                   <SelectValue placeholder="Filter by status" />
@@ -171,6 +162,15 @@ export default function InspectorsPage() {
                   <SelectItem value="valid">Valid</SelectItem>
                   <SelectItem value="expiring">Expiring Soon</SelectItem>
                   <SelectItem value="expired">Expired</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={branchFilter} onValueChange={setBranchFilter}>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectValue placeholder="Filter by branch" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Branches</SelectItem>
+                  {branches.map(branch => <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>)}
                 </SelectContent>
               </Select>
               <Button variant="ghost" onClick={handleClearFilters} className="w-full sm:w-auto">
