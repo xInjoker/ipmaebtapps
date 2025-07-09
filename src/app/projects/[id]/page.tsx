@@ -40,6 +40,7 @@ import { ProjectInvoicingTab } from '@/components/project-invoicing-tab';
 import { ProjectExpenditureTab } from '@/components/project-expenditure-tab';
 import { ProjectServiceOrderTab } from '@/components/project-service-order-tab';
 import { formatCurrency } from '@/lib/utils';
+import { ProjectBudgetExpenditureChart } from '@/components/project-budget-expenditure-chart';
 
 export default function ProjectDetailsPage() {
   const params = useParams();
@@ -340,16 +341,27 @@ export default function ProjectDetailsPage() {
             </CardContent>
             </Card>
         </div>
-        <div className="lg:col-span-1">
-            <Card className="flex h-full flex-col">
+        <div className="lg:col-span-1 space-y-6">
+            <Card>
                 <CardHeader>
                     <CardTitle>Monthly Recap</CardTitle>
                     <CardDescription>
                         Recapitulation of Invoiced, PAD, and Expenditures.
                     </CardDescription>
                 </CardHeader>
-                <CardContent className="flex-1">
+                <CardContent>
                     <ProjectMonthlyRecapChart data={monthlyRecapData} />
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Expenditure vs Budget</CardTitle>
+                    <CardDescription>
+                        Comparison of budgeted amounts vs actual expenditures by category.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <ProjectBudgetExpenditureChart project={project} />
                 </CardContent>
             </Card>
         </div>
