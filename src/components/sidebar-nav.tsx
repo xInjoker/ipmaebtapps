@@ -80,7 +80,6 @@ export function SidebarNav() {
       label: 'Reporting', 
       icon: ClipboardEdit, 
       permission: 'manage-reports',
-      subItems: userHasPermission('view-approvals') ? [{ href: '/reports/approvals', label: 'Approvals' }] : [],
     },
     { href: '/equipment', label: 'Equipment', icon: Wrench, permission: 'view-equipment' },
     { href: '/inspectors', label: 'Inspectors', icon: Users2, permission: 'view-inspector' },

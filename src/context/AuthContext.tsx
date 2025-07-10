@@ -47,9 +47,9 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const DATA_VERSION = '1.4';
+const DATA_VERSION = '1.5';
 
-const loadRolesFromStorage = (): Role[] => {
+const loadRoles = (): Role[] => {
   const storedRolesString = localStorage.getItem('roles');
   const freshInitialRoles = initialRoles;
   const initialRoleMap = new Map(freshInitialRoles.map(r => [r.id, r]));
@@ -69,7 +69,7 @@ const loadRolesFromStorage = (): Role[] => {
   return finalRoles;
 };
 
-const loadUsersFromStorage = (validRoleIds: Set<string>): User[] => {
+const loadUsers = (validRoleIds: Set<string>): User[] => {
   const storedUsersString = localStorage.getItem('users');
   let loadedUsers: User[] = initialUsers;
   if (storedUsersString) {
@@ -95,7 +95,7 @@ const loadUsersFromStorage = (validRoleIds: Set<string>): User[] => {
   return validatedUsers;
 };
 
-const loadCurrentUserFromStorage = (validatedUsers: User[]): User | null => {
+const loadCurrentUser = (validatedUsers: User[]): User | null => {
   const storedUserString = localStorage.getItem('user');
   if (!storedUserString) return null;
 
@@ -127,7 +127,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const { toast } = useToast();
 
-  useEffect(() => {
+  const initializeData = useCallback(() => {
     setIsInitializing(true);
     try {
       const storedVersion = localStorage.getItem('dataVersion');
@@ -138,14 +138,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem('dataVersion', DATA_VERSION);
       }
       
-      const loadedRoles = loadRolesFromStorage();
+      const loadedRoles = loadRoles();
       setRoles(loadedRoles);
       
       const validRoleIds = new Set(loadedRoles.map(r => r.id));
-      const loadedUsers = loadUsersFromStorage(validRoleIds);
+      const loadedUsers = loadUsers(validRoleIds);
       setUsers(loadedUsers);
 
-      const currentUser = loadCurrentUserFromStorage(loadedUsers);
+      const currentUser = loadCurrentUser(loadedUsers);
       setUser(currentUser);
       
       setBranches(initialBranches);
@@ -163,6 +163,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsInitializing(false);
     }
   }, []);
+
+  useEffect(() => {
+    initializeData();
+  }, [initializeData]);
 
   const login = (email: string, pass: string) => {
     const userToLogin = users.find((u) => u.email === email);
