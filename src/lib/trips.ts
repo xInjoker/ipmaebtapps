@@ -2,6 +2,27 @@
 
 export type TripStatus = 'Draft' | 'Pending' | 'Approved' | 'Rejected' | 'Booked' | 'Completed' | 'Closed';
 
+type AllowanceDetail = {
+    enabled: boolean;
+    qty: number;
+};
+
+export type Allowance = {
+    meals: {
+        breakfast: AllowanceDetail;
+        lunch: AllowanceDetail;
+        dinner: AllowanceDetail;
+    };
+    daily: AllowanceDetail;
+    transport: {
+        localTransport: AllowanceDetail;
+        jabodetabekAirport: AllowanceDetail;
+        jabodetabekStation: AllowanceDetail;
+        otherAirportStation: AllowanceDetail;
+        mileage: AllowanceDetail; // qty will be km
+    };
+};
+
 export type TripRequest = {
     id: string;
     employeeId: number;
@@ -26,6 +47,7 @@ export type TripRequest = {
         managerId: string;
         financeId: string;
     }
+    allowance?: Allowance;
 };
 
 export const initialTrips: TripRequest[] = [

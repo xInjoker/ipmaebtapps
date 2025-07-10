@@ -34,7 +34,8 @@ import {
   CheckCircle,
   Clock,
   XCircle,
-  FilePen
+  FilePen,
+  FileCog,
 } from 'lucide-react';
 import { useTrips } from '@/context/TripContext';
 import { useAuth } from '@/context/AuthContext';
@@ -192,8 +193,8 @@ export default function TripsPage() {
                              {trip.status === 'Draft' && (
                                 <DropdownMenuItem asChild>
                                     <Link href={`/trips/${trip.id}/setup`}>
-                                        <FilePen className="mr-2 h-4 w-4" />
-                                        <span>Setup Document</span>
+                                        <FileCog className="mr-2 h-4 w-4" />
+                                        <span>Setup Allowance</span>
                                     </Link>
                                 </DropdownMenuItem>
                             )}
