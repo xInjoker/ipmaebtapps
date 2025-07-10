@@ -15,6 +15,7 @@ import {
   Wrench,
   ClipboardEdit,
   ClipboardCheck,
+  Plane,
 } from 'lucide-react';
 import {
   SidebarMenu,
@@ -61,6 +62,12 @@ export function SidebarNav() {
         href: `/projects/${project.id}`,
         label: project.contractNumber,
       })),
+    },
+    {
+      href: '/trips',
+      label: 'Business Trips',
+      icon: Plane,
+      permission: 'manage-trips',
     },
     {
       href: '/employees',
