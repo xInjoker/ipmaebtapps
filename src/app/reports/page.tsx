@@ -38,7 +38,7 @@ export default function ReportsPage() {
               </div>
             </CardHeader>
             <CardContent className="flex-grow flex items-end">
-              <div className="w-full flex justify-between items-center">
+              <div className="w-full flex flex-col sm:flex-row sm:justify-between gap-2">
                   <Button variant="outline" asChild>
                     <Link href={reportType.href}>
                       View Reports <ArrowRight className="ml-2 h-4 w-4" />
