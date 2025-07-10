@@ -1,12 +1,11 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { useTrips } from '@/context/TripContext';
-import { useEmployees } from '@/context/EmployeeContext';
 import { type TripRequest } from '@/lib/trips';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -24,41 +23,30 @@ import { DateRange } from 'react-day-picker';
 export default function NewTripPage() {
   const router = useRouter();
   const { user } = useAuth();
-  const { employees } = useEmployees();
   const { addTrip } = useTrips();
   const { toast } = useToast();
 
-  const [destination, setDestination] = useState('');
-  const [purpose, setPurpose] = useState('');
-  const [date, setDate] = useState<DateRange | undefined>(undefined);
-  
-  const [employeeDetails, setEmployeeDetails] = useState({
-    name: user?.name || '',
+  const [formData, setFormData] = useState({
     position: '',
-    project: '',
     division: '',
+    project: '',
+    destination: '',
+    purpose: '',
   });
 
-  useEffect(() => {
-    if (user) {
-      const employeeData = employees.find(emp => emp.name === user.name);
-      if (employeeData) {
-        setEmployeeDetails({
-          name: employeeData.name || user.name,
-          position: employeeData.position || '',
-          project: employeeData.projectName || 'N/A',
-          division: employeeData.workUnitName || '',
-        });
-      }
-    }
-  }, [user, employees]);
+  const [date, setDate] = useState<DateRange | undefined>(undefined);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { id, value } = e.target;
+    setFormData(prev => ({...prev, [id]: value }));
+  }
   
   const handleCreateRequest = () => {
     if (!user) {
         toast({ variant: 'destructive', title: 'Error', description: 'You must be logged in to create a trip request.' });
         return;
     }
-    if (!destination || !purpose || !date?.from || !date?.to) {
+    if (!formData.destination || !formData.purpose || !date?.from || !date?.to || !formData.position || !formData.division || !formData.project) {
       toast({
         variant: 'destructive',
         title: 'Missing Information',
@@ -70,12 +58,12 @@ export default function NewTripPage() {
     const newTrip: TripRequest = {
         id: `TRIP-${Date.now()}`,
         employeeId: user.id,
-        employeeName: employeeDetails.name,
-        position: employeeDetails.position,
-        division: employeeDetails.division,
-        project: employeeDetails.project,
-        destination,
-        purpose,
+        employeeName: user.name,
+        position: formData.position,
+        division: formData.division,
+        project: formData.project,
+        destination: formData.destination,
+        purpose: formData.purpose,
         startDate: format(date.from, 'yyyy-MM-dd'),
         endDate: format(date.to, 'yyyy-MM-dd'),
         estimatedBudget: 0, 
@@ -112,23 +100,23 @@ export default function NewTripPage() {
         <CardContent className="grid gap-6 md:grid-cols-2">
             <div className="space-y-2">
                 <Label htmlFor="employeeName">Employee</Label>
-                <Input id="employeeName" value={employeeDetails.name} disabled />
+                <Input id="employeeName" value={user?.name || ''} disabled />
             </div>
             <div className="space-y-2">
                 <Label htmlFor="position">Position</Label>
-                <Input id="position" value={employeeDetails.position} disabled />
+                <Input id="position" value={formData.position} onChange={handleInputChange} placeholder="e.g., Project Manager" />
             </div>
             <div className="space-y-2">
                 <Label htmlFor="division">Division/Function</Label>
-                <Input id="division" value={employeeDetails.division} disabled />
+                <Input id="division" value={formData.division} onChange={handleInputChange} placeholder="e.g., Cabang Jakarta" />
             </div>
              <div className="space-y-2">
                 <Label htmlFor="project">Project</Label>
-                <Input id="project" value={employeeDetails.project} disabled />
+                <Input id="project" value={formData.project} onChange={handleInputChange} placeholder="e.g., Corporate Website Revamp" />
             </div>
             <div className="space-y-2">
                 <Label htmlFor="destination">Destination</Label>
-                <Input id="destination" value={destination} onChange={e => setDestination(e.target.value)} placeholder="e.g., Surabaya" />
+                <Input id="destination" value={formData.destination} onChange={handleInputChange} placeholder="e.g., Surabaya" />
             </div>
             <div className="space-y-2">
                 <Label htmlFor="dates">Trip Dates</Label>
@@ -171,7 +159,7 @@ export default function NewTripPage() {
             </div>
             <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="purpose">Purpose of Trip</Label>
-                <Textarea id="purpose" value={purpose} onChange={e => setPurpose(e.target.value)} placeholder="e.g., Client meeting, site inspection" />
+                <Textarea id="purpose" value={formData.purpose} onChange={handleInputChange} placeholder="e.g., Client meeting, site inspection" />
             </div>
         </CardContent>
         <CardFooter className="flex justify-end gap-2">
