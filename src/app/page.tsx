@@ -132,7 +132,7 @@ export default function DashboardPage() {
             <CircleDollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-lg md:text-xl lg:text-2xl font-bold font-headline">{formatCurrency(totalProjectValue)}</div>
+            <div className="text-xl sm:text-xl md:text-2xl font-bold font-headline">{formatCurrency(totalProjectValue)}</div>
             <p className="text-xs text-muted-foreground">
               Across {visibleProjects.length} projects
             </p>
@@ -144,7 +144,7 @@ export default function DashboardPage() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-lg md:text-xl lg:text-2xl font-bold font-headline">{formatCurrency(totalPaid)}</div>
+            <div className="text-xl sm:text-xl md:text-2xl font-bold font-headline">{formatCurrency(totalPaid)}</div>
             <p className="text-xs text-muted-foreground">
               Total invoices paid to date
             </p>
@@ -156,7 +156,7 @@ export default function DashboardPage() {
             <ListTodo className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-lg md:text-xl lg:text-2xl font-bold font-headline">{upcomingTasks.length} Tasks</div>
+            <div className="text-xl sm:text-xl md:text-2xl font-bold font-headline">{upcomingTasks.length} Tasks</div>
             <p className="text-xs text-muted-foreground">
               Due within the next 30 days
             </p>
@@ -168,7 +168,7 @@ export default function DashboardPage() {
             <Receipt className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-lg md:text-xl lg:text-2xl font-bold font-headline">{formatCurrency(totalExpenditure)}</div>
+            <div className="text-xl sm:text-xl md:text-2xl font-bold font-headline">{formatCurrency(totalExpenditure)}</div>
             <p className="text-xs text-muted-foreground">
               Total expenditure across all projects
             </p>
