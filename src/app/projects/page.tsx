@@ -543,7 +543,7 @@ export default function ProjectsPage() {
                     </div>
                     <div className="flex justify-between text-sm">
                       <p className="text-muted-foreground">Contract Executor</p>
-                      <p className="font-medium">{project.contractExecutor}</p>
+                      <p className="font-medium text-right">{project.contractExecutor}</p>
                     </div>
                      <div className="flex justify-between text-sm">
                         <p className="text-muted-foreground">Period</p>
