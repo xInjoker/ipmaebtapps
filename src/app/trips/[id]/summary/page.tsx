@@ -8,12 +8,14 @@ import { useAuth } from '@/context/AuthContext';
 import { useTrips } from '@/context/TripContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { ArrowLeft, User, Map, Calendar, Briefcase, Info, Send, Building2, GanttChart, Utensils, Car } from 'lucide-react';
+import { ArrowLeft, User, Map, Calendar, Briefcase, Info, Send, Building2, GanttChart, Utensils, Car, UserCheck, UserCog } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format, differenceInDays } from 'date-fns';
 import { formatCurrency } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter as UiTableFooter } from '@/components/ui/table';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const allowanceRates = {
     breakfast: 75000,
@@ -32,10 +34,13 @@ export default function TripSummaryPage() {
     const params = useParams();
     const { getTripById, updateTrip } = useTrips();
     const { toast } = useToast();
-    const { user } = useAuth();
+    const { user, users } = useAuth();
     
     const tripId = params.id as string;
     const trip = getTripById(tripId);
+
+    const [verifierId, setVerifierId] = useState('');
+    const [approverId, setApproverId] = useState('');
 
     const { mealItems, transportItems, mealsSubtotal, transportSubtotal, totalAllowance } = useMemo(() => {
         if (!trip?.allowance) return { mealItems: [], transportItems: [], mealsSubtotal: 0, transportSubtotal: 0, totalAllowance: 0 };
@@ -99,9 +104,22 @@ export default function TripSummaryPage() {
     const handleSubmitForApproval = () => {
         if (!trip || !user) return;
 
+        if (!verifierId || !approverId) {
+            toast({
+                variant: 'destructive',
+                title: 'Approval Setup Required',
+                description: 'Please select both a verifier and an approver.',
+            });
+            return;
+        }
+
         const updatedTrip = {
             ...trip,
             status: 'Pending' as const,
+            approvers: {
+                managerId: verifierId,
+                financeId: approverId,
+            },
             approvalHistory: [
                 ...trip.approvalHistory,
                 {
@@ -248,6 +266,32 @@ export default function TripSummaryPage() {
                             <div className="flex justify-end items-center gap-4 text-lg font-bold">
                                 <span>Total Estimated Allowance:</span>
                                 <span className="text-primary">{formatCurrency(totalAllowance)}</span>
+                            </div>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-lg">Approval Process</CardTitle>
+                            <CardDescription>Select the users responsible for verifying and approving this trip.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                             <div className="space-y-2">
+                                <Label htmlFor="verifier" className="flex items-center gap-2"><UserCheck className="h-4 w-4" />Verified By</Label>
+                                <Select value={verifierId} onValueChange={setVerifierId}>
+                                    <SelectTrigger id="verifier"><SelectValue placeholder="Select a verifier..."/></SelectTrigger>
+                                    <SelectContent>
+                                    {users.map(u => <SelectItem key={u.id} value={u.id.toString()}>{u.name}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="approver" className="flex items-center gap-2"><UserCog className="h-4 w-4" />Approved By</Label>
+                                <Select value={approverId} onValueChange={setApproverId}>
+                                    <SelectTrigger id="approver"><SelectValue placeholder="Select an approver..."/></SelectTrigger>
+                                    <SelectContent>
+                                    {users.map(u => <SelectItem key={u.id} value={u.id.toString()}>{u.name}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
                             </div>
                         </CardContent>
                     </Card>
