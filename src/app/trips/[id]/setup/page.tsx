@@ -28,7 +28,7 @@ export default function TripDocumentSetupPage() {
   const tripId = params.id as string;
   const trip = getTripById(tripId);
   
-  const [logoSrc, setLogoSrc] = useState<string | null>('https://i.ibb.co/3k5g1tY/logo-iappm.png');
+  const [logoSrc, setLogoSrc] = useState<string | null>('https://placehold.co/200x80.png');
   const [managerId, setManagerId] = useState('');
   const [financeId, setFinanceId] = useState('');
   
@@ -71,8 +71,13 @@ export default function TripDocumentSetupPage() {
 
     // --- PDF Generation ---
     const doc = new jsPDF();
-    if (logoSrc) {
-        doc.addImage(logoSrc, 'PNG', 15, 10, 40, 15);
+    if (logoSrc && logoSrc.startsWith('data:image')) {
+        try {
+            doc.addImage(logoSrc, 'PNG', 15, 10, 40, 15);
+        } catch (e) {
+            console.error("Error adding image to PDF:", e);
+            toast({ variant: 'destructive', title: 'PDF Error', description: 'Could not add the logo to the PDF.' });
+        }
     }
     doc.setFontSize(18);
     doc.text('Business Trip Request', 105, 22, { align: 'center' });
@@ -150,7 +155,7 @@ export default function TripDocumentSetupPage() {
                         <div className="flex items-center gap-4">
                             <div className="w-32 h-16 border rounded-md p-1 flex items-center justify-center bg-muted">
                                 {logoSrc ? (
-                                    <Image src={logoSrc} alt="Company Logo" width={100} height={40} className="object-contain" />
+                                    <Image src={logoSrc} alt="Company Logo" width={100} height={40} className="object-contain" data-ai-hint="logo" />
                                 ) : (
                                     <p className="text-xs text-muted-foreground">No Logo</p>
                                 )}
