@@ -17,9 +17,9 @@ import { useToast } from '@/hooks/use-toast';
 
 const getStatusVariant = (status: ReportStatus) => {
     switch (status) {
-        case 'Approved': return 'green';
-        case 'Submitted': return 'blue';
-        case 'Draft': return 'yellow';
+        case 'Approved': return 'success';
+        case 'Submitted': return 'info';
+        case 'Draft': return 'warning';
         case 'Rejected': return 'destructive';
         default: return 'secondary';
     }
