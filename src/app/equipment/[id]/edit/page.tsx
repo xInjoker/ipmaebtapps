@@ -35,7 +35,7 @@ export default function EditEquipmentPage() {
   const params = useParams();
   const { branches } = useAuth();
   const { inspectors } = useInspectors();
-  const { getEquipmentById, updateEquipment } = useEquipment();
+  const { getEquipmentById, updateEquipment, equipmentList } = useEquipment();
   const { toast } = useToast();
   
   const [equipment, setEquipment] = useState<EquipmentItem | null>(null);
@@ -66,7 +66,7 @@ export default function EditEquipmentPage() {
         router.push('/equipment');
       }
     }
-  }, [params.id, getEquipmentById, router, toast]);
+  }, [params.id, getEquipmentById, router, toast, equipmentList]);
 
   useEffect(() => {
     if (newImages.length === 0) {

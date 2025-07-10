@@ -28,7 +28,7 @@ type NewUploadableDocument = {
 export default function EditInspectorPage() {
   const router = useRouter();
   const params = useParams();
-  const { getInspectorById, updateInspector } = useInspectors();
+  const { getInspectorById, updateInspector, inspectors: inspectorList } = useInspectors();
   const { toast } = useToast();
   const { branches } = useAuth();
 
@@ -52,7 +52,7 @@ export default function EditInspectorPage() {
         router.push('/inspectors');
       }
     }
-  }, [params.id, getInspectorById, router, toast]);
+  }, [params.id, getInspectorById, router, toast, inspectorList]);
 
   const removeExistingFile = (field: 'qualifications' | 'otherDocuments', url: string) => {
     if (!inspector) return;

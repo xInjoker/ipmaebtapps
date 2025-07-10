@@ -21,9 +21,9 @@ export function Providers({ children }: { children: ReactNode }) {
             <EquipmentProvider>
               <InspectorProvider>
                 <ReportProvider>
-                  <EmployeeProvider>
-                    <TripProvider>{children}</TripProvider>
-                  </EmployeeProvider>
+                  <TripProvider>
+                    <EmployeeProvider>{children}</EmployeeProvider>
+                  </TripProvider>
                 </ReportProvider>
               </InspectorProvider>
             </EquipmentProvider>

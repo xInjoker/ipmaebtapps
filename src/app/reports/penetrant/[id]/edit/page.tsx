@@ -104,7 +104,7 @@ function createReportDetails(formData: FormData): PenetrantTestReportDetails {
 export default function EditPenetrantTestPage() {
     const router = useRouter();
     const params = useParams();
-    const { getReportById, updateReport } = useReports();
+    const { getReportById, updateReport, reports } = useReports();
     const { projects } = useProjects();
     const { user, isHqUser } = useAuth();
     const { toast } = useToast();
@@ -220,7 +220,7 @@ export default function EditPenetrantTestPage() {
                 router.push('/reports/penetrant');
             }
         }
-    }, [params.id, getReportById, router, toast]);
+    }, [params.id, getReportById, router, toast, reports]);
 
     useEffect(() => {
         if (!newTestResult.images || newTestResult.images.length === 0) {
