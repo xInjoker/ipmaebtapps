@@ -10,7 +10,6 @@ import {
   SidebarHeader,
   SidebarContent,
   SidebarFooter,
-  SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { SidebarNav } from '@/components/sidebar-nav';
 import { SiteHeader } from '@/components/site-header';
@@ -65,7 +64,6 @@ export function AppWrapper({ children }: { children: React.ReactNode }) {
             <SidebarNav />
           </SidebarContent>
           <SidebarFooter>
-            <SidebarTrigger />
           </SidebarFooter>
         </Sidebar>
         <SidebarInset>
