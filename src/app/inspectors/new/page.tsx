@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useInspectors } from '@/context/InspectorContext';
@@ -30,6 +30,7 @@ export default function NewInspectorPage() {
   const { toast } = useToast();
   const { branches } = useAuth();
 
+  const [generatedId, setGeneratedId] = useState('');
   const [cvFile, setCvFile] = useState<File | null>(null);
   const [qualifications, setQualifications] = useState<UploadableDocument[]>([]);
   const [otherDocs, setOtherDocs] = useState<UploadableDocument[]>([]);
@@ -43,6 +44,11 @@ export default function NewInspectorPage() {
     employmentStatus: '' as Inspector['employmentStatus'] | '',
     yearsOfExperience: 0,
   });
+  
+  useEffect(() => {
+    const newId = `INSP-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+    setGeneratedId(newId);
+  }, []);
 
   const handleFileChange = (setter: React.Dispatch<React.SetStateAction<UploadableDocument[]>>, e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -81,6 +87,7 @@ export default function NewInspectorPage() {
 
     addInspector({
       ...newInspector,
+      id: generatedId,
       position: newInspector.position as Inspector['position'],
       employmentStatus: newInspector.employmentStatus as Inspector['employmentStatus'],
       avatarUrl: '', // Placeholder
@@ -123,6 +130,10 @@ export default function NewInspectorPage() {
           </div>
         </CardHeader>
         <CardContent className="grid gap-6 md:grid-cols-2">
+            <div className="space-y-2">
+                <Label htmlFor="inspectorId">Inspector ID</Label>
+                <Input id="inspectorId" value={generatedId} readOnly />
+            </div>
             <div className="space-y-2">
                 <Label htmlFor="name">Full Name</Label>
                 <Input id="name" value={newInspector.name} onChange={e => setNewInspector({...newInspector, name: e.target.value})} placeholder="e.g., Budi Santoso" />
