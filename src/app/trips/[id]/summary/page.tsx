@@ -8,7 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useTrips } from '@/context/TripContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { ArrowLeft, User, Map, Calendar, Briefcase, Info, Send, Building2, GanttChart, Utensils, Car, UserCheck, UserCog } from 'lucide-react';
+import { ArrowLeft, User, Map, Calendar, Briefcase, Info, Send, Building2, GanttChart, Utensils, Car, UserCheck, UserCog, Building } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format, differenceInDays } from 'date-fns';
 import { formatCurrency } from '@/lib/utils';
@@ -200,6 +200,7 @@ export default function TripSummaryPage() {
                             <div className="flex items-center gap-3"><Building2 className="h-4 w-4 text-muted-foreground" /><div><p className="font-medium text-muted-foreground">Division/Function</p><p>{trip.division}</p></div></div>
                             <div className="flex items-center gap-3"><GanttChart className="h-4 w-4 text-muted-foreground" /><div><p className="font-medium text-muted-foreground">Project</p><p>{trip.project}</p></div></div>
                             <div className="flex items-center gap-3"><Map className="h-4 w-4 text-muted-foreground" /><div><p className="font-medium text-muted-foreground">Destination</p><p>{trip.destination}</p></div></div>
+                            <div className="flex items-center gap-3"><Building className="h-4 w-4 text-muted-foreground" /><div><p className="font-medium text-muted-foreground">Destination Company</p><p>{trip.destinationCompany || 'N/A'}</p></div></div>
                             <div className="flex items-center gap-3"><Calendar className="h-4 w-4 text-muted-foreground" /><div><p className="font-medium text-muted-foreground">Dates</p><p>{format(new Date(trip.startDate), 'PPP')} - {format(new Date(trip.endDate), 'PPP')} ({tripDuration} day(s))</p></div></div>
                             <div className="lg:col-span-3 flex items-start gap-3"><Info className="h-4 w-4 text-muted-foreground mt-0.5" /><div><p className="font-medium text-muted-foreground">Purpose</p><p className="max-w-prose">{trip.purpose}</p></div></div>
                         </CardContent>

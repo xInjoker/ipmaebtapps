@@ -14,11 +14,20 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { ArrowLeft, Calendar as CalendarIcon, Send } from 'lucide-react';
+import { ArrowLeft, Calendar as CalendarIcon, Send, ChevronsUpDown, Check } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { DateRange } from 'react-day-picker';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+
+const destinationCompanies = [
+    { value: 'Pertamina EP', label: 'Pertamina EP' },
+    { value: 'PHR', label: 'PHR' },
+    { value: 'PHM', label: 'PHM' },
+    { value: 'PHSS', label: 'PHSS' },
+    { value: 'PHKT', label: 'PHKT' },
+];
 
 export default function NewTripPage() {
   const router = useRouter();
@@ -31,10 +40,12 @@ export default function NewTripPage() {
     division: '',
     project: '',
     destination: '',
+    destinationCompany: '',
     purpose: '',
   });
 
   const [date, setDate] = useState<DateRange | undefined>(undefined);
+  const [isCompanyPopoverOpen, setIsCompanyPopoverOpen] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
@@ -63,6 +74,7 @@ export default function NewTripPage() {
         division: formData.division,
         project: formData.project,
         destination: formData.destination,
+        destinationCompany: formData.destinationCompany,
         purpose: formData.purpose,
         startDate: format(date.from, 'yyyy-MM-dd'),
         endDate: format(date.to, 'yyyy-MM-dd'),
@@ -117,6 +129,54 @@ export default function NewTripPage() {
             <div className="space-y-2">
                 <Label htmlFor="destination">Destination</Label>
                 <Input id="destination" value={formData.destination} onChange={handleInputChange} placeholder="e.g., Surabaya" />
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="destinationCompany">Destination Company</Label>
+                <Popover open={isCompanyPopoverOpen} onOpenChange={setIsCompanyPopoverOpen}>
+                    <PopoverTrigger asChild>
+                        <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={isCompanyPopoverOpen}
+                            className="w-full justify-between font-normal"
+                        >
+                            {formData.destinationCompany || "Select or type company..."}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                        <Command>
+                            <CommandInput
+                                placeholder="Search or type company..."
+                                value={formData.destinationCompany}
+                                onValueChange={(value) => setFormData(prev => ({...prev, destinationCompany: value}))}
+                            />
+                            <CommandList>
+                                <CommandEmpty>No company found.</CommandEmpty>
+                                <CommandGroup>
+                                    {destinationCompanies.map((company) => (
+                                        <CommandItem
+                                            key={company.value}
+                                            value={company.value}
+                                            onSelect={(currentValue) => {
+                                                setFormData(prev => ({ ...prev, destinationCompany: currentValue === formData.destinationCompany ? "" : currentValue }));
+                                                setIsCompanyPopoverOpen(false);
+                                            }}
+                                        >
+                                            <Check
+                                                className={cn(
+                                                    "mr-2 h-4 w-4",
+                                                    formData.destinationCompany === company.value ? "opacity-100" : "opacity-0"
+                                                )}
+                                            />
+                                            {company.label}
+                                        </CommandItem>
+                                    ))}
+                                </CommandGroup>
+                            </CommandList>
+                        </Command>
+                    </PopoverContent>
+                </Popover>
             </div>
             <div className="space-y-2">
                 <Label htmlFor="dates">Trip Dates</Label>

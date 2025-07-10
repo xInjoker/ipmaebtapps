@@ -28,6 +28,7 @@ export type TripRequest = {
     employeeId: number;
     employeeName: string;
     destination: string;
+    destinationCompany?: string;
     purpose: string;
     startDate: string; // YYYY-MM-DD
     endDate: string; // YYYY-MM-DD
@@ -59,6 +60,7 @@ export const initialTrips: TripRequest[] = [
         division: 'Cabang Jakarta',
         project: 'Corporate Website Revamp',
         destination: 'Surabaya',
+        destinationCompany: 'PHR',
         purpose: 'Client Meeting with Stark Industries',
         startDate: '2024-08-05',
         endDate: '2024-08-07',
@@ -77,6 +79,7 @@ export const initialTrips: TripRequest[] = [
         division: 'Cabang Jakarta',
         project: 'Data Analytics Platform',
         destination: 'Balikpapan',
+        destinationCompany: 'Pertamina EP',
         purpose: 'Site Inspection at Project Gamma',
         startDate: '2024-08-12',
         endDate: '2024-08-15',
@@ -94,6 +97,7 @@ export const initialTrips: TripRequest[] = [
         division: 'Cabang Surabaya',
         project: 'Mobile App Development',
         destination: 'Pekanbaru',
+        destinationCompany: 'PHM',
         purpose: 'Equipment Calibration and Maintenance',
         startDate: '2024-07-29',
         endDate: '2024-08-02',
