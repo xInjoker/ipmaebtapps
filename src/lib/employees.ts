@@ -1,4 +1,5 @@
 
+
 export type Employee = {
     id: string;
     nationalId?: string;
@@ -13,7 +14,7 @@ export type Employee = {
     npwp?: string;
     ptkpStatus?: string;
     employmentStatus?: 'Active' | 'Inactive' | 'On Leave';
-    contractType?: 'Full-time' | 'Part-time' | 'Contract';
+    contractType?: 'Monthly' | 'Daily' | 'Hourly';
     contractNumber?: string;
     contractStartDate?: string; // 'YYYY-MM-DD'
     contractEndDate?: string; // 'YYYY-MM-DD'

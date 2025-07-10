@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -51,7 +52,7 @@ const employeeSchema = z.object({
   bpjsEmployment: z.string().optional(),
 
   // Step 4: Contract
-  contractType: z.enum(['Full-time', 'Part-time', 'Contract']).optional(),
+  contractType: z.enum(['Monthly', 'Daily', 'Hourly']).optional(),
   contractNumber: z.string().optional(),
   contractStartDate: z.date().optional(),
   contractEndDate: z.date().optional(),
@@ -185,9 +186,9 @@ export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
                     </div>
                 </div>
                 {/* Progress Indicator */}
-                <div className="flex justify-between items-center px-4 py-2 mt-4">
+                <div className="flex justify-between items-center px-4 py-2 mt-4 overflow-x-auto">
                     {steps.map((step, index) => (
-                        <div key={step.id} className="flex items-center">
+                        <div key={step.id} className="flex items-center flex-shrink-0">
                             <div className={cn(
                                 "flex items-center justify-center w-8 h-8 rounded-full border-2",
                                 currentStep > index ? "bg-primary text-primary-foreground border-primary" :
@@ -196,12 +197,12 @@ export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
                                 {step.id}
                             </div>
                             <p className={cn(
-                                "ml-2 text-sm",
+                                "ml-2 text-sm whitespace-nowrap",
                                 currentStep === index ? "font-semibold text-primary" : "text-muted-foreground"
                             )}>
                                 {step.name}
                             </p>
-                            {index < steps.length - 1 && <div className="flex-1 h-px bg-border ml-4 w-16" />}
+                            {index < steps.length - 1 && <div className="flex-1 h-px bg-border ml-4 w-8 md:w-16" />}
                         </div>
                     ))}
                 </div>
@@ -211,9 +212,12 @@ export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
                 <form id="employee-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 max-h-[60vh] overflow-y-auto p-4">
                 {currentStep === 0 && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div><Label>Position</Label><Input {...form.register('position')} /></div>
+                        <div className="space-y-2">
+                            <Label>Position</Label>
+                            <Input {...form.register('position')} />
+                        </div>
                         
-                        <div>
+                        <div className="space-y-2">
                             <Label>Work Unit</Label>
                             <Select onValueChange={(v) => { form.setValue('workUnit', v); form.setValue('projectName', ''); form.setValue('rabNumber', ''); }} value={form.watch('workUnit') || ''}>
                                 <SelectTrigger><SelectValue placeholder="Select a work unit..."/></SelectTrigger>
@@ -225,7 +229,7 @@ export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
                             </Select>
                         </div>
 
-                        <div>
+                        <div className="space-y-2">
                             <Label>Project Name</Label>
                             <Select onValueChange={(v) => form.setValue('projectName', v)} value={form.watch('projectName') || ''} disabled={!watchedWorkUnit}>
                                 <SelectTrigger><SelectValue placeholder="Select a project..."/></SelectTrigger>
@@ -237,80 +241,90 @@ export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
                             </Select>
                         </div>
 
-                        <div><Label>RAB Number</Label><Input {...form.register('rabNumber')} readOnly /></div>
+                        <div className="space-y-2">
+                            <Label>RAB Number</Label>
+                            <Input {...form.register('rabNumber')} readOnly />
+                        </div>
 
-                        <div>
-                        <Label>Portfolio</Label>
-                        <Select onValueChange={(v) => form.setValue('portfolio', v as any)} value={form.watch('portfolio') || ''}>
-                            <SelectTrigger><SelectValue placeholder="Select a portfolio..."/></SelectTrigger>
-                            <SelectContent><SelectItem value="AEBT">AEBT</SelectItem><SelectItem value="others">Others</SelectItem></SelectContent>
-                        </Select>
+                        <div className="space-y-2">
+                            <Label>Portfolio</Label>
+                            <Select onValueChange={(v) => form.setValue('portfolio', v as any)} value={form.watch('portfolio') || ''}>
+                                <SelectTrigger><SelectValue placeholder="Select a portfolio..."/></SelectTrigger>
+                                <SelectContent><SelectItem value="AEBT">AEBT</SelectItem><SelectItem value="others">Others</SelectItem></SelectContent>
+                            </Select>
                         </div>
-                        <div>
-                        <Label>Sub-Portfolio</Label>
-                        <Select onValueChange={(v) => form.setValue('subPortfolio', v as any)} value={form.watch('subPortfolio') || ''}>
-                            <SelectTrigger><SelectValue placeholder="Select a sub-portfolio..."/></SelectTrigger>
-                            <SelectContent><SelectItem value="IAPPM">IAPPM</SelectItem><SelectItem value="EBT">EBT</SelectItem></SelectContent>
-                        </Select>
+                        <div className="space-y-2">
+                            <Label>Sub-Portfolio</Label>
+                            <Select onValueChange={(v) => form.setValue('subPortfolio', v as any)} value={form.watch('subPortfolio') || ''}>
+                                <SelectTrigger><SelectValue placeholder="Select a sub-portfolio..."/></SelectTrigger>
+                                <SelectContent><SelectItem value="IAPPM">IAPPM</SelectItem><SelectItem value="EBT">EBT</SelectItem></SelectContent>
+                            </Select>
                         </div>
-                        <div className="md:col-span-2"><Label>Competency</Label><Textarea {...form.register('competency')} /></div>
+                        <div className="md:col-span-2 space-y-2">
+                            <Label>Competency</Label>
+                            <Textarea {...form.register('competency')} />
+                        </div>
                     </div>
                 )}
                 {currentStep === 1 && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div><Label>Employee ID</Label><Input value={employee?.id || generatedId} readOnly /></div>
-                        <div><Label>Full Name</Label><Input {...form.register('name')} /></div>
-                        <div><Label>National ID (KTP)</Label><Input {...form.register('nationalId')} /></div>
-                        <div><Label>Place of Birth</Label><Input {...form.register('placeOfBirth')} /></div>
-                        <div>
+                        <div className="space-y-2"><Label>Employee ID</Label><Input value={employee?.id || generatedId} readOnly /></div>
+                        <div className="space-y-2"><Label>Full Name</Label><Input {...form.register('name')} /></div>
+                        <div className="space-y-2"><Label>National ID (KTP)</Label><Input {...form.register('nationalId')} /></div>
+                        <div className="space-y-2"><Label>Place of Birth</Label><Input {...form.register('placeOfBirth')} /></div>
+                        <div className="space-y-2">
                             <Label>Date of Birth</Label>
                             <Popover><PopoverTrigger asChild>
                                 <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !form.watch('dateOfBirth') && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{form.watch('dateOfBirth') ? format(form.watch('dateOfBirth')!, 'PPP') : <span>Pick a date</span>}</Button>
                             </PopoverTrigger><PopoverContent className="w-auto p-0"><Calendar mode="single" selected={form.watch('dateOfBirth')} onSelect={(d) => form.setValue('dateOfBirth', d)} initialFocus /></PopoverContent></Popover>
                         </div>
-                        <div>
-                        <Label>Gender</Label>
-                        <Select onValueChange={(v) => form.setValue('gender', v as any)} value={form.watch('gender') || ''}>
-                            <SelectTrigger><SelectValue placeholder="Select a gender..."/></SelectTrigger>
-                            <SelectContent><SelectItem value="Male">Male</SelectItem><SelectItem value="Female">Female</SelectItem></SelectContent>
-                        </Select>
+                        <div className="space-y-2">
+                            <Label>Gender</Label>
+                            <Select onValueChange={(v) => form.setValue('gender', v as any)} value={form.watch('gender') || ''}>
+                                <SelectTrigger><SelectValue placeholder="Select a gender..."/></SelectTrigger>
+                                <SelectContent><SelectItem value="Male">Male</SelectItem><SelectItem value="Female">Female</SelectItem></SelectContent>
+                            </Select>
                         </div>
-                        <div><Label>Religion</Label><Input {...form.register('religion')} /></div>
-                        <div className="md:col-span-2"><Label>Address</Label><Textarea {...form.register('address')} /></div>
-                        <div><Label>Email</Label><Input type="email" {...form.register('email')} /></div>
-                        <div><Label>Phone Number</Label><Input {...form.register('phoneNumber')} /></div>
+                        <div className="space-y-2"><Label>Religion</Label><Input {...form.register('religion')} /></div>
+                        <div className="md:col-span-2 space-y-2"><Label>Address</Label><Textarea {...form.register('address')} /></div>
+                        <div className="space-y-2"><Label>Email</Label><Input type="email" {...form.register('email')} /></div>
+                        <div className="space-y-2"><Label>Phone Number</Label><Input {...form.register('phoneNumber')} /></div>
                     </div>
                 )}
                 {currentStep === 2 && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                        <Label>Employment Status</Label>
-                        <Select onValueChange={(v) => form.setValue('employmentStatus', v as any)} value={form.watch('employmentStatus') || ''}>
-                            <SelectTrigger><SelectValue placeholder="Select a status..."/></SelectTrigger>
-                            <SelectContent><SelectItem value="Active">Active</SelectItem><SelectItem value="Inactive">Inactive</SelectItem><SelectItem value="On Leave">On Leave</SelectItem></SelectContent>
-                        </Select>
+                        <div className="space-y-2">
+                            <Label>Employment Status</Label>
+                            <Select onValueChange={(v) => form.setValue('employmentStatus', v as any)} value={form.watch('employmentStatus') || ''}>
+                                <SelectTrigger><SelectValue placeholder="Select a status..."/></SelectTrigger>
+                                <SelectContent><SelectItem value="Active">Active</SelectItem><SelectItem value="Inactive">Inactive</SelectItem><SelectItem value="On Leave">On Leave</SelectItem></SelectContent>
+                            </Select>
                         </div>
-                        <div><Label>BPJS Health Number</Label><Input {...form.register('bpjsHealth')} /></div>
-                        <div><Label>BPJS Employment Number</Label><Input {...form.register('bpjsEmployment')} /></div>
+                        <div className="space-y-2"><Label>BPJS Health Number</Label><Input {...form.register('bpjsHealth')} /></div>
+                        <div className="space-y-2"><Label>BPJS Employment Number</Label><Input {...form.register('bpjsEmployment')} /></div>
                     </div>
                 )}
                 {currentStep === 3 && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                        <Label>Contract Type</Label>
-                        <Select onValueChange={(v) => form.setValue('contractType', v as any)} value={form.watch('contractType') || ''}>
-                            <SelectTrigger><SelectValue placeholder="Select a type..."/></SelectTrigger>
-                            <SelectContent><SelectItem value="Full-time">Full-time</SelectItem><SelectItem value="Part-time">Part-time</SelectItem><SelectItem value="Contract">Contract</SelectItem></SelectContent>
-                        </Select>
+                        <div className="space-y-2">
+                            <Label>Contract Type</Label>
+                            <Select onValueChange={(v) => form.setValue('contractType', v as any)} value={form.watch('contractType') || ''}>
+                                <SelectTrigger><SelectValue placeholder="Select a type..."/></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="Monthly">Monthly</SelectItem>
+                                    <SelectItem value="Daily">Daily</SelectItem>
+                                    <SelectItem value="Hourly">Hourly</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
-                        <div><Label>Contract Number</Label><Input {...form.register('contractNumber')} /></div>
-                        <div>
+                        <div className="space-y-2"><Label>Contract Number</Label><Input {...form.register('contractNumber')} /></div>
+                        <div className="space-y-2">
                             <Label>Contract Start Date</Label>
                             <Popover><PopoverTrigger asChild>
                                 <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !form.watch('contractStartDate') && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{form.watch('contractStartDate') ? format(form.watch('contractStartDate')!, 'PPP') : <span>Pick a date</span>}</Button>
                             </PopoverTrigger><PopoverContent className="w-auto p-0"><Calendar mode="single" selected={form.watch('contractStartDate')} onSelect={(d) => form.setValue('contractStartDate', d)} initialFocus /></PopoverContent></Popover>
                         </div>
-                        <div>
+                        <div className="space-y-2">
                             <Label>Contract End Date</Label>
                             <Popover><PopoverTrigger asChild>
                                 <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !form.watch('contractEndDate') && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{form.watch('contractEndDate') ? format(form.watch('contractEndDate')!, 'PPP') : <span>Pick a date</span>}</Button>
@@ -320,11 +334,11 @@ export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
                 )}
                 {currentStep === 4 && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div><Label>Salary</Label><Input type="number" {...form.register('salary')} /></div>
-                        <div><Label>Bank Name</Label><Input {...form.register('bankName')} /></div>
-                        <div><Label>Bank Account Number</Label><Input {...form.register('bankAccountNumber')} /></div>
-                        <div><Label>NPWP Number</Label><Input {...form.register('npwp')} /></div>
-                        <div><Label>PTKP Status</Label><Input {...form.register('ptkpStatus')} /></div>
+                        <div className="space-y-2"><Label>Salary</Label><Input type="number" {...form.register('salary')} /></div>
+                        <div className="space-y-2"><Label>Bank Name</Label><Input {...form.register('bankName')} /></div>
+                        <div className="space-y-2"><Label>Bank Account Number</Label><Input {...form.register('bankAccountNumber')} /></div>
+                        <div className="space-y-2"><Label>NPWP Number</Label><Input {...form.register('npwp')} /></div>
+                        <div className="space-y-2"><Label>PTKP Status</Label><Input {...form.register('ptkpStatus')} /></div>
                     </div>
                 )}
                 </form>
