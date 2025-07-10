@@ -39,7 +39,6 @@ import { useTrips } from '@/context/TripContext';
 import { useAuth } from '@/context/AuthContext';
 import { type TripStatus } from '@/lib/trips';
 import { format } from 'date-fns';
-import { formatCurrency } from '@/lib/utils';
 
 const getStatusVariant = (status: TripStatus) => {
   switch (status) {
@@ -154,7 +153,6 @@ export default function TripsPage() {
                   <TableHead>Employee</TableHead>
                   <TableHead>Destination</TableHead>
                   <TableHead>Dates</TableHead>
-                  <TableHead>Budget</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -170,7 +168,6 @@ export default function TripsPage() {
                       <TableCell>
                         {format(new Date(trip.startDate), 'PPP')} - {format(new Date(trip.endDate), 'PPP')}
                       </TableCell>
-                      <TableCell>{formatCurrency(trip.estimatedBudget)}</TableCell>
                       <TableCell>
                         <Badge variant={getStatusVariant(trip.status)}>
                           {trip.status}

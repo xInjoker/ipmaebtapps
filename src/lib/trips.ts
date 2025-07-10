@@ -18,6 +18,9 @@ export type TripRequest = {
         comments?: string;
         timestamp: string; // ISO Date String
     }[];
+    project?: string;
+    position?: string;
+    division?: string;
 };
 
 export const initialTrips: TripRequest[] = [
