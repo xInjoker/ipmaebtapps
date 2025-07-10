@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useTrips } from '@/context/TripContext';
@@ -56,7 +56,7 @@ function AllowanceItem({
                 <Label htmlFor={id} className="cursor-pointer">
                     {label}
                 </Label>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-sm text-muted-foreground">
                     Rate: {formatCurrency(rate)} / {unit}
                 </p>
             </div>
@@ -105,28 +105,34 @@ export default function TripAllowanceSetupPage() {
     }
   }, [trip, router, toast]);
   
-  const totalAllowance = Object.values(allowance.meals).reduce((sum, meal) => sum + (meal.enabled ? (meal.qty * (allowanceRates as any)[meal.id]) : 0), 0) +
-        (allowance.daily.enabled ? allowance.daily.qty * allowanceRates.daily : 0) +
-        Object.values(allowance.transport).reduce((sum, transport) => sum + (transport.enabled ? (transport.qty * (allowanceRates as any)[transport.id]) : 0), 0);
-  
-  const handleProceedToSummary = () => {
-    if (!trip) return;
-
-    const total = 
+  const mealsSubtotal = useMemo(() => {
+    return (
         (allowance.meals.breakfast.enabled ? allowance.meals.breakfast.qty * allowanceRates.breakfast : 0) +
         (allowance.meals.lunch.enabled ? allowance.meals.lunch.qty * allowanceRates.lunch : 0) +
         (allowance.meals.dinner.enabled ? allowance.meals.dinner.qty * allowanceRates.dinner : 0) +
-        (allowance.daily.enabled ? allowance.daily.qty * allowanceRates.daily : 0) +
+        (allowance.daily.enabled ? allowance.daily.qty * allowanceRates.daily : 0)
+    );
+  }, [allowance.meals, allowance.daily]);
+
+  const transportSubtotal = useMemo(() => {
+    return (
         (allowance.transport.localTransport.enabled ? allowance.transport.localTransport.qty * allowanceRates.localTransport : 0) +
         (allowance.transport.jabodetabekAirport.enabled ? allowance.transport.jabodetabekAirport.qty * allowanceRates.jabodetabekAirport : 0) +
         (allowance.transport.jabodetabekStation.enabled ? allowance.transport.jabodetabekStation.qty * allowanceRates.jabodetabekStation : 0) +
         (allowance.transport.otherAirportStation.enabled ? allowance.transport.otherAirportStation.qty * allowanceRates.otherAirportStation : 0) +
-        (allowance.transport.mileage.enabled ? allowance.transport.mileage.qty * allowanceRates.mileage : 0);
+        (allowance.transport.mileage.enabled ? allowance.transport.mileage.qty * allowanceRates.mileage : 0)
+    );
+  }, [allowance.transport]);
+  
+  const grandTotal = useMemo(() => mealsSubtotal + transportSubtotal, [mealsSubtotal, transportSubtotal]);
+  
+  const handleProceedToSummary = () => {
+    if (!trip) return;
 
     const updatedTrip = {
         ...trip,
         allowance: allowance,
-        estimatedBudget: total
+        estimatedBudget: grandTotal
     };
 
     updateTrip(trip.id, updatedTrip);
@@ -168,6 +174,9 @@ export default function TripAllowanceSetupPage() {
                     <AllowanceItem id="dinner" label="Dinner" rate={allowanceRates.dinner} unit="meal" checked={allowance.meals.dinner.enabled} onCheckedChange={(c) => setAllowance(a => ({...a, meals: {...a.meals, dinner: {...a.meals.dinner, enabled: c}} }))} quantity={allowance.meals.dinner.qty} onQuantityChange={(q) => setAllowance(a => ({...a, meals: {...a.meals, dinner: {...a.meals.dinner, qty: q}} }))} />
                     <AllowanceItem id="daily" label="Daily Allowance" rate={allowanceRates.daily} unit="day" checked={allowance.daily.enabled} onCheckedChange={(c) => setAllowance(a => ({...a, daily: {...a.daily, enabled: c}} ))} quantity={allowance.daily.qty} onQuantityChange={(q) => setAllowance(a => ({...a, daily: {...a.daily, qty: q}} ))} />
                 </CardContent>
+                <CardFooter className="flex justify-end font-semibold">
+                    <span>Subtotal: {formatCurrency(mealsSubtotal)}</span>
+                </CardFooter>
             </Card>
 
             <Card>
@@ -182,13 +191,16 @@ export default function TripAllowanceSetupPage() {
                     <AllowanceItem id="otherAirportStation" label="Other Station/Airport" rate={allowanceRates.otherAirportStation} unit="trip" checked={allowance.transport.otherAirportStation.enabled} onCheckedChange={(c) => setAllowance(a => ({...a, transport: {...a.transport, otherAirportStation: {...a.transport.otherAirportStation, enabled: c}} }))} quantity={allowance.transport.otherAirportStation.qty} onQuantityChange={(q) => setAllowance(a => ({...a, transport: {...a.transport, otherAirportStation: {...a.transport.otherAirportStation, qty: q}} }))} />
                     <AllowanceItem id="mileage" label="Mileage" rate={allowanceRates.mileage} unit="km" checked={allowance.transport.mileage.enabled} onCheckedChange={(c) => setAllowance(a => ({...a, transport: {...a.transport, mileage: {...a.transport.mileage, enabled: c}} }))} quantity={allowance.transport.mileage.qty} onQuantityChange={(q) => setAllowance(a => ({...a, transport: {...a.transport, mileage: {...a.transport.mileage, qty: q}} }))} />
                 </CardContent>
+                <CardFooter className="flex justify-end font-semibold">
+                    <span>Subtotal: {formatCurrency(transportSubtotal)}</span>
+                </CardFooter>
             </Card>
 
             <Separator />
             
             <div className="flex justify-end items-center gap-4">
-                <span className="text-lg font-semibold">Total Estimated Allowance:</span>
-                <span className="text-xl font-bold text-primary">{formatCurrency(trip.estimatedBudget || 0)}</span>
+                <span className="text-lg font-semibold">Grand Total:</span>
+                <span className="text-xl font-bold text-primary">{formatCurrency(grandTotal)}</span>
             </div>
 
         </CardContent>
