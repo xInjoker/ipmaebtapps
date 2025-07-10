@@ -41,6 +41,14 @@ const steps = [
     { id: '04', name: 'Summary & Save', fields: [] },
 ];
 
+type FormData = Omit<PenetrantTestReportDetails, 'jobType' | 'dateOfTest' | 'testResults'> & {
+    jobLocation: string;
+    reportNumber: string;
+    lineType: string;
+    dateOfTest: Date | undefined;
+    testResults: TestResult[];
+};
+
 type TestResult = {
     subjectIdentification: string;
     jointNo: string;
@@ -57,11 +65,46 @@ type TestResult = {
 const acceptanceCriteriaOptions = ['ASME B31.3', 'API 1104', 'ASME Section V', 'AWS D1.1'];
 const procedureNoOptions = ['PO/AE.MIG-OPS/35'];
 
+function createReportDetails(formData: FormData): PenetrantTestReportDetails {
+    return {
+        jobType: 'Penetrant Test',
+        client: formData.client,
+        soNumber: formData.soNumber,
+        projectExecutor: formData.projectExecutor,
+        project: formData.project,
+        dateOfTest: formData.dateOfTest ? format(formData.dateOfTest, 'yyyy-MM-dd') : undefined,
+        procedureNo: formData.procedureNo,
+        acceptanceCriteria: formData.acceptanceCriteria,
+        visualInspection: formData.visualInspection,
+        surfaceCondition: formData.surfaceCondition,
+        examinationStage: formData.examinationStage,
+        material: formData.material,
+        weldingProcess: formData.weldingProcess,
+        drawingNumber: formData.drawingNumber,
+        testExtent: formData.testExtent,
+        testTemperature: formData.testTemperature,
+        penetrantType: formData.penetrantType,
+        penetrantBrand: formData.penetrantBrand,
+        penetrantBatch: formData.penetrantBatch,
+        removerType: formData.removerType,
+        removerBrand: formData.removerBrand,
+        removerBatch: formData.removerBatch,
+        developerType: formData.developerType,
+        developerBrand: formData.developerBrand,
+        developerBatch: formData.developerBatch,
+        testEquipment: formData.testEquipment,
+        testResults: formData.testResults.map(result => ({
+            ...result,
+            imageUrls: result.imageUrls || [],
+        })),
+    };
+}
+
 
 export default function EditPenetrantTestPage() {
     const router = useRouter();
     const params = useParams();
-    const { getReportById, updateReport, reports } = useReports();
+    const { getReportById, updateReport } = useReports();
     const { projects } = useProjects();
     const { user, isHqUser } = useAuth();
     const { toast } = useToast();
@@ -71,13 +114,13 @@ export default function EditPenetrantTestPage() {
     const [isAcceptanceCriteriaPopoverOpen, setIsAcceptanceCriteriaPopoverOpen] = useState(false);
     const [isProcedureNoPopoverOpen, setIsProcedureNoPopoverOpen] = useState(false);
 
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<FormData>({
         client: '',
         soNumber: '',
         projectExecutor: '',
         project: '',
         jobLocation: '',
-        dateOfTest: undefined as Date | undefined,
+        dateOfTest: undefined,
         reportNumber: '',
         lineType: '',
         procedureNo: '',
@@ -100,7 +143,7 @@ export default function EditPenetrantTestPage() {
         developerBrand: '',
         developerBatch: '',
         testEquipment: '',
-        testResults: [] as TestResult[],
+        testResults: [],
     });
 
     const visibleProjects = useMemo(() => {
@@ -134,7 +177,7 @@ export default function EditPenetrantTestPage() {
         const reportId = params.id as string;
         if (reportId) {
             const item = getReportById(reportId);
-            if (item && item.details) {
+            if (item && item.details && item.details.jobType === 'Penetrant Test') {
                 setOriginalReport(item);
                 const details = item.details as PenetrantTestReportDetails;
                 setFormData({
@@ -173,8 +216,8 @@ export default function EditPenetrantTestPage() {
                     })),
                 });
             } else {
-                toast({ variant: 'destructive', title: 'Report not found', description: `Could not find a report with ID ${reportId}.` });
-                router.push('/reports');
+                toast({ variant: 'destructive', title: 'Report not found', description: `Could not find a valid Penetrant Test report with ID ${reportId}.` });
+                router.push('/reports/penetrant');
             }
         }
     }, [params.id, getReportById, router, toast]);
@@ -298,46 +341,8 @@ export default function EditPenetrantTestPage() {
 
     const handleSave = () => {
         if (!originalReport) return;
-    
-        const reportDetails: PenetrantTestReportDetails = {
-            jobType: 'Penetrant Test',
-            client: formData.client,
-            soNumber: formData.soNumber,
-            projectExecutor: formData.projectExecutor,
-            project: formData.project,
-            dateOfTest: formData.dateOfTest ? format(formData.dateOfTest, 'yyyy-MM-dd') : undefined,
-            procedureNo: formData.procedureNo,
-            acceptanceCriteria: formData.acceptanceCriteria,
-            visualInspection: formData.visualInspection,
-            surfaceCondition: formData.surfaceCondition,
-            examinationStage: formData.examinationStage,
-            material: formData.material,
-            weldingProcess: formData.weldingProcess,
-            drawingNumber: formData.drawingNumber,
-            testExtent: formData.testExtent,
-            testTemperature: formData.testTemperature,
-            penetrantType: formData.penetrantType,
-            penetrantBrand: formData.penetrantBrand,
-            penetrantBatch: formData.penetrantBatch,
-            removerType: formData.removerType,
-            removerBrand: formData.removerBrand,
-            removerBatch: formData.removerBatch,
-            developerType: formData.developerType,
-            developerBrand: formData.developerBrand,
-            developerBatch: formData.developerBatch,
-            testEquipment: formData.testEquipment,
-            testResults: formData.testResults.map(result => ({
-                subjectIdentification: result.subjectIdentification,
-                jointNo: result.jointNo,
-                weldId: result.weldId,
-                diameter: result.diameter,
-                thickness: result.thickness,
-                linearIndication: result.linearIndication,
-                roundIndication: result.roundIndication,
-                result: result.result,
-                imageUrls: result.imageUrls || [],
-            })),
-        };
+
+        const reportDetails = createReportDetails(formData);
 
         const updatedReport: ReportItem = {
             ...originalReport,
@@ -347,7 +352,6 @@ export default function EditPenetrantTestPage() {
             qtyJoint: formData.testResults.length,
             status: 'Submitted', // Or maybe keep original status? For now, let's assume editing re-submits it.
             details: reportDetails,
-            creationDate: originalReport.creationDate,
         };
     
         updateReport(originalReport.id, updatedReport);
@@ -368,7 +372,7 @@ export default function EditPenetrantTestPage() {
     <div className="space-y-6">
        <div className="flex items-center gap-4">
         <Button asChild variant="outline" size="icon">
-          <Link href="/reports">
+          <Link href="/reports/penetrant">
             <ArrowLeft className="h-4 w-4" />
             <span className="sr-only">Back to Reports</span>
           </Link>

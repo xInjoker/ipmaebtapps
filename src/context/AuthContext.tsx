@@ -47,9 +47,76 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// A version for the local storage data structure.
-// Incrementing this will force a reset of stored auth data.
 const DATA_VERSION = '1.4';
+
+const loadRolesFromStorage = (): Role[] => {
+  const storedRolesString = localStorage.getItem('roles');
+  const freshInitialRoles = initialRoles;
+  const initialRoleMap = new Map(freshInitialRoles.map(r => [r.id, r]));
+
+  let storedRoles: Role[] = [];
+  if (storedRolesString) {
+    try {
+      storedRoles = JSON.parse(storedRolesString);
+    } catch {
+      storedRoles = [];
+    }
+  }
+
+  const customRoles = storedRoles.filter(r => !initialRoleMap.has(r.id));
+  const finalRoles = [...freshInitialRoles, ...customRoles];
+  localStorage.setItem('roles', JSON.stringify(finalRoles));
+  return finalRoles;
+};
+
+const loadUsersFromStorage = (validRoleIds: Set<string>): User[] => {
+  const storedUsersString = localStorage.getItem('users');
+  let loadedUsers: User[] = initialUsers;
+  if (storedUsersString) {
+    try {
+      loadedUsers = JSON.parse(storedUsersString);
+    } catch {
+      loadedUsers = initialUsers;
+    }
+  }
+
+  let usersDataWasUpdated = false;
+  const validatedUsers = loadedUsers.map(u => {
+    if (!validRoleIds.has(u.roleId)) {
+      usersDataWasUpdated = true;
+      return { ...u, roleId: 'staff' };
+    }
+    return u;
+  });
+
+  if (usersDataWasUpdated || !storedUsersString) {
+    localStorage.setItem('users', JSON.stringify(validatedUsers));
+  }
+  return validatedUsers;
+};
+
+const loadCurrentUserFromStorage = (validatedUsers: User[]): User | null => {
+  const storedUserString = localStorage.getItem('user');
+  if (!storedUserString) return null;
+
+  try {
+    const userObject: User = JSON.parse(storedUserString);
+    const currentUserFromValidatedList = validatedUsers.find(u => u.id === userObject.id);
+
+    if (currentUserFromValidatedList) {
+      if (JSON.stringify(userObject) !== JSON.stringify(currentUserFromValidatedList)) {
+        localStorage.setItem('user', JSON.stringify(currentUserFromValidatedList));
+      }
+      return currentUserFromValidatedList;
+    }
+  } catch {
+    // Corrupted user data in storage
+  }
+
+  localStorage.removeItem('user');
+  return null;
+};
+
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -63,101 +130,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     setIsInitializing(true);
     try {
-      // Version check for local storage data
       const storedVersion = localStorage.getItem('dataVersion');
       if (storedVersion !== DATA_VERSION) {
-        // Data is outdated or version-less. Clear it to force a refresh from initial data.
         localStorage.removeItem('user');
         localStorage.removeItem('users');
         localStorage.removeItem('roles');
         localStorage.setItem('dataVersion', DATA_VERSION);
       }
+      
+      const loadedRoles = loadRolesFromStorage();
+      setRoles(loadedRoles);
+      
+      const validRoleIds = new Set(loadedRoles.map(r => r.id));
+      const loadedUsers = loadUsersFromStorage(validRoleIds);
+      setUsers(loadedUsers);
 
-      // --- Load all data from localStorage ---
-      const storedRolesString = localStorage.getItem('roles');
-      const storedUsersString = localStorage.getItem('users');
-      const storedUserString = localStorage.getItem('user');
-  
-      // --- Process Roles ---
-      const freshInitialRoles = initialRoles; // Fresh roles from code
-      const initialRoleMap = new Map(freshInitialRoles.map(r => [r.id, r]));
+      const currentUser = loadCurrentUserFromStorage(loadedUsers);
+      setUser(currentUser);
       
-      let storedRoles: Role[] = [];
-      if (storedRolesString) {
-        try {
-          storedRoles = JSON.parse(storedRolesString);
-        } catch {
-          storedRoles = []; // Handle corrupted JSON
-        }
-      }
-  
-      // Filter out any stored roles that are built-in, keeping only true custom roles
-      const customRoles = storedRoles.filter(r => !initialRoleMap.has(r.id));
-      
-      // Combine the fresh built-in roles with custom roles. This ensures built-in roles are always up-to-date.
-      const finalRoles = [...freshInitialRoles, ...customRoles];
-      setRoles(finalRoles);
-      localStorage.setItem('roles', JSON.stringify(finalRoles));
-      
-      // --- Process Users ---
-      const validRoleIds = new Set(finalRoles.map(r => r.id));
-      let loadedUsers: User[] = initialUsers; // Default to initialUsers
-      if (storedUsersString) {
-        try {
-          loadedUsers = JSON.parse(storedUsersString);
-        } catch {
-          loadedUsers = initialUsers; // Handle corrupted JSON
-        }
-      }
-      
-      // Validate each user's role, falling back to 'staff' if invalid.
-      let usersDataWasUpdated = false;
-      const validatedUsers = loadedUsers.map(u => {
-        if (!validRoleIds.has(u.roleId)) {
-          usersDataWasUpdated = true;
-          return { ...u, roleId: 'staff' };
-        }
-        return u;
-      });
-  
-      if (usersDataWasUpdated || !storedUsersString) {
-        localStorage.setItem('users', JSON.stringify(validatedUsers));
-      }
-      setUsers(validatedUsers);
-  
-      // --- Process Current Logged-in User ---
-      if (storedUserString) {
-        try {
-          const userObject: User = JSON.parse(storedUserString);
-          // Find the corresponding user from the *already validated* list to ensure data consistency.
-          const currentUserFromValidatedList = validatedUsers.find(u => u.id === userObject.id);
-  
-          if (currentUserFromValidatedList) {
-               setUser(currentUserFromValidatedList);
-               // Resync localStorage with the validated user object, in case their role was defaulted.
-               if (JSON.stringify(userObject) !== JSON.stringify(currentUserFromValidatedList)) {
-                   localStorage.setItem('user', JSON.stringify(currentUserFromValidatedList));
-               }
-          } else {
-              // If the user in storage doesn't exist in our list, they are invalid. Log them out.
-              localStorage.removeItem('user');
-              setUser(null);
-          }
-        } catch {
-          // Handle corrupted JSON for the current user
-          localStorage.removeItem('user');
-          setUser(null);
-        }
-      } else {
-        setUser(null);
-      }
-  
-      // --- Branches (always use the list from code as the source of truth) ---
       setBranches(initialBranches);
   
     } catch (error) {
       console.error('Failed to initialize from localStorage. Resetting to defaults.', error);
-      // Fallback to a known good state on any unexpected error
       localStorage.setItem('roles', JSON.stringify(initialRoles));
       setRoles(initialRoles);
       localStorage.setItem('users', JSON.stringify(initialUsers));
@@ -171,7 +165,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = (email: string, pass: string) => {
-    // This logic should use the state `users` which is now guaranteed to be up to date
     const userToLogin = users.find((u) => u.email === email);
 
     if (userToLogin && pass) { // Dummy password check
@@ -241,7 +234,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
     setUsers(updatedUsers);
     localStorage.setItem('users', JSON.stringify(updatedUsers));
-    // If the updated user is the current user, update the user state as well
     if (user && user.id === userId) {
       const updatedCurrentUser = { ...user, ...data };
       setUser(updatedCurrentUser);
