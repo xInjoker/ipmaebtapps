@@ -8,12 +8,12 @@ import { useAuth } from '@/context/AuthContext';
 import { useTrips } from '@/context/TripContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { ArrowLeft, User, Map, Calendar, Briefcase, Info, Send, Building2, GanttChart } from 'lucide-react';
+import { ArrowLeft, User, Map, Calendar, Briefcase, Info, Send, Building2, GanttChart, Utensils, Car } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format, differenceInDays } from 'date-fns';
 import { formatCurrency } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter as UiTableFooter } from '@/components/ui/table';
 
 const allowanceRates = {
     breakfast: 75000,
@@ -37,60 +37,63 @@ export default function TripSummaryPage() {
     const tripId = params.id as string;
     const trip = getTripById(tripId);
 
-    const { summaryItems, totalAllowance } = useMemo(() => {
-        if (!trip?.allowance) return { summaryItems: [], totalAllowance: 0 };
+    const { mealItems, transportItems, mealsSubtotal, transportSubtotal, totalAllowance } = useMemo(() => {
+        if (!trip?.allowance) return { mealItems: [], transportItems: [], mealsSubtotal: 0, transportSubtotal: 0, totalAllowance: 0 };
         
         const { allowance } = trip;
-        const items = [];
-        let total = 0;
+        const meals = [];
+        let mealTotal = 0;
 
         if (allowance.meals.breakfast.enabled && allowance.meals.breakfast.qty > 0) {
             const value = allowanceRates.breakfast * allowance.meals.breakfast.qty;
-            items.push({ name: 'Breakfast', qty: allowance.meals.breakfast.qty, rate: allowanceRates.breakfast, unit: 'meal', total: value });
-            total += value;
+            meals.push({ name: 'Breakfast', qty: allowance.meals.breakfast.qty, rate: allowanceRates.breakfast, unit: 'meal', total: value });
+            mealTotal += value;
         }
         if (allowance.meals.lunch.enabled && allowance.meals.lunch.qty > 0) {
             const value = allowanceRates.lunch * allowance.meals.lunch.qty;
-            items.push({ name: 'Lunch', qty: allowance.meals.lunch.qty, rate: allowanceRates.lunch, unit: 'meal', total: value });
-            total += value;
+            meals.push({ name: 'Lunch', qty: allowance.meals.lunch.qty, rate: allowanceRates.lunch, unit: 'meal', total: value });
+            mealTotal += value;
         }
         if (allowance.meals.dinner.enabled && allowance.meals.dinner.qty > 0) {
             const value = allowanceRates.dinner * allowance.meals.dinner.qty;
-            items.push({ name: 'Dinner', qty: allowance.meals.dinner.qty, rate: allowanceRates.dinner, unit: 'meal', total: value });
-            total += value;
+            meals.push({ name: 'Dinner', qty: allowance.meals.dinner.qty, rate: allowanceRates.dinner, unit: 'meal', total: value });
+            mealTotal += value;
         }
         if (allowance.daily.enabled && allowance.daily.qty > 0) {
             const value = allowanceRates.daily * allowance.daily.qty;
-            items.push({ name: 'Daily Allowance', qty: allowance.daily.qty, rate: allowanceRates.daily, unit: 'day', total: value });
-            total += value;
+            meals.push({ name: 'Daily Allowance', qty: allowance.daily.qty, rate: allowanceRates.daily, unit: 'day', total: value });
+            mealTotal += value;
         }
+
+        const transport = [];
+        let transportTotal = 0;
         if (allowance.transport.localTransport.enabled && allowance.transport.localTransport.qty > 0) {
             const value = allowanceRates.localTransport * allowance.transport.localTransport.qty;
-            items.push({ name: 'Local Transport', qty: allowance.transport.localTransport.qty, rate: allowanceRates.localTransport, unit: 'day', total: value });
-            total += value;
+            transport.push({ name: 'Local Transport', qty: allowance.transport.localTransport.qty, rate: allowanceRates.localTransport, unit: 'day', total: value });
+            transportTotal += value;
         }
         if (allowance.transport.jabodetabekAirport.enabled && allowance.transport.jabodetabekAirport.qty > 0) {
             const value = allowanceRates.jabodetabekAirport * allowance.transport.jabodetabekAirport.qty;
-            items.push({ name: 'JABODETABEK Airport', qty: allowance.transport.jabodetabekAirport.qty, rate: allowanceRates.jabodetabekAirport, unit: 'trip', total: value });
-            total += value;
+            transport.push({ name: 'JABODETABEK Airport', qty: allowance.transport.jabodetabekAirport.qty, rate: allowanceRates.jabodetabekAirport, unit: 'trip', total: value });
+            transportTotal += value;
         }
         if (allowance.transport.jabodetabekStation.enabled && allowance.transport.jabodetabekStation.qty > 0) {
             const value = allowanceRates.jabodetabekStation * allowance.transport.jabodetabekStation.qty;
-            items.push({ name: 'JABODETABEK Station', qty: allowance.transport.jabodetabekStation.qty, rate: allowanceRates.jabodetabekStation, unit: 'trip', total: value });
-            total += value;
+            transport.push({ name: 'JABODETABEK Station', qty: allowance.transport.jabodetabekStation.qty, rate: allowanceRates.jabodetabekStation, unit: 'trip', total: value });
+            transportTotal += value;
         }
         if (allowance.transport.otherAirportStation.enabled && allowance.transport.otherAirportStation.qty > 0) {
             const value = allowanceRates.otherAirportStation * allowance.transport.otherAirportStation.qty;
-            items.push({ name: 'Other Station/Airport', qty: allowance.transport.otherAirportStation.qty, rate: allowanceRates.otherAirportStation, unit: 'trip', total: value });
-            total += value;
+            transport.push({ name: 'Other Station/Airport', qty: allowance.transport.otherAirportStation.qty, rate: allowanceRates.otherAirportStation, unit: 'trip', total: value });
+            transportTotal += value;
         }
         if (allowance.transport.mileage.enabled && allowance.transport.mileage.qty > 0) {
             const value = allowanceRates.mileage * allowance.transport.mileage.qty;
-            items.push({ name: 'Mileage', qty: allowance.transport.mileage.qty, rate: allowanceRates.mileage, unit: 'km', total: value });
-            total += value;
+            transport.push({ name: 'Mileage', qty: allowance.transport.mileage.qty, rate: allowanceRates.mileage, unit: 'km', total: value });
+            transportTotal += value;
         }
 
-        return { summaryItems: items, totalAllowance: total };
+        return { mealItems: meals, transportItems: transport, mealsSubtotal: mealTotal, transportSubtotal: transportTotal, totalAllowance: mealTotal + transportTotal };
     }, [trip]);
     
     const handleSubmitForApproval = () => {
@@ -170,33 +173,77 @@ export default function TripSummaryPage() {
                         <CardHeader>
                             <CardTitle className="text-lg">Allowance Details</CardTitle>
                         </CardHeader>
-                        <CardContent>
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Item</TableHead>
-                                        <TableHead className="text-center">Qty</TableHead>
-                                        <TableHead className="text-right">Rate</TableHead>
-                                        <TableHead className="text-right">Total</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {summaryItems.length > 0 ? (
-                                        summaryItems.map((item, index) => (
-                                            <TableRow key={index}>
-                                                <TableCell className="font-medium">{item.name}</TableCell>
-                                                <TableCell className="text-center">{item.qty} {item.unit}</TableCell>
-                                                <TableCell className="text-right">{formatCurrency(item.rate)}</TableCell>
-                                                <TableCell className="text-right">{formatCurrency(item.total)}</TableCell>
-                                            </TableRow>
-                                        ))
-                                    ) : (
+                        <CardContent className="space-y-6">
+                            <div>
+                                <h4 className="flex items-center gap-2 font-semibold mb-2"><Utensils className="h-4 w-4"/>Meals & Daily Allowance</h4>
+                                <Table>
+                                    <TableHeader>
                                         <TableRow>
-                                            <TableCell colSpan={4} className="text-center h-24 text-muted-foreground">No allowances selected.</TableCell>
+                                            <TableHead>Item</TableHead>
+                                            <TableHead className="text-center">Qty</TableHead>
+                                            <TableHead className="text-right">Rate</TableHead>
+                                            <TableHead className="text-right">Total</TableHead>
                                         </TableRow>
-                                    )}
-                                </TableBody>
-                            </Table>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {mealItems.length > 0 ? (
+                                            mealItems.map((item, index) => (
+                                                <TableRow key={index}>
+                                                    <TableCell className="font-medium">{item.name}</TableCell>
+                                                    <TableCell className="text-center">{item.qty} {item.unit}</TableCell>
+                                                    <TableCell className="text-right">{formatCurrency(item.rate)}</TableCell>
+                                                    <TableCell className="text-right">{formatCurrency(item.total)}</TableCell>
+                                                </TableRow>
+                                            ))
+                                        ) : (
+                                            <TableRow>
+                                                <TableCell colSpan={4} className="text-center h-24 text-muted-foreground">No meal allowances selected.</TableCell>
+                                            </TableRow>
+                                        )}
+                                    </TableBody>
+                                    <UiTableFooter>
+                                        <TableRow>
+                                            <TableCell colSpan={3} className="text-right font-semibold">Subtotal</TableCell>
+                                            <TableCell className="text-right font-semibold">{formatCurrency(mealsSubtotal)}</TableCell>
+                                        </TableRow>
+                                    </UiTableFooter>
+                                </Table>
+                            </div>
+                            <div>
+                                <h4 className="flex items-center gap-2 font-semibold mb-2"><Car className="h-4 w-4"/>Transport Allowance</h4>
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Item</TableHead>
+                                            <TableHead className="text-center">Qty</TableHead>
+                                            <TableHead className="text-right">Rate</TableHead>
+                                            <TableHead className="text-right">Total</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {transportItems.length > 0 ? (
+                                            transportItems.map((item, index) => (
+                                                <TableRow key={index}>
+                                                    <TableCell className="font-medium">{item.name}</TableCell>
+                                                    <TableCell className="text-center">{item.qty} {item.unit}</TableCell>
+                                                    <TableCell className="text-right">{formatCurrency(item.rate)}</TableCell>
+                                                    <TableCell className="text-right">{formatCurrency(item.total)}</TableCell>
+                                                </TableRow>
+                                            ))
+                                        ) : (
+                                            <TableRow>
+                                                <TableCell colSpan={4} className="text-center h-24 text-muted-foreground">No transport allowances selected.</TableCell>
+                                            </TableRow>
+                                        )}
+                                    </TableBody>
+                                     <UiTableFooter>
+                                        <TableRow>
+                                            <TableCell colSpan={3} className="text-right font-semibold">Subtotal</TableCell>
+                                            <TableCell className="text-right font-semibold">{formatCurrency(transportSubtotal)}</TableCell>
+                                        </TableRow>
+                                    </UiTableFooter>
+                                </Table>
+                            </div>
                             <Separator className="my-4"/>
                             <div className="flex justify-end items-center gap-4 text-lg font-bold">
                                 <span>Total Estimated Allowance:</span>
