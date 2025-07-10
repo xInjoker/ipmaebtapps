@@ -9,6 +9,8 @@ import {
   SidebarInset,
   SidebarHeader,
   SidebarContent,
+  SidebarFooter,
+  SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { SidebarNav } from '@/components/sidebar-nav';
 import { SiteHeader } from '@/components/site-header';
@@ -54,7 +56,7 @@ export function AppWrapper({ children }: { children: React.ReactNode }) {
           <SidebarHeader>
             <Link href="/" className="flex items-center gap-2.5 px-2">
               <GanttChart className="h-6 w-6 text-primary" />
-              <h1 className="text-xl font-headline font-semibold text-primary">
+              <h1 className="text-xl font-headline font-semibold text-primary group-data-[state=collapsed]:hidden">
                 ProTrack
               </h1>
             </Link>
@@ -62,6 +64,9 @@ export function AppWrapper({ children }: { children: React.ReactNode }) {
           <SidebarContent>
             <SidebarNav />
           </SidebarContent>
+          <SidebarFooter>
+            <SidebarTrigger />
+          </SidebarFooter>
         </Sidebar>
         <SidebarInset>
           <SiteHeader />

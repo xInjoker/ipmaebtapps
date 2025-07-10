@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import {
   BrainCircuit,
   Briefcase,
@@ -14,7 +14,6 @@ import {
   Users2,
   Wrench,
   ClipboardEdit,
-  ClipboardCheck,
   Plane,
 } from 'lucide-react';
 import {
@@ -36,12 +35,10 @@ interface MenuItem {
     icon: React.ElementType;
     permission: Permission;
     subItems?: { href: string; label: string; }[];
-    isSubMenu?: boolean;
 }
 
 export function SidebarNav() {
   const pathname = usePathname();
-  const router = useRouter();
   const { projects } = useProjects();
   const { user, isHqUser, userHasPermission } = useAuth();
 
@@ -106,34 +103,27 @@ export function SidebarNav() {
         const isActive = isMainActive || areSubItemsActive;
 
         return (
-          <SidebarMenuItem 
-            key={item.href}
-            onMouseEnter={() => router.prefetch(item.href)}
-          >
+          <SidebarMenuItem key={item.href}>
             <SidebarMenuButton
               asChild
               isActive={isActive}
-              tooltip={{ children: item.label, side: 'right' }}
+              tooltip={item.label}
             >
-              <Link href={item.href} prefetch={true}>
-                <item.icon className="h-4 w-4" />
+              <Link href={item.href}>
+                <item.icon />
                 <span>{item.label}</span>
               </Link>
             </SidebarMenuButton>
 
             {item.subItems && item.subItems.length > 0 && (
               <SidebarMenuSub>
-                {item.subItems.map((subItem: { href: string, label: string }) => (
-                  <SidebarMenuSubItem 
-                    key={subItem.href}
-                    onMouseEnter={() => router.prefetch(subItem.href)}
-                  >
+                {item.subItems.map((subItem) => (
+                  <SidebarMenuSubItem key={subItem.href}>
                     <SidebarMenuSubButton
                       asChild
                       isActive={pathname === subItem.href}
                     >
-                      <Link href={subItem.href} prefetch={true}>
-                        {subItem.label === 'Approvals' && <ClipboardCheck className="mr-2 h-4 w-4" />}
+                      <Link href={subItem.href}>
                         <span>{subItem.label}</span>
                       </Link>
                     </SidebarMenuSubButton>
