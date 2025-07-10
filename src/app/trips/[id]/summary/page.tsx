@@ -8,7 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useTrips } from '@/context/TripContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { ArrowLeft, User, Map, Calendar, Briefcase, Info, Send } from 'lucide-react';
+import { ArrowLeft, User, Map, Calendar, Briefcase, Info, Send, Building2, GanttChart } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format, differenceInDays } from 'date-fns';
 import { formatCurrency } from '@/lib/utils';
@@ -156,12 +156,14 @@ export default function TripSummaryPage() {
                         <CardHeader>
                             <CardTitle className="text-lg">Trip Details</CardTitle>
                         </CardHeader>
-                        <CardContent className="grid grid-cols-2 gap-4 text-sm">
-                            <div className="flex items-center gap-2"><User className="h-4 w-4 text-muted-foreground" /><div><p className="font-medium text-muted-foreground">Employee</p><p>{trip.employeeName}</p></div></div>
-                            <div className="flex items-center gap-2"><Map className="h-4 w-4 text-muted-foreground" /><div><p className="font-medium text-muted-foreground">Destination</p><p>{trip.destination}</p></div></div>
-                            <div className="flex items-center gap-2"><Calendar className="h-4 w-4 text-muted-foreground" /><div><p className="font-medium text-muted-foreground">Dates</p><p>{format(new Date(trip.startDate), 'PPP')} - {format(new Date(trip.endDate), 'PPP')}</p></div></div>
-                            <div className="flex items-center gap-2"><Briefcase className="h-4 w-4 text-muted-foreground" /><div><p className="font-medium text-muted-foreground">Duration</p><p>{tripDuration} Day(s)</p></div></div>
-                            <div className="col-span-2 flex items-start gap-2"><Info className="h-4 w-4 text-muted-foreground mt-0.5" /><div><p className="font-medium text-muted-foreground">Purpose</p><p>{trip.purpose}</p></div></div>
+                        <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-sm">
+                            <div className="flex items-center gap-3"><User className="h-4 w-4 text-muted-foreground" /><div><p className="font-medium text-muted-foreground">Employee</p><p>{trip.employeeName}</p></div></div>
+                            <div className="flex items-center gap-3"><Briefcase className="h-4 w-4 text-muted-foreground" /><div><p className="font-medium text-muted-foreground">Position</p><p>{trip.position}</p></div></div>
+                            <div className="flex items-center gap-3"><Building2 className="h-4 w-4 text-muted-foreground" /><div><p className="font-medium text-muted-foreground">Division/Function</p><p>{trip.division}</p></div></div>
+                            <div className="flex items-center gap-3"><GanttChart className="h-4 w-4 text-muted-foreground" /><div><p className="font-medium text-muted-foreground">Project</p><p>{trip.project}</p></div></div>
+                            <div className="flex items-center gap-3"><Map className="h-4 w-4 text-muted-foreground" /><div><p className="font-medium text-muted-foreground">Destination</p><p>{trip.destination}</p></div></div>
+                            <div className="flex items-center gap-3"><Calendar className="h-4 w-4 text-muted-foreground" /><div><p className="font-medium text-muted-foreground">Dates</p><p>{format(new Date(trip.startDate), 'PPP')} - {format(new Date(trip.endDate), 'PPP')} ({tripDuration} day(s))</p></div></div>
+                            <div className="lg:col-span-3 flex items-start gap-3"><Info className="h-4 w-4 text-muted-foreground mt-0.5" /><div><p className="font-medium text-muted-foreground">Purpose</p><p className="max-w-prose">{trip.purpose}</p></div></div>
                         </CardContent>
                     </Card>
                     <Card>
