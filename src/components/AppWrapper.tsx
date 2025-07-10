@@ -55,7 +55,7 @@ export function AppWrapper({ children }: { children: React.ReactNode }) {
           <SidebarHeader>
             <Link href="/" className="flex items-center gap-2.5 px-2">
               <GanttChart className="h-6 w-6 text-primary" />
-              <h1 className="text-xl font-headline font-semibold text-primary group-data-[state=collapsed]:hidden">
+              <h1 className="text-xl font-headline font-semibold text-primary group-data-[state=collapsed]/sidebar-wrapper:hidden">
                 ProTrack
               </h1>
             </Link>
