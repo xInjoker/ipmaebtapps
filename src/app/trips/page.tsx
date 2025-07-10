@@ -33,7 +33,8 @@ import {
   Plane,
   CheckCircle,
   Clock,
-  XCircle
+  XCircle,
+  FilePen
 } from 'lucide-react';
 import { useTrips } from '@/context/TripContext';
 import { useAuth } from '@/context/AuthContext';
@@ -50,6 +51,8 @@ const getStatusVariant = (status: TripStatus) => {
       return 'yellow' as const;
     case 'Rejected':
       return 'destructive' as const;
+    case 'Draft':
+      return 'secondary' as const;
     default:
       return 'secondary' as const;
   }
@@ -186,6 +189,14 @@ export default function TripsPage() {
                               <Eye className="mr-2 h-4 w-4" />
                               <span>View Details</span>
                             </DropdownMenuItem>
+                             {trip.status === 'Draft' && (
+                                <DropdownMenuItem asChild>
+                                    <Link href={`/trips/${trip.id}/setup`}>
+                                        <FilePen className="mr-2 h-4 w-4" />
+                                        <span>Setup Document</span>
+                                    </Link>
+                                </DropdownMenuItem>
+                            )}
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>

@@ -1,5 +1,6 @@
 
-export type TripStatus = 'Pending' | 'Approved' | 'Rejected' | 'Booked' | 'Completed' | 'Closed';
+
+export type TripStatus = 'Draft' | 'Pending' | 'Approved' | 'Rejected' | 'Booked' | 'Completed' | 'Closed';
 
 export type TripRequest = {
     id: string;
@@ -21,6 +22,10 @@ export type TripRequest = {
     project?: string;
     position?: string;
     division?: string;
+    approvers?: {
+        managerId: string;
+        financeId: string;
+    }
 };
 
 export const initialTrips: TripRequest[] = [
@@ -28,6 +33,9 @@ export const initialTrips: TripRequest[] = [
         id: 'TRIP-001',
         employeeId: 2,
         employeeName: 'Project Manager',
+        position: 'Project Manager',
+        division: 'Cabang Jakarta',
+        project: 'Corporate Website Revamp',
         destination: 'Surabaya',
         purpose: 'Client Meeting with Stark Industries',
         startDate: '2024-08-05',
@@ -43,6 +51,9 @@ export const initialTrips: TripRequest[] = [
         id: 'TRIP-002',
         employeeId: 3,
         employeeName: 'Jane Doe',
+        position: 'Project Manager',
+        division: 'Cabang Jakarta',
+        project: 'Data Analytics Platform',
         destination: 'Balikpapan',
         purpose: 'Site Inspection at Project Gamma',
         startDate: '2024-08-12',
@@ -57,6 +68,9 @@ export const initialTrips: TripRequest[] = [
         id: 'TRIP-003',
         employeeId: 4,
         employeeName: 'John Smith',
+        position: 'Project Manager',
+        division: 'Cabang Surabaya',
+        project: 'Mobile App Development',
         destination: 'Pekanbaru',
         purpose: 'Equipment Calibration and Maintenance',
         startDate: '2024-07-29',
@@ -70,4 +84,4 @@ export const initialTrips: TripRequest[] = [
     }
 ];
 
-export const tripStatuses: TripStatus[] = ['Pending', 'Approved', 'Rejected', 'Booked', 'Completed', 'Closed'];
+export const tripStatuses: TripStatus[] = ['Draft', 'Pending', 'Approved', 'Rejected', 'Booked', 'Completed', 'Closed'];

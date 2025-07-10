@@ -15,13 +15,11 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { ArrowLeft, Calendar as CalendarIcon, FileText, Loader2 } from 'lucide-react';
+import { ArrowLeft, Calendar as CalendarIcon, Send } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { DateRange } from 'react-day-picker';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
 
 export default function NewTripPage() {
   const router = useRouter();
@@ -33,7 +31,6 @@ export default function NewTripPage() {
   const [destination, setDestination] = useState('');
   const [purpose, setPurpose] = useState('');
   const [date, setDate] = useState<DateRange | undefined>(undefined);
-  const [isGenerating, setIsGenerating] = useState(false);
   
   const [employeeDetails, setEmployeeDetails] = useState({
     name: user?.name || '',
@@ -44,9 +41,6 @@ export default function NewTripPage() {
 
   useEffect(() => {
     if (user) {
-      // Note: This assumes a way to link the auth user to the employee list.
-      // A more robust system would use a shared, unique ID.
-      // For this implementation, we'll find the employee by name.
       const employeeData = employees.find(emp => emp.name === user.name);
       if (employeeData) {
         setEmployeeDetails({
@@ -59,7 +53,7 @@ export default function NewTripPage() {
     }
   }, [user, employees]);
   
-  const handleGenerateDocument = () => {
+  const handleCreateRequest = () => {
     if (!user) {
         toast({ variant: 'destructive', title: 'Error', description: 'You must be logged in to create a trip request.' });
         return;
@@ -68,81 +62,34 @@ export default function NewTripPage() {
       toast({
         variant: 'destructive',
         title: 'Missing Information',
-        description: 'Please fill out all required fields before generating the document.',
+        description: 'Please fill out all required fields before proceeding.',
       });
       return;
     }
+    
+    const newTrip: TripRequest = {
+        id: `TRIP-${Date.now()}`,
+        employeeId: user.id,
+        employeeName: employeeDetails.name,
+        position: employeeDetails.position,
+        division: employeeDetails.division,
+        project: employeeDetails.project,
+        destination,
+        purpose,
+        startDate: format(date.from, 'yyyy-MM-dd'),
+        endDate: format(date.to, 'yyyy-MM-dd'),
+        estimatedBudget: 0, 
+        status: 'Draft',
+        approvalHistory: [
+            { actorId: user.id, actorName: user.name, status: 'Draft', timestamp: new Date().toISOString(), comments: "Trip request created." }
+        ]
+    };
+    
+    addTrip(newTrip);
 
-    setIsGenerating(true);
-    toast({ title: 'Generating Document...', description: 'Your trip request PDF is being prepared.' });
-
-    // Add a slight delay to allow the toast to be visible
-    setTimeout(() => {
-        const newTrip: TripRequest = {
-            id: `TRIP-${Date.now()}`,
-            employeeId: user.id,
-            employeeName: employeeDetails.name,
-            destination,
-            purpose,
-            startDate: format(date.from!, 'yyyy-MM-dd'),
-            endDate: format(date.to!, 'yyyy-MM-dd'),
-            estimatedBudget: 0,
-            status: 'Pending',
-            approvalHistory: [
-                { actorId: user.id, actorName: user.name, status: 'Pending', timestamp: new Date().toISOString() }
-            ]
-        };
-        
-        addTrip(newTrip);
-
-        // --- PDF Generation ---
-        const doc = new jsPDF();
-
-        // Add company logo (replace with your actual logo URL or data URI)
-        // For this example, we use a placeholder.
-        try {
-            const logo = 'https://i.ibb.co/3k5g1tY/logo-iappm.png'; 
-            doc.addImage(logo, 'PNG', 15, 10, 40, 15);
-        } catch(e) {
-            console.error("Could not add logo to PDF:", e);
-        }
-
-        doc.setFontSize(18);
-        doc.text('Business Trip Request', 105, 22, { align: 'center' });
-        doc.setFontSize(12);
-        doc.text(`Request ID: ${newTrip.id}`, 105, 28, { align: 'center' });
-        
-        (doc as any).autoTable({
-            startY: 40,
-            head: [['Field', 'Details']],
-            body: [
-                ['Employee Name', employeeDetails.name],
-                ['Position', employeeDetails.position],
-                ['Division/Function', employeeDetails.division],
-                ['Project', employeeDetails.project],
-                ['Destination', destination],
-                ['Start Date', format(date.from!, 'PPP')],
-                ['End Date', format(date.to!, 'PPP')],
-                ['Purpose', purpose],
-            ],
-            theme: 'grid',
-            styles: { fontSize: 10 },
-            headStyles: { fillColor: [22, 163, 74] },
-        });
-
-        // Open PDF in a new tab instead of downloading
-        const pdfDataUri = doc.output('datauristring');
-        const pdfWindow = window.open();
-        if (pdfWindow) {
-            pdfWindow.document.write(`<iframe width='100%' height='100%' src='${pdfDataUri}'></iframe>`);
-            pdfWindow.document.title = `trip-request-${newTrip.id}.pdf`;
-        } else {
-            toast({ variant: 'destructive', title: 'Could not open PDF', description: 'Please allow pop-ups for this site.' });
-        }
-
-        setIsGenerating(false);
-        router.push('/trips');
-    }, 500); // 500ms delay
+    toast({ title: 'Trip Request Created', description: 'Redirecting to document setup...' });
+    
+    router.push(`/trips/${newTrip.id}/setup`);
   };
 
   return (
@@ -231,13 +178,9 @@ export default function NewTripPage() {
             <Button variant="outline" asChild>
                 <Link href="/trips">Cancel</Link>
             </Button>
-            <Button onClick={handleGenerateDocument} disabled={isGenerating}>
-                {isGenerating ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                    <FileText className="mr-2 h-4 w-4" />
-                )}
-                Generate Document
+            <Button onClick={handleCreateRequest}>
+                <Send className="mr-2 h-4 w-4" />
+                Create Trip Request
             </Button>
         </CardFooter>
       </Card>
