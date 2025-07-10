@@ -14,11 +14,13 @@ export const permissions = [
   'review-reports',
   'approve-reports',
   'manage-employees',
+  'super-admin', // Special permission for super-admin only checks
 ] as const;
 
 export type Permission = (typeof permissions)[number];
 
 export function formatPermissionName(permission: Permission): string {
+  if (permission === 'super-admin') return 'Super Admin';
   return permission
     .split('-')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
@@ -152,3 +154,4 @@ export const initialUsers: User[] = [
   { id: 8, name: 'Inspector User', email: 'inspector@example.com', roleId: 'inspector', branchId: 'jakarta', avatarUrl: '' },
   { id: 9, name: 'Inspector1', email: 'inspector1@example.com', roleId: 'inspector', branchId: 'hq', avatarUrl: '' },
 ];
+

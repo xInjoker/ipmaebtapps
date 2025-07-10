@@ -16,6 +16,7 @@ import { Badge } from '@/components/ui/badge';
 import type { Project, InvoiceItem, ServiceOrderItem } from '@/lib/data';
 import { formatCurrency } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/context/AuthContext';
 
 type ProjectInvoicingTabProps = {
     project: Project;
@@ -26,6 +27,7 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
     const [isAddInvoiceDialogOpen, setIsAddInvoiceDialogOpen] = useState(false);
     const [isEditInvoiceDialogOpen, setIsEditInvoiceDialogOpen] = useState(false);
     const { toast } = useToast();
+    const { userHasPermission } = useAuth();
     
     const [invoiceToEdit, setInvoiceToEdit] = useState<InvoiceItem | null>(null);
     const [editedInvoice, setEditedInvoice] = useState<InvoiceItem & { periodMonth: string; periodYear: string; } | null>(null);
@@ -108,6 +110,15 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
         setEditedInvoice({ ...invoice, periodMonth, periodYear });
         setInvoiceToEdit(invoice);
         setIsEditInvoiceDialogOpen(true);
+    };
+
+    const handleCancelInvoice = (invoiceId: number) => {
+        setProjects(projects => projects.map(p =>
+            p.id === project.id
+                ? { ...p, invoices: p.invoices.map(inv => inv.id === invoiceId ? { ...inv, status: 'Cancel' } : inv) }
+                : p
+        ));
+        toast({ title: 'Invoice Cancelled', description: 'The invoice status has been updated to "Cancel".' });
     };
 
     const handleExportInvoices = () => {
@@ -278,8 +289,18 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
                                                 <Button variant="ghost" className="h-8 w-8 p-0"><span className="sr-only">Open menu</span><MoreHorizontal className="h-4 w-4" /></Button>
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
-                                                <DropdownMenuItem onSelect={() => handleEditClick(invoice)}>Edit</DropdownMenuItem>
-                                                <DropdownMenuItem>Cancel Invoice</DropdownMenuItem>
+                                                <DropdownMenuItem 
+                                                    onSelect={() => handleEditClick(invoice)}
+                                                    disabled={invoice.status === 'Paid' && !userHasPermission('super-admin')}
+                                                >
+                                                    Edit
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                    onSelect={() => handleCancelInvoice(invoice.id)}
+                                                    disabled={invoice.status !== 'Invoiced'}
+                                                >
+                                                    Cancel Invoice
+                                                </DropdownMenuItem>
                                                 <DropdownMenuItem>View Details</DropdownMenuItem>
                                             </DropdownMenuContent>
                                         </DropdownMenu>
@@ -373,3 +394,4 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
         </>
     );
 }
+
