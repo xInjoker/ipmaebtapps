@@ -126,7 +126,7 @@ export default function TripAllowanceSetupPage() {
   
   const grandTotal = useMemo(() => mealsSubtotal + transportSubtotal, [mealsSubtotal, transportSubtotal]);
   
-  const handleSaveAllowance = () => {
+  const handleSaveAndProceed = () => {
     if (!trip) return;
 
     const updatedTrip = {
@@ -138,6 +138,7 @@ export default function TripAllowanceSetupPage() {
     updateTrip(trip.id, updatedTrip);
 
     toast({ title: 'Allowance Saved', description: 'Proceeding to summary page.' });
+    router.push(`/trips/${trip.id}/summary`);
   };
 
   if (!trip) {
@@ -204,11 +205,9 @@ export default function TripAllowanceSetupPage() {
 
         </CardContent>
         <CardFooter className="flex justify-end">
-             <Link href={`/trips/${trip.id}/summary`} passHref>
-                <Button onClick={handleSaveAllowance}>
-                    Proceed to Summary <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-            </Link>
+             <Button onClick={handleSaveAndProceed}>
+                Proceed to Summary <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
         </CardFooter>
       </Card>
     </div>
