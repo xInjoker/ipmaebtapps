@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -137,6 +138,13 @@ export default function ProjectDetailsPage() {
       }
       dataMap[sortKey].expenditure += exp.amount;
     });
+
+    // Apply the Remaining PAD formula
+    for (const key in dataMap) {
+        const monthData = dataMap[key];
+        const remainingPad = monthData.pad - monthData.invoicedAndPaid;
+        monthData.pad = Math.max(0, remainingPad);
+    }
 
     return Object.keys(dataMap)
       .sort()
