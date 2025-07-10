@@ -41,6 +41,13 @@ export default function TripSummaryPage() {
 
     const [verifierId, setVerifierId] = useState('');
     const [approverId, setApproverId] = useState('');
+    
+    useEffect(() => {
+        if (trip?.approvers) {
+            setVerifierId(trip.approvers.managerId);
+            setApproverId(trip.approvers.financeId);
+        }
+    }, [trip]);
 
     const { mealItems, transportItems, mealsSubtotal, transportSubtotal, totalAllowance } = useMemo(() => {
         if (!trip?.allowance) return { mealItems: [], transportItems: [], mealsSubtotal: 0, transportSubtotal: 0, totalAllowance: 0 };
@@ -136,6 +143,16 @@ export default function TripSummaryPage() {
         toast({ title: 'Trip Submitted', description: 'Your business trip request has been submitted for approval.' });
         router.push('/trips');
     };
+    
+    const assignedVerifierName = useMemo(() => {
+        if (!trip?.approvers?.managerId) return 'Not Assigned';
+        return users.find(u => u.id.toString() === trip.approvers?.managerId)?.name || 'Unknown User';
+    }, [trip?.approvers, users]);
+
+    const assignedApproverName = useMemo(() => {
+        if (!trip?.approvers?.financeId) return 'Not Assigned';
+        return users.find(u => u.id.toString() === trip.approvers?.financeId)?.name || 'Unknown User';
+    }, [trip?.approvers, users]);
 
     if (!trip) {
         return (
@@ -161,9 +178,9 @@ export default function TripSummaryPage() {
                 <CardHeader>
                     <div className="flex items-center gap-4">
                         <Button asChild variant="outline" size="icon">
-                            <Link href={`/trips/${trip.id}/setup`}>
+                            <Link href={trip.status === 'Draft' ? `/trips/${trip.id}/setup` : '/trips'}>
                                 <ArrowLeft className="h-4 w-4" />
-                                <span className="sr-only">Back to Setup</span>
+                                <span className="sr-only">Back</span>
                             </Link>
                         </Button>
                         <div className="space-y-1.5">
@@ -275,33 +292,44 @@ export default function TripSummaryPage() {
                             <CardDescription>Select the users responsible for verifying and approving this trip.</CardDescription>
                         </CardHeader>
                         <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                             <div className="space-y-2">
-                                <Label htmlFor="verifier" className="flex items-center gap-2"><UserCheck className="h-4 w-4" />Verified By</Label>
-                                <Select value={verifierId} onValueChange={setVerifierId}>
-                                    <SelectTrigger id="verifier"><SelectValue placeholder="Select a verifier..."/></SelectTrigger>
-                                    <SelectContent>
-                                    {users.map(u => <SelectItem key={u.id} value={u.id.toString()}>{u.name}</SelectItem>)}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="approver" className="flex items-center gap-2"><UserCog className="h-4 w-4" />Approved By</Label>
-                                <Select value={approverId} onValueChange={setApproverId}>
-                                    <SelectTrigger id="approver"><SelectValue placeholder="Select an approver..."/></SelectTrigger>
-                                    <SelectContent>
-                                    {users.map(u => <SelectItem key={u.id} value={u.id.toString()}>{u.name}</SelectItem>)}
-                                    </SelectContent>
-                                </Select>
-                            </div>
+                            {trip.status === 'Draft' ? (
+                                <>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="verifier" className="flex items-center gap-2"><UserCheck className="h-4 w-4" />Verified By</Label>
+                                        <Select value={verifierId} onValueChange={setVerifierId}>
+                                            <SelectTrigger id="verifier"><SelectValue placeholder="Select a verifier..."/></SelectTrigger>
+                                            <SelectContent>
+                                            {users.map(u => <SelectItem key={u.id} value={u.id.toString()}>{u.name}</SelectItem>)}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="approver" className="flex items-center gap-2"><UserCog className="h-4 w-4" />Approved By</Label>
+                                        <Select value={approverId} onValueChange={setApproverId}>
+                                            <SelectTrigger id="approver"><SelectValue placeholder="Select an approver..."/></SelectTrigger>
+                                            <SelectContent>
+                                            {users.map(u => <SelectItem key={u.id} value={u.id.toString()}>{u.name}</SelectItem>)}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <div className="flex items-center gap-3"><UserCheck className="h-4 w-4 text-muted-foreground" /><div><p className="font-medium text-muted-foreground">Verified By</p><p>{assignedVerifierName}</p></div></div>
+                                    <div className="flex items-center gap-3"><UserCog className="h-4 w-4 text-muted-foreground" /><div><p className="font-medium text-muted-foreground">Approved By</p><p>{assignedApproverName}</p></div></div>
+                                </>
+                            )}
                         </CardContent>
                     </Card>
                 </CardContent>
-                <CardFooter className="flex justify-end">
-                    <Button onClick={handleSubmitForApproval}>
-                        <Send className="mr-2 h-4 w-4"/>
-                        Submit for Approval
-                    </Button>
-                </CardFooter>
+                {trip.status === 'Draft' && (
+                    <CardFooter className="flex justify-end">
+                        <Button onClick={handleSubmitForApproval}>
+                            <Send className="mr-2 h-4 w-4"/>
+                            Submit for Approval
+                        </Button>
+                    </CardFooter>
+                )}
             </Card>
         </div>
     );
