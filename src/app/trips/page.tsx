@@ -186,9 +186,11 @@ export default function TripsPage() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem disabled>
-                              <Eye className="mr-2 h-4 w-4" />
-                              <span>View Details</span>
+                            <DropdownMenuItem asChild>
+                                <Link href={`/trips/${trip.id}/summary`}>
+                                    <Eye className="mr-2 h-4 w-4" />
+                                    <span>View Summary</span>
+                                </Link>
                             </DropdownMenuItem>
                              {trip.status === 'Draft' && (
                                 <DropdownMenuItem asChild>
