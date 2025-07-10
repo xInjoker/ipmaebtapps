@@ -115,7 +115,7 @@ export default function RadiographicTestListPage() {
                 <FileText className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{dashboardStats.totalReports}</div>
+                <div className="text-xl sm:text-2xl font-bold">{dashboardStats.totalReports}</div>
                 <p className="text-xs text-muted-foreground">reports generated</p>
               </CardContent>
             </Card>
@@ -125,7 +125,7 @@ export default function RadiographicTestListPage() {
                 <Layers className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{dashboardStats.totalJoints}</div>
+                <div className="text-xl sm:text-2xl font-bold">{dashboardStats.totalJoints}</div>
                 <p className="text-xs text-muted-foreground">across all reports</p>
               </CardContent>
             </Card>
@@ -135,7 +135,7 @@ export default function RadiographicTestListPage() {
                 <CheckCircle className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{dashboardStats.totalAccepted}</div>
+                <div className="text-xl sm:text-2xl font-bold">{dashboardStats.totalAccepted}</div>
                 <p className="text-xs text-muted-foreground">out of {dashboardStats.totalSheets} total films</p>
               </CardContent>
             </Card>
@@ -145,7 +145,7 @@ export default function RadiographicTestListPage() {
                 <XCircle className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{dashboardStats.totalRejected}</div>
+                <div className="text-xl sm:text-2xl font-bold">{dashboardStats.totalRejected}</div>
                 <p className="text-xs text-muted-foreground">out of {dashboardStats.totalSheets} total films</p>
               </CardContent>
             </Card>

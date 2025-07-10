@@ -459,7 +459,7 @@ export default function ProjectsPage() {
             <CircleDollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold font-headline">
+            <div className="text-xl sm:text-2xl font-bold font-headline">
                {formatCurrency(totalProjectValue)}
             </div>
             <p className="text-xs text-muted-foreground">
@@ -475,7 +475,7 @@ export default function ProjectsPage() {
             <Wallet className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold font-headline">
+            <div className="text-xl sm:text-2xl font-bold font-headline">
                {formatCurrency(totalCost)}
             </div>
             <p className="text-xs text-muted-foreground">
@@ -491,7 +491,7 @@ export default function ProjectsPage() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold font-headline">
+            <div className="text-xl sm:text-2xl font-bold font-headline">
                {formatCurrency(totalInvoiced)}
             </div>
             <p className="text-xs text-muted-foreground">
@@ -507,7 +507,7 @@ export default function ProjectsPage() {
             <Landmark className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold font-headline">
+            <div className="text-xl sm:text-2xl font-bold font-headline">
                {formatCurrency(totalPaid)}
             </div>
             <p className="text-xs text-muted-foreground">

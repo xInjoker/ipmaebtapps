@@ -170,7 +170,7 @@ export default function EquipmentPage() {
             <Wrench className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{dashboardStats.total}</div>
+            <div className="text-xl sm:text-2xl font-bold">{dashboardStats.total}</div>
             <p className="text-xs text-muted-foreground">items in inventory</p>
           </CardContent>
         </Card>
@@ -180,7 +180,7 @@ export default function EquipmentPage() {
             <CheckCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{dashboardStats.normal}</div>
+            <div className="text-xl sm:text-2xl font-bold">{dashboardStats.normal}</div>
             <p className="text-xs text-muted-foreground">equipment are operational</p>
           </CardContent>
         </Card>
@@ -190,7 +190,7 @@ export default function EquipmentPage() {
             <BadgeCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{dashboardStats.validCerts}</div>
+            <div className="text-xl sm:text-2xl font-bold">{dashboardStats.validCerts}</div>
             <p className="text-xs text-muted-foreground">equipment with valid calibration</p>
           </CardContent>
         </Card>
@@ -200,7 +200,7 @@ export default function EquipmentPage() {
             <XCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{dashboardStats.expiredCerts}</div>
+            <div className="text-xl sm:text-2xl font-bold">{dashboardStats.expiredCerts}</div>
             <p className="text-xs text-muted-foreground">items require calibration</p>
           </CardContent>
         </Card>

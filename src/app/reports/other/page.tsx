@@ -99,7 +99,7 @@ export default function OtherMethodsListPage() {
                 <FileText className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{dashboardStats.totalReports}</div>
+                <div className="text-xl sm:text-2xl font-bold">{dashboardStats.totalReports}</div>
                 <p className="text-xs text-muted-foreground">reports generated</p>
               </CardContent>
             </Card>
@@ -109,7 +109,7 @@ export default function OtherMethodsListPage() {
                 <Layers className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{dashboardStats.totalJoints}</div>
+                <div className="text-xl sm:text-2xl font-bold">{dashboardStats.totalJoints}</div>
                 <p className="text-xs text-muted-foreground">across all reports</p>
               </CardContent>
             </Card>
@@ -119,7 +119,7 @@ export default function OtherMethodsListPage() {
                 <CheckCircle className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{dashboardStats.approved}</div>
+                <div className="text-xl sm:text-2xl font-bold">{dashboardStats.approved}</div>
                 <p className="text-xs text-muted-foreground">fully approved reports</p>
               </CardContent>
             </Card>
@@ -129,7 +129,7 @@ export default function OtherMethodsListPage() {
                 <Clock className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{dashboardStats.submitted}</div>
+                <div className="text-xl sm:text-2xl font-bold">{dashboardStats.submitted}</div>
                 <p className="text-xs text-muted-foreground">reports submitted</p>
               </CardContent>
             </Card>

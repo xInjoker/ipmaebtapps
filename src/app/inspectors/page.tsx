@@ -188,7 +188,7 @@ export default function InspectorsPage() {
             <Users2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{dashboardStats.total}</div>
+            <div className="text-xl sm:text-2xl font-bold">{dashboardStats.total}</div>
             <p className="text-xs text-muted-foreground">inspectors in the database</p>
           </CardContent>
         </Card>
@@ -198,7 +198,7 @@ export default function InspectorsPage() {
             <BadgeCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{dashboardStats.validCerts}</div>
+            <div className="text-xl sm:text-2xl font-bold">{dashboardStats.validCerts}</div>
             <p className="text-xs text-muted-foreground">certificates are currently valid</p>
           </CardContent>
         </Card>
@@ -208,7 +208,7 @@ export default function InspectorsPage() {
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{dashboardStats.expiringSoon}</div>
+            <div className="text-xl sm:text-2xl font-bold">{dashboardStats.expiringSoon}</div>
             <p className="text-xs text-muted-foreground">inspectors with certs expiring soon</p>
           </CardContent>
         </Card>
@@ -218,7 +218,7 @@ export default function InspectorsPage() {
             <XCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{dashboardStats.expired}</div>
+            <div className="text-xl sm:text-2xl font-bold">{dashboardStats.expired}</div>
             <p className="text-xs text-muted-foreground">inspectors with expired certs</p>
           </CardContent>
         </Card>
