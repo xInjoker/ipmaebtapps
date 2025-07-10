@@ -28,7 +28,7 @@ import { TrendingUp, CircleDollarSign, ListTodo, Receipt } from 'lucide-react';
 import { useMemo } from 'react';
 import { useProjects } from '@/context/ProjectContext';
 import { useAuth } from '@/context/AuthContext';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, formatCurrencyMillions } from '@/lib/utils';
 
 const chartData = [
   { month: 'January', invoiced: 186000000, paid: 80000000 },
@@ -132,7 +132,7 @@ export default function DashboardPage() {
             <CircleDollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-xl font-bold font-headline md:text-xl lg:text-2xl">{formatCurrency(totalProjectValue)}</div>
+            <div className="text-xl font-bold font-headline sm:text-lg md:text-xl lg:text-2xl">{formatCurrencyMillions(totalProjectValue)}</div>
             <p className="text-xs text-muted-foreground">
               Across {visibleProjects.length} projects
             </p>
@@ -144,7 +144,7 @@ export default function DashboardPage() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-xl font-bold font-headline md:text-xl lg:text-2xl">{formatCurrency(totalPaid)}</div>
+            <div className="text-xl font-bold font-headline sm:text-lg md:text-xl lg:text-2xl">{formatCurrencyMillions(totalPaid)}</div>
             <p className="text-xs text-muted-foreground">
               Total invoices paid to date
             </p>
@@ -156,7 +156,7 @@ export default function DashboardPage() {
             <ListTodo className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-xl font-bold font-headline md:text-xl lg:text-2xl">{upcomingTasks.length} Tasks</div>
+            <div className="text-xl font-bold font-headline sm:text-lg md:text-xl lg:text-2xl">{upcomingTasks.length} Tasks</div>
             <p className="text-xs text-muted-foreground">
               Due within the next 30 days
             </p>
@@ -168,7 +168,7 @@ export default function DashboardPage() {
             <Receipt className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-xl font-bold font-headline md:text-xl lg:text-2xl">{formatCurrency(totalExpenditure)}</div>
+            <div className="text-xl font-bold font-headline sm:text-lg md:text-xl lg:text-2xl">{formatCurrencyMillions(totalExpenditure)}</div>
             <p className="text-xs text-muted-foreground">
               Total expenditure across all projects
             </p>

@@ -32,7 +32,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PlusCircle, Calendar as CalendarIcon, CircleDollarSign, Wallet, TrendingUp, Landmark, Search, X } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
-import { cn, formatCurrency } from '@/lib/utils';
+import { cn, formatCurrency, formatCurrencyMillions } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
@@ -460,7 +460,7 @@ export default function ProjectsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-xl font-bold font-headline md:text-xl lg:text-2xl">
-               {formatCurrency(totalProjectValue)}
+               {formatCurrencyMillions(totalProjectValue)}
             </div>
             <p className="text-xs text-muted-foreground">
               Across {visibleProjects.length} projects
@@ -476,7 +476,7 @@ export default function ProjectsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-xl font-bold font-headline md:text-xl lg:text-2xl">
-               {formatCurrency(totalCost)}
+               {formatCurrencyMillions(totalCost)}
             </div>
             <p className="text-xs text-muted-foreground">
               Total costs realized across all projects
@@ -492,7 +492,7 @@ export default function ProjectsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-xl font-bold font-headline md:text-xl lg:text-2xl">
-               {formatCurrency(totalInvoiced)}
+               {formatCurrencyMillions(totalInvoiced)}
             </div>
             <p className="text-xs text-muted-foreground">
               Total invoiced across all projects
@@ -508,7 +508,7 @@ export default function ProjectsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-xl font-bold font-headline md:text-xl lg:text-2xl">
-               {formatCurrency(totalPaid)}
+               {formatCurrencyMillions(totalPaid)}
             </div>
             <p className="text-xs text-muted-foreground">
               Total paid across all projects

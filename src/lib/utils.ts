@@ -49,6 +49,19 @@ export function formatCurrency(value: number) {
   }).format(value);
 }
 
+export function formatCurrencyMillions(value: number): string {
+  if (Math.abs(value) >= 10000000) { // Threshold for conversion
+    const millions = value / 1000000;
+    const formattedMillions = new Intl.NumberFormat('id-ID', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(millions);
+    return `Rp ${formattedMillions} millions`;
+  }
+  return formatCurrency(value);
+}
+
+
 export function getEmployeeStatusVariant(status?: 'Active' | 'Inactive' | 'On Leave') {
   switch (status) {
     case 'Active':
