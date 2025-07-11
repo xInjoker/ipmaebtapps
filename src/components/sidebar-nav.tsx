@@ -4,56 +4,66 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  BrainCircuit,
   Briefcase,
+  ClipboardEdit,
   LayoutDashboard,
+  Plane,
   Settings,
   User,
   UserCog,
   Users,
   Users2,
   Wrench,
-  ClipboardEdit,
-  Plane,
 } from 'lucide-react';
 import {
   SidebarMenu,
-  SidebarMenuItem,
   SidebarMenuButton,
+  SidebarMenuItem,
   SidebarMenuSub,
-  SidebarMenuSubItem,
   SidebarMenuSubButton,
+  SidebarMenuSubItem,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import { useProjects } from '@/context/ProjectContext';
 import { useAuth } from '@/context/AuthContext';
 import { type Permission } from '@/lib/users';
 import { useMemo } from 'react';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from './ui/collapsible';
 import { ChevronRight } from 'lucide-react';
 import { Button } from './ui/button';
 
 interface MenuItem {
-    href: string;
-    label: string;
-    icon: React.ElementType;
-    permission: Permission;
-    subItems?: { href: string; label: string; }[];
-    isCollapsible?: boolean;
+  href: string;
+  label: string;
+  icon: React.ElementType;
+  permission: Permission;
+  subItems?: { href: string; label: string }[];
+  isCollapsible?: boolean;
 }
 
 export function SidebarNav() {
   const pathname = usePathname();
   const { projects } = useProjects();
   const { user, isHqUser, userHasPermission } = useAuth();
+  const { state: sidebarState } = useSidebar();
 
   const visibleProjects = useMemo(() => {
     if (isHqUser) return projects;
     if (!user) return [];
-    return projects.filter(p => p.branchId === user.branchId);
+    return projects.filter((p) => p.branchId === user.branchId);
   }, [projects, user, isHqUser]);
 
   const menuItems: MenuItem[] = [
-    { href: '/', label: 'Dashboard', icon: LayoutDashboard, permission: 'view-dashboard' },
+    {
+      href: '/',
+      label: 'Dashboard',
+      icon: LayoutDashboard,
+      permission: 'view-dashboard',
+    },
     {
       href: '/projects',
       label: 'Projects',
@@ -77,10 +87,10 @@ export function SidebarNav() {
       icon: Users,
       permission: 'manage-employees',
     },
-    { 
-      href: '/reports', 
-      label: 'Reporting', 
-      icon: ClipboardEdit, 
+    {
+      href: '/reports',
+      label: 'Reporting',
+      icon: ClipboardEdit,
       permission: 'manage-reports',
       subItems: [
         { href: '/reports/penetrant', label: 'Penetrant Test' },
@@ -91,75 +101,107 @@ export function SidebarNav() {
       ],
       isCollapsible: true,
     },
-    { href: '/equipment', label: 'Equipment', icon: Wrench, permission: 'view-equipment' },
-    { href: '/inspectors', label: 'Inspectors', icon: Users2, permission: 'view-inspector' },
+    {
+      href: '/equipment',
+      label: 'Equipment',
+      icon: Wrench,
+      permission: 'view-equipment',
+    },
+    {
+      href: '/inspectors',
+      label: 'Inspectors',
+      icon: Users2,
+      permission: 'view-inspector',
+    },
     {
       href: '/user-management',
       label: 'User Management',
       icon: UserCog,
       permission: 'manage-users',
     },
-    { href: '/settings', label: 'Settings', icon: Settings, permission: 'view-settings' },
-    { href: '/profile', label: 'Profile', icon: User, permission: 'view-profile' }
+    {
+      href: '/settings',
+      label: 'Settings',
+      icon: Settings,
+      permission: 'view-settings',
+    },
+    { href: '/profile', label: 'Profile', icon: User, permission: 'view-profile' },
   ];
 
-  const accessibleMenuItems = menuItems.filter(item => userHasPermission(item.permission));
-
+  const accessibleMenuItems = menuItems.filter((item) =>
+    userHasPermission(item.permission)
+  );
 
   return (
     <SidebarMenu>
       {accessibleMenuItems.map((item) => {
         const isMainActive =
-          item.href === '/' ? pathname === '/' : pathname.startsWith(item.href) && item.href !== '/reports';
-        
+          item.href === '/'
+            ? pathname === '/'
+            : pathname.startsWith(item.href) && item.href !== '/reports';
+
         const areSubItemsActive =
-          item.subItems?.some((sub: { href: string; }) => pathname === sub.href) ?? false;
-        
-        const isActive = areSubItemsActive || (item.href === '/reports' ? pathname.startsWith('/reports') : isMainActive);
+          item.subItems?.some((sub: { href: string }) => pathname === sub.href) ??
+          false;
+
+        const isActive =
+          areSubItemsActive ||
+          (item.href === '/reports'
+            ? pathname.startsWith('/reports')
+            : isMainActive);
+
+        const isSidebarCollapsed = sidebarState === 'collapsed';
 
         if (item.isCollapsible && item.subItems && item.subItems.length > 0) {
           return (
             <Collapsible key={item.href} asChild>
-                 <SidebarMenuItem>
-                    <div className="relative">
-                      <SidebarMenuButton
-                        asChild
-                        isActive={isActive}
-                        tooltip={item.label}
-                      >
-                         <Link href={item.href}>
-                            <item.icon />
-                            <span>{item.label}</span>
+              <SidebarMenuItem>
+                <div className="relative">
+                  <SidebarMenuButton
+                    asChild
+                    isActive={isActive}
+                    tooltip={item.label}
+                  >
+                    {isSidebarCollapsed ? (
+                      <div>
+                        <item.icon />
+                        <span>{item.label}</span>
+                      </div>
+                    ) : (
+                      <Link href={item.href}>
+                        <item.icon />
+                        <span>{item.label}</span>
+                      </Link>
+                    )}
+                  </SidebarMenuButton>
+                  <CollapsibleTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 group-data-[state=collapsed]/sidebar-wrapper:hidden"
+                    >
+                      <ChevronRight className="h-4 w-4 transition-transform [&[data-state=open]]:rotate-90" />
+                      <span className="sr-only">Toggle</span>
+                    </Button>
+                  </CollapsibleTrigger>
+                </div>
+                <CollapsibleContent asChild>
+                  <SidebarMenuSub>
+                    {item.subItems.map((subItem) => (
+                      <SidebarMenuSubItem key={subItem.href}>
+                        <SidebarMenuSubButton
+                          asChild
+                          isActive={pathname === subItem.href}
+                        >
+                          <Link href={subItem.href}>
+                            <span>{subItem.label}</span>
                           </Link>
-                      </SidebarMenuButton>
-                      <CollapsibleTrigger asChild>
-                          <Button
-                              variant="ghost"
-                              size="icon"
-                              className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 group-data-[state=collapsed]/sidebar-wrapper:hidden"
-                          >
-                              <ChevronRight className="h-4 w-4 transition-transform [&[data-state=open]]:rotate-90" />
-                              <span className="sr-only">Toggle</span>
-                          </Button>
-                      </CollapsibleTrigger>
-                    </div>
-                    <CollapsibleContent asChild>
-                        <SidebarMenuSub>
-                            {item.subItems.map((subItem) => (
-                            <SidebarMenuSubItem key={subItem.href}>
-                                <SidebarMenuSubButton
-                                asChild
-                                isActive={pathname === subItem.href}
-                                >
-                                <Link href={subItem.href}>
-                                    <span>{subItem.label}</span>
-                                </Link>
-                                </SidebarMenuSubButton>
-                            </SidebarMenuSubItem>
-                            ))}
-                        </SidebarMenuSub>
-                    </CollapsibleContent>
-                </SidebarMenuItem>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                    ))}
+                  </SidebarMenuSub>
+                </CollapsibleContent>
+              </SidebarMenuItem>
             </Collapsible>
           );
         }
@@ -171,10 +213,17 @@ export function SidebarNav() {
               isActive={isActive}
               tooltip={item.label}
             >
-              <Link href={item.href}>
-                <item.icon />
-                <span>{item.label}</span>
-              </Link>
+              {isSidebarCollapsed ? (
+                <div>
+                  <item.icon />
+                  <span>{item.label}</span>
+                </div>
+              ) : (
+                <Link href={item.href}>
+                  <item.icon />
+                  <span>{item.label}</span>
+                </Link>
+              )}
             </SidebarMenuButton>
           </SidebarMenuItem>
         );
