@@ -119,6 +119,7 @@ export default function DashboardPage() {
       description: `Across ${visibleProjects.length} projects`,
       icon: CircleDollarSign,
       iconColor: 'text-blue-500',
+      shapeColor: 'text-blue-500/10',
     },
     {
       title: 'Invoice Progress',
@@ -126,6 +127,7 @@ export default function DashboardPage() {
       description: 'Total invoices paid to date',
       icon: TrendingUp,
       iconColor: 'text-green-500',
+      shapeColor: 'text-green-500/10',
     },
     {
       title: 'Upcoming Tasks',
@@ -133,6 +135,7 @@ export default function DashboardPage() {
       description: 'Due within the next 30 days',
       icon: ListTodo,
       iconColor: 'text-amber-500',
+      shapeColor: 'text-amber-500/10',
     },
     {
       title: 'Project Expenditure',
@@ -140,6 +143,7 @@ export default function DashboardPage() {
       description: 'Total expenditure across all projects',
       icon: Receipt,
       iconColor: 'text-rose-500',
+      shapeColor: 'text-rose-500/10',
     },
   ];
 
@@ -158,7 +162,7 @@ export default function DashboardPage() {
         {widgetData.map((widget, index) => (
           <Card key={index} className="relative overflow-hidden">
             <svg
-                className="absolute -top-1 -right-1 h-24 w-24 text-muted/50"
+                className={`absolute -top-1 -right-1 h-24 w-24 ${widget.shapeColor}`}
                 fill="currentColor"
                 viewBox="0 0 200 200"
                 xmlns="http://www.w3.org/2000/svg"
