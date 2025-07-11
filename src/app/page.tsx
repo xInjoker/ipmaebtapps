@@ -153,7 +153,7 @@ export default function DashboardPage() {
             />
         </svg>
         <svg
-            className="absolute -right-16 -top-24 text-chart-3"
+            className="absolute -right-16 -top-24 text-warning"
             fill="currentColor"
             width="250"
             height="250"
