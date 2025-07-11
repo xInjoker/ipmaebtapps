@@ -15,6 +15,7 @@ import { formatCurrency } from '@/lib/utils';
 import { format, isSameDay, isWithinInterval, startOfDay, addDays } from 'date-fns';
 import { useAuth } from '@/context/AuthContext';
 import { Calendar } from '@/components/ui/calendar';
+import { cn } from '@/lib/utils';
 
 const getStatusVariant = (status: TenderStatus) => {
     switch (status) {
@@ -31,6 +32,18 @@ const getStatusVariant = (status: TenderStatus) => {
             return 'secondary';
     }
 };
+
+const eventColors = [
+    'bg-blue-100 dark:bg-blue-900/50',
+    'bg-green-100 dark:bg-green-900/50',
+    'bg-amber-100 dark:bg-amber-900/50',
+    'bg-rose-100 dark:bg-rose-900/50',
+    'bg-purple-100 dark:bg-purple-900/50',
+    'bg-teal-100 dark:bg-teal-900/50',
+];
+
+const getRandomColor = () => eventColors[Math.floor(Math.random() * eventColors.length)];
+
 
 export default function TendersPage() {
     const { tenders } = useTenders();
@@ -120,7 +133,7 @@ export default function TendersPage() {
     return (
         <div className="space-y-6">
             <Card className="relative overflow-hidden">
-                <svg
+                 <svg
                     className="absolute bottom-0 left-0 w-1/3 text-primary/5 -z-1"
                     viewBox="0 0 433 384"
                     fill="none"
@@ -188,6 +201,26 @@ export default function TendersPage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                  <div className="space-y-6">
+                     <Card>
+                        <CardHeader>
+                            <CardTitle>Upcoming 7 Days</CardTitle>
+                            <CardDescription>Tenders with submission deadlines in the next week.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            {upcomingTenders.length > 0 ? (
+                                <ul className="space-y-2 text-sm">
+                                    {upcomingTenders.map(tender => (
+                                        <li key={tender.id} className={cn("p-2 rounded-md", getRandomColor())}>
+                                            <p className="font-semibold">{tender.title}</p>
+                                            <p className="text-xs text-muted-foreground">{tender.client} &bull; Due: {format(new Date(tender.submissionDate), 'PPP')}</p>
+                                        </li>
+                                    ))}
+                                </ul>
+                            ) : (
+                                <p className="text-sm text-muted-foreground text-center py-4">No upcoming submissions in the next 7 days.</p>
+                            )}
+                        </CardContent>
+                    </Card>
                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2"><CalendarIcon className="h-5 w-5"/>Tender Calendar</CardTitle>
@@ -207,26 +240,6 @@ export default function TendersPage() {
                             />
                         </CardContent>
                     </Card>
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Upcoming 7 Days</CardTitle>
-                            <CardDescription>Tenders with submission deadlines in the next week.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            {upcomingTenders.length > 0 ? (
-                                <ul className="space-y-2 text-sm">
-                                    {upcomingTenders.map(tender => (
-                                        <li key={tender.id} className="p-2 rounded-md border bg-muted/50">
-                                            <p className="font-semibold">{tender.title}</p>
-                                            <p className="text-xs text-muted-foreground">{tender.client} &bull; Due: {format(new Date(tender.submissionDate), 'PPP')}</p>
-                                        </li>
-                                    ))}
-                                </ul>
-                            ) : (
-                                <p className="text-sm text-muted-foreground text-center py-4">No upcoming submissions in the next 7 days.</p>
-                            )}
-                        </CardContent>
-                    </Card>
                     {selectedDate && (
                         <Card>
                             <CardHeader>
@@ -236,7 +249,7 @@ export default function TendersPage() {
                                 {tendersForSelectedDate.length > 0 ? (
                                     <ul className="space-y-2 text-sm">
                                         {tendersForSelectedDate.map(tender => (
-                                            <li key={tender.id} className="p-2 rounded-md border bg-muted/50">
+                                            <li key={tender.id} className={cn("p-2 rounded-md", getRandomColor())}>
                                                 <p className="font-semibold">{tender.title}</p>
                                                 <p className="text-xs text-muted-foreground">{tender.client}</p>
                                             </li>
