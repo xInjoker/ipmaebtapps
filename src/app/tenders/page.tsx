@@ -36,7 +36,8 @@ export default function TendersPage() {
     const { tenders } = useTenders();
     const { branches } = useAuth();
     const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
-    
+    const [tendersForSelectedDate, setTendersForSelectedDate] = useState<typeof tenders>([]);
+
     const dashboardStats = useMemo(() => {
         const statusCounts = tenders.reduce((acc, tender) => {
             acc[tender.status] = (acc[tender.status] || 0) + 1;
@@ -97,12 +98,15 @@ export default function TendersPage() {
         return tenders.map(tender => new Date(tender.submissionDate));
     }, [tenders]);
 
-    const filteredTenders = useMemo(() => {
-        if (!selectedDate) {
-            return tenders;
+    const handleDateSelect = (date: Date | undefined) => {
+        setSelectedDate(date);
+        if (date) {
+            const eventsOnDate = tenders.filter(tender => isSameDay(new Date(tender.submissionDate), date));
+            setTendersForSelectedDate(eventsOnDate);
+        } else {
+            setTendersForSelectedDate([]);
         }
-        return tenders.filter(tender => isSameDay(new Date(tender.submissionDate), selectedDate));
-    }, [tenders, selectedDate]);
+    }
 
     return (
         <div className="space-y-6">
@@ -174,40 +178,57 @@ export default function TendersPage() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <Card>
-                    <CardHeader>
-                         <CardTitle className="flex items-center gap-2"><CalendarIcon className="h-5 w-5"/>Tender Calendar</CardTitle>
-                         <CardDescription>Upcoming tender submission deadlines.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="flex justify-center">
-                        <Calendar
-                            mode="single"
-                            selected={selectedDate}
-                            onSelect={setSelectedDate}
-                            modifiers={{
-                                due: submissionDates,
-                            }}
-                            modifiersClassNames={{
-                                due: 'bg-primary text-primary-foreground rounded-full',
-                            }}
-                        />
-                    </CardContent>
-                </Card>
+                 <div className="space-y-6">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2"><CalendarIcon className="h-5 w-5"/>Tender Calendar</CardTitle>
+                            <CardDescription>Click a date to see submission deadlines.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="flex justify-center">
+                            <Calendar
+                                mode="single"
+                                selected={selectedDate}
+                                onSelect={handleDateSelect}
+                                modifiers={{
+                                    due: submissionDates,
+                                }}
+                                modifiersClassNames={{
+                                    due: 'bg-primary text-primary-foreground rounded-full',
+                                }}
+                            />
+                        </CardContent>
+                    </Card>
+                    {selectedDate && (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Submissions on {format(selectedDate, 'PPP')}</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                {tendersForSelectedDate.length > 0 ? (
+                                    <ul className="space-y-2 text-sm">
+                                        {tendersForSelectedDate.map(tender => (
+                                            <li key={tender.id} className="p-2 rounded-md border bg-muted/50">
+                                                <p className="font-semibold">{tender.title}</p>
+                                                <p className="text-xs text-muted-foreground">{tender.client}</p>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                ) : (
+                                    <p className="text-sm text-muted-foreground">No tender submissions on this date.</p>
+                                )}
+                            </CardContent>
+                        </Card>
+                    )}
+                </div>
                 <Card className="lg:col-span-2">
                     <CardHeader>
                         <div className="flex justify-between items-center">
                             <div>
                                 <CardTitle>Tender List</CardTitle>
                                 <CardDescription>
-                                    {selectedDate ? `Showing tenders for ${format(selectedDate, 'PPP')}`: 'Showing all tenders'}
+                                    Showing all tenders.
                                 </CardDescription>
                             </div>
-                             {selectedDate && (
-                                <Button variant="outline" onClick={() => setSelectedDate(undefined)}>
-                                    <X className="mr-2 h-4 w-4" />
-                                    Clear Filter
-                                </Button>
-                            )}
                         </div>
                     </CardHeader>
                     <CardContent className="p-0">
@@ -226,8 +247,8 @@ export default function TendersPage() {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {filteredTenders.length > 0 ? (
-                                        filteredTenders.map((tender) => (
+                                    {tenders.length > 0 ? (
+                                        tenders.map((tender) => (
                                             <TableRow key={tender.id}>
                                                 <TableCell className="font-medium">{tender.title}</TableCell>
                                                 <TableCell>{tender.services || 'N/A'}</TableCell>
@@ -257,7 +278,7 @@ export default function TendersPage() {
                                     ) : (
                                         <TableRow>
                                             <TableCell colSpan={8} className="h-24 text-center">
-                                                No tenders found for the selected criteria.
+                                                No tenders found.
                                             </TableCell>
                                         </TableRow>
                                     )}
