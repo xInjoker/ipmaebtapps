@@ -237,11 +237,9 @@ export default function TendersPage() {
                                 <TableHeader>
                                     <TableRow>
                                         <TableHead>Tender Title</TableHead>
-                                        <TableHead>Services</TableHead>
                                         <TableHead>Client</TableHead>
                                         <TableHead>Branch</TableHead>
                                         <TableHead>Submission Date</TableHead>
-                                        <TableHead>Value</TableHead>
                                         <TableHead>Status</TableHead>
                                         <TableHead className="text-right">Actions</TableHead>
                                     </TableRow>
@@ -251,11 +249,9 @@ export default function TendersPage() {
                                         tenders.map((tender) => (
                                             <TableRow key={tender.id}>
                                                 <TableCell className="font-medium">{tender.title}</TableCell>
-                                                <TableCell>{tender.services || 'N/A'}</TableCell>
                                                 <TableCell>{tender.client}</TableCell>
                                                 <TableCell>{tender.branchId ? branchMap[tender.branchId] : 'N/A'}</TableCell>
                                                 <TableCell>{format(new Date(tender.submissionDate), 'PPP')}</TableCell>
-                                                <TableCell>{formatCurrency(tender.value)}</TableCell>
                                                 <TableCell>
                                                     <Badge variant={getStatusVariant(tender.status)}>{tender.status}</Badge>
                                                 </TableCell>
@@ -277,7 +273,7 @@ export default function TendersPage() {
                                         ))
                                     ) : (
                                         <TableRow>
-                                            <TableCell colSpan={8} className="h-24 text-center">
+                                            <TableCell colSpan={6} className="h-24 text-center">
                                                 No tenders found.
                                             </TableCell>
                                         </TableRow>
