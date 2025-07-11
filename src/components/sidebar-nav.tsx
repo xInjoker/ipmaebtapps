@@ -22,7 +22,6 @@ import {
   SidebarMenuItem,
   SidebarMenuSub,
   SidebarMenuSubButton,
-  SidebarMenuSubItem,
   useSidebar,
 } from '@/components/ui/sidebar';
 import { useProjects } from '@/context/ProjectContext';
@@ -169,17 +168,10 @@ export function SidebarNav() {
                     isActive={isActive}
                     tooltip={item.label}
                   >
-                    {isSidebarCollapsed ? (
-                      <div>
-                        <item.icon />
-                        <span>{item.label}</span>
-                      </div>
-                    ) : (
-                      <Link href={item.href}>
-                        <item.icon />
-                        <span>{item.label}</span>
-                      </Link>
-                    )}
+                    <Link href={item.href}>
+                      <item.icon />
+                      <span>{item.label}</span>
+                    </Link>
                   </SidebarMenuButton>
                   <CollapsibleTrigger asChild>
                     <Button
@@ -220,17 +212,10 @@ export function SidebarNav() {
               isActive={isActive}
               tooltip={item.label}
             >
-              {isSidebarCollapsed ? (
-                <div>
-                  <item.icon />
-                  <span>{item.label}</span>
-                </div>
-              ) : (
-                <Link href={item.href}>
-                  <item.icon />
-                  <span>{item.label}</span>
-                </Link>
-              )}
+              <Link href={item.href}>
+                <item.icon />
+                <span>{item.label}</span>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         );
