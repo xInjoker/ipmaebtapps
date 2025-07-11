@@ -444,7 +444,7 @@ const sidebarMenuButtonVariants = cva(
       },
       size: {
         default:
-          "h-10 w-full [&>svg]:size-4 [&>svg]:text-sidebar-accent-foreground group-data-[state=collapsed]:h-12 group-data-[state=collapsed]:w-12 group-data-[state=collapsed]:justify-center group-data-[state=collapsed]:p-0 group-data-[state=collapsed]:hover:bg-sidebar-accent group-data-[state=collapsed]:hover:text-sidebar-accent-foreground group-data-[state=collapsed]:data-[active=true]:bg-sidebar-primary group-data-[state=collapsed]:data-[active=true]:text-sidebar-primary-foreground group-data-[state=collapsed]:[&>span]:hidden",
+          "h-10 w-full [&>svg]:size-4 [&>svg]:text-sidebar-accent-foreground group-data-[state=collapsed]:h-12 group-data-[state=collapsed]:w-12 group-data-[state=collapsed]:justify-center group-data-[state=collapsed]:p-0 group-data-[state=collapsed]:hover:bg-sidebar-accent group-data-[state=collapsed]:hover:text-sidebar-accent-foreground group-data-[state=collapsed]:data-[active=true]:bg-sidebar-primary group-data-[state=collapsed]:data-[active=true]:text-sidebar-primary-foreground group-data-[state=collapsed]:[&>span]:hidden group-data-[state=collapsed]:[&>svg]:size-5",
       },
     },
     defaultVariants: {
