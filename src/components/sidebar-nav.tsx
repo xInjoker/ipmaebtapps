@@ -22,6 +22,7 @@ import {
   SidebarMenuItem,
   SidebarMenuSub,
   SidebarMenuSubButton,
+  SidebarMenuSubItem,
   useSidebar,
 } from '@/components/ui/sidebar';
 import { useProjects } from '@/context/ProjectContext';
@@ -155,8 +156,6 @@ export function SidebarNav() {
           (item.href === '/reports'
             ? pathname.startsWith('/reports')
             : isMainActive);
-
-        const isSidebarCollapsed = sidebarState === 'collapsed';
 
         if (item.isCollapsible && item.subItems && item.subItems.length > 0) {
           return (
