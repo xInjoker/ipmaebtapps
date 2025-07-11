@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { MoreHorizontal, PlusCircle, User, Users, CheckCircle, XCircle, Clock, Calendar as CalendarIcon } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, User, Users, CheckCircle, XCircle, Clock, Calendar as CalendarIcon, X } from 'lucide-react';
 import { useTenders } from '@/context/TenderContext';
 import { type TenderStatus } from '@/lib/tenders';
 import { formatCurrency } from '@/lib/utils';
@@ -174,6 +174,25 @@ export default function TendersPage() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <Card>
+                    <CardHeader>
+                         <CardTitle className="flex items-center gap-2"><CalendarIcon className="h-5 w-5"/>Tender Calendar</CardTitle>
+                         <CardDescription>Upcoming tender submission deadlines.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="flex justify-center">
+                        <Calendar
+                            mode="single"
+                            selected={selectedDate}
+                            onSelect={setSelectedDate}
+                            modifiers={{
+                                due: submissionDates,
+                            }}
+                            modifiersClassNames={{
+                                due: 'bg-primary/20 text-primary-foreground rounded-full',
+                            }}
+                        />
+                    </CardContent>
+                </Card>
                 <Card className="lg:col-span-2">
                     <CardHeader>
                         <div className="flex justify-between items-center">
@@ -185,7 +204,7 @@ export default function TendersPage() {
                             </div>
                              {selectedDate && (
                                 <Button variant="outline" onClick={() => setSelectedDate(undefined)}>
-                                    <XCircle className="mr-2 h-4 w-4" />
+                                    <X className="mr-2 h-4 w-4" />
                                     Clear Filter
                                 </Button>
                             )}
@@ -245,26 +264,6 @@ export default function TendersPage() {
                                 </TableBody>
                             </Table>
                         </div>
-                    </CardContent>
-                </Card>
-                
-                <Card>
-                    <CardHeader>
-                         <CardTitle className="flex items-center gap-2"><CalendarIcon className="h-5 w-5"/>Tender Calendar</CardTitle>
-                         <CardDescription>Upcoming tender submission deadlines.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="flex justify-center">
-                        <Calendar
-                            mode="single"
-                            selected={selectedDate}
-                            onSelect={setSelectedDate}
-                            modifiers={{
-                                due: submissionDates,
-                            }}
-                            modifiersClassNames={{
-                                due: 'bg-primary/20 text-primary-foreground rounded-full',
-                            }}
-                        />
                     </CardContent>
                 </Card>
             </div>
