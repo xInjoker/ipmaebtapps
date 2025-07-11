@@ -60,6 +60,41 @@ export default function UltrasonicTestListPage() {
     };
   }, [ultrasonicReports]);
   
+  const widgetData = [
+    {
+      title: 'Total Reports',
+      value: `${dashboardStats.totalReports}`,
+      description: 'reports generated',
+      icon: FileText,
+      iconColor: 'text-blue-500',
+      shapeColor: 'text-blue-500/10',
+    },
+    {
+      title: 'Total Joints Tested',
+      value: `${dashboardStats.totalJoints}`,
+      description: 'across all reports',
+      icon: Layers,
+      iconColor: 'text-green-500',
+      shapeColor: 'text-green-500/10',
+    },
+    {
+      title: 'Approved Reports',
+      value: `${dashboardStats.approved}`,
+      description: 'fully approved reports',
+      icon: CheckCircle,
+      iconColor: 'text-amber-500',
+      shapeColor: 'text-amber-500/10',
+    },
+    {
+      title: 'Pending Approval',
+      value: `${dashboardStats.submitted}`,
+      description: 'reports submitted',
+      icon: Clock,
+      iconColor: 'text-rose-500',
+      shapeColor: 'text-rose-500/10',
+    },
+  ];
+
   const handleConfirmDelete = () => {
     if (reportToDelete) {
       deleteReport(reportToDelete.id);
@@ -93,46 +128,33 @@ export default function UltrasonicTestListPage() {
         </Card>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Reports</CardTitle>
-                <FileText className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-xl sm:text-2xl font-bold">{dashboardStats.totalReports}</div>
-                <p className="text-xs text-muted-foreground">reports generated</p>
-              </CardContent>
+          {widgetData.map((widget, index) => (
+            <Card key={index} className="relative overflow-hidden">
+                <svg
+                    className={`absolute -top-1 -right-1 h-24 w-24 ${widget.shapeColor}`}
+                    fill="currentColor"
+                    viewBox="0 0 200 200"
+                    xmlns="http://www.w3.org/2000/svg"
+                >
+                    <path
+                    d="M62.3,-53.5C78.2,-41.5,86.8,-20.8,86.4,-0.4C86,20,76.6,40,61.9,54.1C47.2,68.2,27.1,76.4,5.4,75.3C-16.3,74.2,-32.7,63.7,-47.5,51.3C-62.3,38.8,-75.6,24.5,-80.5,6.7C-85.4,-11.1,-82,-32.5,-69.3,-45.5C-56.6,-58.5,-34.7,-63.1,-15.6,-64.3C3.5,-65.5,26.4,-65.5,43.2,-61.7C59.9,-57.9,59.9,-57.9,62.3,-53.5Z"
+                    transform="translate(100 100)"
+                    />
+                </svg>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">
+                        {widget.title}
+                    </CardTitle>
+                    <widget.icon className={`h-8 w-8 ${widget.iconColor}`} />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-xl font-bold font-headline sm:text-lg md:text-xl lg:text-2xl">{widget.value}</div>
+                    <p className="text-xs text-muted-foreground">
+                        {widget.description}
+                    </p>
+                </CardContent>
             </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Joints Tested</CardTitle>
-                <Layers className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-xl sm:text-2xl font-bold">{dashboardStats.totalJoints}</div>
-                <p className="text-xs text-muted-foreground">across all reports</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Approved Reports</CardTitle>
-                <CheckCircle className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-xl sm:text-2xl font-bold">{dashboardStats.approved}</div>
-                <p className="text-xs text-muted-foreground">fully approved reports</p>
-              </CardContent>
-            </Card>
-             <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Pending Approval</CardTitle>
-                <Clock className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-xl sm:text-2xl font-bold">{dashboardStats.submitted}</div>
-                <p className="text-xs text-muted-foreground">reports submitted</p>
-              </CardContent>
-            </Card>
+          ))}
         </div>
 
         <Card>
