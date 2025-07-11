@@ -86,18 +86,6 @@ export default function NewTenderPage() {
                 </CardHeader>
                 <CardContent className="grid gap-6 md:grid-cols-2">
                     <div className="space-y-2">
-                        <Label htmlFor="tenderNumber">Tender Number</Label>
-                        <Input id="tenderNumber" value={newTender.tenderNumber} onChange={e => setNewTender({ ...newTender, tenderNumber: e.target.value })} />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="title">Tender Title</Label>
-                        <Input id="title" value={newTender.title} onChange={e => setNewTender({ ...newTender, title: e.target.value })} />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="client">Client</Label>
-                        <Input id="client" value={newTender.client} onChange={e => setNewTender({ ...newTender, client: e.target.value })} />
-                    </div>
-                    <div className="space-y-2">
                         <Label htmlFor="subPortfolio">Sub-Portfolio</Label>
                         <Select value={newTender.subPortfolio} onValueChange={(value: SubPortfolio) => setNewTender({ ...newTender, subPortfolio: value })}>
                             <SelectTrigger id="subPortfolio"><SelectValue placeholder="Select sub-portfolio" /></SelectTrigger>
@@ -123,6 +111,18 @@ export default function NewTenderPage() {
                                 {branches.map(branch => <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>)}
                             </SelectContent>
                         </Select>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="tenderNumber">Tender Number</Label>
+                        <Input id="tenderNumber" value={newTender.tenderNumber} onChange={e => setNewTender({ ...newTender, tenderNumber: e.target.value })} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="title">Tender Title</Label>
+                        <Input id="title" value={newTender.title} onChange={e => setNewTender({ ...newTender, title: e.target.value })} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="client">Client</Label>
+                        <Input id="client" value={newTender.client} onChange={e => setNewTender({ ...newTender, client: e.target.value })} />
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="status">Status</Label>
