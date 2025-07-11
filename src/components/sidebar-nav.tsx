@@ -122,7 +122,7 @@ export function SidebarNav() {
                     <div className="relative">
                       <SidebarMenuButton
                         asChild
-                        isActive={isActive && item.href !== '/reports'}
+                        isActive={isActive}
                         tooltip={item.label}
                       >
                          <Link href={item.href}>
