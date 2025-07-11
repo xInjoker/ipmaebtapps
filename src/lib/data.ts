@@ -35,11 +35,8 @@ export type Project = {
   client: string;
   description: string;
   value: number;
-  cost: number;
-  invoiced: number;
   period: string;
   duration: string;
-  progress: number;
   serviceOrders: ServiceOrderItem[];
   invoices: InvoiceItem[];
   budgets: { [category: string]: number };
@@ -58,11 +55,8 @@ export const initialProjects: Project[] = [
     description:
       'A complete overhaul of the corporate website to improve user experience and modernize the design.',
     value: 2500000000,
-    cost: 1800000000,
-    invoiced: 2000000000,
     period: '2024-2025',
     duration: '12 Months',
-    progress: 75,
     serviceOrders: [
       { id: 1, soNumber: 'SO-001-A', description: 'Initial design consultation and mockups', date: '2024-01-10', value: 500000000 },
       { id: 2, soNumber: 'SO-001-B', description: 'Development and deployment sprints', date: '2024-03-15', value: 1500000000 },
@@ -134,11 +128,8 @@ export const initialProjects: Project[] = [
     description:
       'Development of a new cross-platform mobile application for internal use.',
     value: 5000000000,
-    cost: 3500000000,
-    invoiced: 2500000000,
     period: '2024-2026',
     duration: '24 Months',
-    progress: 40,
     serviceOrders: [
       { id: 1, soNumber: 'SO-002-A', description: 'Discovery & Planning', date: '2024-02-01', value: 1000000000 },
       { id: 2, soNumber: 'SO-002-B', description: 'UI/UX Design and Backend', date: '2024-04-15', value: 3000000000 },
@@ -210,11 +201,8 @@ export const initialProjects: Project[] = [
     description:
       'Building a scalable data platform to provide business intelligence insights.',
     value: 3200000000,
-    cost: 2800000000,
-    invoiced: 3000000000,
     period: '2023-2024',
     duration: '18 Months',
-    progress: 90,
     serviceOrders: [
       { id: 1, soNumber: 'SO-003-A', description: 'Cloud infrastructure setup and data pipeline implementation', date: '2023-11-20', value: 2500000000 },
       { id: 2, soNumber: 'SO-003-B', description: 'Dashboard development and user training', date: '2024-05-10', value: 700000000 },

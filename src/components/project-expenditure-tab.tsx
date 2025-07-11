@@ -76,7 +76,7 @@ export function ProjectExpenditureTab({ project, setProjects }: ProjectExpenditu
     });
 
     const [isEditExpenditureDialogOpen, setIsEditExpenditureDialogOpen] = useState(false);
-    const [expenditureToEdit, setExpenditureToEdit] = useState<ExpenditureItem | null>(null);
+    const [expenditureToEdit, setExpenditureToEdit] = useState<(ExpenditureItem & { month?: string, year?: string }) | null>(null);
 
     const handleBudgetChange = (category: string, value: number) => {
         setProjects(projects => projects.map(p => {

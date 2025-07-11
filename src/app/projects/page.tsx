@@ -44,7 +44,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
 export default function ProjectsPage() {
-  const { projects, setProjects } = useProjects();
+  const { projects, setProjects, getProjectStats } = useProjects();
   const { user, isHqUser, branches, userHasPermission } = useAuth();
   const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -105,25 +105,7 @@ export default function ProjectsPage() {
     });
   }, [projects, user, isHqUser, searchTerm, branchFilter]);
 
-  const { totalProjectValue, totalCost, totalInvoiced, totalPaid } = useMemo(() => {
-    const totalProjectValue = visibleProjects.reduce(
-      (acc, project) => acc + project.value,
-      0
-    );
-    const totalCost = visibleProjects.reduce((acc, project) => acc + project.cost, 0);
-    const totalInvoiced = visibleProjects.reduce(
-      (acc, project) => acc + project.invoiced,
-      0
-    );
-    const totalPaid = visibleProjects.reduce((acc, project) => {
-      const projectPaid = project.invoices
-        .filter((invoice) => invoice.status === 'Paid' || invoice.status === 'PAD')
-        .reduce((invoiceAcc, invoice) => invoiceAcc + invoice.value, 0);
-      return acc + projectPaid;
-    }, 0);
-
-    return { totalProjectValue, totalCost, totalInvoiced, totalPaid };
-  }, [visibleProjects]);
+  const { totalProjectValue, totalCost, totalInvoiced, totalPaid } = getProjectStats(visibleProjects);
 
     const widgetData = [
     {
@@ -238,9 +220,6 @@ export default function ProjectsPage() {
       contractExecutor: executorName,
       period,
       duration,
-      cost: 0,
-      invoiced: 0,
-      progress: 0,
       serviceOrders: [],
       invoices: [],
       budgets: {},
@@ -517,7 +496,8 @@ export default function ProjectsPage() {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {visibleProjects.length > 0 ? (
           visibleProjects.map((project) => {
-            const progress = project.value > 0 ? Math.round((project.invoiced / project.value) * 100) : 0;
+            const stats = getProjectStats([project]);
+            const progress = project.value > 0 ? Math.round((stats.totalInvoiced / project.value) * 100) : 0;
             return (
               <Card key={project.id}>
                 <CardHeader>

@@ -58,7 +58,7 @@ const upcomingTasks = [
 ];
 
 export default function DashboardPage() {
-  const { projects } = useProjects();
+  const { projects, getProjectStats } = useProjects();
   const { user, isHqUser, branches } = useAuth();
 
   const branchName = useMemo(() => {
@@ -74,22 +74,10 @@ export default function DashboardPage() {
   }, [projects, user, isHqUser]);
 
   const { totalProjectValue, totalPaid, totalExpenditure, costBreakdownData } = useMemo(() => {
-    const totalProjectValue = visibleProjects.reduce(
-        (acc, project) => acc + project.value,
-        0
-    );
-    
-    const totalPaid = visibleProjects.reduce((acc, project) => {
-        const projectPaid = project.invoices
-            .filter((invoice) => invoice.status === 'Paid' || invoice.status === 'PAD')
-            .reduce((invoiceAcc, invoice) => invoiceAcc + invoice.value, 0);
-        return acc + projectPaid;
-    }, 0);
+    const { totalProjectValue, totalPaid, totalCost } = getProjectStats(visibleProjects);
 
     const allExpenditures = visibleProjects.flatMap(p => p.expenditures.filter(e => e.status === 'Approved'));
     
-    const totalExpenditure = allExpenditures.reduce((acc, exp) => acc + exp.amount, 0);
-
     const costByCategory = allExpenditures.reduce((acc, item) => {
         acc[item.category] = (acc[item.category] || 0) + item.amount;
         return acc;
@@ -109,8 +97,8 @@ export default function DashboardPage() {
         return { name, value, color };
     });
 
-    return { totalProjectValue, totalPaid, totalExpenditure, costBreakdownData };
-  }, [visibleProjects]);
+    return { totalProjectValue, totalPaid, totalExpenditure: totalCost, costBreakdownData };
+  }, [visibleProjects, getProjectStats]);
 
   const widgetData = [
     {
