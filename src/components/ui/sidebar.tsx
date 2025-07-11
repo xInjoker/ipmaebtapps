@@ -398,7 +398,7 @@ const SidebarContent = React.forwardRef<
       initial={state}
       animate={controls}
       className={cn(
-        "flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[state=collapsed]:overflow-hidden mt-10",
+        "flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[state=collapsed]:overflow-hidden mt-8",
         className
       )}
       {...props}
