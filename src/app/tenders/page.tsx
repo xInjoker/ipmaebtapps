@@ -167,6 +167,7 @@ export default function TendersPage() {
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>Tender Title</TableHead>
+                                    <TableHead>Services</TableHead>
                                     <TableHead>Principal</TableHead>
                                     <TableHead>Client</TableHead>
                                     <TableHead>Branch</TableHead>
@@ -181,6 +182,7 @@ export default function TendersPage() {
                                     tenders.map((tender) => (
                                         <TableRow key={tender.id}>
                                             <TableCell className="font-medium">{tender.title}</TableCell>
+                                            <TableCell>{tender.services || 'N/A'}</TableCell>
                                             <TableCell>{tender.principal || 'N/A'}</TableCell>
                                             <TableCell>{tender.client}</TableCell>
                                             <TableCell>{tender.branchId ? branchMap[tender.branchId] : 'N/A'}</TableCell>
@@ -207,7 +209,7 @@ export default function TendersPage() {
                                     ))
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={8} className="h-24 text-center">
+                                        <TableCell colSpan={9} className="h-24 text-center">
                                             No tenders found.
                                         </TableCell>
                                     </TableRow>

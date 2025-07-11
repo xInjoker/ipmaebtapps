@@ -5,7 +5,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTenders, type Tender } from '@/context/TenderContext';
-import { tenderStatuses, regionalOptions, subPortfolioOptions, type TenderStatus, type Regional, type SubPortfolio } from '@/lib/tenders';
+import { tenderStatuses, regionalOptions, subPortfolioOptions, serviceOptions, type TenderStatus, type Regional, type SubPortfolio } from '@/lib/tenders';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -15,10 +15,11 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { ArrowLeft, Calendar as CalendarIcon, Save } from 'lucide-react';
+import { ArrowLeft, Calendar as CalendarIcon, Save, ChevronsUpDown, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { Textarea } from '@/components/ui/textarea';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 
 export default function NewTenderPage() {
     const router = useRouter();
@@ -26,12 +27,15 @@ export default function NewTenderPage() {
     const { toast } = useToast();
     const { branches } = useAuth();
 
+    const [isServicesPopoverOpen, setIsServicesPopoverOpen] = useState(false);
+
     const [newTender, setNewTender] = useState({
         tenderNumber: '',
         title: '',
         client: '',
         principal: '',
         description: '',
+        services: '',
         status: '' as TenderStatus | '',
         submissionDate: undefined as Date | undefined,
         value: 0,
@@ -58,6 +62,7 @@ export default function NewTenderPage() {
             client: newTender.client,
             principal: newTender.principal,
             description: newTender.description,
+            services: newTender.services,
             status: newTender.status as TenderStatus,
             submissionDate: format(newTender.submissionDate, 'yyyy-MM-dd'),
             value: newTender.value,
@@ -125,6 +130,54 @@ export default function NewTenderPage() {
                         <Label htmlFor="title">Tender Title</Label>
                         <Input id="title" value={newTender.title} onChange={e => setNewTender({ ...newTender, title: e.target.value })} />
                     </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="services">Services</Label>
+                        <Popover open={isServicesPopoverOpen} onOpenChange={setIsServicesPopoverOpen}>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    role="combobox"
+                                    aria-expanded={isServicesPopoverOpen}
+                                    className="w-full justify-between font-normal"
+                                >
+                                    {newTender.services || "Select or type a service..."}
+                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                <Command>
+                                    <CommandInput
+                                        placeholder="Search or type service..."
+                                        value={newTender.services}
+                                        onValueChange={(value) => setNewTender(prev => ({...prev, services: value}))}
+                                    />
+                                    <CommandList>
+                                        <CommandEmpty>No service found.</CommandEmpty>
+                                        <CommandGroup>
+                                            {serviceOptions.map((option) => (
+                                                <CommandItem
+                                                    key={option}
+                                                    value={option}
+                                                    onSelect={(currentValue) => {
+                                                        setNewTender(prev => ({ ...prev, services: currentValue === prev.services ? "" : currentValue }));
+                                                        setIsServicesPopoverOpen(false);
+                                                    }}
+                                                >
+                                                    <Check
+                                                        className={cn(
+                                                            "mr-2 h-4 w-4",
+                                                            newTender.services.toLowerCase() === option.toLowerCase() ? "opacity-100" : "opacity-0"
+                                                        )}
+                                                    />
+                                                    {option}
+                                                </CommandItem>
+                                            ))}
+                                        </CommandGroup>
+                                    </CommandList>
+                                </Command>
+                            </PopoverContent>
+                        </Popover>
+                    </div>
                     <div className="space-y-2">
                         <Label htmlFor="client">Client</Label>
                         <Input id="client" value={newTender.client} onChange={e => setNewTender({ ...newTender, client: e.target.value })} />
@@ -135,7 +188,7 @@ export default function NewTenderPage() {
                     </div>
                      <div className="space-y-2 md:col-span-2">
                         <Label htmlFor="description">Description</Label>
-                        <Textarea id="description" value={newTender.description} onChange={e => setNewTender({ ...newTender, description: e.target.valueAsNumber ? e.target.value : e.target.value })} />
+                        <Textarea id="description" value={newTender.description} onChange={(e) => setNewTender({ ...newTender, description: e.target.value })} />
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="status">Status</Label>
