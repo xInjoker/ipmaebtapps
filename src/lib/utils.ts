@@ -1,6 +1,8 @@
+
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 import { isPast, differenceInDays } from "date-fns";
+import type { TenderStatus } from "./tenders";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -129,3 +131,19 @@ export function formatQualificationName(name: string) {
         .replace(/level/i, 'Lvl') // Abbreviate "Level"
         .trim();
 }
+
+export function getTenderStatusVariant(status: TenderStatus) {
+    switch (status) {
+        case 'Awarded': return 'green' as const;
+        case 'Bidding':
+        case 'Evaluation':
+            return 'yellow';
+        case 'Aanwijzing':
+            return 'blue';
+        case 'Lost':
+        case 'Cancelled':
+            return 'destructive';
+        default:
+            return 'secondary' as const;
+    }
+};

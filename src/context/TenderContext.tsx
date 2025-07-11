@@ -8,6 +8,8 @@ type TenderContextType = {
   tenders: Tender[];
   setTenders: Dispatch<SetStateAction<Tender[]>>;
   addTender: (item: Tender) => void;
+  updateTender: (id: string, item: Tender) => void;
+  getTenderById: (id: string) => Tender | undefined;
 };
 
 const TenderContext = createContext<TenderContextType | undefined>(undefined);
@@ -18,9 +20,17 @@ export function TenderProvider({ children }: { children: ReactNode }) {
   const addTender = (item: Tender) => {
     setTenders(prev => [...prev, item]);
   };
+
+  const updateTender = (id: string, updatedItem: Tender) => {
+    setTenders(prev => prev.map(item => item.id === id ? updatedItem : item));
+  };
+
+  const getTenderById = (id: string) => {
+    return tenders.find(item => item.id === id);
+  };
   
   return (
-    <TenderContext.Provider value={{ tenders, setTenders, addTender }}>
+    <TenderContext.Provider value={{ tenders, setTenders, addTender, updateTender, getTenderById }}>
       {children}
     </TenderContext.Provider>
   );

@@ -7,19 +7,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuPortal, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { MoreHorizontal, PlusCircle, User, Users, CheckCircle, XCircle, Clock, Calendar as CalendarIcon, X } from 'lucide-react';
 import { useTenders } from '@/context/TenderContext';
-import { type TenderStatus } from '@/lib/tenders';
-import { formatCurrency } from '@/lib/utils';
-import { format, isSameDay, isWithinInterval, startOfDay, addDays } from 'date-fns';
+import { type TenderStatus, tenderStatuses } from '@/lib/tenders';
+import { format } from 'date-fns';
 import { useAuth } from '@/context/AuthContext';
 import { Calendar } from '@/components/ui/calendar';
-import { cn } from '@/lib/utils';
+import { isSameDay, isWithinInterval, startOfDay, addDays } from 'date-fns';
 
 const getStatusVariant = (status: TenderStatus) => {
     switch (status) {
-        case 'Awarded': return 'green';
+        case 'Awarded': return 'green' as const;
         case 'Bidding':
         case 'Evaluation':
             return 'yellow';
@@ -34,7 +33,7 @@ const getStatusVariant = (status: TenderStatus) => {
 };
 
 export default function TendersPage() {
-    const { tenders } = useTenders();
+    const { tenders, updateTender } = useTenders();
     const { branches } = useAuth();
     const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
     const [tendersForSelectedDate, setTendersForSelectedDate] = useState<typeof tenders>([]);
@@ -118,6 +117,13 @@ export default function TendersPage() {
         }
     }
 
+    const handleStatusUpdate = (tenderId: string, status: TenderStatus) => {
+        const tenderToUpdate = tenders.find(t => t.id === tenderId);
+        if (tenderToUpdate) {
+            updateTender(tenderId, { ...tenderToUpdate, status });
+        }
+    };
+
     return (
         <div className="space-y-6">
             <Card className="relative overflow-hidden">
@@ -188,8 +194,8 @@ export default function TendersPage() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                 <div className="space-y-6">
-                     <Card>
+                <div className="space-y-6">
+                    <Card>
                         <CardHeader>
                             <CardTitle>Upcoming 7 Days</CardTitle>
                             <CardDescription>Tenders with submission deadlines in the next week.</CardDescription>
@@ -294,8 +300,24 @@ export default function TendersPage() {
                                                             </Button>
                                                         </DropdownMenuTrigger>
                                                         <DropdownMenuContent align="end">
-                                                            <DropdownMenuItem disabled>View Details</DropdownMenuItem>
-                                                            <DropdownMenuItem disabled>Edit</DropdownMenuItem>
+                                                            <DropdownMenuItem asChild>
+                                                                <Link href={`/tenders/${tender.id}`}>View Details</Link>
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem asChild>
+                                                                <Link href={`/tenders/${tender.id}/edit`}>Edit</Link>
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuSub>
+                                                                <DropdownMenuSubTrigger>Update Status</DropdownMenuSubTrigger>
+                                                                <DropdownMenuPortal>
+                                                                    <DropdownMenuSubContent>
+                                                                        {tenderStatuses.map(status => (
+                                                                            <DropdownMenuItem key={status} onSelect={() => handleStatusUpdate(tender.id, status)}>
+                                                                                {status}
+                                                                            </DropdownMenuItem>
+                                                                        ))}
+                                                                    </DropdownMenuSubContent>
+                                                                </DropdownMenuPortal>
+                                                            </DropdownMenuSub>
                                                         </DropdownMenuContent>
                                                     </DropdownMenu>
                                                 </TableCell>
