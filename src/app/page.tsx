@@ -138,10 +138,10 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <Card>
+      <Card className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground">
         <CardHeader>
           <CardTitle>Welcome, {user?.name}</CardTitle>
-          <CardDescription>
+          <CardDescription className="text-primary-foreground/90">
             Here's an overview of your projects from {branchName}.
           </CardDescription>
         </CardHeader>
