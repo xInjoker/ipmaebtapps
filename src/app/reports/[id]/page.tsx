@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -331,6 +331,25 @@ const RadiographicTestResultsView = ({ details }: { details: Extract<ReportDetai
     )
 }
 
+const reportTypeMap = {
+    'Penetrant Test': {
+        DetailsCard: PenetrantTestDetailsCard,
+        ResultsView: PenetrantTestResultsView,
+    },
+    'Magnetic Particle Test': {
+        DetailsCard: MagneticParticleTestDetailsCard,
+        ResultsView: MagneticParticleTestResultsView,
+    },
+    'Ultrasonic Test': {
+        DetailsCard: UltrasonicTestDetailsCard,
+        ResultsView: UltrasonicTestResultsView,
+    },
+    'Radiographic Test': {
+        DetailsCard: RadiographicTestDetailsCard,
+        ResultsView: RadiographicTestResultsView,
+    },
+};
+
 // --- Main Page Component ---
 
 export default function ReportDetailsPage() {
@@ -360,40 +379,8 @@ export default function ReportDetailsPage() {
     const backPath = report.jobType.split(' ')[0].toLowerCase().replace(/[^a-z]/g, '');
     const details = report.details;
     const creator = report.approvalHistory?.[0];
-
-    const renderTestDetailsCard = () => {
-        if (!details) return null;
-        switch (details.jobType) {
-            case 'Penetrant Test':
-                return <PenetrantTestDetailsCard details={details} />;
-            case 'Magnetic Particle Test':
-                return <MagneticParticleTestDetailsCard details={details} />;
-            case 'Ultrasonic Test':
-                return <UltrasonicTestDetailsCard details={details} />;
-             case 'Radiographic Test':
-                return <RadiographicTestDetailsCard details={details} />;
-            default:
-                return null;
-        }
-    };
-
-    const renderResults = () => {
-        if (!details) {
-            return <p>This report type does not have a detailed view yet.</p>;
-        }
-        switch (details.jobType) {
-            case 'Penetrant Test':
-                return <PenetrantTestResultsView details={details} />;
-            case 'Magnetic Particle Test':
-                return <MagneticParticleTestResultsView details={details} />;
-            case 'Ultrasonic Test':
-                return <UltrasonicTestResultsView details={details} />;
-             case 'Radiographic Test':
-                return <RadiographicTestResultsView details={details} />;
-            default:
-                return <p>This report type does not have a detailed view yet.</p>;
-        }
-    };
+    
+    const ReportComponents = details?.jobType ? reportTypeMap[details.jobType] : null;
 
     return (
         <div className="space-y-6">
@@ -433,11 +420,23 @@ export default function ReportDetailsPage() {
                             {creator && <div><p className="font-medium text-muted-foreground">Created By</p><p>{`${creator.actorName} (${creator.actorRole})`}</p></div>}
                         </CardContent>
                     </Card>
-                    {renderTestDetailsCard()}
+                    {ReportComponents && 'DetailsCard' in ReportComponents && <ReportComponents.DetailsCard details={details as any} />}
                 </div>
 
-                {renderResults()}
+                {ReportComponents && 'ResultsView' in ReportComponents ? (
+                    <ReportComponents.ResultsView details={details as any} />
+                ) : (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Test Results</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <p>This report type does not have a detailed result view implemented yet.</p>
+                        </CardContent>
+                    </Card>
+                )}
             </div>
         </div>
     );
 }
+
