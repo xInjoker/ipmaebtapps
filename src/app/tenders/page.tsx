@@ -93,7 +93,29 @@ export default function TendersPage() {
 
     return (
         <div className="space-y-6">
-            <Card>
+            <Card className="relative overflow-hidden">
+                <svg
+                    className="absolute bottom-0 left-0 w-1/3 text-primary/5 -z-1"
+                    viewBox="0 0 433 384"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                >
+                    <path
+                        d="M382 314.5C232 458 55.5003 403 0.500244 314.5C-54.4998 226 103.5 125.5 103.5 0.500002"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                    />
+                    <path
+                        d="M325.5 383.5C175.5 527.5 -0.999756 472.5 -55.9998 384C-111 295.5 47 195 47 69.9999"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                    />
+                    <path
+                        d="M432.5 241C282.5 385 105.5 330 50.5 241C-4.5 152 153.5 52.5 153.5 -80"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                    />
+                </svg>
                 <CardHeader className="flex flex-row items-start justify-between">
                     <div className="space-y-1.5">
                         <CardTitle className="font-headline">Tender Monitoring</CardTitle>
@@ -145,6 +167,7 @@ export default function TendersPage() {
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>Tender Title</TableHead>
+                                    <TableHead>Principal</TableHead>
                                     <TableHead>Client</TableHead>
                                     <TableHead>Branch</TableHead>
                                     <TableHead>Submission Date</TableHead>
@@ -158,6 +181,7 @@ export default function TendersPage() {
                                     tenders.map((tender) => (
                                         <TableRow key={tender.id}>
                                             <TableCell className="font-medium">{tender.title}</TableCell>
+                                            <TableCell>{tender.principal || 'N/A'}</TableCell>
                                             <TableCell>{tender.client}</TableCell>
                                             <TableCell>{tender.branchId ? branchMap[tender.branchId] : 'N/A'}</TableCell>
                                             <TableCell>{format(new Date(tender.submissionDate), 'PPP')}</TableCell>
@@ -183,7 +207,7 @@ export default function TendersPage() {
                                     ))
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={7} className="h-24 text-center">
+                                        <TableCell colSpan={8} className="h-24 text-center">
                                             No tenders found.
                                         </TableCell>
                                     </TableRow>

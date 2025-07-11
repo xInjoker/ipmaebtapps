@@ -18,6 +18,7 @@ import { cn } from '@/lib/utils';
 import { ArrowLeft, Calendar as CalendarIcon, Save } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
+import { Textarea } from '@/components/ui/textarea';
 
 export default function NewTenderPage() {
     const router = useRouter();
@@ -29,6 +30,8 @@ export default function NewTenderPage() {
         tenderNumber: '',
         title: '',
         client: '',
+        principal: '',
+        description: '',
         status: '' as TenderStatus | '',
         submissionDate: undefined as Date | undefined,
         value: 0,
@@ -53,6 +56,8 @@ export default function NewTenderPage() {
             tenderNumber: newTender.tenderNumber,
             title: newTender.title,
             client: newTender.client,
+            principal: newTender.principal,
+            description: newTender.description,
             status: newTender.status as TenderStatus,
             submissionDate: format(newTender.submissionDate, 'yyyy-MM-dd'),
             value: newTender.value,
@@ -123,6 +128,14 @@ export default function NewTenderPage() {
                     <div className="space-y-2">
                         <Label htmlFor="client">Client</Label>
                         <Input id="client" value={newTender.client} onChange={e => setNewTender({ ...newTender, client: e.target.value })} />
+                    </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="principal">Principal</Label>
+                        <Input id="principal" value={newTender.principal} onChange={e => setNewTender({ ...newTender, principal: e.target.value })} />
+                    </div>
+                     <div className="space-y-2 md:col-span-2">
+                        <Label htmlFor="description">Description</Label>
+                        <Textarea id="description" value={newTender.description} onChange={e => setNewTender({ ...newTender, description: e.target.valueAsNumber ? e.target.value : e.target.value })} />
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="status">Status</Label>
