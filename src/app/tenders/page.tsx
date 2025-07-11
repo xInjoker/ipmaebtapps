@@ -33,18 +33,6 @@ const getStatusVariant = (status: TenderStatus) => {
     }
 };
 
-const eventColors = [
-    'bg-blue-100 dark:bg-blue-900/50',
-    'bg-green-100 dark:bg-green-900/50',
-    'bg-amber-100 dark:bg-amber-900/50',
-    'bg-rose-100 dark:bg-rose-900/50',
-    'bg-purple-100 dark:bg-purple-900/50',
-    'bg-teal-100 dark:bg-teal-900/50',
-];
-
-const getRandomColor = () => eventColors[Math.floor(Math.random() * eventColors.length)];
-
-
 export default function TendersPage() {
     const { tenders } = useTenders();
     const { branches } = useAuth();
@@ -210,7 +198,7 @@ export default function TendersPage() {
                             {upcomingTenders.length > 0 ? (
                                 <ul className="space-y-2 text-sm">
                                     {upcomingTenders.map(tender => (
-                                        <li key={tender.id} className={cn("p-2 rounded-md", getRandomColor())}>
+                                        <li key={tender.id} className="p-2 rounded-md bg-blue-500/10">
                                             <p className="font-semibold">{tender.title}</p>
                                             <p className="text-xs text-muted-foreground">{tender.client} &bull; Due: {format(new Date(tender.submissionDate), 'PPP')}</p>
                                         </li>
@@ -249,7 +237,7 @@ export default function TendersPage() {
                                 {tendersForSelectedDate.length > 0 ? (
                                     <ul className="space-y-2 text-sm">
                                         {tendersForSelectedDate.map(tender => (
-                                            <li key={tender.id} className={cn("p-2 rounded-md", getRandomColor())}>
+                                            <li key={tender.id} className="p-2 rounded-md bg-blue-500/10">
                                                 <p className="font-semibold">{tender.title}</p>
                                                 <p className="text-xs text-muted-foreground">{tender.client}</p>
                                             </li>
