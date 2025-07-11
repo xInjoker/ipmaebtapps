@@ -66,6 +66,12 @@ export function SidebarNav() {
       permission: 'view-dashboard',
     },
     {
+      href: '/tenders',
+      label: 'Tenders',
+      icon: FileText,
+      permission: 'manage-projects', // Re-using permission for now
+    },
+    {
       href: '/projects',
       label: 'Projects',
       icon: Briefcase,
@@ -75,12 +81,6 @@ export function SidebarNav() {
         label: project.contractNumber,
       })),
       isCollapsible: true,
-    },
-    {
-      href: '/tenders',
-      label: 'Tenders',
-      icon: FileText,
-      permission: 'manage-projects', // Re-using permission for now
     },
     {
       href: '/trips',
