@@ -28,6 +28,8 @@ import { useProjects } from '@/context/ProjectContext';
 import { useAuth } from '@/context/AuthContext';
 import { type Permission } from '@/lib/users';
 import { useMemo } from 'react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
+import { ChevronRight } from 'lucide-react';
 
 interface MenuItem {
     href: string;
@@ -35,6 +37,7 @@ interface MenuItem {
     icon: React.ElementType;
     permission: Permission;
     subItems?: { href: string; label: string; }[];
+    isCollapsible?: boolean;
 }
 
 export function SidebarNav() {
@@ -59,6 +62,7 @@ export function SidebarNav() {
         href: `/projects/${project.id}`,
         label: project.contractNumber,
       })),
+      isCollapsible: true,
     },
     {
       href: '/trips',
@@ -83,7 +87,8 @@ export function SidebarNav() {
         { href: '/reports/ultrasonic', label: 'Ultrasonic Test' },
         { href: '/reports/radiographic', label: 'Radiographic Test' },
         { href: '/reports/other', label: 'Other Methods' },
-      ]
+      ],
+      isCollapsible: true,
     },
     { href: '/equipment', label: 'Equipment', icon: Wrench, permission: 'view-equipment' },
     { href: '/inspectors', label: 'Inspectors', icon: Users2, permission: 'view-inspector' },
@@ -109,6 +114,53 @@ export function SidebarNav() {
           item.subItems?.some((sub: { href: string; }) => pathname === sub.href) ?? false;
         const isActive = isMainActive || areSubItemsActive;
 
+        if (item.isCollapsible && item.subItems && item.subItems.length > 0) {
+          return (
+            <Collapsible key={item.href} asChild>
+                 <SidebarMenuItem>
+                    <div className="relative">
+                      <SidebarMenuButton
+                        asChild
+                        isActive={isActive}
+                        tooltip={item.label}
+                      >
+                         <Link href={item.href}>
+                            <item.icon />
+                            <span>{item.label}</span>
+                          </Link>
+                      </SidebarMenuButton>
+                      <CollapsibleTrigger asChild>
+                          <Button
+                              variant="ghost"
+                              size="icon"
+                              className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 group-data-[state=collapsed]/sidebar-wrapper:hidden"
+                          >
+                              <ChevronRight className="h-4 w-4 transition-transform [&[data-state=open]]:rotate-90" />
+                              <span className="sr-only">Toggle</span>
+                          </Button>
+                      </CollapsibleTrigger>
+                    </div>
+                    <CollapsibleContent asChild>
+                        <SidebarMenuSub>
+                            {item.subItems.map((subItem) => (
+                            <SidebarMenuSubItem key={subItem.href}>
+                                <SidebarMenuSubButton
+                                asChild
+                                isActive={pathname === subItem.href}
+                                >
+                                <Link href={subItem.href}>
+                                    <span>{subItem.label}</span>
+                                </Link>
+                                </SidebarMenuSubButton>
+                            </SidebarMenuSubItem>
+                            ))}
+                        </SidebarMenuSub>
+                    </CollapsibleContent>
+                </SidebarMenuItem>
+            </Collapsible>
+          );
+        }
+
         return (
           <SidebarMenuItem key={item.href}>
             <SidebarMenuButton
@@ -121,23 +173,6 @@ export function SidebarNav() {
                 <span>{item.label}</span>
               </Link>
             </SidebarMenuButton>
-
-            {item.subItems && item.subItems.length > 0 && (
-              <SidebarMenuSub>
-                {item.subItems.map((subItem) => (
-                  <SidebarMenuSubItem key={subItem.href}>
-                    <SidebarMenuSubButton
-                      asChild
-                      isActive={pathname === subItem.href}
-                    >
-                      <Link href={subItem.href}>
-                        <span>{subItem.label}</span>
-                      </Link>
-                    </SidebarMenuSubButton>
-                  </SidebarMenuSubItem>
-                ))}
-              </SidebarMenuSub>
-            )}
           </SidebarMenuItem>
         );
       })}
