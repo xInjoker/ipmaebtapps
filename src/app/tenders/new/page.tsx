@@ -98,11 +98,11 @@ export default function NewTenderPage() {
                         <Input id="client" value={newTender.client} onChange={e => setNewTender({ ...newTender, client: e.target.value })} />
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="branch">Branch</Label>
-                        <Select value={newTender.branchId} onValueChange={(value) => setNewTender({ ...newTender, branchId: value })}>
-                            <SelectTrigger id="branch"><SelectValue placeholder="Select branch" /></SelectTrigger>
+                        <Label htmlFor="subPortfolio">Sub-Portfolio</Label>
+                        <Select value={newTender.subPortfolio} onValueChange={(value: SubPortfolio) => setNewTender({ ...newTender, subPortfolio: value })}>
+                            <SelectTrigger id="subPortfolio"><SelectValue placeholder="Select sub-portfolio" /></SelectTrigger>
                             <SelectContent>
-                                {branches.map(branch => <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>)}
+                                {subPortfolioOptions.map(option => <SelectItem key={option} value={option}>{option}</SelectItem>)}
                             </SelectContent>
                         </Select>
                     </div>
@@ -116,11 +116,11 @@ export default function NewTenderPage() {
                         </Select>
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="subPortfolio">Sub-Portfolio</Label>
-                        <Select value={newTender.subPortfolio} onValueChange={(value: SubPortfolio) => setNewTender({ ...newTender, subPortfolio: value })}>
-                            <SelectTrigger id="subPortfolio"><SelectValue placeholder="Select sub-portfolio" /></SelectTrigger>
+                        <Label htmlFor="branch">Branch</Label>
+                        <Select value={newTender.branchId} onValueChange={(value) => setNewTender({ ...newTender, branchId: value })}>
+                            <SelectTrigger id="branch"><SelectValue placeholder="Select branch" /></SelectTrigger>
                             <SelectContent>
-                                {subPortfolioOptions.map(option => <SelectItem key={option} value={option}>{option}</SelectItem>)}
+                                {branches.map(branch => <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>)}
                             </SelectContent>
                         </Select>
                     </div>
