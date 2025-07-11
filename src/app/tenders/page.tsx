@@ -13,6 +13,7 @@ import { useTenders } from '@/context/TenderContext';
 import { type TenderStatus } from '@/lib/tenders';
 import { formatCurrency } from '@/lib/utils';
 import { format } from 'date-fns';
+import { useAuth } from '@/context/AuthContext';
 
 const getStatusVariant = (status: TenderStatus) => {
     switch (status) {
@@ -32,6 +33,7 @@ const getStatusVariant = (status: TenderStatus) => {
 
 export default function TendersPage() {
     const { tenders } = useTenders();
+    const { branches } = useAuth();
     
     const dashboardStats = useMemo(() => {
         const statusCounts = tenders.reduce((acc, tender) => {
@@ -81,6 +83,13 @@ export default function TendersPage() {
             shapeColor: 'text-rose-500/10',
         },
     ];
+
+    const branchMap = useMemo(() => {
+        return branches.reduce((acc, branch) => {
+            acc[branch.id] = branch.name;
+            return acc;
+        }, {} as Record<string, string>);
+    }, [branches]);
 
     return (
         <div className="space-y-6">
@@ -137,6 +146,7 @@ export default function TendersPage() {
                                 <TableRow>
                                     <TableHead>Tender Title</TableHead>
                                     <TableHead>Client</TableHead>
+                                    <TableHead>Branch</TableHead>
                                     <TableHead>Submission Date</TableHead>
                                     <TableHead>Value</TableHead>
                                     <TableHead>Status</TableHead>
@@ -149,6 +159,7 @@ export default function TendersPage() {
                                         <TableRow key={tender.id}>
                                             <TableCell className="font-medium">{tender.title}</TableCell>
                                             <TableCell>{tender.client}</TableCell>
+                                            <TableCell>{tender.branchId ? branchMap[tender.branchId] : 'N/A'}</TableCell>
                                             <TableCell>{format(new Date(tender.submissionDate), 'PPP')}</TableCell>
                                             <TableCell>{formatCurrency(tender.value)}</TableCell>
                                             <TableCell>
@@ -172,7 +183,7 @@ export default function TendersPage() {
                                     ))
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={6} className="h-24 text-center">
+                                        <TableCell colSpan={7} className="h-24 text-center">
                                             No tenders found.
                                         </TableCell>
                                     </TableRow>

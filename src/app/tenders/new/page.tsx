@@ -5,24 +5,25 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTenders, type Tender } from '@/context/TenderContext';
-import { tenderStatuses, type TenderStatus } from '@/lib/tenders';
+import { tenderStatuses, regionalOptions, subPortfolioOptions, type TenderStatus, type Regional, type SubPortfolio } from '@/lib/tenders';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { ArrowLeft, Calendar as CalendarIcon, Save } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/context/AuthContext';
 
 export default function NewTenderPage() {
     const router = useRouter();
     const { addTender } = useTenders();
     const { toast } = useToast();
+    const { branches } = useAuth();
 
     const [newTender, setNewTender] = useState({
         tenderNumber: '',
@@ -32,6 +33,9 @@ export default function NewTenderPage() {
         submissionDate: undefined as Date | undefined,
         value: 0,
         personInCharge: '',
+        branchId: '',
+        regional: '' as Regional | '',
+        subPortfolio: '' as SubPortfolio | '',
     });
 
     const handleSave = () => {
@@ -53,6 +57,9 @@ export default function NewTenderPage() {
             submissionDate: format(newTender.submissionDate, 'yyyy-MM-dd'),
             value: newTender.value,
             personInCharge: newTender.personInCharge,
+            branchId: newTender.branchId,
+            regional: newTender.regional as Regional,
+            subPortfolio: newTender.subPortfolio as SubPortfolio,
         };
 
         addTender(newTenderData);
@@ -89,6 +96,33 @@ export default function NewTenderPage() {
                     <div className="space-y-2">
                         <Label htmlFor="client">Client</Label>
                         <Input id="client" value={newTender.client} onChange={e => setNewTender({ ...newTender, client: e.target.value })} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="branch">Branch</Label>
+                        <Select value={newTender.branchId} onValueChange={(value) => setNewTender({ ...newTender, branchId: value })}>
+                            <SelectTrigger id="branch"><SelectValue placeholder="Select branch" /></SelectTrigger>
+                            <SelectContent>
+                                {branches.map(branch => <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="regional">Regional</Label>
+                        <Select value={newTender.regional} onValueChange={(value: Regional) => setNewTender({ ...newTender, regional: value })}>
+                            <SelectTrigger id="regional"><SelectValue placeholder="Select region" /></SelectTrigger>
+                            <SelectContent>
+                                {regionalOptions.map(region => <SelectItem key={region} value={region}>{region}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="subPortfolio">Sub-Portfolio</Label>
+                        <Select value={newTender.subPortfolio} onValueChange={(value: SubPortfolio) => setNewTender({ ...newTender, subPortfolio: value })}>
+                            <SelectTrigger id="subPortfolio"><SelectValue placeholder="Select sub-portfolio" /></SelectTrigger>
+                            <SelectContent>
+                                {subPortfolioOptions.map(option => <SelectItem key={option} value={option}>{option}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="status">Status</Label>
@@ -129,7 +163,7 @@ export default function NewTenderPage() {
                         <Label htmlFor="value">Value (IDR)</Label>
                         <Input id="value" type="number" value={newTender.value || ''} onChange={e => setNewTender({ ...newTender, value: parseInt(e.target.value) || 0 })} />
                     </div>
-                    <div className="space-y-2 md:col-span-2">
+                    <div className="space-y-2">
                         <Label htmlFor="personInCharge">Person In Charge (PIC)</Label>
                         <Input id="personInCharge" value={newTender.personInCharge} onChange={e => setNewTender({ ...newTender, personInCharge: e.target.value })} />
                     </div>
