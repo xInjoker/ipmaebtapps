@@ -30,6 +30,7 @@ import { type Permission } from '@/lib/users';
 import { useMemo } from 'react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 import { ChevronRight } from 'lucide-react';
+import { Button } from './ui/button';
 
 interface MenuItem {
     href: string;
@@ -121,7 +122,7 @@ export function SidebarNav() {
                     <div className="relative">
                       <SidebarMenuButton
                         asChild
-                        isActive={isActive}
+                        isActive={isActive && item.href !== '/reports'}
                         tooltip={item.label}
                       >
                          <Link href={item.href}>
