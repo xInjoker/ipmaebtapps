@@ -77,6 +77,13 @@ export function SidebarNav() {
       label: 'Reporting', 
       icon: ClipboardEdit, 
       permission: 'manage-reports',
+      subItems: [
+        { href: '/reports/penetrant', label: 'Penetrant Test' },
+        { href: '/reports/magnetic', label: 'Magnetic Particle' },
+        { href: '/reports/ultrasonic', label: 'Ultrasonic Test' },
+        { href: '/reports/radiographic', label: 'Radiographic Test' },
+        { href: '/reports/other', label: 'Other Methods' },
+      ]
     },
     { href: '/equipment', label: 'Equipment', icon: Wrench, permission: 'view-equipment' },
     { href: '/inspectors', label: 'Inspectors', icon: Users2, permission: 'view-inspector' },
