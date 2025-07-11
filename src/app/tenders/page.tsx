@@ -12,7 +12,7 @@ import { MoreHorizontal, PlusCircle, User, Users, CheckCircle, XCircle, Clock, C
 import { useTenders } from '@/context/TenderContext';
 import { type TenderStatus } from '@/lib/tenders';
 import { formatCurrency } from '@/lib/utils';
-import { format, isSameDay } from 'date-fns';
+import { format, isSameDay, isWithinInterval, startOfDay, addDays } from 'date-fns';
 import { useAuth } from '@/context/AuthContext';
 import { Calendar } from '@/components/ui/calendar';
 
@@ -96,6 +96,15 @@ export default function TendersPage() {
     
     const submissionDates = useMemo(() => {
         return tenders.map(tender => new Date(tender.submissionDate));
+    }, [tenders]);
+
+    const upcomingTenders = useMemo(() => {
+        const today = startOfDay(new Date());
+        const nextSevenDays = addDays(today, 7);
+        return tenders.filter(tender => {
+            const submissionDate = new Date(tender.submissionDate);
+            return isWithinInterval(submissionDate, { start: today, end: nextSevenDays });
+        }).sort((a,b) => new Date(a.submissionDate).getTime() - new Date(b.submissionDate).getTime());
     }, [tenders]);
 
     const handleDateSelect = (date: Date | undefined) => {
@@ -196,6 +205,26 @@ export default function TendersPage() {
                                     due: 'bg-primary text-primary-foreground rounded-full',
                                 }}
                             />
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Upcoming 7 Days</CardTitle>
+                            <CardDescription>Tenders with submission deadlines in the next week.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            {upcomingTenders.length > 0 ? (
+                                <ul className="space-y-2 text-sm">
+                                    {upcomingTenders.map(tender => (
+                                        <li key={tender.id} className="p-2 rounded-md border bg-muted/50">
+                                            <p className="font-semibold">{tender.title}</p>
+                                            <p className="text-xs text-muted-foreground">{tender.client} &bull; Due: {format(new Date(tender.submissionDate), 'PPP')}</p>
+                                        </li>
+                                    ))}
+                                </ul>
+                            ) : (
+                                <p className="text-sm text-muted-foreground text-center py-4">No upcoming submissions in the next 7 days.</p>
+                            )}
                         </CardContent>
                     </Card>
                     {selectedDate && (
