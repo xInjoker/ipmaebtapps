@@ -110,10 +110,12 @@ export function SidebarNav() {
     <SidebarMenu>
       {accessibleMenuItems.map((item) => {
         const isMainActive =
-          item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
+          item.href === '/' ? pathname === '/' : pathname.startsWith(item.href) && item.href !== '/reports';
+        
         const areSubItemsActive =
           item.subItems?.some((sub: { href: string; }) => pathname === sub.href) ?? false;
-        const isActive = isMainActive || areSubItemsActive;
+        
+        const isActive = areSubItemsActive || (item.href === '/reports' ? pathname.startsWith('/reports') : isMainActive);
 
         if (item.isCollapsible && item.subItems && item.subItems.length > 0) {
           return (
