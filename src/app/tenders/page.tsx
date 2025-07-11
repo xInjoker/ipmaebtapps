@@ -188,7 +188,7 @@ export default function TendersPage() {
                                 due: submissionDates,
                             }}
                             modifiersClassNames={{
-                                due: 'bg-primary/20 text-primary-foreground rounded-full',
+                                due: 'bg-primary text-primary-foreground rounded-full',
                             }}
                         />
                     </CardContent>
