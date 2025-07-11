@@ -146,6 +146,16 @@ export const initialRoles: Role[] = [
     ],
     isEditable: true,
   },
+  {
+    id: 'tender-admin',
+    name: 'Tender Admin',
+    permissions: [
+      'view-dashboard',
+      'manage-projects', // Re-using for tender access
+      'view-profile',
+    ],
+    isEditable: true,
+  }
 ];
 
 export const initialUsers: User[] = [
@@ -159,4 +169,5 @@ export const initialUsers: User[] = [
   { id: 8, name: 'Inspector User', email: 'inspector@example.com', roleId: 'inspector', branchId: 'jakarta', avatarUrl: '' },
   { id: 9, name: 'Inspector1', email: 'inspector1@example.com', roleId: 'inspector', branchId: 'hq', avatarUrl: '' },
   { id: 10, name: 'Employee User', email: 'employee@example.com', roleId: 'employee', branchId: 'jakarta', avatarUrl: '' },
+  { id: 11, name: 'Tender Admin', email: 'tender@example.com', roleId: 'tender-admin', branchId: 'hq', avatarUrl: '' },
 ];

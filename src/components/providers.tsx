@@ -10,6 +10,7 @@ import { ColorThemeProvider } from "@/context/ThemeContext";
 import { ReportProvider } from "@/context/ReportContext";
 import { EmployeeProvider } from "@/context/EmployeeContext";
 import { TripProvider } from "@/context/TripContext";
+import { TenderProvider } from "@/context/TenderContext";
 import { ReactNode } from "react";
 
 export function Providers({ children }: { children: ReactNode }) {
@@ -22,7 +23,9 @@ export function Providers({ children }: { children: ReactNode }) {
               <InspectorProvider>
                 <ReportProvider>
                   <TripProvider>
-                    <EmployeeProvider>{children}</EmployeeProvider>
+                    <TenderProvider>
+                      <EmployeeProvider>{children}</EmployeeProvider>
+                    </TenderProvider>
                   </TripProvider>
                 </ReportProvider>
               </InspectorProvider>

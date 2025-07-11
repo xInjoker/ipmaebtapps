@@ -14,6 +14,7 @@ import {
   Users,
   Users2,
   Wrench,
+  FileText,
 } from 'lucide-react';
 import {
   SidebarMenu,
@@ -21,7 +22,6 @@ import {
   SidebarMenuItem,
   SidebarMenuSub,
   SidebarMenuSubButton,
-  SidebarMenuSubItem,
   useSidebar,
 } from '@/components/ui/sidebar';
 import { useProjects } from '@/context/ProjectContext';
@@ -74,6 +74,12 @@ export function SidebarNav() {
         label: project.contractNumber,
       })),
       isCollapsible: true,
+    },
+    {
+      href: '/tenders',
+      label: 'Tenders',
+      icon: FileText,
+      permission: 'manage-projects', // Re-using permission for now
     },
     {
       href: '/trips',

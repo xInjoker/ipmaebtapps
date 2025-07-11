@@ -1,0 +1,187 @@
+
+'use client';
+
+import { useState, useMemo } from 'react';
+import Link from 'next/link';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { MoreHorizontal, PlusCircle, User, Users, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { useTenders } from '@/context/TenderContext';
+import { type TenderStatus } from '@/lib/tenders';
+import { formatCurrency } from '@/lib/utils';
+import { format } from 'date-fns';
+
+const getStatusVariant = (status: TenderStatus) => {
+    switch (status) {
+        case 'Awarded': return 'green';
+        case 'Bidding':
+        case 'Evaluation':
+            return 'yellow';
+        case 'Aanwijzing':
+            return 'blue';
+        case 'Lost':
+        case 'Cancelled':
+            return 'destructive';
+        default:
+            return 'secondary';
+    }
+};
+
+export default function TendersPage() {
+    const { tenders } = useTenders();
+    
+    const dashboardStats = useMemo(() => {
+        const statusCounts = tenders.reduce((acc, tender) => {
+            acc[tender.status] = (acc[tender.status] || 0) + 1;
+            return acc;
+        }, {} as Record<TenderStatus, number>);
+
+        return {
+            totalTenders: tenders.length,
+            inProgress: (statusCounts['Aanwijzing'] || 0) + (statusCounts['Bidding'] || 0) + (statusCounts['Evaluation'] || 0),
+            awarded: statusCounts['Awarded'] || 0,
+            lostOrCancelled: (statusCounts['Lost'] || 0) + (statusCounts['Cancelled'] || 0),
+        };
+    }, [tenders]);
+    
+    const widgetData = [
+        {
+            title: 'Total Tenders',
+            value: `${dashboardStats.totalTenders}`,
+            description: 'tenders being tracked',
+            icon: Users,
+            iconColor: 'text-blue-500',
+            shapeColor: 'text-blue-500/10',
+        },
+        {
+            title: 'In Progress',
+            value: `${dashboardStats.inProgress}`,
+            description: 'tenders currently active',
+            icon: Clock,
+            iconColor: 'text-amber-500',
+            shapeColor: 'text-amber-500/10',
+        },
+        {
+            title: 'Awarded',
+            value: `${dashboardStats.awarded}`,
+            description: 'tenders successfully won',
+            icon: CheckCircle,
+            iconColor: 'text-green-500',
+            shapeColor: 'text-green-500/10',
+        },
+        {
+            title: 'Lost / Cancelled',
+            value: `${dashboardStats.lostOrCancelled}`,
+            description: 'tenders not won or cancelled',
+            icon: XCircle,
+            iconColor: 'text-rose-500',
+            shapeColor: 'text-rose-500/10',
+        },
+    ];
+
+    return (
+        <div className="space-y-6">
+            <Card>
+                <CardHeader className="flex flex-row items-start justify-between">
+                    <div className="space-y-1.5">
+                        <CardTitle className="font-headline">Tender Monitoring</CardTitle>
+                        <CardDescription>Track and manage all ongoing and past tenders.</CardDescription>
+                    </div>
+                    <Button asChild>
+                        <Link href="/tenders/new">
+                            <PlusCircle className="mr-2 h-4 w-4" />
+                            Add New Tender
+                        </Link>
+                    </Button>
+                </CardHeader>
+            </Card>
+
+             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                {widgetData.map((widget, index) => (
+                <Card key={index} className="relative overflow-hidden">
+                    <svg
+                        className={`absolute -top-1 -right-1 h-24 w-24 ${widget.shapeColor}`}
+                        fill="currentColor"
+                        viewBox="0 0 200 200"
+                        xmlns="http://www.w3.org/2000/svg"
+                    >
+                        <path
+                        d="M62.3,-53.5C78.2,-41.5,86.8,-20.8,86.4,-0.4C86,20,76.6,40,61.9,54.1C47.2,68.2,27.1,76.4,5.4,75.3C-16.3,74.2,-32.7,63.7,-47.5,51.3C-62.3,38.8,-75.6,24.5,-80.5,6.7C-85.4,-11.1,-82,-32.5,-69.3,-45.5C-56.6,-58.5,-34.7,-63.1,-15.6,-64.3C3.5,-65.5,26.4,-65.5,43.2,-61.7C59.9,-57.9,59.9,-57.9,62.3,-53.5Z"
+                        transform="translate(100 100)"
+                        />
+                    </svg>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">
+                            {widget.title}
+                        </CardTitle>
+                        <widget.icon className={`h-8 w-8 ${widget.iconColor}`} />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-xl font-bold font-headline sm:text-lg md:text-xl lg:text-2xl">{widget.value}</div>
+                        <p className="text-xs text-muted-foreground">
+                            {widget.description}
+                        </p>
+                    </CardContent>
+                </Card>
+                ))}
+            </div>
+
+            <Card>
+                <CardContent className="p-0">
+                    <div className="rounded-md border-0">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Tender Title</TableHead>
+                                    <TableHead>Client</TableHead>
+                                    <TableHead>Submission Date</TableHead>
+                                    <TableHead>Value</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead className="text-right">Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {tenders.length > 0 ? (
+                                    tenders.map((tender) => (
+                                        <TableRow key={tender.id}>
+                                            <TableCell className="font-medium">{tender.title}</TableCell>
+                                            <TableCell>{tender.client}</TableCell>
+                                            <TableCell>{format(new Date(tender.submissionDate), 'PPP')}</TableCell>
+                                            <TableCell>{formatCurrency(tender.value)}</TableCell>
+                                            <TableCell>
+                                                <Badge variant={getStatusVariant(tender.status)}>{tender.status}</Badge>
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button variant="ghost" className="h-8 w-8 p-0">
+                                                            <span className="sr-only">Open menu</span>
+                                                            <MoreHorizontal className="h-4 w-4" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <DropdownMenuItem disabled>View Details</DropdownMenuItem>
+                                                        <DropdownMenuItem disabled>Edit</DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                    <TableRow>
+                                        <TableCell colSpan={6} className="h-24 text-center">
+                                            No tenders found.
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
+    );
+}
