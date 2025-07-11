@@ -6,6 +6,7 @@ import { UserNav } from '@/components/user-nav';
 import { NotificationNav } from './notification-nav';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
+import { ThemeToggle } from './theme-toggle';
 
 export function SiteHeader() {
   return (
@@ -25,6 +26,7 @@ export function SiteHeader() {
           </div>
         </form>
         <NotificationNav />
+        <ThemeToggle />
         <UserNav />
       </div>
     </header>
