@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useTenders } from '@/context/TenderContext';
@@ -32,6 +32,19 @@ import { useAuth } from '@/context/AuthContext';
 import { type Tender } from '@/lib/tenders';
 import { formatCurrency, getTenderStatusVariant } from '@/lib/utils';
 
+function DetailItem({ icon: Icon, label, value }: { icon: React.ElementType, label: string, value?: React.ReactNode }) {
+    if (!value) return null;
+    return (
+        <div className="flex items-start gap-4">
+            <Icon className="h-5 w-5 text-muted-foreground mt-1 flex-shrink-0" />
+            <div>
+                <p className="text-sm text-muted-foreground">{label}</p>
+                <div className="font-medium">{value}</div>
+            </div>
+        </div>
+    );
+}
+
 export default function TenderDetailsPage() {
   const router = useRouter();
   const params = useParams();
@@ -47,12 +60,10 @@ export default function TenderDetailsPage() {
     }
   }, [params.id, getTenderById]);
 
-  const branchMap = useMemo(() => {
-    return branches.reduce((acc, branch) => {
-      acc[branch.id] = branch.name;
-      return acc;
-    }, {} as Record<string, string>);
-  }, [branches]);
+  const branchMap = branches.reduce((acc, branch) => {
+    acc[branch.id] = branch.name;
+    return acc;
+  }, {} as Record<string, string>);
   
   if (!tender) {
     return (
@@ -66,19 +77,6 @@ export default function TenderDetailsPage() {
           </Link>
         </Button>
       </div>
-    );
-  }
-
-  const DetailItem = ({ icon: Icon, label, value }: { icon: React.ElementType, label: string, value?: React.ReactNode }) => {
-    if (!value) return null;
-    return (
-        <div className="flex items-start gap-4">
-            <Icon className="h-5 w-5 text-muted-foreground mt-1 flex-shrink-0" />
-            <div>
-                <p className="text-sm text-muted-foreground">{label}</p>
-                <div className="font-medium">{value}</div>
-            </div>
-        </div>
     );
   }
 

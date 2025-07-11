@@ -15,22 +15,7 @@ import { format } from 'date-fns';
 import { useAuth } from '@/context/AuthContext';
 import { Calendar } from '@/components/ui/calendar';
 import { isSameDay, isWithinInterval, startOfDay, addDays } from 'date-fns';
-
-const getStatusVariant = (status: TenderStatus) => {
-    switch (status) {
-        case 'Awarded': return 'green' as const;
-        case 'Bidding':
-        case 'Evaluation':
-            return 'yellow';
-        case 'Aanwijzing':
-            return 'blue';
-        case 'Lost':
-        case 'Cancelled':
-            return 'destructive';
-        default:
-            return 'secondary';
-    }
-};
+import { getTenderStatusVariant } from '@/lib/utils';
 
 export default function TendersPage() {
     const { tenders, updateTender } = useTenders();
@@ -289,7 +274,7 @@ export default function TendersPage() {
                                                 <TableCell>{tender.branchId ? branchMap[tender.branchId] : 'N/A'}</TableCell>
                                                 <TableCell>{format(new Date(tender.submissionDate), 'PPP')}</TableCell>
                                                 <TableCell>
-                                                    <Badge variant={getStatusVariant(tender.status)}>{tender.status}</Badge>
+                                                    <Badge variant={getTenderStatusVariant(tender.status)}>{tender.status}</Badge>
                                                 </TableCell>
                                                 <TableCell className="text-right">
                                                     <DropdownMenu>

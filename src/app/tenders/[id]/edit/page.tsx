@@ -68,6 +68,8 @@ export default function EditTenderPage() {
         return <div>Loading...</div>;
     }
 
+    const isNew = !tender.id;
+
     return (
         <div className="space-y-6">
             <Card>
