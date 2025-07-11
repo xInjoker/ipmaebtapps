@@ -1,7 +1,7 @@
 
 
-export type TenderStatus = 'Aanwijzing' | 'Bidding' | 'Evaluation' | 'Awarded' | 'Lost' | 'Cancelled';
-export type Regional = 'West Region' | 'East Region';
+export type TenderStatus = 'Aanwijzing' | 'Bidding' | 'Evaluation' | 'Awarded' | 'Lost' | 'Cancelled' | 'Prequalification';
+export type Regional = 'West Region' | 'East Region' | 'Headquarter';
 export type SubPortfolio = 'IAPPM' | 'EBT';
 
 export type Tender = {
@@ -21,8 +21,8 @@ export type Tender = {
   subPortfolio?: SubPortfolio;
 };
 
-export const tenderStatuses: TenderStatus[] = ['Aanwijzing', 'Bidding', 'Evaluation', 'Awarded', 'Lost', 'Cancelled'];
-export const regionalOptions: Regional[] = ['West Region', 'East Region'];
+export const tenderStatuses: TenderStatus[] = ['Aanwijzing', 'Bidding', 'Evaluation', 'Awarded', 'Lost', 'Cancelled', 'Prequalification'];
+export const regionalOptions: Regional[] = ['West Region', 'East Region', 'Headquarter'];
 export const subPortfolioOptions: SubPortfolio[] = ['IAPPM', 'EBT'];
 export const serviceOptions: string[] = ['NDT Services', 'Professional Services', 'Certification Services'];
 
@@ -33,3 +33,4 @@ export const initialTenders: Tender[] = [
     { id: 'TND-004', tenderNumber: 'TND-2023-105', title: 'Drill Pipe Inspection Services', client: 'ExxonMobil Cepu Limited', principal: 'ExxonMobil', description: 'Inspection services for drill pipes.', services: 'Certification Services', status: 'Awarded', submissionDate: '2023-12-20', value: 12000000000, personInCharge: 'Eko Wahyudi', branchId: 'pekanbaru', regional: 'West Region', subPortfolio: 'IAPPM' },
     { id: 'TND-005', tenderNumber: 'TND-2024-005', title: 'NDT for New Facility', client: 'PT Chevron Pacific Indonesia', principal: 'Chevron', description: 'Non-destructive testing for a new facility.', services: 'NDT Services', status: 'Lost', submissionDate: '2024-06-10', value: 18000000000, personInCharge: 'Citra Dewi', branchId: 'balikpapan', regional: 'East Region', subPortfolio: 'EBT' },
 ];
+
