@@ -168,7 +168,6 @@ export default function TendersPage() {
                                 <TableRow>
                                     <TableHead>Tender Title</TableHead>
                                     <TableHead>Services</TableHead>
-                                    <TableHead>Principal</TableHead>
                                     <TableHead>Client</TableHead>
                                     <TableHead>Branch</TableHead>
                                     <TableHead>Submission Date</TableHead>
@@ -183,7 +182,6 @@ export default function TendersPage() {
                                         <TableRow key={tender.id}>
                                             <TableCell className="font-medium">{tender.title}</TableCell>
                                             <TableCell>{tender.services || 'N/A'}</TableCell>
-                                            <TableCell>{tender.principal || 'N/A'}</TableCell>
                                             <TableCell>{tender.client}</TableCell>
                                             <TableCell>{tender.branchId ? branchMap[tender.branchId] : 'N/A'}</TableCell>
                                             <TableCell>{format(new Date(tender.submissionDate), 'PPP')}</TableCell>
@@ -209,7 +207,7 @@ export default function TendersPage() {
                                     ))
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={9} className="h-24 text-center">
+                                        <TableCell colSpan={8} className="h-24 text-center">
                                             No tenders found.
                                         </TableCell>
                                     </TableRow>
