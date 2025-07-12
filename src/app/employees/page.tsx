@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
@@ -69,16 +69,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useProjects } from '@/context/ProjectContext';
 
 const allEmployeeFields = Object.keys(employeeFieldLabels) as (keyof Employee)[];
 
 export default function EmployeesPage() {
   useSearchParams();
   const { employees, addEmployee, deleteEmployee } = useEmployees();
-  const { userHasPermission, branches } = useAuth();
+  const { user, isHqUser, userHasPermission, branches } = useAuth();
+  const { projects } = useProjects();
   const { toast } = useToast();
   const router = useRouter();
   const [isClient, setIsClient] = useState(false);
+  const initialFilterSet = useRef(false);
 
   useEffect(() => {
     setIsClient(true);
@@ -101,6 +104,14 @@ export default function EmployeesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [branchFilter, setBranchFilter] = useState('all');
+  const [projectFilter, setProjectFilter] = useState('all');
+  
+  useEffect(() => {
+    if (user && !isHqUser && !initialFilterSet.current) {
+        setBranchFilter(user.branchId);
+        initialFilterSet.current = true;
+    }
+  }, [user, isHqUser]);
 
   const filteredEmployees = useMemo(() => {
     return employees.filter((emp) => {
@@ -113,10 +124,12 @@ export default function EmployeesPage() {
         statusFilter === 'all' || emp.employmentStatus === statusFilter;
       const branchMatch =
         branchFilter === 'all' || emp.workUnit === branchFilter;
+      const projectMatch =
+        projectFilter === 'all' || emp.projectName === projectFilter;
 
-      return searchMatch && statusMatch && branchMatch;
+      return searchMatch && statusMatch && branchMatch && projectMatch;
     });
-  }, [employees, searchTerm, statusFilter, branchFilter]);
+  }, [employees, searchTerm, statusFilter, branchFilter, projectFilter]);
 
   const handleDeleteRequest = (employee: Employee) => {
     setEmployeeToDelete(employee);
@@ -184,7 +197,10 @@ export default function EmployeesPage() {
   const handleClearFilters = () => {
     setSearchTerm('');
     setStatusFilter('all');
-    setBranchFilter('all');
+    setProjectFilter('all');
+    if (isHqUser) {
+        setBranchFilter('all');
+    }
   };
 
   const employmentStatuses: Employee['employmentStatus'][] = [
@@ -269,7 +285,7 @@ export default function EmployeesPage() {
                     )}
                   </SelectContent>
                 </Select>
-                <Select value={branchFilter} onValueChange={setBranchFilter}>
+                <Select value={branchFilter} onValueChange={setBranchFilter} disabled={!isHqUser}>
                   <SelectTrigger className="w-full sm:w-[160px]">
                     <SelectValue placeholder="Filter by work unit" />
                   </SelectTrigger>
@@ -278,6 +294,19 @@ export default function EmployeesPage() {
                     {branches.map((branch) => (
                       <SelectItem key={branch.id} value={branch.id}>
                         {branch.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={projectFilter} onValueChange={setProjectFilter}>
+                  <SelectTrigger className="w-full sm:w-[160px]">
+                    <SelectValue placeholder="Filter by project" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Projects</SelectItem>
+                    {projects.map((project) => (
+                      <SelectItem key={project.id} value={project.name}>
+                        {project.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
