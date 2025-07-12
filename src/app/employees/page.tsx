@@ -138,6 +138,20 @@ export default function EmployeesPage() {
     });
   }, [employees, searchTerm, statusFilter, branchFilter, projectFilter, isHqUser, user]);
 
+  const projectsForFilter = useMemo(() => {
+    if (branchFilter === 'all') {
+      return projects;
+    }
+    return projects.filter(p => p.branchId === branchFilter);
+  }, [projects, branchFilter]);
+
+  useEffect(() => {
+    // If the currently selected project is not in the new list of available projects, reset the filter.
+    if (projectFilter !== 'all' && !projectsForFilter.some(p => p.name === projectFilter)) {
+        setProjectFilter('all');
+    }
+  }, [projectsForFilter, projectFilter]);
+
   const handleDeleteRequest = (employee: Employee) => {
     setEmployeeToDelete(employee);
     setIsDeleteDialogOpen(true);
@@ -311,7 +325,7 @@ export default function EmployeesPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Projects</SelectItem>
-                    {projects.map((project) => (
+                    {projectsForFilter.map((project) => (
                       <SelectItem key={project.id} value={project.name}>
                         {project.name}
                       </SelectItem>
