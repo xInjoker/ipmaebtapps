@@ -389,7 +389,7 @@ const SidebarMenuItem = React.forwardRef<
 SidebarMenuItem.displayName = "SidebarMenuItem"
 
 const sidebarMenuButtonVariants = cva(
-  "peer/menu-button flex items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-none ring-sidebar-ring transition-[width,height,padding] duration-200 hover:bg-sidebar-accent focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-sidebar-primary data-[active=true]:font-medium data-[active=true]:text-sidebar-primary-foreground data-[active=true]:[&>svg]:text-sidebar-primary-foreground data-[state=open]:hover:bg-sidebar-accent",
+  "peer/menu-button flex h-10 w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-none ring-sidebar-ring transition-[width,height,padding] duration-200 hover:bg-sidebar-accent focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-sidebar-primary data-[active=true]:font-medium data-[active=true]:text-sidebar-primary-foreground data-[active=true]:[&>svg]:text-sidebar-primary-foreground data-[state=open]:hover:bg-sidebar-accent group-data-[state=collapsed]/sidebar-wrapper:h-12 group-data-[state=collapsed]/sidebar-wrapper:w-12 group-data-[state=collapsed]/sidebar-wrapper:justify-center group-data-[state=collapsed]/sidebar-wrapper:p-0 group-data-[state=collapsed]/sidebar-wrapper:[&_svg]:size-5 group-data-[state=collapsed]/sidebar-wrapper:hover:bg-sidebar-accent group-data-[state=collapsed]/sidebar-wrapper:hover:text-sidebar-accent-foreground group-data-[state=collapsed]/sidebar-wrapper:data-[active=true]:bg-sidebar-primary",
   {
     variants: {
       variant: {
@@ -398,8 +398,7 @@ const sidebarMenuButtonVariants = cva(
           "bg-background shadow-[0_0_0_1px_hsl(var(--sidebar-border))] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-[0_0_0_1px_hsl(var(--sidebar-accent))]",
       },
       size: {
-        default:
-          "h-10 w-full group-data-[state=expanded]/sidebar-wrapper:[&>svg]:size-5 group-data-[state=collapsed]/sidebar-wrapper:h-12 group-data-[state=collapsed]/sidebar-wrapper:w-12 group-data-[state=collapsed]/sidebar-wrapper:justify-center group-data-[state=collapsed]/sidebar-wrapper:p-0 group-data-[state=collapsed]/sidebar-wrapper:hover:bg-sidebar-accent group-data-[state=collapsed]/sidebar-wrapper:hover:text-sidebar-accent-foreground group-data-[state=collapsed]/sidebar-wrapper:data-[active=true]:bg-sidebar-primary group-data-[state=collapsed]/sidebar-wrapper:[&>svg]:size-5",
+        default: "",
       },
     },
     defaultVariants: {
@@ -432,32 +431,6 @@ const SidebarMenuButton = React.forwardRef<
   ) => {
     const Comp = asChild ? Slot : "button"
     const { isMobile, state } = useSidebar()
-    const controls = useAnimationControls()
-
-    React.useEffect(() => {
-      void controls.start(state)
-    }, [state, controls])
-
-    const contentVariants = {
-      expanded: {
-        opacity: 1,
-        transition: {
-          type: "spring",
-          stiffness: 400,
-          damping: 40,
-          delay: 0.1,
-        },
-      },
-      collapsed: {
-        opacity: 0,
-        transition: {
-          type: "spring",
-          stiffness: 400,
-          damping: 40,
-          duration: 0.1,
-        },
-      },
-    }
 
     const icon = React.Children.toArray(children).find(
       (child) => React.isValidElement(child) && child.type !== "span"
@@ -491,19 +464,23 @@ const SidebarMenuButton = React.forwardRef<
             className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
             {...props}
           >
-            {icon}
-            <motion.span
-              variants={contentVariants}
-              initial={state}
-              animate={controls}
-            >
-              {label}
-            </motion.span>
+            {/* Wrap children in a single div to satisfy TooltipTrigger's `asChild` requirement */}
+            <div className="flex w-full items-center gap-2">
+              {icon}
+              <div
+                className={cn(
+                  "min-w-0 flex-1 whitespace-nowrap",
+                  "group-data-[state=collapsed]/sidebar-wrapper:hidden"
+                )}
+              >
+                {label}
+              </div>
+            </div>
           </Comp>
         </TooltipTrigger>
         {tooltip && (
           <TooltipContent
-            side={state === "expanded" ? "right" : "top"}
+            side="right"
             {...(typeof tooltip === "object" && tooltip)}
           >
             {typeof tooltip === "string" ? tooltip : tooltip.children}
