@@ -51,6 +51,12 @@ export const servicesBySubPortfolio: Record<(typeof subPortfolios)[number], Serv
   ],
 };
 
+export type ApprovalStage = {
+  stage: number;
+  roleName: string;
+  approverId: string | null;
+};
+
 export type Project = {
   id: number;
   contractNumber: string;
@@ -71,6 +77,8 @@ export type Project = {
   subPortfolio?: (typeof subPortfolios)[number];
   serviceCode?: string;
   serviceName?: string;
+  tripApprovalWorkflow: ApprovalStage[];
+  reportApprovalWorkflow: ApprovalStage[];
 };
 
 export const initialProjects: Project[] = [
@@ -150,6 +158,14 @@ export const initialProjects: Project[] = [
     subPortfolio: 'IAPPM',
     serviceCode: 'AEB-2C',
     serviceName: 'QA/QC untuk Fasilitas Industri, Minyak dan Gas, Pertambangan dan Pembangkit Listrik',
+    tripApprovalWorkflow: [
+      { stage: 1, roleName: 'Verified by', approverId: '2' },
+      { stage: 2, roleName: 'Approved by', approverId: '1' }
+    ],
+    reportApprovalWorkflow: [
+      { stage: 1, roleName: 'Reviewed by Client QA/QC', approverId: '5' },
+      { stage: 2, roleName: 'Approved by Client Rep', approverId: '6' }
+    ]
   },
   {
     id: 2,
@@ -227,6 +243,8 @@ export const initialProjects: Project[] = [
     subPortfolio: 'EBT',
     serviceCode: 'AEB-1A',
     serviceName: 'Analisa Energi Gas Metana Batu Bara Dan "Shale Gas"',
+    tripApprovalWorkflow: [],
+    reportApprovalWorkflow: []
   },
   {
     id: 3,
@@ -302,5 +320,7 @@ export const initialProjects: Project[] = [
     subPortfolio: 'IAPPM',
     serviceCode: 'AEB-2F',
     serviceName: 'Non Destructive Test (Conventional and Advanced)',
+    tripApprovalWorkflow: [],
+    reportApprovalWorkflow: []
   },
 ];

@@ -17,6 +17,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFoo
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { allowanceRates } from '@/lib/trips';
+import { useProjects } from '@/context/ProjectContext';
 
 export default function TripSummaryPage() {
     const router = useRouter();
@@ -25,18 +26,14 @@ export default function TripSummaryPage() {
     const { getTripById, updateTrip } = useTrips();
     const { toast } = useToast();
     const { user, users } = useAuth();
+    const { projects } = useProjects();
     
     const trip = getTripById(tripId);
 
-    const [verifierId, setVerifierId] = useState('');
-    const [approverId, setApproverId] = useState('');
-    
-    useEffect(() => {
-        if (trip?.approvers) {
-            setVerifierId(trip.approvers.managerId);
-            setApproverId(trip.approvers.financeId);
-        }
-    }, [trip]);
+    const tripProject = useMemo(() => {
+        if (!trip || !trip.project) return null;
+        return projects.find(p => p.name === trip.project);
+    }, [trip, projects]);
 
     const { mealItems, transportItems, mealsSubtotal, transportSubtotal, totalAllowance } = useMemo(() => {
         if (!trip?.allowance) return { mealItems: [], transportItems: [], mealsSubtotal: 0, transportSubtotal: 0, totalAllowance: 0 };
@@ -100,11 +97,20 @@ export default function TripSummaryPage() {
     const handleSubmitForApproval = () => {
         if (!trip || !user) return;
 
-        if (!verifierId || !approverId) {
+        if (!tripProject) {
             toast({
                 variant: 'destructive',
-                title: 'Approval Setup Required',
-                description: 'Please select both a verifier and an approver.',
+                title: 'Project Not Found',
+                description: 'The associated project could not be found. Cannot determine approval workflow.',
+            });
+            return;
+        }
+
+        if (!tripProject.tripApprovalWorkflow || tripProject.tripApprovalWorkflow.length === 0) {
+            toast({
+                variant: 'destructive',
+                title: 'Approval Workflow Not Configured',
+                description: 'Please configure the trip approval workflow for this project first.',
             });
             return;
         }
@@ -112,10 +118,6 @@ export default function TripSummaryPage() {
         const updatedTrip = {
             ...trip,
             status: 'Pending' as const,
-            approvers: {
-                managerId: verifierId,
-                financeId: approverId,
-            },
             approvalHistory: [
                 ...trip.approvalHistory,
                 {
@@ -132,16 +134,6 @@ export default function TripSummaryPage() {
         toast({ title: 'Trip Submitted', description: 'Your business trip request has been submitted for approval.' });
         router.push('/trips');
     };
-    
-    const assignedVerifierName = useMemo(() => {
-        if (!trip?.approvers?.managerId) return 'Not Assigned';
-        return users.find(u => u.id.toString() === trip.approvers?.managerId)?.name || 'Unknown User';
-    }, [trip?.approvers, users]);
-
-    const assignedApproverName = useMemo(() => {
-        if (!trip?.approvers?.financeId) return 'Not Assigned';
-        return users.find(u => u.id.toString() === trip.approvers?.financeId)?.name || 'Unknown User';
-    }, [trip?.approvers, users]);
 
     if (!trip) {
         return (
@@ -279,36 +271,24 @@ export default function TripSummaryPage() {
                     <Card>
                         <CardHeader>
                             <CardTitle className="text-lg">Approval Process</CardTitle>
-                            <CardDescription>Select the users responsible for verifying and approving this trip.</CardDescription>
+                            <CardDescription>This request will be routed according to the workflow defined for the project.</CardDescription>
                         </CardHeader>
-                        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {trip.status === 'Draft' ? (
-                                <>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="verifier" className="flex items-center gap-2"><UserCheck className="h-4 w-4" />Verified By</Label>
-                                        <Select value={verifierId} onValueChange={setVerifierId}>
-                                            <SelectTrigger id="verifier"><SelectValue placeholder="Select a verifier..."/></SelectTrigger>
-                                            <SelectContent>
-                                            {users.map(u => <SelectItem key={u.id} value={u.id.toString()}>{u.name}</SelectItem>)}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="approver" className="flex items-center gap-2"><UserCog className="h-4 w-4" />Approved By</Label>
-                                        <Select value={approverId} onValueChange={setApproverId}>
-                                            <SelectTrigger id="approver"><SelectValue placeholder="Select an approver..."/></SelectTrigger>
-                                            <SelectContent>
-                                            {users.map(u => <SelectItem key={u.id} value={u.id.toString()}>{u.name}</SelectItem>)}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                </>
-                            ) : (
-                                <>
-                                    <div className="flex items-center gap-3"><UserCheck className="h-4 w-4 text-muted-foreground" /><div><p className="font-medium text-muted-foreground">Verified By</p><p>{assignedVerifierName}</p></div></div>
-                                    <div className="flex items-center gap-3"><UserCog className="h-4 w-4 text-muted-foreground" /><div><p className="font-medium text-muted-foreground">Approved By</p><p>{assignedApproverName}</p></div></div>
-                                </>
-                            )}
+                        <CardContent>
+                           <ol className="relative border-s border-gray-200 dark:border-gray-700 ml-2">                  
+                                {tripProject?.tripApprovalWorkflow.map((stage, index) => {
+                                    const approver = users.find(u => u.id.toString() === stage.approverId);
+                                    const isLast = index === tripProject.tripApprovalWorkflow.length - 1;
+                                    return (
+                                        <li key={stage.stage} className={cn(!isLast && "mb-6", "ms-6")}>            
+                                            <span className="absolute flex items-center justify-center w-6 h-6 bg-blue-100 rounded-full -start-3 ring-8 ring-white dark:ring-gray-900 dark:bg-blue-900">
+                                                <UserCheck className="w-3.5 h-3.5 text-blue-800 dark:text-blue-300" />
+                                            </span>
+                                            <h3 className="flex items-center mb-1 text-base font-semibold text-gray-900 dark:text-white">{stage.roleName}</h3>
+                                            <p className="block mb-2 text-sm font-normal leading-none text-gray-500 dark:text-gray-500">{approver ? approver.name : 'Not Assigned'}</p>
+                                        </li>
+                                    );
+                                })}
+                            </ol>
                         </CardContent>
                     </Card>
                 </CardContent>

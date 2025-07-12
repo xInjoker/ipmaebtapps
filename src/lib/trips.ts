@@ -1,4 +1,5 @@
 
+import type { ApprovalStage } from './data';
 
 export type TripStatus = 'Draft' | 'Pending' | 'Approved' | 'Rejected' | 'Booked' | 'Completed' | 'Closed';
 
@@ -23,6 +24,14 @@ export type Allowance = {
     };
 };
 
+export type TripApprovalAction = {
+    actorId: number;
+    actorName: string;
+    status: TripStatus;
+    comments?: string;
+    timestamp: string; // ISO Date String
+}
+
 export type TripRequest = {
     id: string;
     employeeId: number;
@@ -34,21 +43,16 @@ export type TripRequest = {
     endDate: string; // YYYY-MM-DD
     estimatedBudget: number;
     status: TripStatus;
-    approvalHistory: {
-        actorId: number;
-        actorName: string;
-        status: TripStatus;
-        comments?: string;
-        timestamp: string; // ISO Date String
-    }[];
+    approvalHistory: TripApprovalAction[];
     project?: string;
     position?: string;
     division?: string;
+    allowance?: Allowance;
+    // This will be superseded by the workflow on the project
     approvers?: {
         managerId: string;
         financeId: string;
     }
-    allowance?: Allowance;
 };
 
 export const initialTrips: TripRequest[] = [
