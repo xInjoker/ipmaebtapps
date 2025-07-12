@@ -36,7 +36,7 @@ export default function TripSummaryPage() {
     const { toast } = useToast();
     const { user, users } = useAuth();
     const { projects } = useProjects();
-    const logoUrl = 'https://placehold.co/120x60.png';
+    const logoUrl = 'https://i.ibb.co/L09xL5x/sucofindo-logo.png';
     
     const trip = getTripById(tripId);
 
@@ -173,7 +173,7 @@ export default function TripSummaryPage() {
             startY: 50,
             head: [['Trip Details', '']],
             body: tripDetails,
-            theme: 'striped',
+            theme: 'grid',
             headStyles: { fillColor: [41, 128, 185] },
         });
 
@@ -186,6 +186,8 @@ export default function TripSummaryPage() {
             head: [['Allowance Item', 'Qty', 'Unit', 'Rate', 'Total']],
             body: allowanceBody,
             foot: [['', '', '', 'Grand Total', formatCurrency(totalAllowance)]],
+            theme: 'grid',
+            headStyles: { fillColor: [41, 128, 185] },
             footStyles: { fillColor: [230, 230, 230], textColor: 0, fontStyle: 'bold' },
             startY: (doc as any).lastAutoTable.finalY + 10,
         });
