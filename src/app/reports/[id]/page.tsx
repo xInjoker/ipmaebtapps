@@ -371,6 +371,7 @@ export default function ReportDetailsPage() {
     const { reports } = useReports();
     const { users } = useAuth();
     const [report, setReport] = useState<ReportItem | null>(null);
+    const logoUrl = 'https://i.ibb.co/7ndxL1N/logo-placeholder.png'; // Placeholder logo
 
     useEffect(() => {
         if (reportId) {
@@ -395,11 +396,13 @@ export default function ReportDetailsPage() {
             doc.text(`Page ${data.pageNumber} of ${pageCount}`, pageWidth - pageMargin, pageHeight - 10, { align: 'right' });
         };
     
-        // --- Header ---
+        // --- Header with Logo ---
+        doc.addImage(logoUrl, 'PNG', pageMargin, 15, 30, 15);
         doc.setFontSize(16);
-        doc.text(`${report.jobType} Report`, pageMargin, 22);
+        doc.text(`${report.jobType} Report`, pageWidth - pageMargin, 22, { align: 'right' });
         doc.setFontSize(10);
-        doc.text(`Report Number: ${report.reportNumber}`, pageMargin, 30);
+        doc.text(`Report Number: ${report.reportNumber}`, pageWidth - pageMargin, 30, { align: 'right' });
+        finalY = 40; // Set Y position after header
     
         // --- General Info Table ---
         const generalInfo = [
@@ -408,17 +411,17 @@ export default function ReportDetailsPage() {
             ["Date of Test", details.dateOfTest ? format(new Date(details.dateOfTest), 'PPP') : 'N/A', "Project Executor", details.projectExecutor],
         ];
         doc.autoTable({
-            startY: 35,
+            startY: finalY,
             body: generalInfo,
             theme: 'plain',
             styles: { fontSize: 9 },
         });
         finalY = (doc as any).lastAutoTable.finalY;
     
-        // --- Report-specific Details ---
+        // --- Report-specific Details & Results ---
         if (details.jobType === 'Penetrant Test') {
             doc.autoTable({
-                head: [['Test Details', '']],
+                head: [['Test Details', '', 'More Test Details', '']],
                 body: [
                     ['Procedure No.', details.procedureNo, 'Acceptance Criteria', details.acceptanceCriteria],
                     ['Test Equipment', details.testEquipment, 'Material', details.material],

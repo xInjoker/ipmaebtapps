@@ -36,6 +36,7 @@ export default function TripSummaryPage() {
     const { toast } = useToast();
     const { user, users } = useAuth();
     const { projects } = useProjects();
+    const logoUrl = 'https://i.ibb.co/7ndxL1N/logo-placeholder.png'; // Placeholder logo
     
     const trip = getTripById(tripId);
 
@@ -147,13 +148,17 @@ export default function TripSummaryPage() {
     const handlePrint = () => {
         if (!trip) return;
         const doc = new jsPDF() as jsPDFWithAutoTable;
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageMargin = 14;
 
         // Header
+        doc.addImage(logoUrl, 'PNG', pageMargin, 15, 30, 15);
         doc.setFontSize(18);
-        doc.text('Business Trip Request', 14, 22);
+        doc.text('Business Trip Request', pageWidth - pageMargin, 22, { align: 'right' });
         doc.setFontSize(12);
-        doc.text(`Request ID: ${trip.id}`, 14, 30);
-        doc.text(`Status: ${trip.status}`, 150, 30);
+        doc.text(`Request ID: ${trip.id}`, pageWidth - pageMargin, 30, { align: 'right' });
+        doc.text(`Status: ${trip.status}`, pageWidth - pageMargin, 38, { align: 'right' });
+
 
         // Trip Details
         const tripDetails = [
@@ -165,7 +170,7 @@ export default function TripSummaryPage() {
             ['Purpose', trip.purpose],
         ];
         doc.autoTable({
-            startY: 40,
+            startY: 50,
             head: [['Trip Details', '']],
             body: tripDetails,
             theme: 'striped',
@@ -389,3 +394,4 @@ export default function TripSummaryPage() {
         </div>
     );
 }
+
