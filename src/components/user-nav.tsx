@@ -14,17 +14,51 @@ import {
 import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 import { getInitials, getAvatarColor } from '@/lib/utils';
-import { cn } from '@/lib/utils';
+import type { Role } from '@/lib/users';
 
-export function UserNav() {
+type UserNavProps = {
+  isSidebarFooter?: boolean;
+};
+
+export function UserNav({ isSidebarFooter = false }: UserNavProps) {
   const { user, logout, roles } = useAuth();
 
   if (!user) {
     return null;
   }
 
-  const userRole = roles.find((r) => r.id === user.roleId);
+  const userRole = roles.find((r: Role) => r.id === user.roleId);
   const avatarColor = getAvatarColor(user.name);
+
+  if (isSidebarFooter) {
+    return (
+       <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-auto w-full justify-start gap-3 p-3 overflow-hidden group-data-[state=collapsed]/sidebar-wrapper:w-12 group-data-[state=collapsed]/sidebar-wrapper:h-12 group-data-[state=collapsed]/sidebar-wrapper:p-0 group-data-[state=collapsed]/sidebar-wrapper:justify-center">
+                    <Avatar className="h-10 w-10">
+                        {user?.avatarUrl && <AvatarImage src={user.avatarUrl} alt={user.name} />}
+                        <AvatarFallback style={{ backgroundColor: avatarColor.background, color: avatarColor.color }}>
+                            {getInitials(user.name)}
+                        </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0 text-left group-data-[state=collapsed]/sidebar-wrapper:hidden">
+                        <p className="truncate text-sm font-semibold">{user.name}</p>
+                        <p className="truncate text-xs text-sidebar-foreground/80">{userRole?.name || 'Staff'}</p>
+                    </div>
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent side="top" align="start" className="w-[var(--sidebar-width)] mb-2 ml-2">
+                <DropdownMenuItem asChild>
+                    <Link href="/profile">Profile</Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={logout}>
+                    Log out
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
+    )
+  }
 
   return (
     <DropdownMenu>

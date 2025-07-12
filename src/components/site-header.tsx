@@ -27,7 +27,7 @@ export function SiteHeader() {
         </form>
         <NotificationNav />
         <ThemeToggle />
-        <UserNav />
+        <UserNav isSidebarFooter={false} />
       </div>
     </header>
   );

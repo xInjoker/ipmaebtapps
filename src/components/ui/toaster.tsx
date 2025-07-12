@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useToast } from "@/hooks/use-toast"
@@ -13,12 +14,12 @@ import { useEffect, useState } from "react"
 
 export function Toaster() {
   const { toasts } = useToast()
+  
+  // This component needs to be client-side only to avoid hydration errors.
   const [mounted, setMounted] = useState(false)
-
   useEffect(() => {
     setMounted(true)
   }, [])
-
   if (!mounted) {
     return null
   }
