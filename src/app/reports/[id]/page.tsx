@@ -11,10 +11,19 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Printer } from 'lucide-react';
 import { format } from 'date-fns';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+import type { UserOptions } from 'jspdf-autotable';
+
+// Extend jsPDF with autoTable
+interface jsPDFWithAutoTable extends jsPDF {
+  autoTable: (options: UserOptions) => jsPDF;
+}
+
 
 // --- Reusable Image Gallery ---
 const ImageGallery = ({ allImages }: { allImages: { url: string, jointNo: string, weldId: string }[] }) => (
@@ -366,6 +375,74 @@ export default function ReportDetailsPage() {
         }
     }, [reportId, reports]);
 
+    const handlePrint = () => {
+        if (!report || !report.details) return;
+
+        const doc = new jsPDF() as jsPDFWithAutoTable;
+        const details = report.details;
+        
+        // --- Header ---
+        doc.setFontSize(18);
+        doc.text(`${report.jobType} Report`, 14, 22);
+        doc.setFontSize(12);
+        doc.text(`Report Number: ${report.reportNumber}`, 14, 30);
+        
+        // --- General Info ---
+        const generalInfo = [
+            ["Client", details.client],
+            ["Project", details.project],
+            ["Service Order", details.soNumber],
+            ["Date of Test", details.dateOfTest ? format(new Date(details.dateOfTest), 'PPP') : 'N/A'],
+            ["Job Location", report.jobLocation],
+        ];
+        
+        doc.autoTable({
+            startY: 40,
+            head: [['General Information', '']],
+            body: generalInfo,
+            theme: 'striped',
+            headStyles: { fillColor: [41, 128, 185] },
+        });
+
+        // --- Approval History ---
+        const approvalHistoryBody = report.approvalHistory.map(action => [
+            action.actorRole,
+            action.actorName,
+            action.status,
+            format(new Date(action.timestamp), 'PPP p'),
+        ]);
+
+        doc.autoTable({
+            head: [['Role', 'Name', 'Action', 'Timestamp']],
+            body: approvalHistoryBody,
+            startY: (doc as any).lastAutoTable.finalY + 10,
+            didDrawPage: (data) => {
+                // Footer
+                const pageCount = doc.internal.getNumberOfPages();
+                doc.setFontSize(10);
+                doc.text(`Page ${data.pageNumber} of ${pageCount}`, data.settings.margin.left, doc.internal.pageSize.height - 10);
+            }
+        });
+
+        // --- Signature Block ---
+        const finalY = (doc as any).lastAutoTable.finalY + 15;
+        let signatureY = finalY;
+
+        const signatureTableBody = report.approvalHistory.map(action => [
+            `${action.actorRole}\n\n\n\n${action.actorName}`,
+            `Approved on:\n${format(new Date(action.timestamp), 'PPP')}`
+        ]);
+        
+        doc.autoTable({
+            body: signatureTableBody,
+            startY: signatureY,
+            theme: 'plain'
+        });
+
+
+        doc.save(`Report-${report.reportNumber}.pdf`);
+    };
+
     if (!report) {
         return (
             <div className="flex h-[calc(100vh-10rem)] flex-col items-center justify-center text-center">
@@ -386,17 +463,25 @@ export default function ReportDetailsPage() {
         <div className="space-y-6">
              <Card>
                 <CardHeader>
-                    <div className="flex items-center gap-4">
-                        <Button asChild variant="outline" size="icon">
-                            <Link href={`${backPath}`}>
-                                <ArrowLeft className="h-4 w-4" />
-                                <span className="sr-only">Back to Report List</span>
-                            </Link>
-                        </Button>
-                        <div>
-                            <CardTitle>{report.jobType} Report: {report.reportNumber}</CardTitle>
-                            <CardDescription>Viewing details for the submitted report.</CardDescription>
+                    <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-4">
+                            <Button asChild variant="outline" size="icon">
+                                <Link href={`${backPath}`}>
+                                    <ArrowLeft className="h-4 w-4" />
+                                    <span className="sr-only">Back to Report List</span>
+                                </Link>
+                            </Button>
+                            <div>
+                                <CardTitle>{report.jobType} Report: {report.reportNumber}</CardTitle>
+                                <CardDescription>Viewing details for the submitted report.</CardDescription>
+                            </div>
                         </div>
+                        {report.status === 'Approved' && (
+                            <Button onClick={handlePrint}>
+                                <Printer className="mr-2 h-4 w-4" />
+                                Print Report
+                            </Button>
+                        )}
                     </div>
                 </CardHeader>
              </Card>
