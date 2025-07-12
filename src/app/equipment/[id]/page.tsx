@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, use } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -44,7 +44,7 @@ import { cn, getAvatarColor, getInitials, getCalibrationStatus } from '@/lib/uti
 
 export default function EquipmentDetailsPage() {
   const router = useRouter();
-  const params = useParams();
+  const params = use(useParams());
   const { getEquipmentById } = useEquipment();
   const { inspectors } = useInspectors();
   const { branches, userHasPermission } = useAuth();

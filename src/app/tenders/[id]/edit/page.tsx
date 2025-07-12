@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useTenders, type Tender } from '@/context/TenderContext';
@@ -23,7 +23,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 
 export default function EditTenderPage() {
     const router = useRouter();
-    const params = useParams();
+    const params = use(useParams());
     const { getTenderById, updateTender } = useTenders();
     const { toast } = useToast();
     const { branches } = useAuth();

@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, use } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useInspectors } from '@/context/InspectorContext';
@@ -27,7 +27,7 @@ function formatDocumentName(name?: string) {
 
 export default function InspectorDetailsPage() {
   const router = useRouter();
-  const params = useParams();
+  const params = use(useParams());
   const { getInspectorById } = useInspectors();
   const { branches, userHasPermission } = useAuth();
   const [inspector, setInspector] = useState<Inspector | null>(null);

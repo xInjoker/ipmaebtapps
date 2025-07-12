@@ -6,11 +6,11 @@ import { useEmployees } from '@/context/EmployeeContext';
 import { useToast } from '@/hooks/use-toast';
 import { type Employee } from '@/lib/employees';
 import { EmployeeForm } from '@/components/employee-form';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, use } from 'react';
 
 export default function EditEmployeePage() {
   const router = useRouter();
-  const params = useParams();
+  const params = use(useParams());
   const { getEmployeeById, updateEmployee } = useEmployees();
   const { toast } = useToast();
   

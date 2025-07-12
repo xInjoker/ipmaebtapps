@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, use } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useTrips } from '@/context/TripContext';
@@ -77,7 +77,7 @@ function AllowanceItem({
 
 export default function TripAllowanceSetupPage() {
   const router = useRouter();
-  const params = useParams();
+  const params = use(useParams());
   const { getTripById, updateTrip } = useTrips();
   const { toast } = useToast();
 

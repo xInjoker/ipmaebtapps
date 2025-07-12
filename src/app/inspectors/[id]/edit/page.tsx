@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useInspectors } from '@/context/InspectorContext';
@@ -27,7 +27,7 @@ type NewUploadableDocument = {
 
 export default function EditInspectorPage() {
   const router = useRouter();
-  const params = useParams();
+  const params = use(useParams());
   const { getInspectorById, updateInspector, inspectors: inspectorList } = useInspectors();
   const { toast } = useToast();
   const { branches } = useAuth();
