@@ -28,17 +28,17 @@ function formatDocumentName(name?: string) {
 export default function InspectorDetailsPage() {
   const router = useRouter();
   const params = useParams();
+  const inspectorId = params.id as string;
   const { getInspectorById } = useInspectors();
   const { branches, userHasPermission } = useAuth();
   const [inspector, setInspector] = useState<Inspector | null>(null);
 
   useEffect(() => {
-    const inspectorId = params.id as string;
     if (inspectorId) {
       const item = getInspectorById(inspectorId);
       setInspector(item || null);
     }
-  }, [params.id, getInspectorById]);
+  }, [inspectorId, getInspectorById]);
 
   const branchMap = useMemo(() => {
     return branches.reduce((acc, branch) => {

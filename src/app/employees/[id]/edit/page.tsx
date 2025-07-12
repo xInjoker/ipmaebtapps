@@ -11,13 +11,13 @@ import { useEffect, useState } from 'react';
 export default function EditEmployeePage() {
   const router = useRouter();
   const params = useParams();
+  const employeeId = params.id as string;
   const { getEmployeeById, updateEmployee } = useEmployees();
   const { toast } = useToast();
   
   const [employee, setEmployee] = useState<Employee | null>(null);
 
   useEffect(() => {
-    const employeeId = params.id as string;
     if (employeeId) {
       const item = getEmployeeById(employeeId);
       if (item) {
@@ -31,7 +31,7 @@ export default function EditEmployeePage() {
         router.push('/employees');
       }
     }
-  }, [params.id, getEmployeeById, router, toast]);
+  }, [employeeId, getEmployeeById, router, toast]);
 
   const handleSave = (data: Employee) => {
     if (employee) {

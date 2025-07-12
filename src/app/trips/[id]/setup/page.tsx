@@ -78,10 +78,10 @@ function AllowanceItem({
 export default function TripAllowanceSetupPage() {
   const router = useRouter();
   const params = useParams();
+  const tripId = params.id as string;
   const { getTripById, updateTrip } = useTrips();
   const { toast } = useToast();
 
-  const tripId = params.id as string;
   const trip = getTripById(tripId);
   
   const [allowance, setAllowance] = useState<Allowance>({

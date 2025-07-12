@@ -33,6 +33,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 export default function EditEquipmentPage() {
   const router = useRouter();
   const params = useParams();
+  const equipmentId = params.id as string;
   const { branches } = useAuth();
   const { inspectors } = useInspectors();
   const { getEquipmentById, updateEquipment, equipmentList } = useEquipment();
@@ -46,7 +47,6 @@ export default function EditEquipmentPage() {
   const [isPersonnelPopoverOpen, setIsPersonnelPopoverOpen] = useState(false);
 
   useEffect(() => {
-    const equipmentId = params.id as string;
     if (equipmentId) {
       const item = getEquipmentById(equipmentId);
       if (item) {
@@ -66,7 +66,7 @@ export default function EditEquipmentPage() {
         router.push('/equipment');
       }
     }
-  }, [params.id, getEquipmentById, router, toast, equipmentList]);
+  }, [equipmentId, getEquipmentById, router, toast, equipmentList]);
 
   useEffect(() => {
     if (newImages.length === 0) {

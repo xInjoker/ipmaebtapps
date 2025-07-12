@@ -24,6 +24,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 export default function EditTenderPage() {
     const router = useRouter();
     const params = useParams();
+    const tenderId = params.id as string;
     const { getTenderById, updateTender } = useTenders();
     const { toast } = useToast();
     const { branches } = useAuth();
@@ -32,7 +33,6 @@ export default function EditTenderPage() {
     const [isServicesPopoverOpen, setIsServicesPopoverOpen] = useState(false);
     
     useEffect(() => {
-        const tenderId = params.id as string;
         if (tenderId) {
             const item = getTenderById(tenderId);
             if (item) {
@@ -45,7 +45,7 @@ export default function EditTenderPage() {
                 router.push('/tenders');
             }
         }
-    }, [params.id, getTenderById, router, toast]);
+    }, [tenderId, getTenderById, router, toast]);
 
     const handleSave = () => {
         if (!tender) return;

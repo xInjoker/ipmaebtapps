@@ -355,16 +355,16 @@ const reportTypeMap = {
 export default function ReportDetailsPage() {
     const router = useRouter();
     const params = useParams();
+    const reportId = params.id as string;
     const { reports } = useReports();
     const [report, setReport] = useState<ReportItem | null>(null);
 
     useEffect(() => {
-        const reportId = params.id as string;
         if (reportId) {
             const item = reports.find(r => r.id === reportId);
             setReport(item || null);
         }
-    }, [params.id, reports]);
+    }, [reportId, reports]);
 
     if (!report) {
         return (

@@ -45,18 +45,18 @@ import { cn, getAvatarColor, getInitials, getCalibrationStatus } from '@/lib/uti
 export default function EquipmentDetailsPage() {
   const router = useRouter();
   const params = useParams();
+  const equipmentId = params.id as string;
   const { getEquipmentById } = useEquipment();
   const { inspectors } = useInspectors();
   const { branches, userHasPermission } = useAuth();
   const [equipment, setEquipment] = useState<EquipmentItem | null>(null);
 
   useEffect(() => {
-    const equipmentId = params.id as string;
     if (equipmentId) {
       const item = getEquipmentById(equipmentId);
       setEquipment(item || null);
     }
-  }, [params.id, getEquipmentById]);
+  }, [equipmentId, getEquipmentById]);
 
   const branchMap = useMemo(() => {
     return branches.reduce((acc, branch) => {

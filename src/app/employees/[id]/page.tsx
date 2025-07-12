@@ -57,17 +57,17 @@ function DetailItem({ icon: Icon, label, value, iconColor }: { icon: React.Eleme
 export default function EmployeeDetailsPage() {
   const router = useRouter();
   const params = useParams();
+  const employeeId = params.id as string;
   const { getEmployeeById } = useEmployees();
   const { userHasPermission } = useAuth();
   const [employee, setEmployee] = useState<Employee | null>(null);
 
   useEffect(() => {
-    const employeeId = params.id as string;
     if (employeeId) {
       const item = getEmployeeById(employeeId);
       setEmployee(item || null);
     }
-  }, [params.id, getEmployeeById]);
+  }, [employeeId, getEmployeeById]);
   
   if (!employee) {
     return (

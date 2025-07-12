@@ -48,17 +48,17 @@ function DetailItem({ icon: Icon, label, value }: { icon: React.ElementType, lab
 export default function TenderDetailsPage() {
   const router = useRouter();
   const params = useParams();
+  const tenderId = params.id as string;
   const { getTenderById } = useTenders();
   const { branches } = useAuth();
   const [tender, setTender] = useState<Tender | null>(null);
 
   useEffect(() => {
-    const tenderId = params.id as string;
     if (tenderId) {
       const item = getTenderById(tenderId);
       setTender(item || null);
     }
-  }, [params.id, getTenderById]);
+  }, [tenderId, getTenderById]);
 
   const branchMap = branches.reduce((acc, branch) => {
     acc[branch.id] = branch.name;

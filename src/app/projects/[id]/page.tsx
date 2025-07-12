@@ -45,9 +45,10 @@ import { ProjectServiceOrderChart } from '@/components/project-service-order-cha
 
 export default function ProjectDetailsPage() {
   const params = useParams();
+  const projectId = parseInt(params.id as string, 10);
   const { projects, setProjects } = useProjects();
   
-  const project = projects.find((p) => p.id === parseInt(params.id as string, 10));
+  const project = projects.find((p) => p.id === projectId);
 
   const {
     totalCost,

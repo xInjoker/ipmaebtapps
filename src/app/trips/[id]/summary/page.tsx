@@ -32,11 +32,11 @@ const allowanceRates = {
 export default function TripSummaryPage() {
     const router = useRouter();
     const params = useParams();
+    const tripId = params.id as string;
     const { getTripById, updateTrip } = useTrips();
     const { toast } = useToast();
     const { user, users } = useAuth();
     
-    const tripId = params.id as string;
     const trip = getTripById(tripId);
 
     const [verifierId, setVerifierId] = useState('');
