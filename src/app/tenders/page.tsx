@@ -115,10 +115,10 @@ export default function TendersPage() {
         <div className="space-y-6">
             <Card className="relative overflow-hidden bg-gradient-to-br from-primary to-primary/80 text-primary-foreground">
                  <svg
-                    className="absolute -right-20 -top-20 text-primary-foreground/10"
+                    className="absolute -right-24 -top-24 text-primary-foreground/10"
                     fill="currentColor"
-                    width="350"
-                    height="350"
+                    width="450"
+                    height="450"
                     viewBox="0 0 200 200"
                     xmlns="http://www.w3.org/2000/svg"
                 >
@@ -128,10 +128,10 @@ export default function TendersPage() {
                     />
                 </svg>
                 <svg
-                    className="absolute -right-16 -top-24 text-amber-500"
+                    className="absolute -right-20 -top-28 text-amber-500"
                     fill="currentColor"
-                    width="300"
-                    height="300"
+                    width="400"
+                    height="400"
                     viewBox="0 0 200 200"
                     xmlns="http://www.w3.org/2000/svg"
                 >
