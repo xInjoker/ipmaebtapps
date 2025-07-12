@@ -111,3 +111,23 @@ export const initialTrips: TripRequest[] = [
 ];
 
 export const tripStatuses: TripStatus[] = ['Draft', 'Pending', 'Approved', 'Rejected', 'Booked', 'Completed', 'Closed'];
+
+export const destinationCompanies = [
+    { value: 'Pertamina EP', label: 'Pertamina EP' },
+    { value: 'PHR', label: 'PHR' },
+    { value: 'PHM', label: 'PHM' },
+    { value: 'PHSS', label: 'PHSS' },
+    { value: 'PHKT', label: 'PHKT' },
+];
+
+export const allowanceRates = {
+    breakfast: 75000,
+    lunch: 100000,
+    dinner: 100000,
+    daily: 150000,
+    localTransport: 100000,
+    jabodetabekAirport: 350000,
+    jabodetabekStation: 250000,
+    otherAirportStation: 150000,
+    mileage: 3500,
+};

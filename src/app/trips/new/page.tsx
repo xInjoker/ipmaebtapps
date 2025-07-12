@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { useTrips } from '@/context/TripContext';
-import { type TripRequest } from '@/lib/trips';
+import { type TripRequest, destinationCompanies } from '@/lib/trips';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -20,14 +20,6 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { DateRange } from 'react-day-picker';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-
-const destinationCompanies = [
-    { value: 'Pertamina EP', label: 'Pertamina EP' },
-    { value: 'PHR', label: 'PHR' },
-    { value: 'PHM', label: 'PHM' },
-    { value: 'PHSS', label: 'PHSS' },
-    { value: 'PHKT', label: 'PHKT' },
-];
 
 export default function NewTripPage() {
   const router = useRouter();

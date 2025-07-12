@@ -12,21 +12,9 @@ import { Label } from '@/components/ui/label';
 import { ArrowLeft, Car, Utensils, VenetianMask, User, Map, Calendar, Briefcase, Info, ArrowRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Checkbox } from '@/components/ui/checkbox';
-import { type Allowance } from '@/lib/trips';
+import { type Allowance, allowanceRates } from '@/lib/trips';
 import { formatCurrency } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
-
-const allowanceRates = {
-    breakfast: 75000,
-    lunch: 100000,
-    dinner: 100000,
-    daily: 150000,
-    localTransport: 100000,
-    jabodetabekAirport: 350000,
-    jabodetabekStation: 250000,
-    otherAirportStation: 150000,
-    mileage: 3500,
-};
 
 function AllowanceItem({
   id,

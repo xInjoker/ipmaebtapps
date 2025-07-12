@@ -16,18 +16,7 @@ import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter as UiTableFooter } from '@/components/ui/table';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-
-const allowanceRates = {
-    breakfast: 75000,
-    lunch: 100000,
-    dinner: 100000,
-    daily: 150000,
-    localTransport: 100000,
-    jabodetabekAirport: 350000,
-    jabodetabekStation: 250000,
-    otherAirportStation: 150000,
-    mileage: 3500,
-};
+import { allowanceRates } from '@/lib/trips';
 
 export default function TripSummaryPage() {
     const router = useRouter();
