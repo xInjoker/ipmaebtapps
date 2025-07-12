@@ -54,7 +54,7 @@ import { formatCurrency, getEmployeeStatusVariant } from '@/lib/utils';
 import { format } from 'date-fns';
 import { EmployeeImportDialog } from '@/components/employee-import-dialog';
 import { EmployeeExportDialog } from '@/components/employee-export-dialog';
-import { type Employee, employeeFieldLabels } from '@/lib/employees';
+import { type Employee, employeeFieldLabels, employmentStatuses } from '@/lib/employees';
 import { useToast } from '@/hooks/use-toast';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
@@ -223,12 +223,6 @@ export default function EmployeesPage() {
         setBranchFilter('all');
     }
   };
-
-  const employmentStatuses: Employee['employmentStatus'][] = [
-    'Active',
-    'Inactive',
-    'On Leave',
-  ];
 
   return (
     <>

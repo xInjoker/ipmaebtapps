@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -17,7 +16,15 @@ import { ArrowLeft, CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react
 import { Textarea } from './ui/textarea';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import { type Employee, employeeFieldLabels } from '@/lib/employees';
+import {
+  type Employee,
+  employeeFieldLabels,
+  genders,
+  employmentStatuses,
+  contractTypes,
+  portfolios,
+  subPortfolios
+} from '@/lib/employees';
 import { useState, useEffect, useMemo } from 'react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { ScrollArea } from './ui/scroll-area';
@@ -29,8 +36,8 @@ const employeeSchema = z.object({
   position: z.string().optional(),
   workUnit: z.string().optional(),
   workUnitName: z.string().optional(),
-  portfolio: z.enum(['AEBT', 'others']).optional(),
-  subPortfolio: z.enum(['IAPPM', 'EBT']).optional(),
+  portfolio: z.enum(portfolios).optional(),
+  subPortfolio: z.enum(subPortfolios).optional(),
   projectName: z.string().optional(),
   rabNumber: z.string().optional(),
   competency: z.string().optional(),
@@ -40,19 +47,19 @@ const employeeSchema = z.object({
   nationalId: z.string().optional(),
   placeOfBirth: z.string().optional(),
   dateOfBirth: z.date().optional(),
-  gender: z.enum(['Male', 'Female']).optional(),
+  gender: z.enum(genders).optional(),
   religion: z.string().optional(),
   address: z.string().optional(),
   email: z.string().email().optional().or(z.literal('')),
   phoneNumber: z.string().optional(),
 
   // Step 3: Employment
-  employmentStatus: z.enum(['Active', 'Inactive', 'On Leave']).optional(),
+  employmentStatus: z.enum(employmentStatuses).optional(),
   bpjsHealth: z.string().optional(),
   bpjsEmployment: z.string().optional(),
 
   // Step 4: Contract
-  contractType: z.enum(['Monthly', 'Daily', 'Hourly']).optional(),
+  contractType: z.enum(contractTypes).optional(),
   contractNumber: z.string().optional(),
   contractStartDate: z.date().optional(),
   contractEndDate: z.date().optional(),
@@ -250,14 +257,18 @@ export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
                             <Label>Portfolio</Label>
                             <Select onValueChange={(v) => form.setValue('portfolio', v as any)} value={form.watch('portfolio') || ''}>
                                 <SelectTrigger><SelectValue placeholder="Select a portfolio..."/></SelectTrigger>
-                                <SelectContent><SelectItem value="AEBT">AEBT</SelectItem><SelectItem value="others">Others</SelectItem></SelectContent>
+                                <SelectContent>
+                                  {portfolios.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                                </SelectContent>
                             </Select>
                         </div>
                         <div className="space-y-2">
                             <Label>Sub-Portfolio</Label>
                             <Select onValueChange={(v) => form.setValue('subPortfolio', v as any)} value={form.watch('subPortfolio') || ''}>
                                 <SelectTrigger><SelectValue placeholder="Select a sub-portfolio..."/></SelectTrigger>
-                                <SelectContent><SelectItem value="IAPPM">IAPPM</SelectItem><SelectItem value="EBT">EBT</SelectItem></SelectContent>
+                                <SelectContent>
+                                  {subPortfolios.map(sp => <SelectItem key={sp} value={sp}>{sp}</SelectItem>)}
+                                </SelectContent>
                             </Select>
                         </div>
                         <div className="md:col-span-2 space-y-2">
@@ -282,7 +293,9 @@ export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
                             <Label>Gender</Label>
                             <Select onValueChange={(v) => form.setValue('gender', v as any)} value={form.watch('gender') || ''}>
                                 <SelectTrigger><SelectValue placeholder="Select a gender..."/></SelectTrigger>
-                                <SelectContent><SelectItem value="Male">Male</SelectItem><SelectItem value="Female">Female</SelectItem></SelectContent>
+                                <SelectContent>
+                                    {genders.map(g => <SelectItem key={g} value={g}>{g}</SelectItem>)}
+                                </SelectContent>
                             </Select>
                         </div>
                         <div className="space-y-2"><Label>Religion</Label><Input {...form.register('religion')} /></div>
@@ -297,7 +310,9 @@ export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
                             <Label>Employment Status</Label>
                             <Select onValueChange={(v) => form.setValue('employmentStatus', v as any)} value={form.watch('employmentStatus') || ''}>
                                 <SelectTrigger><SelectValue placeholder="Select a status..."/></SelectTrigger>
-                                <SelectContent><SelectItem value="Active">Active</SelectItem><SelectItem value="Inactive">Inactive</SelectItem><SelectItem value="On Leave">On Leave</SelectItem></SelectContent>
+                                <SelectContent>
+                                    {employmentStatuses.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                                </SelectContent>
                             </Select>
                         </div>
                         <div className="space-y-2"><Label>BPJS Health Number</Label><Input {...form.register('bpjsHealth')} /></div>
@@ -311,9 +326,7 @@ export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
                             <Select onValueChange={(v) => form.setValue('contractType', v as any)} value={form.watch('contractType') || ''}>
                                 <SelectTrigger><SelectValue placeholder="Select a type..."/></SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="Monthly">Monthly</SelectItem>
-                                    <SelectItem value="Daily">Daily</SelectItem>
-                                    <SelectItem value="Hourly">Hourly</SelectItem>
+                                    {contractTypes.map(ct => <SelectItem key={ct} value={ct}>{ct}</SelectItem>)}
                                 </SelectContent>
                             </Select>
                         </div>

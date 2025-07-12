@@ -1,20 +1,26 @@
 
 
+export const genders = ['Male', 'Female'] as const;
+export const employmentStatuses = ['Active', 'Inactive', 'On Leave'] as const;
+export const contractTypes = ['Monthly', 'Daily', 'Hourly'] as const;
+export const portfolios = ['AEBT', 'others'] as const;
+export const subPortfolios = ['IAPPM', 'EBT'] as const;
+
 export type Employee = {
     id: string;
     nationalId?: string;
     name?: string;
     placeOfBirth?: string;
     dateOfBirth?: string; // 'YYYY-MM-DD'
-    gender?: 'Male' | 'Female';
+    gender?: (typeof genders)[number];
     religion?: string;
     address?: string;
     email?: string;
     phoneNumber?: string;
     npwp?: string;
     ptkpStatus?: string;
-    employmentStatus?: 'Active' | 'Inactive' | 'On Leave';
-    contractType?: 'Monthly' | 'Daily' | 'Hourly';
+    employmentStatus?: (typeof employmentStatuses)[number];
+    contractType?: (typeof contractTypes)[number];
     contractNumber?: string;
     contractStartDate?: string; // 'YYYY-MM-DD'
     contractEndDate?: string; // 'YYYY-MM-DD'
@@ -22,8 +28,8 @@ export type Employee = {
     salary?: number;
     workUnit?: string;
     workUnitName?: string;
-    portfolio?: 'AEBT' | 'others';
-    subPortfolio?: 'IAPPM' | 'EBT';
+    portfolio?: (typeof portfolios)[number];
+    subPortfolio?: (typeof subPortfolios)[number];
     projectName?: string;
     rabNumber?: string;
     bankName?: string;
