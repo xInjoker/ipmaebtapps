@@ -20,7 +20,7 @@ import { useProjects } from '@/context/ProjectContext';
 import { cn } from '@/lib/utils';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
-import type { UserOptions } from 'jspdf-autotable';
+import type { UserOptions, CellHookData } from 'jspdf-autotable';
 
 // Extend jsPDF with autoTable
 interface jsPDFWithAutoTable extends jsPDF {
@@ -36,7 +36,7 @@ export default function TripSummaryPage() {
     const { toast } = useToast();
     const { user, users } = useAuth();
     const { projects } = useProjects();
-    const logoUrl = 'https://i.ibb.co/L09xL5x/sucofindo-logo.png';
+    const logoUrl = 'https://placehold.co/120x60.png';
     
     const trip = getTripById(tripId);
 
@@ -145,7 +145,7 @@ export default function TripSummaryPage() {
         router.push('/trips');
     };
 
-    const handlePrint = () => {
+    const handlePrint = async () => {
         if (!trip) return;
         const doc = new jsPDF() as jsPDFWithAutoTable;
         const pageWidth = doc.internal.pageSize.getWidth();
@@ -193,26 +193,45 @@ export default function TripSummaryPage() {
         });
 
         // Signature Section
-        const signatureBody = trip.approvalHistory
-            .filter(h => h.status === 'Approved' || h.status === 'Pending')
-            .map(h => {
+        const signatureRows = [];
+        for (const h of trip.approvalHistory) {
+            if (h.status === 'Approved' || h.status === 'Pending') {
                 const approver = users.find(u => u.id === h.actorId);
-                const signatureContent = approver?.signatureUrl
-                    ? { image: approver.signatureUrl, width: 40, height: 15 }
-                    : '';
-                return [
+                let signatureContent: any = '';
+
+                if (approver?.signatureUrl) {
+                    try {
+                        const img = new Image();
+                        img.crossOrigin = 'Anonymous';
+                        const imgPromise = new Promise((resolve, reject) => {
+                            img.onload = () => resolve(true);
+                            img.onerror = (err) => reject(err);
+                        });
+                        img.src = approver.signatureUrl;
+                        await imgPromise;
+                        signatureContent = { image: img, width: 40, height: 15 };
+                    } catch (error) {
+                        console.error("Error loading signature image:", error);
+                        signatureContent = { content: '(Signature not available)', styles: { fontSize: 7 } };
+                    }
+                }
+                
+                signatureRows.push([
                     { content: `${h.actorName}\n\n\n\n___________________\n(${h.status} on ${format(new Date(h.timestamp), 'PPP')})`, styles: { halign: 'center', minCellHeight: 40 } },
                     { content: signatureContent, styles: { halign: 'center', valign: 'middle', minCellHeight: 40 } },
-                ]
-            });
+                ]);
+            }
+        }
         
-        doc.autoTable({
-            head: [['Approver', 'Signature']],
-            body: signatureBody,
-            startY: (doc as any).lastAutoTable.finalY + 15,
-            theme: 'grid',
-            tableWidth: 'wrap'
-        });
+        if (signatureRows.length > 0) {
+            doc.autoTable({
+                head: [['Approver', 'Signature']],
+                body: signatureRows,
+                startY: (doc as any).lastAutoTable.finalY + 15,
+                theme: 'grid',
+                tableWidth: 'wrap'
+            });
+        }
 
 
         doc.save(`TripRequest-${trip.id}.pdf`);
