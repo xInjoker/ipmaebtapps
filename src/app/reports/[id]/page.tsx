@@ -18,6 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import type { UserOptions } from 'jspdf-autotable';
+import { useAuth } from '@/context/AuthContext';
 
 // Extend jsPDF with autoTable
 interface jsPDFWithAutoTable extends jsPDF {
@@ -45,7 +46,7 @@ const ImageGallery = ({ allImages }: { allImages: { url: string, jointNo: string
                                                 <Image src={image.url} alt={`Image for Joint ${image.jointNo}`} width={400} height={225} className="h-full w-full object-cover" data-ai-hint="test result" />
                                             </CardContent>
                                             <CardFooter className="text-xs p-2 bg-muted/50 rounded-b-lg">
-                                                <p className="font-medium truncate">Joint: {image.jointNo} / Weld ID: {image.weldId}</p>
+                                                <div className="font-medium truncate">Joint: {image.jointNo} / Weld ID: {image.weldId}</div>
                                             </CardFooter>
                                         </Card>
                                     </DialogTrigger>
@@ -76,32 +77,32 @@ const PenetrantTestDetailsCard = ({ details }: { details: Extract<ReportDetails,
     <Card>
         <CardHeader><CardTitle>Test Details</CardTitle></CardHeader>
         <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-            <div><p className="font-medium text-muted-foreground">Procedure No.</p><p>{details.procedureNo}</p></div>
-            <div><p className="font-medium text-muted-foreground">Acceptance Criteria</p><p>{details.acceptanceCriteria}</p></div>
-            <div><p className="font-medium text-muted-foreground">Visual Inspection</p><p>{details.visualInspection}</p></div>
-            <div><p className="font-medium text-muted-foreground">Surface Condition</p><p>{details.surfaceCondition}</p></div>
-            <div><p className="font-medium text-muted-foreground">Examination Stage</p><p>{details.examinationStage}</p></div>
-            <div><p className="font-medium text-muted-foreground">Material</p><p>{details.material}</p></div>
-            <div><p className="font-medium text-muted-foreground">Welding Process</p><p>{details.weldingProcess}</p></div>
-            <div><p className="font-medium text-muted-foreground">Drawing Number</p><p>{details.drawingNumber}</p></div>
-            <div><p className="font-medium text-muted-foreground">Test Extent</p><p>{details.testExtent}</p></div>
-            <div><p className="font-medium text-muted-foreground">Test Temperature</p><p>{details.testTemperature}</p></div>
-            <div className="col-span-full"><p className="font-medium text-muted-foreground">Test Equipment</p><p>{details.testEquipment}</p></div>
+            <div><div className="font-medium text-muted-foreground">Procedure No.</div><div>{details.procedureNo}</div></div>
+            <div><div className="font-medium text-muted-foreground">Acceptance Criteria</div><div>{details.acceptanceCriteria}</div></div>
+            <div><div className="font-medium text-muted-foreground">Visual Inspection</div><div>{details.visualInspection}</div></div>
+            <div><div className="font-medium text-muted-foreground">Surface Condition</div><div>{details.surfaceCondition}</div></div>
+            <div><div className="font-medium text-muted-foreground">Examination Stage</div><div>{details.examinationStage}</div></div>
+            <div><div className="font-medium text-muted-foreground">Material</div><div>{details.material}</div></div>
+            <div><div className="font-medium text-muted-foreground">Welding Process</div><div>{details.weldingProcess}</div></div>
+            <div><div className="font-medium text-muted-foreground">Drawing Number</div><div>{details.drawingNumber}</div></div>
+            <div><div className="font-medium text-muted-foreground">Test Extent</div><div>{details.testExtent}</div></div>
+            <div><div className="font-medium text-muted-foreground">Test Temperature</div><div>{details.testTemperature}</div></div>
+            <div className="col-span-full"><div className="font-medium text-muted-foreground">Test Equipment</div><div>{details.testEquipment}</div></div>
 
             <div className="col-span-full"><h4 className="font-semibold text-base mt-2">Penetrant</h4></div>
-            <div><p className="font-medium text-muted-foreground">Type</p><p>{details.penetrantType}</p></div>
-            <div><p className="font-medium text-muted-foreground">Brand</p><p>{details.penetrantBrand}</p></div>
-            <div><p className="font-medium text-muted-foreground">Batch No.</p><p>{details.penetrantBatch}</p></div>
+            <div><div className="font-medium text-muted-foreground">Type</div><div>{details.penetrantType}</div></div>
+            <div><div className="font-medium text-muted-foreground">Brand</div><div>{details.penetrantBrand}</div></div>
+            <div><div className="font-medium text-muted-foreground">Batch No.</div><div>{details.penetrantBatch}</div></div>
 
             <div className="col-span-full"><h4 className="font-semibold text-base mt-2">Remover</h4></div>
-            <div><p className="font-medium text-muted-foreground">Type</p><p>{details.removerType}</p></div>
-            <div><p className="font-medium text-muted-foreground">Brand</p><p>{details.removerBrand}</p></div>
-            <div><p className="font-medium text-muted-foreground">Batch No.</p><p>{details.removerBatch}</p></div>
+            <div><div className="font-medium text-muted-foreground">Type</div><div>{details.removerType}</div></div>
+            <div><div className="font-medium text-muted-foreground">Brand</div><div>{details.removerBrand}</div></div>
+            <div><div className="font-medium text-muted-foreground">Batch No.</div><div>{details.removerBatch}</div></div>
 
             <div className="col-span-full"><h4 className="font-semibold text-base mt-2">Developer</h4></div>
-            <div><p className="font-medium text-muted-foreground">Type</p><p>{details.developerType}</p></div>
-            <div><p className="font-medium text-muted-foreground">Brand</p><p>{details.developerBrand}</p></div>
-            <div><p className="font-medium text-muted-foreground">Batch No.</p><p>{details.developerBatch}</p></div>
+            <div><div className="font-medium text-muted-foreground">Type</div><div>{details.developerType}</div></div>
+            <div><div className="font-medium text-muted-foreground">Brand</div><div>{details.developerBrand}</div></div>
+            <div><div className="font-medium text-muted-foreground">Batch No.</div><div>{details.developerBatch}</div></div>
         </CardContent>
     </Card>
 );
@@ -137,14 +138,14 @@ const MagneticParticleTestDetailsCard = ({ details }: { details: Extract<ReportD
     <Card>
         <CardHeader><CardTitle>Test Details</CardTitle></CardHeader>
         <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-            <div><p className="font-medium text-muted-foreground">Procedure No.</p><p>{details.procedureNo}</p></div>
-            <div><p className="font-medium text-muted-foreground">Acceptance Criteria</p><p>{details.acceptanceCriteria}</p></div>
-            <div><p className="font-medium text-muted-foreground">Magnetization Technique</p><p>{details.magnetizationTechnique}</p></div>
-            <div><p className="font-medium text-muted-foreground">Current Type</p><p>{details.currentType}</p></div>
-            <div><p className="font-medium text-muted-foreground">Amperage</p><p>{details.amperage}</p></div>
-            <div><p className="font-medium text-muted-foreground">Particles Type</p><p>{details.magneticParticlesType}</p></div>
-            <div><p className="font-medium text-muted-foreground">Particle Brand/Batch</p><p>{details.particleBrand} / {details.particleBatch}</p></div>
-            <div><p className="font-medium text-muted-foreground">Equipment</p><p>{details.equipment}</p></div>
+            <div><div className="font-medium text-muted-foreground">Procedure No.</div><div>{details.procedureNo}</div></div>
+            <div><div className="font-medium text-muted-foreground">Acceptance Criteria</div><div>{details.acceptanceCriteria}</div></div>
+            <div><div className="font-medium text-muted-foreground">Magnetization Technique</div><div>{details.magnetizationTechnique}</div></div>
+            <div><div className="font-medium text-muted-foreground">Current Type</div><div>{details.currentType}</div></div>
+            <div><div className="font-medium text-muted-foreground">Amperage</div><div>{details.amperage}</div></div>
+            <div><div className="font-medium text-muted-foreground">Particles Type</div><div>{details.magneticParticlesType}</div></div>
+            <div><div className="font-medium text-muted-foreground">Particle Brand/Batch</div><div>{details.particleBrand} / {details.particleBatch}</div></div>
+            <div><div className="font-medium text-muted-foreground">Equipment</div><div>{details.equipment}</div></div>
         </CardContent>
     </Card>
 );
@@ -177,19 +178,19 @@ const UltrasonicTestDetailsCard = ({ details }: { details: Extract<ReportDetails
     <Card>
         <CardHeader><CardTitle>Test Details</CardTitle></CardHeader>
         <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-            <div><p className="font-medium text-muted-foreground">Procedure No.</p><p>{details.procedureNo}</p></div>
-            <div><p className="font-medium text-muted-foreground">Acceptance Criteria</p><p>{details.acceptanceCriteria}</p></div>
-            <div><p className="font-medium text-muted-foreground">Examination Stage</p><p>{details.examinationStage}</p></div>
-            <div><p className="font-medium text-muted-foreground">Drawing Number</p><p>{details.drawingNumber}</p></div>
-            <div><p className="font-medium text-muted-foreground">Material</p><p>{details.material}</p></div>
-            <div><p className="font-medium text-muted-foreground">Surface Condition</p><p>{details.surfaceCondition}</p></div>
-            <div><p className="font-medium text-muted-foreground">Welding Process</p><p>{details.weldingProcess}</p></div>
-            <div><p className="font-medium text-muted-foreground">Equipment</p><p>{details.equipment}</p></div>
-            <div><p className="font-medium text-muted-foreground">Transducer</p><p>{details.transducer}</p></div>
-            <div><p className="font-medium text-muted-foreground">Calibration Block</p><p>{details.calibrationBlock}</p></div>
-            <div><p className="font-medium text-muted-foreground">Couplant</p><p>{details.couplant}</p></div>
-            <div><p className="font-medium text-muted-foreground">Scanning Sensitivity</p><p>{details.scanningSensitivity}</p></div>
-            <div><p className="font-medium text-muted-foreground">Scanning Technique</p><p>{details.scanningTechnique}</p></div>
+            <div><div className="font-medium text-muted-foreground">Procedure No.</div><div>{details.procedureNo}</div></div>
+            <div><div className="font-medium text-muted-foreground">Acceptance Criteria</div><div>{details.acceptanceCriteria}</div></div>
+            <div><div className="font-medium text-muted-foreground">Examination Stage</div><div>{details.examinationStage}</div></div>
+            <div><div className="font-medium text-muted-foreground">Drawing Number</div><div>{details.drawingNumber}</div></div>
+            <div><div className="font-medium text-muted-foreground">Material</div><div>{details.material}</div></div>
+            <div><div className="font-medium text-muted-foreground">Surface Condition</div><div>{details.surfaceCondition}</div></div>
+            <div><div className="font-medium text-muted-foreground">Welding Process</div><div>{details.weldingProcess}</div></div>
+            <div><div className="font-medium text-muted-foreground">Equipment</div><div>{details.equipment}</div></div>
+            <div><div className="font-medium text-muted-foreground">Transducer</div><div>{details.transducer}</div></div>
+            <div><div className="font-medium text-muted-foreground">Calibration Block</div><div>{details.calibrationBlock}</div></div>
+            <div><div className="font-medium text-muted-foreground">Couplant</div><div>{details.couplant}</div></div>
+            <div><div className="font-medium text-muted-foreground">Scanning Sensitivity</div><div>{details.scanningSensitivity}</div></div>
+            <div><div className="font-medium text-muted-foreground">Scanning Technique</div><div>{details.scanningTechnique}</div></div>
         </CardContent>
     </Card>
 );
@@ -266,19 +267,19 @@ const RadiographicTestDetailsCard = ({ details }: { details: Extract<ReportDetai
     <Card>
         <CardHeader><CardTitle>Test Details</CardTitle></CardHeader>
         <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-            <div><p className="font-medium text-muted-foreground">Procedure No.</p><p>{details.procedureNo}</p></div>
-            <div><p className="font-medium text-muted-foreground">Acceptance Criteria</p><p>{details.acceptanceCriteria}</p></div>
-            <div><p className="font-medium text-muted-foreground">Material</p><p>{details.material}</p></div>
-            <div><p className="font-medium text-muted-foreground">Technique</p><p>{details.technique}</p></div>
-            <div><p className="font-medium text-muted-foreground">Source</p><p>{details.source} ({details.sourceSize})</p></div>
-            <div><p className="font-medium text-muted-foreground">Curries</p><p>{details.curries}</p></div>
-            <div><p className="font-medium text-muted-foreground">KVP / mA</p><p>{details.kvp || 'N/A'} / {details.mA || 'N/A'}</p></div>
-            <div><p className="font-medium text-muted-foreground">SFD</p><p>{details.sfd}</p></div>
-            <div><p className="font-medium text-muted-foreground">Screens</p><p>{details.screens}</p></div>
-            <div><p className="font-medium text-muted-foreground">Density</p><p>{details.density}</p></div>
-            <div><p className="font-medium text-muted-foreground">Penetrameter (IQI)</p><p>{details.penetrameter}</p></div>
-            <div><p className="font-medium text-muted-foreground">Camera S/N</p><p>{details.cameraSerialNumber}</p></div>
-            <div className="col-span-2"><p className="font-medium text-muted-foreground">Survey Meter S/N</p><p>{details.surveyMeterSerialNumber} (Expires: {details.surveyMeterCertExpDate ? format(new Date(details.surveyMeterCertExpDate), 'PPP') : 'N/A'})</p></div>
+            <div><div className="font-medium text-muted-foreground">Procedure No.</div><div>{details.procedureNo}</div></div>
+            <div><div className="font-medium text-muted-foreground">Acceptance Criteria</div><div>{details.acceptanceCriteria}</div></div>
+            <div><div className="font-medium text-muted-foreground">Material</div><div>{details.material}</div></div>
+            <div><div className="font-medium text-muted-foreground">Technique</div><div>{details.technique}</div></div>
+            <div><div className="font-medium text-muted-foreground">Source</div><div>{details.source} ({details.sourceSize})</div></div>
+            <div><div className="font-medium text-muted-foreground">Curries</div><div>{details.curries}</div></div>
+            <div><div className="font-medium text-muted-foreground">KVP / mA</div><div>{details.kvp || 'N/A'} / {details.mA || 'N/A'}</div></div>
+            <div><div className="font-medium text-muted-foreground">SFD</div><div>{details.sfd}</div></div>
+            <div><div className="font-medium text-muted-foreground">Screens</div><div>{details.screens}</div></div>
+            <div><div className="font-medium text-muted-foreground">Density</div><div>{details.density}</div></div>
+            <div><div className="font-medium text-muted-foreground">Penetrameter (IQI)</div><div>{details.penetrameter}</div></div>
+            <div><div className="font-medium text-muted-foreground">Camera S/N</div><div>{details.cameraSerialNumber}</div></div>
+            <div className="col-span-2"><div className="font-medium text-muted-foreground">Survey Meter S/N</div><div>{details.surveyMeterSerialNumber} (Expires: {details.surveyMeterCertExpDate ? format(new Date(details.surveyMeterCertExpDate), 'PPP') : 'N/A'})</div></div>
         </CardContent>
     </Card>
 );
@@ -366,6 +367,7 @@ export default function ReportDetailsPage() {
     const params = useParams();
     const reportId = params.id as string;
     const { reports } = useReports();
+    const { users } = useAuth();
     const [report, setReport] = useState<ReportItem | null>(null);
 
     useEffect(() => {
@@ -404,18 +406,25 @@ export default function ReportDetailsPage() {
             headStyles: { fillColor: [41, 128, 185] },
         });
 
-        // --- Approval History ---
-        const approvalHistoryBody = report.approvalHistory.map(action => [
-            action.actorRole,
-            action.actorName,
-            action.status,
-            format(new Date(action.timestamp), 'PPP p'),
-        ]);
-
+        // --- Signature Block ---
+        const signatureTableBody = report.approvalHistory.map(action => {
+            const approver = users.find(u => u.name === action.actorName);
+            const signatureContent = approver?.signatureUrl
+                ? { image: approver.signatureUrl, width: 40, height: 15 }
+                : '';
+                
+            return [
+                { content: `${action.actorRole}\n\n\n\n${action.actorName}`, styles: { halign: 'center' } },
+                { content: signatureContent, styles: { halign: 'center', minCellHeight: 25 } },
+                { content: `Approved on:\n${format(new Date(action.timestamp), 'PPP')}`, styles: { halign: 'center' } }
+            ];
+        });
+        
         doc.autoTable({
-            head: [['Role', 'Name', 'Action', 'Timestamp']],
-            body: approvalHistoryBody,
+            head: [['Role', 'Signature', 'Date']],
+            body: signatureTableBody,
             startY: (doc as any).lastAutoTable.finalY + 10,
+            theme: 'grid',
             didDrawPage: (data) => {
                 // Footer
                 const pageCount = doc.internal.getNumberOfPages();
@@ -423,22 +432,6 @@ export default function ReportDetailsPage() {
                 doc.text(`Page ${data.pageNumber} of ${pageCount}`, data.settings.margin.left, doc.internal.pageSize.height - 10);
             }
         });
-
-        // --- Signature Block ---
-        const finalY = (doc as any).lastAutoTable.finalY + 15;
-        let signatureY = finalY;
-
-        const signatureTableBody = report.approvalHistory.map(action => [
-            `${action.actorRole}\n\n\n\n${action.actorName}`,
-            `Approved on:\n${format(new Date(action.timestamp), 'PPP')}`
-        ]);
-        
-        doc.autoTable({
-            body: signatureTableBody,
-            startY: signatureY,
-            theme: 'plain'
-        });
-
 
         doc.save(`Report-${report.reportNumber}.pdf`);
     };
@@ -492,17 +485,17 @@ export default function ReportDetailsPage() {
                         <CardHeader><CardTitle>General Information</CardTitle></CardHeader>
                         <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                             {details && <>
-                                <div><p className="font-medium text-muted-foreground">Client</p><p>{details.client}</p></div>
-                                {details.soNumber && <div><p className="font-medium text-muted-foreground">Service Order</p><p>{details.soNumber}</p></div>}
-                                <div><p className="font-medium text-muted-foreground">Project Executor</p><p>{details.projectExecutor}</p></div>
-                                <div><p className="font-medium text-muted-foreground">Project</p><p>{details.project}</p></div>
-                                <div><p className="font-medium text-muted-foreground">Date of Test</p><p>{details.dateOfTest ? format(new Date(details.dateOfTest), 'PPP') : 'N/A'}</p></div>
+                                <div><div className="font-medium text-muted-foreground">Client</div><div>{details.client}</div></div>
+                                {details.soNumber && <div><div className="font-medium text-muted-foreground">Service Order</div><div>{details.soNumber}</div></div>}
+                                <div><div className="font-medium text-muted-foreground">Project Executor</div><div>{details.projectExecutor}</div></div>
+                                <div><div className="font-medium text-muted-foreground">Project</div><div>{details.project}</div></div>
+                                <div><div className="font-medium text-muted-foreground">Date of Test</div><div>{details.dateOfTest ? format(new Date(details.dateOfTest), 'PPP') : 'N/A'}</div></div>
                             </>}
-                            <div><p className="font-medium text-muted-foreground">Job Location</p><p>{report.jobLocation}</p></div>
-                            <div><p className="font-medium text-muted-foreground">Date of Creation</p><p>{report.creationDate ? format(new Date(report.creationDate), 'PPP') : 'N/A'}</p></div>
-                            <div><p className="font-medium text-muted-foreground">Report Number</p><p>{report.reportNumber}</p></div>
-                            <div><p className="font-medium text-muted-foreground">Line Type</p><p>{report.lineType}</p></div>
-                            {creator && <div><p className="font-medium text-muted-foreground">Created By</p><p>{`${creator.actorName} (${creator.actorRole})`}</p></div>}
+                            <div><div className="font-medium text-muted-foreground">Job Location</div><div>{report.jobLocation}</div></div>
+                            <div><div className="font-medium text-muted-foreground">Date of Creation</div><div>{report.creationDate ? format(new Date(report.creationDate), 'PPP') : 'N/A'}</div></div>
+                            <div><div className="font-medium text-muted-foreground">Report Number</div><div>{report.reportNumber}</div></div>
+                            <div><div className="font-medium text-muted-foreground">Line Type</div><div>{report.lineType}</div></div>
+                            {creator && <div><div className="font-medium text-muted-foreground">Created By</div><div>{`${creator.actorName} (${creator.actorRole})`}</div></div>}
                         </CardContent>
                     </Card>
                     {ReportComponents && 'DetailsCard' in ReportComponents && <ReportComponents.DetailsCard details={details as any} />}
@@ -516,7 +509,7 @@ export default function ReportDetailsPage() {
                             <CardTitle>Test Results</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <p>This report type does not have a detailed result view implemented yet.</p>
+                            <div>This report type does not have a detailed result view implemented yet.</div>
                         </CardContent>
                     </Card>
                 )}

@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -9,13 +10,14 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Camera } from 'lucide-react';
+import { Camera, Upload, Signature, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { getInitials, getAvatarColor } from '@/lib/utils';
 import { cn } from '@/lib/utils';
@@ -37,13 +39,30 @@ export default function ProfilePage() {
   const [bio, setBio] = useState(
     'I am a Project Manager with over 5 years of experience in the tech industry.'
   );
+  const [signature, setSignature] = useState<string | null>(user?.signatureUrl || null);
 
   useEffect(() => {
     if (user) {
       setFullName(user.name);
       setSelectedBranch(user.branchId);
+      setSignature(user.signatureUrl || null);
     }
   }, [user]);
+  
+  const handleSignatureUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setSignature(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  
+  const removeSignature = () => {
+      setSignature(null);
+  }
 
   if (!user) {
     return null; // Or a loading state
@@ -51,7 +70,7 @@ export default function ProfilePage() {
 
   const handleSaveChanges = () => {
     if (user) {
-      updateUser(user.id, { name: fullName, branchId: selectedBranch });
+      updateUser(user.id, { name: fullName, branchId: selectedBranch, signatureUrl: signature || '' });
       // Note: 'bio' is not part of the User model in AuthContext, so changes to it are not persisted.
       toast({
         title: 'Profile Updated',
@@ -121,7 +140,7 @@ export default function ProfilePage() {
           <CardHeader>
             <CardTitle>Personal Information</CardTitle>
             <CardDescription>
-              Update your personal details here.
+              Update your personal details here. Click "Save Changes" at the bottom to apply.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -171,37 +190,75 @@ export default function ProfilePage() {
                 onChange={(e) => setBio(e.target.value)}
               />
             </div>
-            <div className="flex justify-end">
-              <Button onClick={handleSaveChanges}>Save Changes</Button>
-            </div>
           </CardContent>
+          <CardFooter className="flex justify-end">
+              <Button onClick={handleSaveChanges}>Save Changes</Button>
+            </CardFooter>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Change Password</CardTitle>
-            <CardDescription>
-              Update your password. Make sure it's a strong one.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="currentPassword">Current Password</Label>
-              <Input id="currentPassword" type="password" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="newPassword">New Password</Label>
-              <Input id="newPassword" type="password" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm New Password</Label>
-              <Input id="confirmPassword" type="password" />
-            </div>
-            <div className="flex justify-end">
-              <Button variant="secondary">Update Password</Button>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="space-y-6">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Digital Signature</CardTitle>
+                    <CardDescription>
+                    Upload an image of your signature. This will be used on reports you approve.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="flex h-40 w-full items-center justify-center rounded-md border-2 border-dashed">
+                    {signature ? (
+                        <div className="relative group">
+                            <Image src={signature} alt="User signature" width={200} height={100} className="max-h-32 w-auto object-contain" />
+                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button variant="destructive" size="icon" className="h-8 w-8" onClick={removeSignature}>
+                                    <X className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="text-center text-muted-foreground">
+                            <Signature className="mx-auto h-10 w-10" />
+                            <p className="mt-2 text-sm">No signature uploaded</p>
+                        </div>
+                    )}
+                    </div>
+                    <label htmlFor="signature-upload" className="mt-4 w-full">
+                        <Button variant="outline" asChild className="w-full cursor-pointer">
+                            <span>
+                                <Upload className="mr-2 h-4 w-4" /> Upload Signature
+                            </span>
+                        </Button>
+                        <Input id="signature-upload" type="file" className="hidden" accept="image/png, image/jpeg" onChange={handleSignatureUpload} />
+                    </label>
+                </CardContent>
+            </Card>
+
+            <Card>
+            <CardHeader>
+                <CardTitle>Change Password</CardTitle>
+                <CardDescription>
+                Update your password. Make sure it's a strong one.
+                </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <div className="space-y-2">
+                <Label htmlFor="currentPassword">Current Password</Label>
+                <Input id="currentPassword" type="password" />
+                </div>
+                <div className="space-y-2">
+                <Label htmlFor="newPassword">New Password</Label>
+                <Input id="newPassword" type="password" />
+                </div>
+                <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                <Input id="confirmPassword" type="password" />
+                </div>
+                <div className="flex justify-end">
+                <Button variant="secondary">Update Password</Button>
+                </div>
+            </CardContent>
+            </Card>
+        </div>
       </div>
     </div>
   );

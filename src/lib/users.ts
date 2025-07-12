@@ -41,6 +41,7 @@ export type User = {
   roleId: string;
   branchId: string;
   avatarUrl: string;
+  signatureUrl?: string;
 };
 
 export type Branch = {
@@ -163,15 +164,15 @@ export const initialRoles: Role[] = [
 ];
 
 export const initialUsers: User[] = [
-  { id: 1, name: 'Super Admin', email: 'superuser@example.com', roleId: 'super-admin', branchId: 'hq', avatarUrl: '' },
-  { id: 2, name: 'Project Manager', email: 'pm@example.com', roleId: 'project-manager', branchId: 'jakarta', avatarUrl: '' },
-  { id: 3, name: 'Jane Doe', email: 'jane.doe@example.com', roleId: 'project-manager', branchId: 'jakarta', avatarUrl: '' },
-  { id: 4, name: 'John Smith', email: 'john.smith@example.com', roleId: 'project-manager', branchId: 'surabaya', avatarUrl: '' },
-  { id: 5, name: 'QAQC Client', email: 'qaqc.client@example.com', roleId: 'client-qaqc', branchId: 'hq', avatarUrl: '' },
-  { id: 6, name: 'Rep Client', email: 'rep.client@example.com', roleId: 'client-rep', branchId: 'hq', avatarUrl: '' },
-  { id: 7, name: 'Project Admin User', email: 'pa@example.com', roleId: 'project-admin', branchId: 'jakarta', avatarUrl: '' },
-  { id: 8, name: 'Inspector User', email: 'inspector@example.com', roleId: 'inspector', branchId: 'jakarta', avatarUrl: '' },
-  { id: 9, name: 'Inspector1', email: 'inspector1@example.com', roleId: 'inspector', branchId: 'hq', avatarUrl: '' },
-  { id: 10, name: 'Employee User', email: 'employee@example.com', roleId: 'employee', branchId: 'jakarta', avatarUrl: '' },
-  { id: 11, name: 'Tender Admin', email: 'tender@example.com', roleId: 'tender-admin', branchId: 'hq', avatarUrl: '' },
+  { id: 1, name: 'Super Admin', email: 'superuser@example.com', roleId: 'super-admin', branchId: 'hq', avatarUrl: '', signatureUrl: '' },
+  { id: 2, name: 'Project Manager', email: 'pm@example.com', roleId: 'project-manager', branchId: 'jakarta', avatarUrl: '', signatureUrl: '' },
+  { id: 3, name: 'Jane Doe', email: 'jane.doe@example.com', roleId: 'project-manager', branchId: 'jakarta', avatarUrl: '', signatureUrl: '' },
+  { id: 4, name: 'John Smith', email: 'john.smith@example.com', roleId: 'project-manager', branchId: 'surabaya', avatarUrl: '', signatureUrl: '' },
+  { id: 5, name: 'QAQC Client', email: 'qaqc.client@example.com', roleId: 'client-qaqc', branchId: 'hq', avatarUrl: '', signatureUrl: '' },
+  { id: 6, name: 'Rep Client', email: 'rep.client@example.com', roleId: 'client-rep', branchId: 'hq', avatarUrl: '', signatureUrl: '' },
+  { id: 7, name: 'Project Admin User', email: 'pa@example.com', roleId: 'project-admin', branchId: 'jakarta', avatarUrl: '', signatureUrl: '' },
+  { id: 8, name: 'Inspector User', email: 'inspector@example.com', roleId: 'inspector', branchId: 'jakarta', avatarUrl: '', signatureUrl: '' },
+  { id: 9, name: 'Inspector1', email: 'inspector1@example.com', roleId: 'inspector', branchId: 'hq', avatarUrl: '', signatureUrl: '' },
+  { id: 10, name: 'Employee User', email: 'employee@example.com', roleId: 'employee', branchId: 'jakarta', avatarUrl: '', signatureUrl: '' },
+  { id: 11, name: 'Tender Admin', email: 'tender@example.com', roleId: 'tender-admin', branchId: 'hq', avatarUrl: '', signatureUrl: '' },
 ];

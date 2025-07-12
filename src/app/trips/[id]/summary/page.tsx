@@ -4,6 +4,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 import { useTrips } from '@/context/TripContext';
 import { Button } from '@/components/ui/button';
@@ -184,30 +185,25 @@ export default function TripSummaryPage() {
             startY: (doc as any).lastAutoTable.finalY + 10,
         });
 
-        // Approval History
-        const approvalBody = trip.approvalHistory.map(h => [
-            h.actorName,
-            h.status,
-            format(new Date(h.timestamp), 'PPP p'),
-            h.comments || ''
-        ]);
-        doc.autoTable({
-            head: [['Approver', 'Action', 'Date', 'Comments']],
-            body: approvalBody,
-            startY: (doc as any).lastAutoTable.finalY + 10,
-        });
-
         // Signature Section
         const signatureBody = trip.approvalHistory
             .filter(h => h.status === 'Approved' || h.status === 'Pending')
-            .map(h => [
-                `${h.actorName}\n\n\n\n___________________\n(${h.status} on ${format(new Date(h.timestamp), 'PPP')})`,
-            ]);
+            .map(h => {
+                const approver = users.find(u => u.id === h.actorId);
+                const signatureContent = approver?.signatureUrl
+                    ? { image: approver.signatureUrl, width: 40, height: 15 }
+                    : '';
+                return [
+                    { content: `${h.actorName}\n\n\n\n___________________\n(${h.status} on ${format(new Date(h.timestamp), 'PPP')})`, styles: { halign: 'center', minCellHeight: 40 } },
+                    { content: signatureContent, styles: { halign: 'center', valign: 'middle', minCellHeight: 40 } },
+                ]
+            });
         
         doc.autoTable({
+            head: [['Approver', 'Signature']],
             body: signatureBody,
             startY: (doc as any).lastAutoTable.finalY + 15,
-            theme: 'plain',
+            theme: 'grid',
             tableWidth: 'wrap'
         });
 
@@ -265,14 +261,14 @@ export default function TripSummaryPage() {
                             <CardTitle className="text-lg">Trip Details</CardTitle>
                         </CardHeader>
                         <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-sm">
-                            <div className="flex items-center gap-3"><User className="h-4 w-4 text-muted-foreground" /><div><p className="font-medium text-muted-foreground">Employee</p><p>{trip.employeeName}</p></div></div>
-                            <div className="flex items-center gap-3"><Briefcase className="h-4 w-4 text-muted-foreground" /><div><p className="font-medium text-muted-foreground">Position</p><p>{trip.position}</p></div></div>
-                            <div className="flex items-center gap-3"><Building2 className="h-4 w-4 text-muted-foreground" /><div><p className="font-medium text-muted-foreground">Division/Function</p><p>{trip.division}</p></div></div>
-                            <div className="flex items-center gap-3"><GanttChart className="h-4 w-4 text-muted-foreground" /><div><p className="font-medium text-muted-foreground">Project</p><p>{trip.project}</p></div></div>
-                            <div className="flex items-center gap-3"><Map className="h-4 w-4 text-muted-foreground" /><div><p className="font-medium text-muted-foreground">Destination</p><p>{trip.destination}</p></div></div>
-                            <div className="flex items-center gap-3"><Building2 className="h-4 w-4 text-muted-foreground" /><div><p className="font-medium text-muted-foreground">Destination Company</p><p>{trip.destinationCompany || 'N/A'}</p></div></div>
-                            <div className="flex items-center gap-3"><Calendar className="h-4 w-4 text-muted-foreground" /><div><p className="font-medium text-muted-foreground">Dates</p><p>{format(new Date(trip.startDate), 'PPP')} - {format(new Date(trip.endDate), 'PPP')} ({tripDuration} day(s))</p></div></div>
-                            <div className="lg:col-span-3 flex items-start gap-3"><Info className="h-4 w-4 text-muted-foreground mt-0.5" /><div><p className="font-medium text-muted-foreground">Purpose</p><p className="max-w-prose">{trip.purpose}</p></div></div>
+                            <div className="flex items-center gap-3"><User className="h-4 w-4 text-muted-foreground" /><div><div className="font-medium text-muted-foreground">Employee</div><div>{trip.employeeName}</div></div></div>
+                            <div className="flex items-center gap-3"><Briefcase className="h-4 w-4 text-muted-foreground" /><div><div className="font-medium text-muted-foreground">Position</div><div>{trip.position}</div></div></div>
+                            <div className="flex items-center gap-3"><Building2 className="h-4 w-4 text-muted-foreground" /><div><div className="font-medium text-muted-foreground">Division/Function</div><div>{trip.division}</div></div></div>
+                            <div className="flex items-center gap-3"><GanttChart className="h-4 w-4 text-muted-foreground" /><div><div className="font-medium text-muted-foreground">Project</div><div>{trip.project}</div></div></div>
+                            <div className="flex items-center gap-3"><Map className="h-4 w-4 text-muted-foreground" /><div><div className="font-medium text-muted-foreground">Destination</div><div>{trip.destination}</div></div></div>
+                            <div className="flex items-center gap-3"><Building2 className="h-4 w-4 text-muted-foreground" /><div><div className="font-medium text-muted-foreground">Destination Company</div><div>{trip.destinationCompany || 'N/A'}</div></div></div>
+                            <div className="flex items-center gap-3"><Calendar className="h-4 w-4 text-muted-foreground" /><div><div className="font-medium text-muted-foreground">Dates</div><div>{format(new Date(trip.startDate), 'PPP')} - {format(new Date(trip.endDate), 'PPP')} ({tripDuration} day(s))</div></div></div>
+                            <div className="lg:col-span-3 flex items-start gap-3"><Info className="h-4 w-4 text-muted-foreground mt-0.5" /><div><div className="font-medium text-muted-foreground">Purpose</div><div className="max-w-prose">{trip.purpose}</div></div></div>
                         </CardContent>
                     </Card>
                     <Card>
