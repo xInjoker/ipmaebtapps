@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState, useMemo, use } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -354,7 +354,7 @@ const reportTypeMap = {
 
 export default function ReportDetailsPage() {
     const router = useRouter();
-    const params = use(useParams());
+    const params = useParams();
     const { reports } = useReports();
     const [report, setReport] = useState<ReportItem | null>(null);
 

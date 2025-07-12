@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo, use } from 'react';
+import { useState, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import {
   Card,
@@ -44,7 +44,7 @@ import { ProjectBudgetExpenditureChart } from '@/components/project-budget-expen
 import { ProjectServiceOrderChart } from '@/components/project-service-order-chart';
 
 export default function ProjectDetailsPage() {
-  const params = use(useParams());
+  const params = useParams();
   const { projects, setProjects } = useProjects();
   
   const project = projects.find((p) => p.id === parseInt(params.id as string, 10));

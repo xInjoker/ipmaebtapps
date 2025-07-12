@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useMemo, use } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
@@ -31,7 +31,7 @@ const allowanceRates = {
 
 export default function TripSummaryPage() {
     const router = useRouter();
-    const params = use(useParams());
+    const params = useParams();
     const { getTripById, updateTrip } = useTrips();
     const { toast } = useToast();
     const { user, users } = useAuth();

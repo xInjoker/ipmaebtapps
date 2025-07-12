@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useMemo, use } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -32,7 +32,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 export default function EditEquipmentPage() {
   const router = useRouter();
-  const params = use(useParams());
+  const params = useParams();
   const { branches } = useAuth();
   const { inspectors } = useInspectors();
   const { getEquipmentById, updateEquipment, equipmentList } = useEquipment();

@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState, use } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useEmployees } from '@/context/EmployeeContext';
@@ -56,7 +56,7 @@ function DetailItem({ icon: Icon, label, value, iconColor }: { icon: React.Eleme
 
 export default function EmployeeDetailsPage() {
   const router = useRouter();
-  const params = use(useParams());
+  const params = useParams();
   const { getEmployeeById } = useEmployees();
   const { userHasPermission } = useAuth();
   const [employee, setEmployee] = useState<Employee | null>(null);

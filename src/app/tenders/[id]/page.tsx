@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState, use } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useTenders } from '@/context/TenderContext';
@@ -47,7 +47,7 @@ function DetailItem({ icon: Icon, label, value }: { icon: React.ElementType, lab
 
 export default function TenderDetailsPage() {
   const router = useRouter();
-  const params = use(useParams());
+  const params = useParams();
   const { getTenderById } = useTenders();
   const { branches } = useAuth();
   const [tender, setTender] = useState<Tender | null>(null);
