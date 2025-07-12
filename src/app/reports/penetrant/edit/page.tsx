@@ -4,7 +4,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { ArrowLeft, Check, ChevronLeft, ChevronRight, Upload, X, ChevronsUpDown } from 'lucide-react';
@@ -38,8 +38,16 @@ const steps = [
     { id: '01', name: 'General Info', fields: ['client', 'project', 'reportNumber', 'dateOfTest'] },
     { id: '02', name: 'Test Details', fields: ['procedureNo', 'acceptanceCriteria', 'material', 'weldingProcess'] },
     { id: '03', name: 'Test Results', fields: [] },
-    { id: '04', name: 'Summary & Submit', fields: [] },
+    { id: '04', name: 'Summary & Save', fields: [] },
 ];
+
+type FormData = Omit<PenetrantTestReportDetails, 'jobType' | 'dateOfTest' | 'testResults'> & {
+    jobLocation: string;
+    reportNumber: string;
+    lineType: string;
+    dateOfTest: Date | undefined;
+    testResults: TestResult[];
+};
 
 type TestResult = {
     subjectIdentification: string;
@@ -54,24 +62,62 @@ type TestResult = {
     imageUrls?: string[];
 };
 
-export default function PenetrantTestPage() {
+function createReportDetails(formData: FormData): PenetrantTestReportDetails {
+    return {
+        jobType: 'Penetrant Test',
+        client: formData.client,
+        soNumber: formData.soNumber,
+        projectExecutor: formData.projectExecutor,
+        project: formData.project,
+        dateOfTest: formData.dateOfTest ? format(formData.dateOfTest, 'yyyy-MM-dd') : undefined,
+        procedureNo: formData.procedureNo,
+        acceptanceCriteria: formData.acceptanceCriteria,
+        visualInspection: formData.visualInspection,
+        surfaceCondition: formData.surfaceCondition,
+        examinationStage: formData.examinationStage,
+        material: formData.material,
+        weldingProcess: formData.weldingProcess,
+        drawingNumber: formData.drawingNumber,
+        testExtent: formData.testExtent,
+        testTemperature: formData.testTemperature,
+        penetrantType: formData.penetrantType,
+        penetrantBrand: formData.penetrantBrand,
+        penetrantBatch: formData.penetrantBatch,
+        removerType: formData.removerType,
+        removerBrand: formData.removerBrand,
+        removerBatch: formData.removerBatch,
+        developerType: formData.developerType,
+        developerBrand: formData.developerBrand,
+        developerBatch: formData.developerBatch,
+        testEquipment: formData.testEquipment,
+        testResults: formData.testResults.map(result => ({
+            ...result,
+            imageUrls: result.imageUrls || [],
+        })),
+    };
+}
+
+
+export default function EditPenetrantTestPage() {
     const router = useRouter();
-    const { toast } = useToast();
+    const params = useParams();
+    const { getReportById, updateReport, reports } = useReports();
     const { projects } = useProjects();
-    const { user, isHqUser, roles } = useAuth();
-    const { reports, addReport } = useReports();
+    const { user, isHqUser } = useAuth();
+    const { toast } = useToast();
 
     const [currentStep, setCurrentStep] = useState(0);
+    const [originalReport, setOriginalReport] = useState<ReportItem | null>(null);
     const [isAcceptanceCriteriaPopoverOpen, setIsAcceptanceCriteriaPopoverOpen] = useState(false);
     const [isProcedureNoPopoverOpen, setIsProcedureNoPopoverOpen] = useState(false);
 
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<FormData>({
         client: '',
         soNumber: '',
         projectExecutor: '',
         project: '',
         jobLocation: '',
-        dateOfTest: undefined as Date | undefined,
+        dateOfTest: undefined,
         reportNumber: '',
         lineType: '',
         procedureNo: '',
@@ -94,7 +140,7 @@ export default function PenetrantTestPage() {
         developerBrand: '',
         developerBatch: '',
         testEquipment: '',
-        testResults: [] as TestResult[],
+        testResults: [],
     });
 
     const visibleProjects = useMemo(() => {
@@ -123,6 +169,55 @@ export default function PenetrantTestPage() {
     });
 
     const [newTestResultImagePreviews, setNewTestResultImagePreviews] = useState<string[]>([]);
+    
+    useEffect(() => {
+        const reportId = params.id as string;
+        if (reportId) {
+            const item = getReportById(reportId);
+            if (item && item.details && item.details.jobType === 'Penetrant Test') {
+                setOriginalReport(item);
+                const details = item.details as PenetrantTestReportDetails;
+                setFormData({
+                    jobLocation: item.jobLocation || '',
+                    reportNumber: item.reportNumber || '',
+                    lineType: item.lineType || '',
+                    client: details.client || '',
+                    soNumber: details.soNumber || '',
+                    projectExecutor: details.projectExecutor || '',
+                    project: details.project || '',
+                    dateOfTest: details.dateOfTest ? new Date(details.dateOfTest) : undefined,
+                    procedureNo: details.procedureNo || '',
+                    acceptanceCriteria: details.acceptanceCriteria || '',
+                    visualInspection: details.visualInspection || 'Acceptable',
+                    surfaceCondition: details.surfaceCondition || 'As Welded',
+                    examinationStage: details.examinationStage || '',
+                    material: details.material || '',
+                    weldingProcess: details.weldingProcess || '',
+                    drawingNumber: details.drawingNumber || '',
+                    testExtent: details.testExtent || '100%',
+                    testTemperature: details.testTemperature || '',
+                    penetrantType: details.penetrantType || '',
+                    penetrantBrand: details.penetrantBrand || '',
+                    penetrantBatch: details.penetrantBatch || '',
+                    removerType: details.removerType || '',
+                    removerBrand: details.removerBrand || '',
+                    removerBatch: details.removerBatch || '',
+                    developerType: details.developerType || '',
+                    developerBrand: details.developerBrand || '',
+                    developerBatch: details.developerBatch || '',
+                    testEquipment: details.testEquipment || '',
+                    testResults: (details.testResults || []).map(tr => ({
+                        ...tr,
+                        images: [],
+                        imageUrls: tr.imageUrls || [],
+                    })),
+                });
+            } else {
+                toast({ variant: 'destructive', title: 'Report not found', description: `Could not find a valid Penetrant Test report with ID ${reportId}.` });
+                router.push('/reports/penetrant');
+            }
+        }
+    }, [params.id, getReportById, router, toast, reports]);
 
     useEffect(() => {
         if (!newTestResult.images || newTestResult.images.length === 0) {
@@ -150,7 +245,6 @@ export default function PenetrantTestPage() {
                     project: 'Non Project',
                     client: '',
                     projectExecutor: '',
-                    reportNumber: '',
                     soNumber: '',
                 }));
                 return;
@@ -158,18 +252,11 @@ export default function PenetrantTestPage() {
     
             const selectedProject = visibleProjects.find(p => p.name === value);
             if (selectedProject) {
-                const currentYear = new Date().getFullYear();
-                const penetrantReportsThisYear = reports.filter(r => 
-                    r.jobType === 'Penetrant Test' && r.reportNumber.includes(`-${currentYear}-`)
-                ).length;
-                const newReportNumber = `PT-${currentYear}-${String(penetrantReportsThisYear + 1).padStart(3, '0')}`;
-    
                 setFormData(prev => ({
                     ...prev,
                     project: value,
                     client: selectedProject.client,
                     projectExecutor: selectedProject.contractExecutor,
-                    reportNumber: newReportNumber,
                     soNumber: '',
                 }));
             }
@@ -229,6 +316,13 @@ export default function PenetrantTestPage() {
             images: prev.images.filter((_, i) => i !== index)
         }));
     };
+    
+    const removeTestResult = (indexToRemove: number) => {
+        setFormData(prev => ({
+            ...prev,
+            testResults: prev.testResults.filter((_, index) => index !== indexToRemove)
+        }));
+    };
 
     const next = () => {
         if (currentStep < steps.length - 1) {
@@ -242,86 +336,34 @@ export default function PenetrantTestPage() {
         }
     };
 
-    const handleSubmit = () => {
-        if (!formData.project || !formData.reportNumber || !formData.lineType) {
-            toast({
-                variant: 'destructive',
-                title: 'Incomplete Information',
-                description: 'Please ensure all required fields are filled before submitting.',
-            });
-            setCurrentStep(0);
-            return;
-        }
-    
-        const reportDetails: PenetrantTestReportDetails = {
-            jobType: 'Penetrant Test',
-            client: formData.client,
-            soNumber: formData.soNumber,
-            projectExecutor: formData.projectExecutor,
-            project: formData.project,
-            dateOfTest: formData.dateOfTest ? format(formData.dateOfTest, 'yyyy-MM-dd') : undefined,
-            procedureNo: formData.procedureNo,
-            acceptanceCriteria: formData.acceptanceCriteria,
-            visualInspection: formData.visualInspection,
-            surfaceCondition: formData.surfaceCondition,
-            examinationStage: formData.examinationStage,
-            material: formData.material,
-            weldingProcess: formData.weldingProcess,
-            drawingNumber: formData.drawingNumber,
-            testExtent: formData.testExtent,
-            testTemperature: formData.testTemperature,
-            penetrantType: formData.penetrantType,
-            penetrantBrand: formData.penetrantBrand,
-            penetrantBatch: formData.penetrantBatch,
-            removerType: formData.removerType,
-            removerBrand: formData.removerBrand,
-            removerBatch: formData.removerBatch,
-            developerType: formData.developerType,
-            developerBrand: formData.developerBrand,
-            developerBatch: formData.developerBatch,
-            testEquipment: formData.testEquipment,
-            testResults: formData.testResults.map(result => ({
-                subjectIdentification: result.subjectIdentification,
-                jointNo: result.jointNo,
-                weldId: result.weldId,
-                diameter: result.diameter,
-                thickness: result.thickness,
-                linearIndication: result.linearIndication,
-                roundIndication: result.roundIndication,
-                result: result.result,
-                imageUrls: result.imageUrls || [],
-            })),
-        };
+    const handleSave = () => {
+        if (!originalReport) return;
 
-        const newReport: Omit<ReportItem, 'id'> = {
+        const reportDetails = createReportDetails(formData);
+
+        const updatedReport: ReportItem = {
+            ...originalReport,
             reportNumber: formData.reportNumber,
             jobLocation: formData.jobLocation,
             lineType: formData.lineType,
-            jobType: 'Penetrant Test',
             qtyJoint: formData.testResults.length,
-            status: 'Submitted',
+            status: 'Submitted', // Or maybe keep original status? For now, let's assume editing re-submits it.
             details: reportDetails,
-            creationDate: format(new Date(), 'yyyy-MM-dd'),
-            approvalHistory: user ? [
-              {
-                actorName: user.name,
-                actorRole: roles.find(r => r.id === user.roleId)?.name || 'N/A',
-                status: 'Submitted',
-                timestamp: new Date().toISOString(),
-                comments: 'Report created.'
-              }
-            ] : [],
         };
     
-        addReport(newReport);
+        updateReport(originalReport.id, updatedReport);
     
         toast({
-            title: 'Report Submitted',
-            description: `Report ${formData.reportNumber} has been successfully submitted.`,
+            title: 'Report Updated',
+            description: `Report ${updatedReport.reportNumber} has been successfully updated.`,
         });
     
-        router.push('/reports/penetrant');
+        router.push(`/reports/${originalReport.id}`);
     };
+
+    if (!originalReport) {
+        return <div className="flex h-screen items-center justify-center">Loading report...</div>;
+    }
 
   return (
     <div className="space-y-6">
@@ -333,8 +375,8 @@ export default function PenetrantTestPage() {
           </Link>
         </Button>
         <div>
-          <h1 className="font-headline text-2xl font-bold">Penetrant Test Report</h1>
-          <p className="text-muted-foreground">Follow the steps to create a new report.</p>
+          <h1 className="font-headline text-2xl font-bold">Edit Penetrant Test Report</h1>
+          <p className="text-muted-foreground">Editing report: {originalReport.reportNumber}</p>
         </div>
       </div>
       <Card>
@@ -421,11 +463,11 @@ export default function PenetrantTestPage() {
                         <Label htmlFor="projectExecutor">Project Executor</Label>
                         <Input id="projectExecutor" value={formData.projectExecutor} onChange={handleInputChange} disabled={!!formData.project && formData.project !== 'Non Project'} />
                     </div>
-                     <div className="space-y-2">
+                    <div className="space-y-2">
                         <Label htmlFor="jobLocation">Job Location</Label>
                         <Input id="jobLocation" value={formData.jobLocation} onChange={handleInputChange} placeholder="e.g. Workshop or Site Name" />
                     </div>
-                    <div className="space-y-2">
+                     <div className="space-y-2">
                         <Label htmlFor="dateOfTest">Date of Test</Label>
                         <Popover>
                             <PopoverTrigger asChild>
@@ -446,13 +488,13 @@ export default function PenetrantTestPage() {
                             </PopoverContent>
                         </Popover>
                     </div>
-                    <div className="space-y-2">
+                     <div className="space-y-2">
                         <Label htmlFor="lineType">Line Type</Label>
                         <Input id="lineType" value={formData.lineType} onChange={handleInputChange} placeholder="e.g. Pipeline, Structural Weld" />
                     </div>
                      <div className="space-y-2">
                         <Label htmlFor="reportNumber">Report Number</Label>
-                        <Input id="reportNumber" value={formData.reportNumber} onChange={handleInputChange} disabled={!!formData.project && formData.project !== 'Non Project'} />
+                        <Input id="reportNumber" value={formData.reportNumber} onChange={handleInputChange} />
                     </div>
                 </div>
             )}
@@ -787,6 +829,7 @@ export default function PenetrantTestPage() {
                                     <TableHead>Weld/Part ID</TableHead>
                                     <TableHead>Images</TableHead>
                                     <TableHead>Result</TableHead>
+                                    <TableHead className="text-right">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -795,15 +838,20 @@ export default function PenetrantTestPage() {
                                         <TableCell>{result.subjectIdentification}</TableCell>
                                         <TableCell>{result.jointNo}</TableCell>
                                         <TableCell>{result.weldId}</TableCell>
-                                        <TableCell>{result.images.length}</TableCell>
+                                        <TableCell>{(result.imageUrls?.length || 0) + (result.images?.length || 0)}</TableCell>
                                         <TableCell>
                                             <Badge variant={result.result === 'Accept' ? 'green' : 'destructive'}>{result.result}</Badge>
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <Button variant="ghost" size="icon" onClick={() => removeTestResult(index)}>
+                                                <X className="h-4 w-4" />
+                                            </Button>
                                         </TableCell>
                                     </TableRow>
                                 ))}
                                 {formData.testResults.length === 0 && (
                                     <TableRow>
-                                        <TableCell colSpan={5} className="text-center">No results added yet.</TableCell>
+                                        <TableCell colSpan={6} className="text-center">No results added yet.</TableCell>
                                     </TableRow>
                                 )}
                             </TableBody>
@@ -815,7 +863,7 @@ export default function PenetrantTestPage() {
             {currentStep === 3 && (
                 <div className="pt-6 space-y-6">
                     <h2 className="text-xl font-bold">Report Summary</h2>
-                    <p>Please review all the information below before submitting the report.</p>
+                    <p>Please review all the information below before saving the changes.</p>
                     
                     <Card>
                         <CardHeader><CardTitle>General Information</CardTitle></CardHeader>
@@ -828,6 +876,8 @@ export default function PenetrantTestPage() {
                             <div><p className="font-medium text-muted-foreground">Date of Test</p><p>{formData.dateOfTest ? format(formData.dateOfTest, 'PPP') : 'N/A'}</p></div>
                             <div><p className="font-medium text-muted-foreground">Report Number</p><p>{formData.reportNumber}</p></div>
                             <div><p className="font-medium text-muted-foreground">Line Type</p><p>{formData.lineType}</p></div>
+                             <div><p className="font-medium text-muted-foreground">Created By</p><p>{originalReport.approvalHistory?.[0]?.actorName || 'N/A'}</p></div>
+                            <div><p className="font-medium text-muted-foreground">Date of Creation</p><p>{originalReport.creationDate ? format(new Date(originalReport.creationDate), 'PPP') : 'N/A'}</p></div>
                         </CardContent>
                     </Card>
 
@@ -890,7 +940,7 @@ export default function PenetrantTestPage() {
                                             <TableCell>{result.thickness}</TableCell>
                                             <TableCell>{result.linearIndication}</TableCell>
                                             <TableCell>{result.roundIndication}</TableCell>
-                                            <TableCell>{result.images.length}</TableCell>
+                                            <TableCell>{(result.imageUrls?.length || 0) + (result.images?.length || 0)}</TableCell>
                                             <TableCell><Badge variant={result.result === 'Accept' ? 'green' : 'destructive'}>{result.result}</Badge></TableCell>
                                         </TableRow>
                                     ))}
@@ -919,8 +969,8 @@ export default function PenetrantTestPage() {
                     </Button>
                 )}
                  {currentStep === steps.length - 1 && (
-                     <Button onClick={handleSubmit}>
-                        <Check className="h-4 w-4 mr-2" /> Submit Report
+                     <Button onClick={handleSave}>
+                        <Check className="h-4 w-4 mr-2" /> Save Changes
                     </Button>
                  )}
             </div>

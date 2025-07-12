@@ -10,6 +10,12 @@ export type ApprovalAction = {
     comments?: string;
 };
 
+// --- Common Report Constants ---
+export const reportStatuses: ReportStatus[] = ['Draft', 'Submitted', 'Approved', 'Rejected', 'Reviewed'];
+
+export const acceptanceCriteriaOptions = ['ASME B31.3', 'API 1104', 'ASME Section V', 'AWS D1.1', 'ASME Sec VIII Div 1'];
+
+
 // --- Penetrant Test (PT) ---
 export type PenetrantTestResult = {
     subjectIdentification: string;
@@ -52,6 +58,7 @@ export type PenetrantTestReportDetails = {
     testEquipment: string;
     testResults: PenetrantTestResult[];
 };
+export const ptProcedureNoOptions = ['PO/AE.MIG-OPS/35-PT'];
 
 // --- Magnetic Particle Test (MT) ---
 export type MagneticTestResult = {
@@ -130,6 +137,15 @@ export type UltrasonicTestReportDetails = {
     scanningSensitivity: string;
     testResults: UltrasonicTestResult[];
 };
+export const utDiscontinuityTypeOptions = [
+    'No Recordable Indication',
+    'Porosity',
+    'Slag Inclusion',
+    'Lack of Fusion',
+    'Lack of Penetration',
+    'Crack',
+    'Other'
+];
 
 // --- Radiographic Test (RT) ---
 export type RadiographicFinding = {
@@ -177,6 +193,23 @@ export type RadiographicTestReportDetails = {
     surveyMeterCertExpDate?: string;
     testResults: RadiographicTestResult[];
 };
+export const rtFilmLocationOptions = ['0 - 4', '4 - 8', '8 - 0', '0', '90', '0 - 5', '5 - 10', '10 - 0'];
+export const rtWeldIndicationOptions = [
+    'NRI - No Recordable Indication',
+    'IP - Incomplete Penetration',
+    'IF - Incomplete Fusion',
+    'P - Porosity',
+    'CP - Cluster Porosity',
+    'LP - Linear Porosity',
+    'SI - Slag Inclusion',
+    'T - Tungsten Inclusion',
+    'UC - Undercut',
+    'CR - Crack',
+    'Hi-Lo',
+];
+export const rtTechniqueOptions = ['SWSI', 'DWSI', 'DWDI', 'Panoramic'];
+export const rtPenetrameterOptions = ['ASTM #10', 'ASTM #12', 'ASTM #15', 'ASTM #20', 'ISO Wire 10-16', 'ISO Wire 6-12'];
+export const rtProcedureNoOptions = ['PO/AE.MIG-OPS/35-RT', 'PROJ-SPEC-RT-001'];
 
 // --- Union Type for all Details ---
 export type ReportDetails = 
@@ -200,8 +233,6 @@ export type ReportItem = {
     approverId?: string | null;
     approvalHistory?: ApprovalAction[];
 };
-
-export const reportStatuses: ReportStatus[] = ['Draft', 'Submitted', 'Approved', 'Rejected', 'Reviewed'];
 
 const mockPenetrantDetails: PenetrantTestReportDetails = {
     jobType: 'Penetrant Test',

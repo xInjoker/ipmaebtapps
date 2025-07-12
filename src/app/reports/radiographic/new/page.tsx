@@ -20,7 +20,7 @@ import { cn } from '@/lib/utils';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { useProjects } from '@/context/ProjectContext';
 import { useAuth } from '@/context/AuthContext';
-import { type ReportItem, type RadiographicTestReportDetails, type RadiographicFinding } from '@/lib/reports';
+import { type ReportItem, type RadiographicTestReportDetails, type RadiographicFinding, rtFilmLocationOptions, rtWeldIndicationOptions, rtTechniqueOptions, rtPenetrameterOptions, acceptanceCriteriaOptions, rtProcedureNoOptions } from '@/lib/reports';
 import { Badge } from '@/components/ui/badge';
 import { useReports } from '@/context/ReportContext';
 import { useToast } from '@/hooks/use-toast';
@@ -33,21 +33,6 @@ const steps = [
     { id: '02', name: 'Test Details' },
     { id: '03', name: 'Test Results' },
     { id: '04', name: 'Summary & Submit' },
-];
-
-const filmLocationOptions = ['0 - 4', '4 - 8', '8 - 0', '0', '90', '0 - 5', '5 - 10', '10 - 0'];
-const weldIndicationOptions = [
-    'NRI - No Recordable Indication',
-    'IP - Incomplete Penetration',
-    'IF - Incomplete Fusion',
-    'P - Porosity',
-    'CP - Cluster Porosity',
-    'LP - Linear Porosity',
-    'SI - Slag Inclusion',
-    'T - Tungsten Inclusion',
-    'UC - Undercut',
-    'CR - Crack',
-    'Hi-Lo',
 ];
 
 type Finding = {
@@ -68,11 +53,6 @@ type TestResult = {
     images: File[];
     imageUrls?: string[];
 };
-
-const techniqueOptions = ['SWSI', 'DWSI', 'DWDI', 'Panoramic'];
-const penetrameterOptions = ['ASTM #10', 'ASTM #12', 'ASTM #15', 'ASTM #20', 'ISO Wire 10-16', 'ISO Wire 6-12'];
-const acceptanceCriteriaOptions = ['API 1104', 'ASME B31.3', 'ASME Sec VIII Div 1', 'AWS D1.1'];
-const procedureNoOptions = ['PO/AE.MIG-OPS/35-RT', 'PROJ-SPEC-RT-001'];
 
 export default function RadiographicTestPage() {
     const router = useRouter();
@@ -431,7 +411,7 @@ export default function RadiographicTestPage() {
                                             <CommandList>
                                                 <CommandEmpty>No procedure found.</CommandEmpty>
                                                 <CommandGroup>
-                                                    {procedureNoOptions.map((option) => (
+                                                    {rtProcedureNoOptions.map((option) => (
                                                         <CommandItem key={option} value={option} onSelect={(currentValue) => { handleSelectChange('procedureNo', currentValue === formData.procedureNo ? "" : currentValue); setIsProcedureNoPopoverOpen(false); }}>
                                                             <Check className={cn("mr-2 h-4 w-4", formData.procedureNo.toLowerCase() === option.toLowerCase() ? "opacity-100" : "opacity-0")} />
                                                             {option}
@@ -460,7 +440,7 @@ export default function RadiographicTestPage() {
                                 <Select value={formData.technique} onValueChange={(v) => handleSelectChange('technique', v)}>
                                     <SelectTrigger id="technique"><SelectValue placeholder="Select technique"/></SelectTrigger>
                                     <SelectContent>
-                                        {techniqueOptions.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
+                                        {rtTechniqueOptions.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -476,7 +456,7 @@ export default function RadiographicTestPage() {
                                 <Select value={formData.penetrameter} onValueChange={(v) => handleSelectChange('penetrameter', v)}>
                                     <SelectTrigger id="penetrameter"><SelectValue placeholder="Select penetrameter"/></SelectTrigger>
                                     <SelectContent>
-                                        {penetrameterOptions.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
+                                        {rtPenetrameterOptions.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -528,7 +508,7 @@ export default function RadiographicTestPage() {
                                                             <CommandList>
                                                                 <CommandEmpty>No location found.</CommandEmpty>
                                                                 <CommandGroup>
-                                                                    {filmLocationOptions.map((option) => (
+                                                                    {rtFilmLocationOptions.map((option) => (
                                                                         <CommandItem key={option} value={option} onSelect={(currentValue) => { handleFilmLocationChange(currentValue); setIsFilmLocationPopoverOpen(false); }}>
                                                                             {option}
                                                                         </CommandItem>
@@ -556,7 +536,7 @@ export default function RadiographicTestPage() {
                                                             <CommandList>
                                                                 <CommandEmpty>No indication found.</CommandEmpty>
                                                                 <CommandGroup>
-                                                                    {weldIndicationOptions.map((option) => (
+                                                                    {rtWeldIndicationOptions.map((option) => (
                                                                         <CommandItem key={option} onSelect={() => handleWeldIndicationChange(option)} className="cursor-pointer">
                                                                             <Checkbox checked={newFinding.weldIndication.includes(option)} className="mr-2" />
                                                                             <span>{option}</span>

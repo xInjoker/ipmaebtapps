@@ -19,7 +19,7 @@ import { cn } from '@/lib/utils';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { useProjects } from '@/context/ProjectContext';
 import { useAuth } from '@/context/AuthContext';
-import { type ReportItem, type UltrasonicTestReportDetails, type UltrasonicTestResult } from '@/lib/reports';
+import { type ReportItem, type UltrasonicTestReportDetails, type UltrasonicTestResult, utDiscontinuityTypeOptions } from '@/lib/reports';
 import { Badge } from '@/components/ui/badge';
 import { useReports } from '@/context/ReportContext';
 import { useToast } from '@/hooks/use-toast';
@@ -29,16 +29,6 @@ const steps = [
     { id: '02', name: 'Test Details' },
     { id: '03', name: 'Test Results' },
     { id: '04', name: 'Summary & Submit' },
-];
-
-const discontinuityTypeOptions = [
-    'No Recordable Indication',
-    'Porosity',
-    'Slag Inclusion',
-    'Lack of Fusion',
-    'Lack of Penetration',
-    'Crack',
-    'Other'
 ];
 
 type TestResult = {
@@ -400,7 +390,7 @@ export default function UltrasonicTestPage() {
                                             <Select value={newTestResult.discontinuityType} onValueChange={(v) => handleNewResultSelectChange('discontinuityType', v)}>
                                                 <SelectTrigger id="discontinuityType"><SelectValue placeholder="Select type" /></SelectTrigger>
                                                 <SelectContent>
-                                                    {discontinuityTypeOptions.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
+                                                    {utDiscontinuityTypeOptions.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
                                                 </SelectContent>
                                             </Select>
                                         </div>
