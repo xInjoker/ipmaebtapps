@@ -152,9 +152,9 @@ export default function TripSummaryPage() {
         const pageMargin = 14;
 
         // Header
-        doc.addImage(logoUrl, 'PNG', pageMargin, 15, 30, 15);
+        doc.addImage(logoUrl, 'PNG', pageWidth - pageMargin - 30, 15, 30, 15);
         doc.setFontSize(18);
-        doc.text('Business Trip Request', pageWidth - pageMargin, 22, { align: 'right' });
+        doc.text('Business Trip Request', pageMargin, 22, { align: 'left' });
         doc.setFontSize(12);
         doc.text(`Request ID: ${trip.id}`, pageWidth - pageMargin, 30, { align: 'right' });
         doc.text(`Status: ${trip.status}`, pageWidth - pageMargin, 38, { align: 'right' });
