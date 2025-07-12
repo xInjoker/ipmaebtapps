@@ -38,7 +38,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { DateRange } from 'react-day-picker';
 import { Textarea } from '@/components/ui/textarea';
-import { type Project, portfolios, subPortfolios, services, type Service } from '@/lib/data';
+import { type Project, portfolios, subPortfolios, servicesBySubPortfolio, type Service } from '@/lib/data';
 import { useProjects } from '@/context/ProjectContext';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -67,6 +67,11 @@ export default function ProjectsPage() {
     serviceName: '',
   });
   const [date, setDate] = useState<DateRange | undefined>(undefined);
+
+  const availableServices = useMemo(() => {
+    if (!newProject.subPortfolio) return [];
+    return servicesBySubPortfolio[newProject.subPortfolio as keyof typeof servicesBySubPortfolio] || [];
+  }, [newProject.subPortfolio]);
 
   useEffect(() => {
     if (user && !isHqUser && !initialFilterSet.current) {
@@ -324,7 +329,9 @@ export default function ProjectsPage() {
                     </Label>
                     <Select
                       value={newProject.subPortfolio}
-                      onValueChange={(value) => setNewProject({ ...newProject, subPortfolio: value })}
+                      onValueChange={(value) => {
+                        setNewProject({ ...newProject, subPortfolio: value, serviceCode: '', serviceName: '' });
+                      }}
                     >
                       <SelectTrigger className="col-span-3" id="subPortfolio">
                         <SelectValue placeholder="Select a sub-portfolio" />
@@ -345,15 +352,16 @@ export default function ProjectsPage() {
                     <Select
                       value={newProject.serviceCode}
                       onValueChange={(value) => {
-                        const service = services.find(s => s.code === value);
+                        const service = availableServices.find(s => s.code === value);
                         setNewProject({ ...newProject, serviceCode: value, serviceName: service?.name || '' });
                       }}
+                      disabled={!newProject.subPortfolio}
                     >
                       <SelectTrigger className="col-span-3" id="serviceCode">
                         <SelectValue placeholder="Select a service code" />
                       </SelectTrigger>
                       <SelectContent>
-                        {services.map((s) => (
+                        {availableServices.map((s) => (
                           <SelectItem key={s.code} value={s.code}>
                             {s.code}
                           </SelectItem>
@@ -368,15 +376,16 @@ export default function ProjectsPage() {
                     <Select
                       value={newProject.serviceName}
                       onValueChange={(value) => {
-                        const service = services.find(s => s.name === value);
+                        const service = availableServices.find(s => s.name === value);
                         setNewProject({ ...newProject, serviceName: value, serviceCode: service?.code || '' });
                       }}
+                      disabled={!newProject.subPortfolio}
                     >
                       <SelectTrigger className="col-span-3" id="serviceName">
                         <SelectValue placeholder="Select a service name" />
                       </SelectTrigger>
                       <SelectContent>
-                        {services.map((s) => (
+                        {availableServices.map((s) => (
                           <SelectItem key={s.name} value={s.name}>
                             {s.name}
                           </SelectItem>

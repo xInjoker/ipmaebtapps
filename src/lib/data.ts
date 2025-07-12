@@ -35,11 +35,21 @@ export type Service = {
   name: string;
 };
 
-export const services: Service[] = [
-  { code: 'NDT-01', name: 'NDT Services' },
-  { code: 'PS-01', name: 'Professional Services' },
-  { code: 'CS-01', name: 'Certification Services' },
-];
+export const servicesBySubPortfolio: Record<(typeof subPortfolios)[number], Service[]> = {
+  'IAPPM': [
+    { code: 'AEB-2A', name: 'Inspeksi Peralatan dan Instalasi Industri Minyak dan Gas Bumi' },
+    { code: 'AEB-2B', name: 'Konsultasi Terhadap Kehandalan dan Keamanan Peralatan dan Instalasi Industri Minyak dan Gas Bumi' },
+    { code: 'AEB-2C', name: 'QA/QC untuk Fasilitas Industri, Minyak dan Gas, Pertambangan dan Pembangkit Listrik' },
+    { code: 'AEB-2D', name: 'Verifikasi dan Pemeriksaan Mesin Pada Saat Beroprasi' },
+    { code: 'AEB-2E', name: 'Verifikasi dan Inspeksi Peralatan dan Instalasi Industri Minyak dan Gas Bumi serta Peralatan Pendukung Lainnya' },
+    { code: 'AEB-2F', name: 'Non Destructive Test (Conventional and Advanced)' },
+  ],
+  'EBT': [
+    { code: 'AEB-1A', name: 'Analisa Energi Gas Metana Batu Bara Dan "Shale Gas"' },
+    { code: 'AEB-1B', name: 'EBT Service B (Placeholder)' },
+    { code: 'AEB-1C', name: 'EBT Service C (Placeholder)' },
+  ],
+};
 
 export type Project = {
   id: number;
@@ -138,8 +148,8 @@ export const initialProjects: Project[] = [
     contractExecutor: 'Cabang Jakarta',
     portfolio: 'AEBT',
     subPortfolio: 'IAPPM',
-    serviceCode: 'PS-01',
-    serviceName: 'Professional Services',
+    serviceCode: 'AEB-2C',
+    serviceName: 'QA/QC untuk Fasilitas Industri, Minyak dan Gas, Pertambangan dan Pembangkit Listrik',
   },
   {
     id: 2,
@@ -215,8 +225,8 @@ export const initialProjects: Project[] = [
     contractExecutor: 'Cabang Surabaya',
     portfolio: 'others',
     subPortfolio: 'EBT',
-    serviceCode: 'NDT-01',
-    serviceName: 'NDT Services',
+    serviceCode: 'AEB-1A',
+    serviceName: 'Analisa Energi Gas Metana Batu Bara Dan "Shale Gas"',
   },
   {
     id: 3,
@@ -289,8 +299,8 @@ export const initialProjects: Project[] = [
     branchId: 'jakarta',
     contractExecutor: 'Cabang Jakarta',
     portfolio: 'AEBT',
-    subPortfolio: 'EBT',
-    serviceCode: 'CS-01',
-    serviceName: 'Certification Services',
+    subPortfolio: 'IAPPM',
+    serviceCode: 'AEB-2F',
+    serviceName: 'Non Destructive Test (Conventional and Advanced)',
   },
 ];
