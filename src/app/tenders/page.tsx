@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo, use } from 'react';
+import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,7 +19,7 @@ import { isSameDay, isWithinInterval, startOfDay, addDays } from 'date-fns';
 import { getTenderStatusVariant } from '@/lib/utils';
 
 export default function TendersPage() {
-    use(useSearchParams());
+    useSearchParams();
     const { tenders, updateTender } = useTenders();
     const { branches } = useAuth();
     const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
@@ -115,7 +115,7 @@ export default function TendersPage() {
         <div className="space-y-6">
             <Card className="relative overflow-hidden">
                 <svg
-                    className="absolute -right-20 -top-20 text-amber-500 -z-1"
+                    className="absolute -right-20 -top-20 text-amber-500"
                     width="300"
                     height="300"
                     viewBox="0 0 200 200"

@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo, useEffect, useRef, use } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import {
@@ -24,7 +24,7 @@ import { EquipmentCard } from '@/components/equipment-card';
 import { getCalibrationStatus } from '@/lib/utils';
 
 export default function EquipmentPage() {
-  use(useSearchParams());
+  useSearchParams();
   const { user, isHqUser, branches, userHasPermission } = useAuth();
   const { equipmentList } = useEquipment();
   const [isClient, setIsClient] = useState(false);

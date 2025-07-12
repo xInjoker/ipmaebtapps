@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo, useEffect, use } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
@@ -73,7 +73,7 @@ import {
 const allEmployeeFields = Object.keys(employeeFieldLabels) as (keyof Employee)[];
 
 export default function EmployeesPage() {
-  use(useSearchParams());
+  useSearchParams();
   const { employees, addEmployee, deleteEmployee } = useEmployees();
   const { userHasPermission, branches } = useAuth();
   const { toast } = useToast();
