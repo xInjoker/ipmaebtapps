@@ -25,6 +25,7 @@ import {
   ClipboardList,
   Receipt,
   Wallet,
+  UserCog,
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
