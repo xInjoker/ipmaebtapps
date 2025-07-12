@@ -17,8 +17,10 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
-import type { UserOptions } from 'jspdf-autotable';
+import type { UserOptions, CellHookData } from 'jspdf-autotable';
 import { useAuth } from '@/context/AuthContext';
+import { formatCurrency } from '@/lib/utils';
+
 
 // Extend jsPDF with autoTable
 interface jsPDFWithAutoTable extends jsPDF {
@@ -379,58 +381,113 @@ export default function ReportDetailsPage() {
 
     const handlePrint = () => {
         if (!report || !report.details) return;
-
-        const doc = new jsPDF() as jsPDFWithAutoTable;
+    
+        const doc = new jsPDF('p', 'mm', 'a4') as jsPDFWithAutoTable;
         const details = report.details;
-        
+        const pageMargin = 14;
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const pageWidth = doc.internal.pageSize.getWidth();
+        let finalY = 0; // Keep track of the last y position
+    
+        const drawFooter = (data: CellHookData) => {
+            const pageCount = doc.internal.getNumberOfPages();
+            doc.setFontSize(8);
+            doc.text(`Page ${data.pageNumber} of ${pageCount}`, pageWidth - pageMargin, pageHeight - 10, { align: 'right' });
+        };
+    
         // --- Header ---
-        doc.setFontSize(18);
-        doc.text(`${report.jobType} Report`, 14, 22);
-        doc.setFontSize(12);
-        doc.text(`Report Number: ${report.reportNumber}`, 14, 30);
-        
-        // --- General Info ---
+        doc.setFontSize(16);
+        doc.text(`${report.jobType} Report`, pageMargin, 22);
+        doc.setFontSize(10);
+        doc.text(`Report Number: ${report.reportNumber}`, pageMargin, 30);
+    
+        // --- General Info Table ---
         const generalInfo = [
-            ["Client", details.client],
-            ["Project", details.project],
-            ["Service Order", details.soNumber],
-            ["Date of Test", details.dateOfTest ? format(new Date(details.dateOfTest), 'PPP') : 'N/A'],
-            ["Job Location", report.jobLocation],
+            ["Client", details.client, "Project", details.project],
+            ["Service Order", details.soNumber || 'N/A', "Job Location", report.jobLocation],
+            ["Date of Test", details.dateOfTest ? format(new Date(details.dateOfTest), 'PPP') : 'N/A', "Project Executor", details.projectExecutor],
         ];
-        
         doc.autoTable({
-            startY: 40,
-            head: [['General Information', '']],
+            startY: 35,
             body: generalInfo,
-            theme: 'striped',
-            headStyles: { fillColor: [41, 128, 185] },
+            theme: 'plain',
+            styles: { fontSize: 9 },
         });
+        finalY = (doc as any).lastAutoTable.finalY;
+    
+        // --- Report-specific Details ---
+        if (details.jobType === 'Penetrant Test') {
+            doc.autoTable({
+                head: [['Test Details', '']],
+                body: [
+                    ['Procedure No.', details.procedureNo, 'Acceptance Criteria', details.acceptanceCriteria],
+                    ['Test Equipment', details.testEquipment, 'Material', details.material],
+                ],
+                startY: finalY + 5,
+                theme: 'striped',
+                headStyles: { fillColor: [22, 163, 74] },
+                styles: { fontSize: 9 },
+            });
+            finalY = (doc as any).lastAutoTable.finalY;
+
+            doc.autoTable({
+                head: [['Item', 'Type', 'Brand', 'Batch No.']],
+                body: [
+                    ['Penetrant', details.penetrantType, details.penetrantBrand, details.penetrantBatch],
+                    ['Remover', details.removerType, details.removerBrand, details.removerBatch],
+                    ['Developer', details.developerType, details.developerBrand, details.developerBatch],
+                ],
+                startY: finalY,
+                theme: 'grid',
+                styles: { fontSize: 9 },
+            });
+            finalY = (doc as any).lastAutoTable.finalY;
+
+             doc.autoTable({
+                head: [['Subject ID', 'Joint No.', 'Weld/Part ID', 'Linear Ind.', 'Round Ind.', 'Result']],
+                body: details.testResults.map(r => [r.subjectIdentification, r.jointNo, r.weldId, r.linearIndication, r.roundIndication, r.result]),
+                startY: finalY + 5,
+                theme: 'grid',
+                headStyles: { fillColor: [41, 128, 185] },
+                styles: { fontSize: 9 },
+            });
+            finalY = (doc as any).lastAutoTable.finalY;
+        }
+
+        // Add more logic for other report types here
+        
+        // --- Note on Images ---
+        const hasImages = details.testResults?.some(r => r.imageUrls && r.imageUrls.length > 0);
+        if (hasImages) {
+            doc.setFontSize(9);
+            doc.text('Note: Evidence images are available in the digital version of this report.', pageMargin, finalY + 10);
+            finalY += 10;
+        }
 
         // --- Signature Block ---
         const signatureTableBody = report.approvalHistory.map(action => {
             const approver = users.find(u => u.name === action.actorName);
             const signatureContent = approver?.signatureUrl
-                ? { image: approver.signatureUrl, width: 40, height: 15 }
-                : '';
-                
+                ? { image: approver.signatureUrl, width: 30, height: 10 }
+                : { content: '', styles: { minCellHeight: 12 } };
+            
             return [
-                { content: `${action.actorRole}\n\n\n\n${action.actorName}`, styles: { halign: 'center' } },
-                { content: signatureContent, styles: { halign: 'center', minCellHeight: 25 } },
-                { content: `Approved on:\n${format(new Date(action.timestamp), 'PPP')}`, styles: { halign: 'center' } }
+                { content: `${action.actorRole}\n${action.actorName}`, styles: { halign: 'center', fontSize: 8 } },
+                { ...signatureContent, styles: { ...signatureContent.styles, halign: 'center' } },
+                { content: `Date: ${format(new Date(action.timestamp), 'dd-MMM-yyyy')}`, styles: { halign: 'center', fontSize: 8 } }
             ];
         });
+
+        const startYForSignature = finalY + 15 > pageHeight - 50 ? 20 : finalY + 15;
+        if (finalY + 15 > pageHeight - 50) doc.addPage();
         
         doc.autoTable({
             head: [['Role', 'Signature', 'Date']],
             body: signatureTableBody,
-            startY: (doc as any).lastAutoTable.finalY + 10,
+            startY: startYForSignature,
             theme: 'grid',
-            didDrawPage: (data) => {
-                // Footer
-                const pageCount = doc.internal.getNumberOfPages();
-                doc.setFontSize(10);
-                doc.text(`Page ${data.pageNumber} of ${pageCount}`, data.settings.margin.left, doc.internal.pageSize.height - 10);
-            }
+            styles: { fontSize: 9, cellPadding: 2, valign: 'middle' },
+            didDrawPage: drawFooter,
         });
 
         doc.save(`Report-${report.reportNumber}.pdf`);
@@ -517,3 +574,5 @@ export default function ReportDetailsPage() {
         </div>
     );
 }
+
+    
