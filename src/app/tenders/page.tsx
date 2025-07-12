@@ -114,41 +114,30 @@ export default function TendersPage() {
     return (
         <div className="space-y-6">
             <Card className="relative overflow-hidden bg-gradient-to-br from-primary to-primary/80 text-primary-foreground">
-                <svg
-                    className="absolute -right-20 -top-20 text-amber-500"
+                 <svg
+                    className="absolute -right-20 -top-20 text-primary-foreground/10"
+                    fill="currentColor"
                     width="300"
                     height="300"
                     viewBox="0 0 200 200"
                     xmlns="http://www.w3.org/2000/svg"
-                    >
-                    <path
-                        fill="currentColor"
-                        d="M51.9,-54.9C64.6,-45.5,71.2,-28.9,72,-12.3C72.8,4.2,67.7,20.8,58.3,34.5C48.9,48.2,35.1,59.1,20,64.2C4.9,69.3,-11.5,68.6,-26.4,62.8C-41.2,57,-54.6,46,-61.7,31.7C-68.9,17.4,-70,-0.1,-64.7,-14.8C-59.4,-29.4,-47.8,-41.3,-35,-50.7C-22.3,-60,-8.4,-67,5.5,-69.6C19.4,-72.2,39.1,-70.4,51.9,-54.9Z"
-                        transform="translate(100 100)"
-                    />
-                </svg>
-                 <svg
-                    className="absolute -bottom-16 -left-6 w-1/3 text-primary/20 -z-1"
-                    viewBox="0 0 433 384"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
                 >
                     <path
-                        d="M382 314.5C232 458 55.5003 403 0.500244 314.5C-54.4998 226 103.5 125.5 103.5 0.500002"
-                        stroke="currentColor"
-                        strokeWidth="2"
+                    d="M51.9,-54.9C64.6,-45.5,71.2,-28.9,72,-12.3C72.8,4.2,67.7,20.8,58.3,34.5C48.9,48.2,35.1,59.1,20,64.2C4.9,69.3,-11.5,68.6,-26.4,62.8C-41.2,57,-54.6,46,-61.7,31.7C-68.9,17.4,-70,-0.1,-64.7,-14.8C-59.4,-29.4,-47.8,-41.3,-35,-50.7C-22.3,-60,-8.4,-67,5.5,-69.6C19.4,-72.2,39.1,-70.4,51.9,-54.9Z"
+                    transform="translate(100 100)"
                     />
                 </svg>
                 <svg
-                    className="absolute bottom-0 left-0 w-1/3 text-primary-foreground/10 -z-1"
-                    viewBox="0 0 433 384"
-                    fill="none"
+                    className="absolute -right-16 -top-24 text-warning"
+                    fill="currentColor"
+                    width="250"
+                    height="250"
+                    viewBox="0 0 200 200"
                     xmlns="http://www.w3.org/2000/svg"
                 >
                     <path
-                        d="M325.5 383.5C175.5 527.5 -0.999756 472.5 -55.9998 384C-111 295.5 47 195 47 69.9999"
-                        stroke="currentColor"
-                        strokeWidth="2"
+                    d="M51.9,-54.9C64.6,-45.5,71.2,-28.9,72,-12.3C72.8,4.2,67.7,20.8,58.3,34.5C48.9,48.2,35.1,59.1,20,64.2C4.9,69.3,-11.5,68.6,-26.4,62.8C-41.2,57,-54.6,46,-61.7,31.7C-68.9,17.4,-70,-0.1,-64.7,-14.8C-59.4,-29.4,-47.8,-41.3,-35,-50.7C-22.3,-60,-8.4,-67,5.5,-69.6C19.4,-72.2,39.1,-70.4,51.9,-54.9Z"
+                    transform="translate(100 100)"
                     />
                 </svg>
                 <CardHeader className="flex flex-row items-start justify-between">
