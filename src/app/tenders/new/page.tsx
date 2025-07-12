@@ -2,11 +2,11 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTenders, type Tender } from '@/context/TenderContext';
-import { tenderStatuses, regionalOptions, subPortfolioOptions, serviceOptions, type TenderStatus, type Regional, type SubPortfolio } from '@/lib/tenders';
+import { tenderStatuses, regionalOptions, subPortfolioOptions, serviceOptions, type TenderStatus, type Regional } from '@/lib/tenders';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -21,6 +21,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { Textarea } from '@/components/ui/textarea';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { portfolios, subPortfolios, servicesBySubPortfolio } from '@/lib/data';
 
 export default function NewTenderPage() {
     const router = useRouter();
@@ -43,8 +44,16 @@ export default function NewTenderPage() {
         personInCharge: '',
         branchId: '',
         regional: '' as Regional | '',
-        subPortfolio: '' as SubPortfolio | '',
+        subPortfolio: '' as (typeof subPortfolios)[number] | '',
+        portfolio: '' as (typeof portfolios)[number] | '',
+        serviceCode: '',
+        serviceName: '',
     });
+
+    const availableServices = useMemo(() => {
+        if (!newTender.subPortfolio) return [];
+        return servicesBySubPortfolio[newTender.subPortfolio as keyof typeof servicesBySubPortfolio] || [];
+    }, [newTender.subPortfolio]);
 
     const handleSave = () => {
         if (!newTender.tenderNumber || !newTender.title || !newTender.client || !newTender.status || !newTender.submissionDate) {
@@ -70,7 +79,10 @@ export default function NewTenderPage() {
             personInCharge: newTender.personInCharge,
             branchId: newTender.branchId,
             regional: newTender.regional as Regional,
-            subPortfolio: newTender.subPortfolio as SubPortfolio,
+            subPortfolio: newTender.subPortfolio as (typeof subPortfolios)[number],
+            portfolio: newTender.portfolio as (typeof portfolios)[number],
+            serviceCode: newTender.serviceCode,
+            serviceName: newTender.serviceName,
         };
 
         addTender(newTenderData);
@@ -97,12 +109,45 @@ export default function NewTenderPage() {
                 </CardHeader>
                 <CardContent className="grid gap-6 md:grid-cols-2">
                     <div className="space-y-2">
+                        <Label htmlFor="portfolio">Portfolio</Label>
+                        <Select value={newTender.portfolio} onValueChange={(value: (typeof portfolios)[number]) => setNewTender({ ...newTender, portfolio: value })}>
+                            <SelectTrigger id="portfolio"><SelectValue placeholder="Select a portfolio" /></SelectTrigger>
+                            <SelectContent>{portfolios.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
+                        </Select>
+                    </div>
+                    <div className="space-y-2">
                         <Label htmlFor="subPortfolio">Sub-Portfolio</Label>
-                        <Select value={newTender.subPortfolio} onValueChange={(value: SubPortfolio) => setNewTender({ ...newTender, subPortfolio: value })}>
-                            <SelectTrigger id="subPortfolio"><SelectValue placeholder="Select sub-portfolio" /></SelectTrigger>
-                            <SelectContent>
-                                {subPortfolioOptions.map(option => <SelectItem key={option} value={option}>{option}</SelectItem>)}
-                            </SelectContent>
+                        <Select value={newTender.subPortfolio} onValueChange={(value: (typeof subPortfolios)[number]) => setNewTender({ ...newTender, subPortfolio: value, serviceCode: '', serviceName: '' })}>
+                            <SelectTrigger id="subPortfolio"><SelectValue placeholder="Select a sub-portfolio" /></SelectTrigger>
+                            <SelectContent>{subPortfolios.map(sp => <SelectItem key={sp} value={sp}>{sp}</SelectItem>)}</SelectContent>
+                        </Select>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="serviceCode">Service Code</Label>
+                        <Select
+                            value={newTender.serviceCode}
+                            onValueChange={(value) => {
+                                const service = availableServices.find(s => s.code === value);
+                                setNewTender({ ...newTender, serviceCode: value, serviceName: service?.name || '' });
+                            }}
+                            disabled={!newTender.subPortfolio}
+                        >
+                            <SelectTrigger id="serviceCode"><SelectValue placeholder="Select a service code" /></SelectTrigger>
+                            <SelectContent>{availableServices.map(s => <SelectItem key={s.code} value={s.code}>{s.code}</SelectItem>)}</SelectContent>
+                        </Select>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="serviceName">Service Name</Label>
+                        <Select
+                            value={newTender.serviceName}
+                            onValueChange={(value) => {
+                                const service = availableServices.find(s => s.name === value);
+                                setNewTender({ ...newTender, serviceName: value, serviceCode: service?.code || '' });
+                            }}
+                            disabled={!newTender.subPortfolio}
+                        >
+                            <SelectTrigger id="serviceName"><SelectValue placeholder="Select a service name" /></SelectTrigger>
+                            <SelectContent>{availableServices.map(s => <SelectItem key={s.name} value={s.name}>{s.name}</SelectItem>)}</SelectContent>
                         </Select>
                     </div>
                      <div className="space-y-2">
@@ -132,7 +177,7 @@ export default function NewTenderPage() {
                         <Input id="title" value={newTender.title} onChange={e => setNewTender({ ...newTender, title: e.target.value })} />
                     </div>
                      <div className="space-y-2">
-                        <Label htmlFor="services">Services</Label>
+                        <Label htmlFor="services">Services (Legacy)</Label>
                         <Popover open={isServicesPopoverOpen} onOpenChange={setIsServicesPopoverOpen}>
                             <PopoverTrigger asChild>
                                 <Button

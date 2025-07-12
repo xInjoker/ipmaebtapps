@@ -2,11 +2,11 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useTenders, type Tender } from '@/context/TenderContext';
-import { tenderStatuses, regionalOptions, subPortfolioOptions, serviceOptions, type TenderStatus, type Regional, type SubPortfolio } from '@/lib/tenders';
+import { tenderStatuses, regionalOptions, serviceOptions, type TenderStatus, type Regional } from '@/lib/tenders';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -21,6 +21,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { Textarea } from '@/components/ui/textarea';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { portfolios, subPortfolios, servicesBySubPortfolio } from '@/lib/data';
 
 export default function EditTenderPage() {
     const router = useRouter();
@@ -47,6 +48,11 @@ export default function EditTenderPage() {
             }
         }
     }, [tenderId, getTenderById, router, toast]);
+
+    const availableServices = useMemo(() => {
+        if (!tender?.subPortfolio) return [];
+        return servicesBySubPortfolio[tender.subPortfolio as keyof typeof servicesBySubPortfolio] || [];
+    }, [tender?.subPortfolio]);
 
     const handleSave = () => {
         if (!tender) return;
@@ -89,13 +95,46 @@ export default function EditTenderPage() {
                     </div>
                 </CardHeader>
                 <CardContent className="grid gap-6 md:grid-cols-2">
+                     <div className="space-y-2">
+                        <Label htmlFor="portfolio">Portfolio</Label>
+                        <Select value={tender.portfolio} onValueChange={(value: (typeof portfolios)[number]) => setTender({ ...tender, portfolio: value })}>
+                            <SelectTrigger id="portfolio"><SelectValue placeholder="Select a portfolio" /></SelectTrigger>
+                            <SelectContent>{portfolios.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
+                        </Select>
+                    </div>
                     <div className="space-y-2">
                         <Label htmlFor="subPortfolio">Sub-Portfolio</Label>
-                        <Select value={tender.subPortfolio} onValueChange={(value: SubPortfolio) => setTender({ ...tender, subPortfolio: value })}>
-                            <SelectTrigger id="subPortfolio"><SelectValue placeholder="Select sub-portfolio" /></SelectTrigger>
-                            <SelectContent>
-                                {subPortfolioOptions.map(option => <SelectItem key={option} value={option}>{option}</SelectItem>)}
-                            </SelectContent>
+                        <Select value={tender.subPortfolio} onValueChange={(value: (typeof subPortfolios)[number]) => setTender({ ...tender, subPortfolio: value, serviceCode: '', serviceName: '' })}>
+                            <SelectTrigger id="subPortfolio"><SelectValue placeholder="Select a sub-portfolio" /></SelectTrigger>
+                            <SelectContent>{subPortfolios.map(sp => <SelectItem key={sp} value={sp}>{sp}</SelectItem>)}</SelectContent>
+                        </Select>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="serviceCode">Service Code</Label>
+                        <Select
+                            value={tender.serviceCode}
+                            onValueChange={(value) => {
+                                const service = availableServices.find(s => s.code === value);
+                                setTender({ ...tender, serviceCode: value, serviceName: service?.name || '' });
+                            }}
+                            disabled={!tender.subPortfolio}
+                        >
+                            <SelectTrigger id="serviceCode"><SelectValue placeholder="Select a service code" /></SelectTrigger>
+                            <SelectContent>{availableServices.map(s => <SelectItem key={s.code} value={s.code}>{s.code}</SelectItem>)}</SelectContent>
+                        </Select>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="serviceName">Service Name</Label>
+                        <Select
+                            value={tender.serviceName}
+                            onValueChange={(value) => {
+                                const service = availableServices.find(s => s.name === value);
+                                setTender({ ...tender, serviceName: value, serviceCode: service?.code || '' });
+                            }}
+                            disabled={!tender.subPortfolio}
+                        >
+                            <SelectTrigger id="serviceName"><SelectValue placeholder="Select a service name" /></SelectTrigger>
+                            <SelectContent>{availableServices.map(s => <SelectItem key={s.name} value={s.name}>{s.name}</SelectItem>)}</SelectContent>
                         </Select>
                     </div>
                      <div className="space-y-2">
@@ -125,7 +164,7 @@ export default function EditTenderPage() {
                         <Input id="title" value={tender.title} onChange={e => setTender({ ...tender, title: e.target.value })} />
                     </div>
                      <div className="space-y-2">
-                        <Label htmlFor="services">Services</Label>
+                        <Label htmlFor="services">Services (Legacy)</Label>
                         <Popover open={isServicesPopoverOpen} onOpenChange={setIsServicesPopoverOpen}>
                             <PopoverTrigger asChild>
                                 <Button

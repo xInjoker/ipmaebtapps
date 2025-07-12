@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -26,6 +27,8 @@ import {
   GanttChart,
   UserCheck,
   Edit,
+  FolderTree,
+  List,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '@/context/AuthContext';
@@ -117,9 +120,11 @@ export default function TenderDetailsPage() {
                 <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
                     <DetailItem icon={Building} label="Client" value={tender.client} />
                     <DetailItem icon={User} label="Principal" value={tender.principal} />
-                    <DetailItem icon={Briefcase} label="Services" value={tender.services} />
+                    <DetailItem icon={GanttChart} label="Portfolio" value={tender.portfolio} />
+                    <DetailItem icon={FolderTree} label="Sub-Portfolio" value={tender.subPortfolio} />
+                    <DetailItem icon={List} label="Service Name" value={tender.serviceName} />
+                    <DetailItem icon={Briefcase} label="Services (Legacy)" value={tender.services} />
                     <DetailItem icon={FileText} label="Description" value={tender.description} />
-                    <DetailItem icon={GanttChart} label="Sub-Portfolio" value={tender.subPortfolio} />
                     <DetailItem icon={Globe} label="Regional" value={tender.regional} />
                     <DetailItem icon={Building} label="Branch" value={tender.branchId ? branchMap[tender.branchId] : 'N/A'} />
                     <DetailItem icon={UserCheck} label="Person In Charge" value={tender.personInCharge} />
