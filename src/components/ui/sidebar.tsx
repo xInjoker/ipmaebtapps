@@ -348,57 +348,12 @@ const SidebarContent = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div">
 >(({ className, ...props }, ref) => {
-  const { isMobile, state } = useSidebar()
-  const controls = useAnimationControls()
-
-  React.useEffect(() => {
-    void controls.start(state)
-  }, [state, controls])
-
-  if (isMobile) {
-    return (
-      <div
-        ref={ref}
-        data-sidebar="content"
-        className={cn(
-          "flex min-h-0 flex-1 flex-col gap-2 overflow-auto",
-          className
-        )}
-        {...props}
-      />
-    )
-  }
-
-  const contentVariants = {
-    expanded: {
-      opacity: 1,
-      transition: {
-        type: "spring",
-        stiffness: 400,
-        damping: 40,
-        delay: 0.1,
-      },
-    },
-    collapsed: {
-      opacity: 0,
-      transition: {
-        type: "spring",
-        stiffness: 400,
-        damping: 40,
-        duration: 0.1,
-      },
-    },
-  }
-
   return (
-    <motion.div
+    <div
       ref={ref}
       data-sidebar="content"
-      variants={contentVariants}
-      initial={state}
-      animate={controls}
       className={cn(
-        "flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[state=collapsed]:overflow-hidden",
+        "flex min-h-0 flex-1 flex-col gap-2 overflow-auto",
         className
       )}
       {...props}
@@ -434,7 +389,7 @@ const SidebarMenuItem = React.forwardRef<
 SidebarMenuItem.displayName = "SidebarMenuItem"
 
 const sidebarMenuButtonVariants = cva(
-  "peer/menu-button flex items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-none ring-sidebar-ring transition-[width,height,padding] duration-200 hover:bg-sidebar-accent focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-sidebar-primary data-[active=true]:font-medium data-[active=true]:text-sidebar-primary-foreground data-[active=true]:[&>svg]:text-sidebar-primary-foreground data-[state=open]:hover:bg-sidebar-accent [&>span]:text-sidebar-foreground",
+  "peer/menu-button flex items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-none ring-sidebar-ring transition-[width,height,padding] duration-200 hover:bg-sidebar-accent focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-sidebar-primary data-[active=true]:font-medium data-[active=true]:text-sidebar-primary-foreground data-[active=true]:[&>svg]:text-sidebar-primary-foreground data-[state=open]:hover:bg-sidebar-accent",
   {
     variants: {
       variant: {
@@ -444,7 +399,7 @@ const sidebarMenuButtonVariants = cva(
       },
       size: {
         default:
-          "h-10 w-full group-data-[state=expanded]/sidebar-wrapper:[&>svg]:size-5 group-data-[state=collapsed]/sidebar-wrapper:h-12 group-data-[state=collapsed]/sidebar-wrapper:w-12 group-data-[state=collapsed]/sidebar-wrapper:justify-center group-data-[state=collapsed]/sidebar-wrapper:p-0 group-data-[state=collapsed]/sidebar-wrapper:hover:bg-sidebar-accent group-data-[state=collapsed]/sidebar-wrapper:hover:text-sidebar-accent-foreground group-data-[state=collapsed]/sidebar-wrapper:data-[active=true]:bg-sidebar-primary group-data-[state=collapsed]/sidebar-wrapper:[&>span]:hidden group-data-[state=collapsed]/sidebar-wrapper:[&>svg]:!block group-data-[state=collapsed]/sidebar-wrapper:[&>svg]:!opacity-100 group-data-[state=collapsed]/sidebar-wrapper:[&>svg]:size-5",
+          "h-10 w-full group-data-[state=expanded]/sidebar-wrapper:[&>svg]:size-5 group-data-[state=collapsed]/sidebar-wrapper:h-12 group-data-[state=collapsed]/sidebar-wrapper:w-12 group-data-[state=collapsed]/sidebar-wrapper:justify-center group-data-[state=collapsed]/sidebar-wrapper:p-0 group-data-[state=collapsed]/sidebar-wrapper:hover:bg-sidebar-accent group-data-[state=collapsed]/sidebar-wrapper:hover:text-sidebar-accent-foreground group-data-[state=collapsed]/sidebar-wrapper:data-[active=true]:bg-sidebar-primary group-data-[state=collapsed]/sidebar-wrapper:[&>svg]:size-5",
       },
     },
     defaultVariants: {
@@ -470,21 +425,91 @@ const SidebarMenuButton = React.forwardRef<
       size = "default",
       tooltip,
       className,
+      children,
       ...props
     },
     ref
   ) => {
     const Comp = asChild ? Slot : "button"
     const { isMobile, state } = useSidebar()
+    const controls = useAnimationControls()
+
+    React.useEffect(() => {
+      void controls.start(state)
+    }, [state, controls])
+
+    const contentVariants = {
+      expanded: {
+        opacity: 1,
+        transition: {
+          type: "spring",
+          stiffness: 400,
+          damping: 40,
+          delay: 0.1,
+        },
+      },
+      collapsed: {
+        opacity: 0,
+        transition: {
+          type: "spring",
+          stiffness: 400,
+          damping: 40,
+          duration: 0.1,
+        },
+      },
+    }
+
+    const icon = React.Children.toArray(children).find(
+      (child) => React.isValidElement(child) && child.type !== "span"
+    )
+
+    const label = React.Children.toArray(children).find(
+      (child) => React.isValidElement(child) && child.type === "span"
+    )
+
+    if (isMobile) {
+      return (
+        <Comp
+          ref={ref}
+          data-sidebar="menu-button"
+          data-active={isActive}
+          className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
+          {...props}
+        >
+          {children}
+        </Comp>
+      )
+    }
 
     return (
-      <Comp
-        ref={ref}
-        data-sidebar="menu-button"
-        data-active={isActive}
-        className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
-        {...props}
-      />
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Comp
+            ref={ref}
+            data-sidebar="menu-button"
+            data-active={isActive}
+            className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
+            {...props}
+          >
+            {icon}
+            <motion.span
+              variants={contentVariants}
+              initial={state}
+              animate={controls}
+            >
+              {label}
+            </motion.span>
+          </Comp>
+        </TooltipTrigger>
+        {tooltip && (
+          <TooltipContent
+            side={state === "expanded" ? "right" : "top"}
+            {...(typeof tooltip === "object" && tooltip)}
+          >
+            {typeof tooltip === "string" ? tooltip : tooltip.children}
+          </TooltipContent>
+        )}
+      </Tooltip>
     )
   }
 )
