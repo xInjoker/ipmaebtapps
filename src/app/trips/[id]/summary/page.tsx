@@ -36,7 +36,7 @@ export default function TripSummaryPage() {
     const { toast } = useToast();
     const { user, users } = useAuth();
     const { projects } = useProjects();
-    const logoUrl = 'https://i.ibb.co/dQ0y625/sucofindo-logo.png';
+    const logoUrl = 'https://placehold.co/120x60.png';
     
     const trip = getTripById(tripId);
 
@@ -394,4 +394,3 @@ export default function TripSummaryPage() {
         </div>
     );
 }
-

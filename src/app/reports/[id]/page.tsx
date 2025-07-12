@@ -371,7 +371,7 @@ export default function ReportDetailsPage() {
     const { reports } = useReports();
     const { users } = useAuth();
     const [report, setReport] = useState<ReportItem | null>(null);
-    const logoUrl = 'https://i.ibb.co/dQ0y625/sucofindo-logo.png';
+    const logoUrl = 'https://placehold.co/120x60.png';
 
     useEffect(() => {
         if (reportId) {
@@ -577,5 +577,3 @@ export default function ReportDetailsPage() {
         </div>
     );
 }
-
-    
