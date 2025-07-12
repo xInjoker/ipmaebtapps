@@ -218,9 +218,9 @@ export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
                         </div>
                         
                         <div className="space-y-2">
-                            <Label>Work Unit</Label>
+                            <Label>Branch</Label>
                             <Select onValueChange={(v) => { form.setValue('workUnit', v); form.setValue('projectName', ''); form.setValue('rabNumber', ''); }} value={form.watch('workUnit') || ''}>
-                                <SelectTrigger><SelectValue placeholder="Select a work unit..."/></SelectTrigger>
+                                <SelectTrigger><SelectValue placeholder="Select a branch..."/></SelectTrigger>
                                 <SelectContent>
                                     {branches.map(branch => (
                                         <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>
