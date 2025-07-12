@@ -162,7 +162,7 @@ export default function EmployeeDetailsPage() {
                 <Separator className="my-4"/>
                 <div>
                   <h4 className="font-medium mb-2">Competency</h4>
-                  <p className="text-sm text-muted-foreground">{employee.competency || 'No competency details provided.'}</p>
+                  <div className="text-sm text-muted-foreground">{employee.competency || 'No competency details provided.'}</div>
                 </div>
             </CardContent>
         </Card>

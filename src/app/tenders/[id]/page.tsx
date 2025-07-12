@@ -41,7 +41,7 @@ function DetailItem({ icon: Icon, label, value }: { icon: React.ElementType, lab
         <div className="flex items-start gap-4">
             <Icon className="h-5 w-5 text-muted-foreground mt-1 flex-shrink-0" />
             <div>
-                <p className="text-sm text-muted-foreground">{label}</p>
+                <div className="text-sm text-muted-foreground">{label}</div>
                 <div className="font-medium">{value}</div>
             </div>
         </div>

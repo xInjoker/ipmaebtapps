@@ -42,8 +42,8 @@ export function UserNav({ isSidebarFooter = false }: UserNavProps) {
                         </AvatarFallback>
                     </Avatar>
                     <div className="min-w-0 text-left group-data-[state=collapsed]/sidebar-wrapper:hidden">
-                        <p className="truncate text-sm font-semibold">{user.name}</p>
-                        <p className="truncate text-xs text-sidebar-foreground/80">{userRole?.name || 'Staff'}</p>
+                        <span className="truncate text-sm font-semibold block">{user.name}</span>
+                        <span className="truncate text-xs text-sidebar-foreground/80 block">{userRole?.name || 'Staff'}</span>
                     </div>
                 </Button>
             </DropdownMenuTrigger>
@@ -68,10 +68,10 @@ export function UserNav({ isSidebarFooter = false }: UserNavProps) {
           className="relative flex h-auto items-center gap-2 rounded-md px-2 py-1.5"
         >
           <div className="hidden text-right sm:block">
-            <p className="text-sm font-medium leading-none">{user.name}</p>
-            <p className="text-xs leading-none text-muted-foreground">
+            <span className="text-sm font-medium leading-none block">{user.name}</span>
+            <span className="text-xs leading-none text-muted-foreground block">
               {userRole?.name || 'Staff'}
-            </p>
+            </span>
           </div>
           <Avatar className="h-9 w-9">
             {user.avatarUrl ? (
