@@ -113,7 +113,7 @@ export default function TendersPage() {
 
     return (
         <div className="space-y-6">
-            <Card className="relative overflow-hidden">
+            <Card className="relative overflow-hidden bg-gradient-to-br from-primary to-primary/80 text-primary-foreground">
                 <svg
                     className="absolute -right-20 -top-20 text-amber-500"
                     width="300"
@@ -128,7 +128,7 @@ export default function TendersPage() {
                     />
                 </svg>
                  <svg
-                    className="absolute bottom-0 left-0 w-1/3 text-primary/5 -z-1"
+                    className="absolute -bottom-16 -left-6 w-1/3 text-primary/20 -z-1"
                     viewBox="0 0 433 384"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
@@ -138,6 +138,13 @@ export default function TendersPage() {
                         stroke="currentColor"
                         strokeWidth="2"
                     />
+                </svg>
+                <svg
+                    className="absolute bottom-0 left-0 w-1/3 text-primary-foreground/10 -z-1"
+                    viewBox="0 0 433 384"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                >
                     <path
                         d="M325.5 383.5C175.5 527.5 -0.999756 472.5 -55.9998 384C-111 295.5 47 195 47 69.9999"
                         stroke="currentColor"
@@ -147,9 +154,9 @@ export default function TendersPage() {
                 <CardHeader className="flex flex-row items-start justify-between">
                     <div className="space-y-1.5 z-10">
                         <CardTitle className="font-headline">Tender Monitoring</CardTitle>
-                        <CardDescription>Track and manage all ongoing and past tenders.</CardDescription>
+                        <CardDescription className="text-primary-foreground/90">Track and manage all ongoing and past tenders.</CardDescription>
                     </div>
-                    <Button asChild className="z-10">
+                    <Button asChild className="z-10" variant="secondary">
                         <Link href="/tenders/new">
                             <PlusCircle className="mr-2 h-4 w-4" />
                             Add New Tender
