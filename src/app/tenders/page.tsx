@@ -1,8 +1,9 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, use } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -18,6 +19,7 @@ import { isSameDay, isWithinInterval, startOfDay, addDays } from 'date-fns';
 import { getTenderStatusVariant } from '@/lib/utils';
 
 export default function TendersPage() {
+    use(useSearchParams());
     const { tenders, updateTender } = useTenders();
     const { branches } = useAuth();
     const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
