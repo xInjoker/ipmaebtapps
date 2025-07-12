@@ -42,11 +42,15 @@ import { ProjectServiceOrderTab } from '@/components/project-service-order-tab';
 import { formatCurrency } from '@/lib/utils';
 import { ProjectBudgetExpenditureChart } from '@/components/project-budget-expenditure-chart';
 import { ProjectServiceOrderChart } from '@/components/project-service-order-chart';
+import { ApprovalWorkflowManager } from '@/components/project-approval-workflow';
+import { useAuth } from '@/context/AuthContext';
+import type { ApprovalStage } from '@/lib/data';
 
 export default function ProjectDetailsPage() {
   const params = useParams();
   const projectId = parseInt(params.id as string, 10);
   const { projects, setProjects } = useProjects();
+  const { users } = useAuth();
   
   const project = projects.find((p) => p.id === projectId);
 
@@ -152,6 +156,21 @@ export default function ProjectDetailsPage() {
       .map(key => dataMap[key]);
 
   }, [project]);
+
+  const handleWorkflowChange = (type: 'trip' | 'report', newWorkflow: ApprovalStage[]) => {
+    setProjects(prevProjects =>
+      prevProjects.map(p => {
+        if (p.id === project?.id) {
+          if (type === 'trip') {
+            return { ...p, tripApprovalWorkflow: newWorkflow };
+          } else {
+            return { ...p, reportApprovalWorkflow: newWorkflow };
+          }
+        }
+        return p;
+      })
+    );
+  };
 
 
   if (!project) {
@@ -360,7 +379,7 @@ export default function ProjectDetailsPage() {
       </div>
 
       <Tabs defaultValue="service-orders" className="w-full">
-        <TabsList className="grid w-full h-12 grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="service-orders">
             <ClipboardList className="mr-2 h-4 w-4" />
             Service Order
@@ -373,6 +392,10 @@ export default function ProjectDetailsPage() {
             <Wallet className="mr-2 h-4 w-4" />
             Expenditure Management
           </TabsTrigger>
+          <TabsTrigger value="approval-settings">
+            <UserCog className="mr-2 h-4 w-4" />
+            Approval Settings
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="service-orders">
           <ProjectServiceOrderTab project={project} setProjects={setProjects} />
@@ -382,6 +405,22 @@ export default function ProjectDetailsPage() {
         </TabsContent>
         <TabsContent value="expenditure">
            <ProjectExpenditureTab project={project} setProjects={setProjects} />
+        </TabsContent>
+         <TabsContent value="approval-settings" className="space-y-6">
+           <ApprovalWorkflowManager
+            title="Trip Approval Workflow"
+            description="Define the sequence of approvers for business trip requests in this project."
+            workflow={project.tripApprovalWorkflow}
+            onWorkflowChange={(newWorkflow) => handleWorkflowChange('trip', newWorkflow)}
+            users={users}
+           />
+            <ApprovalWorkflowManager
+            title="Report Approval Workflow"
+            description="Define the sequence of reviewers and approvers for NDT reports in this project."
+            workflow={project.reportApprovalWorkflow}
+            onWorkflowChange={(newWorkflow) => handleWorkflowChange('report', newWorkflow)}
+            users={users}
+           />
         </TabsContent>
       </Tabs>
     </div>
