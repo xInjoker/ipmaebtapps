@@ -444,7 +444,7 @@ const sidebarMenuButtonVariants = cva(
       },
       size: {
         default:
-          "h-10 w-full [&>svg]:size-5 group-data-[state=collapsed]:h-12 group-data-[state=collapsed]:w-12 group-data-[state=collapsed]:justify-center group-data-[state=collapsed]:p-0 group-data-[state=collapsed]:hover:bg-sidebar-accent group-data-[state=collapsed]:hover:text-sidebar-accent-foreground group-data-[state=collapsed]:data-[active=true]:bg-sidebar-primary group-data-[state=collapsed]:[&>span]:hidden group-data-[state=collapsed]/sidebar-wrapper:*:size-5",
+          "h-10 w-full group-data-[state=expanded]/sidebar-wrapper:[&>svg]:size-5 group-data-[state=collapsed]/sidebar-wrapper:h-12 group-data-[state=collapsed]/sidebar-wrapper:w-12 group-data-[state=collapsed]/sidebar-wrapper:justify-center group-data-[state=collapsed]/sidebar-wrapper:p-0 group-data-[state=collapsed]/sidebar-wrapper:hover:bg-sidebar-accent group-data-[state=collapsed]/sidebar-wrapper:hover:text-sidebar-accent-foreground group-data-[state=collapsed]/sidebar-wrapper:data-[active=true]:bg-sidebar-primary group-data-[state=collapsed]/sidebar-wrapper:[&>span]:hidden group-data-[state=collapsed]/sidebar-wrapper:[&>svg]:!block group-data-[state=collapsed]/sidebar-wrapper:[&>svg]:size-6",
       },
     },
     defaultVariants: {
