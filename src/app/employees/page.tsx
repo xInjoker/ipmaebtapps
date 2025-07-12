@@ -74,12 +74,12 @@ import { useProjects } from '@/context/ProjectContext';
 const allEmployeeFields = Object.keys(employeeFieldLabels) as (keyof Employee)[];
 
 export default function EmployeesPage() {
-  useSearchParams();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { employees, addEmployee, deleteEmployee } = useEmployees();
   const { user, isHqUser, userHasPermission, branches } = useAuth();
   const { projects } = useProjects();
   const { toast } = useToast();
-  const router = useRouter();
   const [isClient, setIsClient] = useState(false);
   const initialFilterSet = useRef(false);
 
@@ -122,14 +122,21 @@ export default function EmployeesPage() {
 
       const statusMatch =
         statusFilter === 'all' || emp.employmentStatus === statusFilter;
+      
       const branchMatch =
         branchFilter === 'all' || emp.workUnit === branchFilter;
+        
       const projectMatch =
         projectFilter === 'all' || emp.projectName === projectFilter;
 
+      // Non-HQ users should only see employees from their branch
+      if (!isHqUser && user && emp.workUnit !== user.branchId) {
+          return false;
+      }
+      
       return searchMatch && statusMatch && branchMatch && projectMatch;
     });
-  }, [employees, searchTerm, statusFilter, branchFilter, projectFilter]);
+  }, [employees, searchTerm, statusFilter, branchFilter, projectFilter, isHqUser, user]);
 
   const handleDeleteRequest = (employee: Employee) => {
     setEmployeeToDelete(employee);
@@ -287,10 +294,10 @@ export default function EmployeesPage() {
                 </Select>
                 <Select value={branchFilter} onValueChange={setBranchFilter} disabled={!isHqUser}>
                   <SelectTrigger className="w-full sm:w-[160px]">
-                    <SelectValue placeholder="Filter by work unit" />
+                    <SelectValue placeholder="Filter by branch" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Work Units</SelectItem>
+                    <SelectItem value="all">All Branches</SelectItem>
                     {branches.map((branch) => (
                       <SelectItem key={branch.id} value={branch.id}>
                         {branch.name}
@@ -409,21 +416,23 @@ export default function EmployeesPage() {
                                 <Eye className="mr-2 h-4 w-4" />
                                 <span>View</span>
                               </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onSelect={() =>
-                                  router.push(`/employees/${employee.id}/edit`)
-                                }
-                              >
-                                <Edit className="mr-2 h-4 w-4" />
-                                <span>Edit</span>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                className="text-destructive"
-                                onSelect={() => handleDeleteRequest(employee)}
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                <span>Delete</span>
-                              </DropdownMenuItem>
+                              {userHasPermission('manage-employees') && <>
+                                <DropdownMenuItem
+                                  onSelect={() =>
+                                    router.push(`/employees/${employee.id}/edit`)
+                                  }
+                                >
+                                  <Edit className="mr-2 h-4 w-4" />
+                                  <span>Edit</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  className="text-destructive"
+                                  onSelect={() => handleDeleteRequest(employee)}
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  <span>Delete</span>
+                                </DropdownMenuItem>
+                              </>}
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </TableCell>
@@ -477,3 +486,5 @@ export default function EmployeesPage() {
     </>
   );
 }
+
+    
