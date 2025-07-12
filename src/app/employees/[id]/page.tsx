@@ -104,7 +104,9 @@ export default function EmployeeDetailsPage() {
               <div className="space-y-1.5">
                 <CardTitle>{employee.name}</CardTitle>
                 <CardDescription>
-                  {employee.position} &bull; <Badge variant={getEmployeeStatusVariant(employee.employmentStatus)}>{employee.employmentStatus}</Badge>
+                  <div className="flex items-center gap-2">
+                    {employee.position} &bull; <Badge variant={getEmployeeStatusVariant(employee.employmentStatus)}>{employee.employmentStatus}</Badge>
+                  </div>
                 </CardDescription>
               </div>
             </div>
