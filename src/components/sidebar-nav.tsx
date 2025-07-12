@@ -15,6 +15,7 @@ import {
   Users2,
   Wrench,
   FileText,
+  ChevronRight,
 } from 'lucide-react';
 import {
   SidebarMenu,
@@ -34,8 +35,8 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from './ui/collapsible';
-import { ChevronRight } from 'lucide-react';
 import { Button } from './ui/button';
+import { cn } from '@/lib/utils';
 
 interface MenuItem {
   href: string;
@@ -50,7 +51,6 @@ export function SidebarNav() {
   const pathname = usePathname();
   const { projects } = useProjects();
   const { user, isHqUser, userHasPermission } = useAuth();
-  const { state: sidebarState } = useSidebar();
 
   const visibleProjects = useMemo(() => {
     if (isHqUser) return projects;
@@ -156,6 +156,8 @@ export function SidebarNav() {
           (item.href === '/reports'
             ? pathname.startsWith('/reports')
             : isMainActive);
+        
+        const Icon = item.icon;
 
         if (item.isCollapsible && item.subItems && item.subItems.length > 0) {
           return (
@@ -168,8 +170,10 @@ export function SidebarNav() {
                     tooltip={item.label}
                   >
                     <Link href={item.href}>
-                      <item.icon />
-                      <span>{item.label}</span>
+                      <Icon />
+                      <span className="min-w-0 flex-1 whitespace-nowrap group-data-[state=collapsed]/sidebar-wrapper:hidden">
+                        {item.label}
+                      </span>
                     </Link>
                   </SidebarMenuButton>
                   <CollapsibleTrigger asChild>
@@ -212,8 +216,8 @@ export function SidebarNav() {
               tooltip={item.label}
             >
               <Link href={item.href}>
-                <item.icon />
-                <span>{item.label}</span>
+                <Icon />
+                <span className="min-w-0 flex-1 whitespace-nowrap group-data-[state=collapsed]/sidebar-wrapper:hidden">{item.label}</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

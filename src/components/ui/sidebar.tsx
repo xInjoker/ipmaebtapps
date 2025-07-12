@@ -390,7 +390,7 @@ const SidebarMenuItem = React.forwardRef<
 SidebarMenuItem.displayName = "SidebarMenuItem"
 
 const sidebarMenuButtonVariants = cva(
-  "peer/menu-button flex h-10 w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-none ring-sidebar-ring transition-[width,height,padding] duration-200 hover:bg-sidebar-accent focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-sidebar-primary data-[active=true]:font-medium data-[active=true]:text-sidebar-primary-foreground data-[active=true]:[&gt;svg]:text-sidebar-primary-foreground data-[state=open]:hover:bg-sidebar-accent group-data-[state=collapsed]/sidebar-wrapper:h-12 group-data-[state=collapsed]/sidebar-wrapper:w-12 group-data-[state=collapsed]/sidebar-wrapper:justify-center group-data-[state=collapsed]/sidebar-wrapper:p-0 group-data-[state=collapsed]/sidebar-wrapper:hover:bg-sidebar-accent group-data-[state=collapsed]/sidebar-wrapper:hover:text-sidebar-accent-foreground group-data-[state=collapsed]/sidebar-wrapper:data-[active=true]:bg-sidebar-primary",
+  "peer/menu-button flex h-10 w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-none ring-sidebar-ring transition-[width,height,padding] duration-200 hover:bg-sidebar-accent focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-sidebar-primary data-[active=true]:font-medium data-[active=true]:text-sidebar-primary-foreground data-[active=true]:[&>svg]:text-sidebar-primary-foreground data-[state=open]:hover:bg-sidebar-accent group-data-[state=collapsed]/sidebar-wrapper:h-12 group-data-[state=collapsed]/sidebar-wrapper:w-12 group-data-[state=collapsed]/sidebar-wrapper:justify-center group-data-[state=collapsed]/sidebar-wrapper:p-0 group-data-[state=collapsed]/sidebar-wrapper:hover:bg-sidebar-accent group-data-[state=collapsed]/sidebar-wrapper:hover:text-sidebar-accent-foreground group-data-[state=collapsed]/sidebar-wrapper:data-[active=true]:bg-sidebar-primary [&>svg]:size-5 [&>svg]:shrink-0",
   {
     variants: {
       variant: {
@@ -433,14 +433,6 @@ const SidebarMenuButton = React.forwardRef<
     const Comp = asChild ? Slot : "button"
     const { isMobile } = useSidebar()
 
-    const icon = React.Children.toArray(children).find(
-      (child) => React.isValidElement(child) && child.type !== "span"
-    )
-
-    const label = React.Children.toArray(children).find(
-      (child) => React.isValidElement(child) && child.type === "span"
-    )
-
     if (isMobile) {
       return (
         <Comp
@@ -465,17 +457,7 @@ const SidebarMenuButton = React.forwardRef<
             className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
             {...props}
           >
-            <span className="flex items-center gap-2">
-              {icon}
-              <span
-                className={cn(
-                  "min-w-0 flex-1 whitespace-nowrap",
-                  "group-data-[state=collapsed]/sidebar-wrapper:hidden"
-                )}
-              >
-                {label}
-              </span>
-            </span>
+            {children}
           </Comp>
         </TooltipTrigger>
         {tooltip && (
@@ -562,5 +544,3 @@ export {
   SidebarTrigger,
   useSidebar,
 }
-
-    
