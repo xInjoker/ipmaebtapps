@@ -38,7 +38,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { DateRange } from 'react-day-picker';
 import { Textarea } from '@/components/ui/textarea';
-import { type Project } from '@/lib/data';
+import { type Project, portfolios, subPortfolios, services, type Service } from '@/lib/data';
 import { useProjects } from '@/context/ProjectContext';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -61,6 +61,10 @@ export default function ProjectsPage() {
     description: '',
     value: 0,
     contractExecutor: '',
+    portfolio: '',
+    subPortfolio: '',
+    serviceCode: '',
+    serviceName: '',
   });
   const [date, setDate] = useState<DateRange | undefined>(undefined);
 
@@ -81,6 +85,10 @@ export default function ProjectsPage() {
         description: '',
         value: 0,
         contractExecutor: isHqUser ? '' : user?.branchId || '',
+        portfolio: '',
+        subPortfolio: '',
+        serviceCode: '',
+        serviceName: '',
       });
       setDate(undefined);
     }
@@ -289,6 +297,92 @@ export default function ProjectsPage() {
                       className="col-span-3"
                       placeholder="RAB number"
                     />
+                  </div>
+                   <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="portfolio" className="text-right">
+                      Portfolio
+                    </Label>
+                    <Select
+                      value={newProject.portfolio}
+                      onValueChange={(value) => setNewProject({ ...newProject, portfolio: value })}
+                    >
+                      <SelectTrigger className="col-span-3" id="portfolio">
+                        <SelectValue placeholder="Select a portfolio" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {portfolios.map((p) => (
+                          <SelectItem key={p} value={p}>
+                            {p}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                   <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="subPortfolio" className="text-right">
+                      Sub-Portfolio
+                    </Label>
+                    <Select
+                      value={newProject.subPortfolio}
+                      onValueChange={(value) => setNewProject({ ...newProject, subPortfolio: value })}
+                    >
+                      <SelectTrigger className="col-span-3" id="subPortfolio">
+                        <SelectValue placeholder="Select a sub-portfolio" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {subPortfolios.map((sp) => (
+                          <SelectItem key={sp} value={sp}>
+                            {sp}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                   <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="serviceCode" className="text-right">
+                      Service Code
+                    </Label>
+                    <Select
+                      value={newProject.serviceCode}
+                      onValueChange={(value) => {
+                        const service = services.find(s => s.code === value);
+                        setNewProject({ ...newProject, serviceCode: value, serviceName: service?.name || '' });
+                      }}
+                    >
+                      <SelectTrigger className="col-span-3" id="serviceCode">
+                        <SelectValue placeholder="Select a service code" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {services.map((s) => (
+                          <SelectItem key={s.code} value={s.code}>
+                            {s.code}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                   <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="serviceName" className="text-right">
+                      Service Name
+                    </Label>
+                    <Select
+                      value={newProject.serviceName}
+                      onValueChange={(value) => {
+                        const service = services.find(s => s.name === value);
+                        setNewProject({ ...newProject, serviceName: value, serviceCode: service?.code || '' });
+                      }}
+                    >
+                      <SelectTrigger className="col-span-3" id="serviceName">
+                        <SelectValue placeholder="Select a service name" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {services.map((s) => (
+                          <SelectItem key={s.name} value={s.name}>
+                            {s.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="name" className="text-right">

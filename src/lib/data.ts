@@ -27,6 +27,20 @@ export type ExpenditureItem = {
   status: 'Approved' | 'Pending' | 'Rejected';
 };
 
+export const portfolios = ['AEBT', 'others'] as const;
+export const subPortfolios = ['IAPPM', 'EBT'] as const;
+
+export type Service = {
+  code: string;
+  name: string;
+};
+
+export const services: Service[] = [
+  { code: 'NDT-01', name: 'NDT Services' },
+  { code: 'PS-01', name: 'Professional Services' },
+  { code: 'CS-01', name: 'Certification Services' },
+];
+
 export type Project = {
   id: number;
   contractNumber: string;
@@ -43,6 +57,10 @@ export type Project = {
   expenditures: ExpenditureItem[];
   branchId: string;
   contractExecutor: string;
+  portfolio?: (typeof portfolios)[number];
+  subPortfolio?: (typeof subPortfolios)[number];
+  serviceCode?: string;
+  serviceName?: string;
 };
 
 export const initialProjects: Project[] = [
@@ -118,6 +136,10 @@ export const initialProjects: Project[] = [
     ],
     branchId: 'jakarta',
     contractExecutor: 'Cabang Jakarta',
+    portfolio: 'AEBT',
+    subPortfolio: 'IAPPM',
+    serviceCode: 'PS-01',
+    serviceName: 'Professional Services',
   },
   {
     id: 2,
@@ -191,6 +213,10 @@ export const initialProjects: Project[] = [
     ],
     branchId: 'surabaya',
     contractExecutor: 'Cabang Surabaya',
+    portfolio: 'others',
+    subPortfolio: 'EBT',
+    serviceCode: 'NDT-01',
+    serviceName: 'NDT Services',
   },
   {
     id: 3,
@@ -262,5 +288,9 @@ export const initialProjects: Project[] = [
     ],
     branchId: 'jakarta',
     contractExecutor: 'Cabang Jakarta',
+    portfolio: 'AEBT',
+    subPortfolio: 'EBT',
+    serviceCode: 'CS-01',
+    serviceName: 'Certification Services',
   },
 ];
