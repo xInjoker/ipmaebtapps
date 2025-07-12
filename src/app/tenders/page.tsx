@@ -113,7 +113,7 @@ export default function TendersPage() {
         <div className="space-y-6">
             <Card className="relative overflow-hidden">
                 <svg
-                    className="absolute -right-20 -top-20 text-primary/10 -z-1"
+                    className="absolute -right-20 -top-20 text-amber-500 -z-1"
                     width="300"
                     height="300"
                     viewBox="0 0 200 200"
