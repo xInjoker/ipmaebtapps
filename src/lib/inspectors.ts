@@ -1,4 +1,5 @@
 
+
 export type InspectorDocument = {
   name: string;
   url: string;

@@ -1,4 +1,5 @@
 
+
 export type EquipmentStatus = 'Normal' | 'Broken' | 'In Maintenance';
 export type EquipmentType = 'LRUT' | 'PEC' | 'MFL' | 'UT' | 'RT' | 'Drone' | 'Other';
 

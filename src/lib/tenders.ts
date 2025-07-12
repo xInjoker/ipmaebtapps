@@ -34,3 +34,4 @@ export const initialTenders: Tender[] = [
     { id: 'TND-005', tenderNumber: 'TND-2024-005', title: 'NDT for New Facility', client: 'PT Chevron Pacific Indonesia', principal: 'Chevron', description: 'Non-destructive testing for a new facility.', services: 'NDT Services', status: 'Lost', submissionDate: '2024-06-10', value: 18000000000, personInCharge: 'Citra Dewi', branchId: 'balikpapan', regional: 'East Region', subPortfolio: 'EBT' },
 ];
 
+
