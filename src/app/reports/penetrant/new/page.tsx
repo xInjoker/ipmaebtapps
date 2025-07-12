@@ -20,7 +20,7 @@ import { cn } from '@/lib/utils';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { useProjects } from '@/context/ProjectContext';
 import { useAuth } from '@/context/AuthContext';
-import { type ReportItem, type PenetrantTestReportDetails, acceptanceCriteriaOptions, ptProcedureNoOptions } from '@/lib/reports';
+import { type ReportItem, type PenetrantTestReportDetails, acceptanceCriteriaOptions, ptProcedureNoOptions, type ApprovalAction } from '@/lib/reports';
 import { Badge } from '@/components/ui/badge';
 import { useReports } from '@/context/ReportContext';
 import { useToast } from '@/hooks/use-toast';

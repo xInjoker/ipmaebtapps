@@ -52,14 +52,21 @@ export default function ApprovalsPage() {
 
         const pendingReports: ApprovalItem[] = reports
             .filter(report => {
-                if (report.status !== 'Submitted') return false;
+                // A report needs approval if it's 'Submitted' OR 'Reviewed' but not yet 'Approved'
+                if (report.status !== 'Submitted' && report.status !== 'Reviewed') return false;
+                
                 const project = projects.find(p => p.name === report.details?.project);
                 if (!project?.reportApprovalWorkflow || project.reportApprovalWorkflow.length === 0) return false;
 
-                const currentApproverIndex = report.approvalHistory?.filter(h => h.status === 'Reviewed').length || 0;
-                if (currentApproverIndex >= project.reportApprovalWorkflow.length) return false;
+                const currentApprovalCount = report.approvalHistory.filter(h => h.status === 'Reviewed' || h.status === 'Approved').length;
+                
+                // If the report was just submitted, the approval count is 0.
+                // The next approver index is the same as the current approval count.
+                const nextApproverIndex = currentApprovalCount;
 
-                const nextApprover = project.reportApprovalWorkflow[currentApproverIndex];
+                if (nextApproverIndex >= project.reportApprovalWorkflow.length) return false;
+
+                const nextApprover = project.reportApprovalWorkflow[nextApproverIndex];
                 return nextApprover.approverId === user.id.toString();
             })
             .map(report => ({ ...report, type: 'report' }));
@@ -86,14 +93,14 @@ export default function ApprovalsPage() {
             const isFinalApproval = currentApprovalCount + 1 === workflow.length;
 
             const newStatus = approvalAction === 'reject' ? 'Rejected' : (isFinalApproval ? 'Approved' : 'Pending');
-            const newHistory: ApprovalAction = { actorName: user.name, actorId: user.id, status: newStatus, comments: comments, timestamp: new Date().toISOString() };
+            const newHistory: ApprovalAction = { actorName: user.name, actorRole: 'Approver', status: newStatus, comments: comments, timestamp: new Date().toISOString() };
             
             const updatedTrip = { ...selectedItem, status: newStatus, approvalHistory: [...selectedItem.approvalHistory, newHistory] };
             updateTrip(selectedItem.id, updatedTrip);
 
         } else if (selectedItem.type === 'report') {
             const workflow = project.reportApprovalWorkflow;
-            const currentApprovalCount = selectedItem.approvalHistory?.filter(h => h.status === 'Reviewed').length || 0;
+            const currentApprovalCount = selectedItem.approvalHistory.filter(h => h.status === 'Reviewed' || h.status === 'Approved').length;
             const isFinalApproval = currentApprovalCount + 1 === workflow.length;
             
             let newStatus: ReportStatus;
@@ -104,7 +111,7 @@ export default function ApprovalsPage() {
             }
             
             const newHistory: ApprovalAction = { actorName: user.name, actorRole: 'Approver', status: newStatus, comments: comments, timestamp: new Date().toISOString() };
-            const updatedReport = { ...selectedItem, status: newStatus, approvalHistory: [...(selectedItem.approvalHistory || []), newHistory] };
+            const updatedReport = { ...selectedItem, status: newStatus, approvalHistory: [...selectedItem.approvalHistory, newHistory] };
             updateReport(selectedItem.id, updatedReport);
         }
 
@@ -149,7 +156,7 @@ export default function ApprovalsPage() {
                                             <TableCell>{format(new Date((item as TripRequest).startDate), 'PPP')} - {format(new Date((item as TripRequest).endDate), 'PPP')}</TableCell>
                                             <TableCell>{(item as TripRequest).project}</TableCell>
                                             <TableCell className="text-right space-x-2">
-                                                <Button size="sm" variant="outline" onClick={() => handleActionClick(item, 'reject')}>Reject</Button>
+                                                <Button size="sm" variant="destructive" onClick={() => handleActionClick(item, 'reject')}>Reject</Button>
                                                 <Button size="sm" onClick={() => handleActionClick(item, 'approve')}>Approve</Button>
                                             </TableCell>
                                         </TableRow>
@@ -183,9 +190,9 @@ export default function ApprovalsPage() {
                                             <TableCell className="font-medium">{(item as ReportItem).reportNumber}</TableCell>
                                             <TableCell>{(item as ReportItem).jobType}</TableCell>
                                             <TableCell>{(item as ReportItem).details?.project}</TableCell>
-                                            <TableCell>{(item as ReportItem).approvalHistory?.[0].actorName}</TableCell>
+                                            <TableCell>{(item as ReportItem).approvalHistory[0].actorName}</TableCell>
                                             <TableCell className="text-right space-x-2">
-                                                <Button size="sm" variant="outline" onClick={() => handleActionClick(item, 'reject')}>Reject</Button>
+                                                <Button size="sm" variant="destructive" onClick={() => handleActionClick(item, 'reject')}>Reject</Button>
                                                 <Button size="sm" onClick={() => handleActionClick(item, 'approve')}>Approve</Button>
                                             </TableCell>
                                         </TableRow>

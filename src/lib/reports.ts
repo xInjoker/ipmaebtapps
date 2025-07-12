@@ -231,7 +231,7 @@ export type ReportItem = {
     creationDate: string;
     reviewerId?: string | null;
     approverId?: string | null;
-    approvalHistory?: ApprovalAction[];
+    approvalHistory: ApprovalAction[];
 };
 
 const mockPenetrantDetails: PenetrantTestReportDetails = {
