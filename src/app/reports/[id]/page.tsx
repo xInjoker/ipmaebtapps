@@ -376,7 +376,7 @@ export default function ReportDetailsPage() {
         );
     }
     
-    const backPath = report.jobType.split(' ')[0].toLowerCase().replace(/[^a-z]/g, '');
+    const backPath = report.jobType === 'Magnetic Particle Test' ? '/reports/magnetic' : report.jobType.split(' ')[0].toLowerCase().replace(/[^a-z]/g, '');
     const details = report.details;
     const creator = report.approvalHistory?.[0];
     
@@ -388,7 +388,7 @@ export default function ReportDetailsPage() {
                 <CardHeader>
                     <div className="flex items-center gap-4">
                         <Button asChild variant="outline" size="icon">
-                            <Link href={`/reports/${backPath}`}>
+                            <Link href={`${backPath}`}>
                                 <ArrowLeft className="h-4 w-4" />
                                 <span className="sr-only">Back to Report List</span>
                             </Link>
