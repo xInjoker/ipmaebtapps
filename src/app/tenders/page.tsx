@@ -117,8 +117,8 @@ export default function TendersPage() {
                  <svg
                     className="absolute -right-20 -top-20 text-primary-foreground/10"
                     fill="currentColor"
-                    width="300"
-                    height="300"
+                    width="350"
+                    height="350"
                     viewBox="0 0 200 200"
                     xmlns="http://www.w3.org/2000/svg"
                 >
@@ -128,10 +128,10 @@ export default function TendersPage() {
                     />
                 </svg>
                 <svg
-                    className="absolute -right-16 -top-24 text-warning"
+                    className="absolute -right-16 -top-24 text-amber-500"
                     fill="currentColor"
-                    width="250"
-                    height="250"
+                    width="300"
+                    height="300"
                     viewBox="0 0 200 200"
                     xmlns="http://www.w3.org/2000/svg"
                 >
@@ -145,7 +145,7 @@ export default function TendersPage() {
                         <CardTitle className="font-headline">Tender Monitoring</CardTitle>
                         <CardDescription className="text-primary-foreground/90">Track and manage all ongoing and past tenders.</CardDescription>
                     </div>
-                    <Button asChild className="z-10" variant="secondary">
+                    <Button asChild className="z-10">
                         <Link href="/tenders/new">
                             <PlusCircle className="mr-2 h-4 w-4" />
                             Add New Tender
