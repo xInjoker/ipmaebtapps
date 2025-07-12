@@ -371,7 +371,7 @@ export default function ReportDetailsPage() {
     const { reports } = useReports();
     const { users } = useAuth();
     const [report, setReport] = useState<ReportItem | null>(null);
-    const logoUrl = 'https://placehold.co/120x60.png';
+    const logoUrl = 'https://i.ibb.co/Lp2pCRV/sucofindo-logo.png';
 
     useEffect(() => {
         if (reportId) {
@@ -380,7 +380,7 @@ export default function ReportDetailsPage() {
         }
     }, [reportId, reports]);
 
-    const handlePrint = () => {
+    const handlePrint = async () => {
         if (!report || !report.details) return;
     
         const doc = new jsPDF('p', 'mm', 'a4') as jsPDFWithAutoTable;
@@ -397,11 +397,11 @@ export default function ReportDetailsPage() {
         };
     
         // --- Header with Logo ---
-        doc.addImage(logoUrl, 'PNG', pageMargin, 15, 30, 15);
+        doc.addImage(logoUrl, 'PNG', pageWidth - pageMargin - 30, 15, 30, 15);
         doc.setFontSize(16);
-        doc.text(`${report.jobType} Report`, pageWidth - pageMargin, 22, { align: 'right' });
+        doc.text(`${report.jobType} Report`, pageMargin, 22, { align: 'left' });
         doc.setFontSize(10);
-        doc.text(`Report Number: ${report.reportNumber}`, pageWidth - pageMargin, 30, { align: 'right' });
+        doc.text(`Report Number: ${report.reportNumber}`, pageMargin, 30, { align: 'left' });
         finalY = 40; // Set Y position after header
     
         // --- General Info Table ---
@@ -457,16 +457,57 @@ export default function ReportDetailsPage() {
             finalY = (doc as any).lastAutoTable.finalY;
         }
 
-        // Add more logic for other report types here
-        
-        // --- Note on Images ---
-        const hasImages = details.testResults?.some(r => r.imageUrls && r.imageUrls.length > 0);
-        if (hasImages) {
-            doc.setFontSize(9);
-            doc.text('Note: Evidence images are available in the digital version of this report.', pageMargin, finalY + 10);
-            finalY += 10;
-        }
+        // --- Image Section ---
+        const allImages = details.testResults?.flatMap(result =>
+            (result.imageUrls || []).map(url => ({
+                url,
+                caption: `Joint: ${result.jointNo} / Weld ID: ${result.weldId}`
+            }))
+        ) || [];
 
+        if (allImages.length > 0) {
+            finalY = (doc as any).lastAutoTable.finalY;
+            if (finalY + 15 > pageHeight - 10) doc.addPage();
+            doc.setFontSize(12);
+            doc.text('Evidence Images', pageMargin, finalY + 10);
+            finalY += 15;
+
+            for (const image of allImages) {
+                try {
+                    const img = new Image();
+                    img.crossOrigin = 'Anonymous';
+                    
+                    const imgPromise = new Promise((resolve, reject) => {
+                        img.onload = () => resolve(true);
+                        img.onerror = (err) => reject(err);
+                    });
+
+                    img.src = image.url;
+                    await imgPromise;
+
+                    const imgWidth = 80;
+                    const imgHeight = (img.height * imgWidth) / img.width;
+
+                    if (finalY + imgHeight + 10 > pageHeight - 10) {
+                        doc.addPage();
+                        finalY = pageMargin;
+                    }
+
+                    doc.addImage(img, 'PNG', pageMargin, finalY, imgWidth, imgHeight);
+                    doc.setFontSize(8);
+                    doc.text(image.caption, pageMargin, finalY + imgHeight + 4);
+                    finalY += imgHeight + 10;
+
+                } catch (error) {
+                    console.error("Error loading image for PDF:", error);
+                    if (finalY + 10 > pageHeight - 10) { doc.addPage(); finalY = pageMargin; }
+                    doc.setFontSize(8);
+                    doc.text(`Error loading image: ${image.caption}`, pageMargin, finalY);
+                    finalY += 5;
+                }
+            }
+        }
+        
         // --- Signature Block ---
         const signatureTableBody = report.approvalHistory.map(action => {
             const approver = users.find(u => u.name === action.actorName);
