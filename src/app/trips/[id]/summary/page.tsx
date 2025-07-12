@@ -36,7 +36,7 @@ export default function TripSummaryPage() {
     const { toast } = useToast();
     const { user, users } = useAuth();
     const { projects } = useProjects();
-    const logoUrl = 'https://i.ibb.co/7ndxL1N/logo-placeholder.png'; // Placeholder logo
+    const logoUrl = 'https://i.ibb.co/dQ0y625/sucofindo-logo.png';
     
     const trip = getTripById(tripId);
 
