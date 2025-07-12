@@ -12,6 +12,7 @@ export const permissions = [
   'view-profile',
   'manage-employees',
   'manage-trips',
+  'view-approvals',
   'super-admin', // Special permission for super-admin only checks
 ] as const;
 
@@ -78,6 +79,7 @@ export const initialRoles: Role[] = [
       'view-profile',
       'manage-employees',
       'manage-trips',
+      'view-approvals',
     ],
     isEditable: true,
   },
@@ -133,6 +135,7 @@ export const initialRoles: Role[] = [
       'view-dashboard',
       'manage-reports',
       'view-profile',
+      'view-approvals',
     ],
     isEditable: true,
   },
@@ -143,6 +146,7 @@ export const initialRoles: Role[] = [
       'view-dashboard',
       'manage-reports',
       'view-profile',
+      'view-approvals',
     ],
     isEditable: true,
   },

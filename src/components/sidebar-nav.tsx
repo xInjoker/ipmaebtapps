@@ -16,6 +16,7 @@ import {
   Wrench,
   FileText,
   ChevronRight,
+  ClipboardCheck,
 } from 'lucide-react';
 import {
   SidebarMenu,
@@ -23,7 +24,6 @@ import {
   SidebarMenuItem,
   SidebarMenuSub,
   SidebarMenuSubButton,
-  SidebarMenuSubItem,
   useSidebar,
 } from '@/components/ui/sidebar';
 import { useProjects } from '@/context/ProjectContext';
@@ -64,6 +64,12 @@ export function SidebarNav() {
       label: 'Dashboard',
       icon: LayoutDashboard,
       permission: 'view-dashboard',
+    },
+    {
+      href: '/approvals',
+      label: 'My Approvals',
+      icon: ClipboardCheck,
+      permission: 'view-approvals',
     },
     {
       href: '/tenders',
