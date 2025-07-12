@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import {
@@ -34,7 +34,6 @@ import { Badge } from '@/components/ui/badge';
 import {
   MoreHorizontal,
   PlusCircle,
-  User,
   Users,
   CheckCircle,
   XCircle,
@@ -62,16 +61,29 @@ import {
 export default function TendersPage() {
   useSearchParams();
   const { tenders, updateTender } = useTenders();
-  const { branches } = useAuth();
+  const { user, isHqUser, branches } = useAuth();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
-  
+  const initialFilterSet = useRef(false);
+
   // Filter states
   const [searchTerm, setSearchTerm] = useState('');
   const [branchFilter, setBranchFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState<TenderStatus | 'all'>('all');
+  
+  useEffect(() => {
+    if (user && !isHqUser && !initialFilterSet.current) {
+        setBranchFilter(user.branchId);
+        initialFilterSet.current = true;
+    }
+  }, [user, isHqUser]);
 
   const filteredTenders = useMemo(() => {
     return tenders.filter(tender => {
+        // User permission based filtering (non-HQ can only see their branch)
+        if (!isHqUser && user && tender.branchId !== user.branchId) {
+            return false;
+        }
+
         const searchMatch = searchTerm.toLowerCase() === '' ||
                             tender.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                             tender.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -82,7 +94,7 @@ export default function TendersPage() {
 
         return searchMatch && branchMatch && statusMatch;
     });
-  }, [tenders, searchTerm, branchFilter, statusFilter]);
+  }, [tenders, searchTerm, branchFilter, statusFilter, user, isHqUser]);
 
   const dashboardStats = useMemo(() => {
     const statusCounts = filteredTenders.reduce((acc, tender) => {
@@ -177,18 +189,20 @@ export default function TendersPage() {
   
   const handleClearFilters = () => {
     setSearchTerm('');
-    setBranchFilter('all');
     setStatusFilter('all');
+    if (isHqUser) {
+        setBranchFilter('all');
+    }
   };
 
   return (
     <div className="space-y-6">
       <Card className="relative overflow-hidden bg-gradient-to-br from-primary to-primary/80 text-primary-foreground">
         <svg
-          className="absolute -right-24 -top-24 text-primary-foreground/10"
+          className="absolute -right-16 -top-24 text-amber-500"
           fill="currentColor"
-          width="450"
-          height="450"
+          width="400"
+          height="400"
           viewBox="0 0 200 200"
           xmlns="http://www.w3.org/2000/svg"
         >
@@ -198,7 +212,7 @@ export default function TendersPage() {
           />
         </svg>
         <svg
-          className="absolute -right-20 -top-28 text-amber-500"
+          className="absolute -left-20 -bottom-24 text-primary-foreground/10"
           fill="currentColor"
           width="400"
           height="400"
@@ -258,7 +272,7 @@ export default function TendersPage() {
         ))}
       </div>
 
-      <Card>
+       <Card>
         <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center">
             <div className="relative flex-1">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -270,7 +284,7 @@ export default function TendersPage() {
                 />
             </div>
             <div className="flex flex-wrap items-center gap-2">
-                <Select value={branchFilter} onValueChange={setBranchFilter}>
+                <Select value={branchFilter} onValueChange={setBranchFilter} disabled={!isHqUser}>
                     <SelectTrigger className="w-full sm:w-[180px]">
                         <SelectValue placeholder="Filter by branch" />
                     </SelectTrigger>
