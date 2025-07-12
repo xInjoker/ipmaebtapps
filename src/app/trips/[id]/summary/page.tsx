@@ -156,8 +156,8 @@ export default function TripSummaryPage() {
         doc.setFontSize(18);
         doc.text('Business Trip Request', pageMargin, 22, { align: 'left' });
         doc.setFontSize(12);
-        doc.text(`Request ID: ${trip.id}`, pageWidth - pageMargin, 30, { align: 'right' });
-        doc.text(`Status: ${trip.status}`, pageWidth - pageMargin, 38, { align: 'right' });
+        doc.text(`Request ID: ${trip.id}`, pageMargin, 30, { align: 'left' });
+        doc.text(`Status: ${trip.status}`, pageMargin, 38, { align: 'left' });
 
 
         // Trip Details
