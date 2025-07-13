@@ -8,6 +8,7 @@ export const subPortfolios = ['IAPPM', 'EBT'] as const;
 
 export type Employee = {
     id: string;
+    reportingManagerId?: string; // New field for direct superior
     nationalId?: string;
     name?: string;
     placeOfBirth?: string;
@@ -42,6 +43,7 @@ export type Employee = {
 export const initialEmployees: Employee[] = [
     {
         id: 'EMP-001',
+        reportingManagerId: 'EMP-002', // John reports to Jane
         name: 'John Doe',
         position: 'Senior Engineer',
         projectName: 'Corporate Website Revamp',
@@ -64,6 +66,7 @@ export const initialEmployees: Employee[] = [
     },
     {
         id: 'EMP-003',
+        reportingManagerId: 'EMP-002', // Michael also reports to Jane
         name: 'Michael Johnson',
         position: 'Junior Developer',
         projectName: 'Data Analytics Platform',
@@ -86,6 +89,7 @@ export const initialEmployees: Employee[] = [
     },
     {
         id: 'EMP-005',
+        reportingManagerId: 'EMP-001', // Employee user reports to John Doe
         name: 'Employee User',
         position: 'Field Technician',
         projectName: 'Corporate Website Revamp',
@@ -99,6 +103,7 @@ export const initialEmployees: Employee[] = [
 
 export const employeeFieldLabels: Record<keyof Employee | 'id', string> = {
     id: 'Employee ID',
+    reportingManagerId: 'Reporting Manager',
     nationalId: 'National ID',
     name: 'Name',
     placeOfBirth: 'Place of Birth',

@@ -30,9 +30,11 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { ScrollArea } from './ui/scroll-area';
 import { useAuth } from '@/context/AuthContext';
 import { useProjects } from '@/context/ProjectContext';
+import { useEmployees } from '@/context/EmployeeContext';
 
 const employeeSchema = z.object({
   // Step 1: Work & Project
+  reportingManagerId: z.string().optional(),
   position: z.string().optional(),
   workUnit: z.string().optional(),
   workUnitName: z.string().optional(),
@@ -91,6 +93,7 @@ export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const { branches } = useAuth();
+  const { employees } = useEmployees();
   const { projects } = useProjects();
   const [generatedId, setGeneratedId] = useState('');
 
@@ -219,6 +222,17 @@ export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
                 <form id="employee-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 max-h-[60vh] overflow-y-auto p-4">
                 {currentStep === 0 && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label>Reporting Manager</Label>
+                            <Select onValueChange={(v) => form.setValue('reportingManagerId', v)} value={form.watch('reportingManagerId') || ''}>
+                                <SelectTrigger><SelectValue placeholder="Select a manager..."/></SelectTrigger>
+                                <SelectContent>
+                                    {employees.filter(e => e.id !== employee?.id).map(mgr => (
+                                        <SelectItem key={mgr.id} value={mgr.id}>{mgr.name}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
                         <div className="space-y-2">
                             <Label>Position</Label>
                             <Input {...form.register('position')} />
@@ -383,6 +397,7 @@ export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
                         <div>
                             <h3 className="font-semibold mb-2 text-lg border-b pb-1">Work & Project</h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2 text-sm mt-2">
+                                <p><span className="font-medium text-muted-foreground">{employeeFieldLabels.reportingManagerId}:</span> {employees.find(e => e.id === formData.reportingManagerId)?.name || 'N/A'}</p>
                                 <p><span className="font-medium text-muted-foreground">{employeeFieldLabels.position}:</span> {formData.position || 'N/A'}</p>
                                 <p><span className="font-medium text-muted-foreground">{employeeFieldLabels.workUnitName}:</span> {formData.workUnitName || 'N/A'}</p>
                                 <p><span className="font-medium text-muted-foreground">{employeeFieldLabels.projectName}:</span> {formData.projectName || 'N/A'}</p>

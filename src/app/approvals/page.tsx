@@ -7,6 +7,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useTrips } from '@/context/TripContext';
 import { useReports } from '@/context/ReportContext';
 import { useProjects } from '@/context/ProjectContext';
+import { useEmployees } from '@/context/EmployeeContext'; // Import useEmployees
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -28,11 +29,11 @@ export default function ApprovalsPage() {
     const { trips, updateTrip } = useTrips();
     const { reports, updateReport } = useReports();
     const { projects } = useProjects();
+    const { employees } = useEmployees(); // Get employees data
     const { toast } = useToast();
 
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [selectedItem, setSelectedItem] = useState<ApprovalItem | null>(null);
-    const [approvalAction, setApprovalAction] = useState<'approve' | 'reject' | null>(null);
     const [comments, setComments] = useState('');
 
     const pendingApprovals = useMemo<ApprovalItem[]>(() => {
@@ -41,14 +42,18 @@ export default function ApprovalsPage() {
         const pendingTrips: ApprovalItem[] = trips
             .filter(trip => {
                 if (trip.status !== 'Pending') return false;
-                const project = projects.find(p => p.name === trip.project);
-                if (!project?.tripApprovalWorkflow || project.tripApprovalWorkflow.length === 0) return false;
                 
-                const currentApproverIndex = trip.approvalHistory.filter(h => h.status === 'Approved').length;
-                if (currentApproverIndex >= project.tripApprovalWorkflow.length) return false;
+                // Get the employee who requested the trip
+                const requestingEmployee = employees.find(e => e.id === trip.employeeId.toString());
+                if (!requestingEmployee?.reportingManagerId) return false;
 
-                const nextApprover = project.tripApprovalWorkflow[currentApproverIndex];
-                return nextApprover.approverId === user.id.toString();
+                // For now, the first approver is always the direct manager.
+                const nextApproverId = requestingEmployee.reportingManagerId;
+                const isFinalApproval = true; // Simplified for now
+                const currentApprovalCount = trip.approvalHistory.filter(h => h.status === 'Approved').length;
+
+                // Only show if the current user is the next approver and it's the first approval step
+                return nextApproverId === user.id.toString() && currentApprovalCount === 0;
             })
             .map(trip => ({ ...trip, type: 'trip' }));
 
@@ -71,7 +76,7 @@ export default function ApprovalsPage() {
             .map(report => ({ ...report, type: 'report' }));
 
         return [...pendingTrips, ...pendingReports];
-    }, [user, trips, reports, projects]);
+    }, [user, trips, reports, projects, employees]);
     
     const reportResultSummary = useMemo(() => {
         if (!selectedItem || selectedItem.type !== 'report' || !selectedItem.details) return null;
@@ -118,14 +123,8 @@ export default function ApprovalsPage() {
     const handleConfirmAction = (action: 'approve' | 'reject') => {
         if (!selectedItem || !user) return;
         
-        const project = projects.find(p => p.name === (selectedItem.type === 'trip' ? selectedItem.project : selectedItem.details?.project));
-        if (!project) return;
-        
         if (selectedItem.type === 'trip') {
-            const workflow = project.tripApprovalWorkflow;
-            const currentApprovalCount = selectedItem.approvalHistory.filter(h => h.status === 'Approved').length;
-            const isFinalApproval = currentApprovalCount + 1 === workflow.length;
-
+            const isFinalApproval = true; // Simplified for this implementation
             const newStatus = action === 'reject' ? 'Rejected' : (isFinalApproval ? 'Approved' : 'Pending');
             const newHistory: ApprovalAction = { actorName: user.name, actorRole: 'Approver', status: newStatus, comments: comments, timestamp: new Date().toISOString() };
             
@@ -133,6 +132,8 @@ export default function ApprovalsPage() {
             updateTrip(selectedItem.id, updatedTrip);
 
         } else if (selectedItem.type === 'report') {
+            const project = projects.find(p => p.name === selectedItem.details?.project);
+            if (!project) return;
             const workflow = project.reportApprovalWorkflow;
             const currentApprovalCount = selectedItem.approvalHistory.filter(h => h.status === 'Reviewed' || h.status === 'Approved').length;
             const isFinalApproval = currentApprovalCount + 1 === workflow.length;
