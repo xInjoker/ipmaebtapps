@@ -102,7 +102,7 @@ export function EquipmentCard({ item, branchMap }: { item: EquipmentItem; branch
               {calibration.text}
             </Badge>
           ) : (
-            <Skeleton className="h-5 w-16" />
+            <Skeleton className="h-5 w-16 rounded-full" />
           )}
         </div>
       </CardFooter>

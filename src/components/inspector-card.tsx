@@ -1,6 +1,7 @@
 
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -8,11 +9,26 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Mail, MapPin, Award } from 'lucide-react';
 import { type Inspector } from '@/lib/inspectors';
-import { getInitials, getAvatarColor, formatQualificationName, getDocumentStatus } from '@/lib/utils';
+import { getInitials, getAvatarColor, formatQualificationName, getDocumentStatus, type DocumentStatus } from '@/lib/utils';
 import { cn } from '@/lib/utils';
+import { Skeleton } from './ui/skeleton';
+
+type QualificationWithStatus = {
+  name: string;
+  status: DocumentStatus;
+};
 
 export function InspectorCard({ inspector, branchMap }: { inspector: Inspector, branchMap: Record<string, string> }) {
   const avatarColor = getAvatarColor(inspector.name);
+  const [qualificationStatuses, setQualificationStatuses] = useState<QualificationWithStatus[]>([]);
+
+  useEffect(() => {
+    const statuses = inspector.qualifications.map(q => ({
+      name: q.name,
+      status: getDocumentStatus(q.expirationDate),
+    }));
+    setQualificationStatuses(statuses);
+  }, [inspector.qualifications]);
   
   return (
     <Card className="flex flex-col">
@@ -54,14 +70,14 @@ export function InspectorCard({ inspector, branchMap }: { inspector: Inspector, 
                 <Award className="h-4 w-4 flex-shrink-0" />
                 <span>Qualifications</span>
             </div>
-            <div className="flex flex-wrap justify-center items-center gap-x-1 gap-y-2">
-                {inspector.qualifications.length > 0 ? (
-                    inspector.qualifications.map(q => {
-                        const status = getDocumentStatus(q.expirationDate);
-                        return (
-                            <Badge key={q.name} variant={status.variant} className={cn('font-bold')}>{formatQualificationName(q.name)}</Badge>
-                        );
-                    })
+            <div className="flex flex-wrap justify-center items-center gap-x-1 gap-y-2 min-h-[24px]">
+                {qualificationStatuses.length > 0 ? (
+                    qualificationStatuses.map(q => (
+                        <Badge key={q.name} variant={q.status.variant} className={cn('font-bold')}>{formatQualificationName(q.name)}</Badge>
+                    ))
+                ) : inspector.qualifications.length > 0 ? (
+                    // Skeleton loader if qualifications exist but statuses are not yet computed
+                    inspector.qualifications.map(q => <Skeleton key={q.name} className="h-5 w-16 rounded-full" />)
                 ) : (
                     <span className="text-xs text-muted-foreground">No qualifications listed</span>
                 )}

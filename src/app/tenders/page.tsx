@@ -274,7 +274,8 @@ export default function TendersPage() {
       </div>
 
        <Card>
-        <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center">
+        <CardContent className="p-4">
+           <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
             <div className="relative flex-1">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -307,6 +308,7 @@ export default function TendersPage() {
                     <X className="mr-2 h-4 w-4" /> Clear
                 </Button>
             </div>
+           </div>
         </CardContent>
       </Card>
 
