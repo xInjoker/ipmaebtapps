@@ -35,8 +35,9 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '@/context/AuthContext';
-import { formatCurrency, getEmployeeStatusVariant } from '@/lib/utils';
+import { formatCurrency, getEmployeeStatusVariant, getInitials, getAvatarColor } from '@/lib/utils';
 import { employeeFieldLabels } from '@/lib/employees';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 function DetailItem({ icon: Icon, label, value, iconColor }: { icon: React.ElementType, label: string, value: React.ReactNode, iconColor: string }) {
     if (!value && typeof value !== 'number') return null;
@@ -88,6 +89,8 @@ export default function EmployeeDetailsPage() {
   let personalColorIndex = 0;
   let workColorIndex = 0;
   let financialColorIndex = 0;
+  
+  const avatarColor = getAvatarColor(employee.name || '');
 
   return (
     <div className="space-y-6">
@@ -101,6 +104,11 @@ export default function EmployeeDetailsPage() {
                   <span className="sr-only">Back to Employees</span>
                 </Link>
               </Button>
+              <Avatar className="h-16 w-16">
+                <AvatarFallback style={{ backgroundColor: avatarColor.background, color: avatarColor.color }} className="text-2xl">
+                    {getInitials(employee.name || '')}
+                </AvatarFallback>
+              </Avatar>
               <div className="space-y-1.5">
                 <CardTitle>{employee.name}</CardTitle>
                 <div className="text-sm text-muted-foreground">
