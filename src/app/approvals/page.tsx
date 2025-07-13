@@ -52,7 +52,6 @@ export default function ApprovalsPage() {
 
         const pendingReports: ApprovalItem[] = reports
             .filter(report => {
-                // A report needs approval if it's 'Submitted' OR 'Reviewed' but not yet 'Approved'
                 if (report.status !== 'Submitted' && report.status !== 'Reviewed') return false;
                 
                 const project = projects.find(p => p.name === report.details?.project);
@@ -60,8 +59,6 @@ export default function ApprovalsPage() {
 
                 const currentApprovalCount = report.approvalHistory.filter(h => h.status === 'Reviewed' || h.status === 'Approved').length;
                 
-                // If the report was just submitted, the approval count is 0.
-                // The next approver index is the same as the current approval count.
                 const nextApproverIndex = currentApprovalCount;
 
                 if (nextApproverIndex >= project.reportApprovalWorkflow.length) return false;
@@ -213,11 +210,38 @@ export default function ApprovalsPage() {
                     <DialogHeader>
                         <DialogTitle>Confirm {approvalAction === 'approve' ? 'Approval' : 'Rejection'}</DialogTitle>
                         <DialogDescription>
-                            You are about to {approvalAction} this request. Please add any comments below (optional).
+                            You are about to {approvalAction} this request. Review the details and add comments below.
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="space-y-2 py-4">
-                        <Label htmlFor="comments">Comments</Label>
+                    
+                    {selectedItem && (
+                        <Card className="my-4">
+                            <CardHeader>
+                                <CardTitle className="text-base">Request Summary</CardTitle>
+                            </CardHeader>
+                            <CardContent className="text-sm space-y-2">
+                                {selectedItem.type === 'trip' && (
+                                    <>
+                                        <p><span className="font-semibold w-24 inline-block">Requester:</span> {(selectedItem as TripRequest).employeeName}</p>
+                                        <p><span className="font-semibold w-24 inline-block">Destination:</span> {(selectedItem as TripRequest).destination}</p>
+                                        <p><span className="font-semibold w-24 inline-block">Dates:</span> {format(new Date((selectedItem as TripRequest).startDate), 'PPP')} to {format(new Date((selectedItem as TripRequest).endDate), 'PPP')}</p>
+                                        <p><span className="font-semibold w-24 inline-block">Purpose:</span> {(selectedItem as TripRequest).purpose}</p>
+                                    </>
+                                )}
+                                {selectedItem.type === 'report' && (
+                                    <>
+                                        <p><span className="font-semibold w-24 inline-block">Report No:</span> {(selectedItem as ReportItem).reportNumber}</p>
+                                        <p><span className="font-semibold w-24 inline-block">Job Type:</span> {(selectedItem as ReportItem).jobType}</p>
+                                        <p><span className="font-semibold w-24 inline-block">Project:</span> {(selectedItem as ReportItem).details?.project}</p>
+                                        <p><span className="font-semibold w-24 inline-block">Created By:</span> {(selectedItem as ReportItem).approvalHistory[0].actorName}</p>
+                                    </>
+                                )}
+                            </CardContent>
+                        </Card>
+                    )}
+
+                    <div className="space-y-2">
+                        <Label htmlFor="comments">Comments (Optional)</Label>
                         <Textarea id="comments" value={comments} onChange={(e) => setComments(e.target.value)} />
                     </div>
                     <DialogFooter>
