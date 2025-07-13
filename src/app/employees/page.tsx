@@ -346,6 +346,7 @@ export default function EmployeesPage() {
                   <TableRow>
                     <TableHead>Name</TableHead>
                     <TableHead>Position</TableHead>
+                    <TableHead>Reporting Manager</TableHead>
                     <TableHead>Project Name</TableHead>
                     <TableHead>Salary</TableHead>
                     <TableHead>Contract End</TableHead>
@@ -362,6 +363,9 @@ export default function EmployeesPage() {
                         </TableCell>
                         <TableCell>
                           <Skeleton className="h-5 w-24" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-5 w-32" />
                         </TableCell>
                         <TableCell>
                           <Skeleton className="h-5 w-40" />
@@ -381,12 +385,15 @@ export default function EmployeesPage() {
                       </TableRow>
                     ))
                   ) : filteredEmployees.length > 0 ? (
-                    filteredEmployees.map((employee) => (
+                    filteredEmployees.map((employee) => {
+                        const manager = employees.find(e => e.id === employee.reportingManagerId);
+                        return (
                       <TableRow key={employee.id}>
                         <TableCell className="font-medium">
                           {employee.name || 'N/A'}
                         </TableCell>
                         <TableCell>{employee.position || 'N/A'}</TableCell>
+                        <TableCell>{manager?.name || 'N/A'}</TableCell>
                         <TableCell>{employee.projectName || 'N/A'}</TableCell>
                         <TableCell>
                           {employee.salary
@@ -445,10 +452,10 @@ export default function EmployeesPage() {
                           </DropdownMenu>
                         </TableCell>
                       </TableRow>
-                    ))
+                    )})
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={7} className="h-24 text-center">
+                      <TableCell colSpan={8} className="h-24 text-center">
                         No employees found. Try adjusting your search or filter
                         criteria.
                       </TableCell>
@@ -494,3 +501,4 @@ export default function EmployeesPage() {
     </>
   );
 }
+
