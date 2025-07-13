@@ -566,7 +566,7 @@ export default function ProjectsPage() {
           )}
         </CardHeader>
         <CardContent>
-           <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+           <div className="flex flex-col gap-4 sm:flex-row sm:items-center z-10 relative">
                 <div className="relative flex-1">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
