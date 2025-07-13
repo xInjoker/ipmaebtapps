@@ -2,6 +2,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { useTrips } from '@/context/TripContext';
 import { useReports } from '@/context/ReportContext';
@@ -288,6 +289,13 @@ export default function ApprovalsPage() {
                         <Textarea id="comments" value={comments} onChange={(e) => setComments(e.target.value)} />
                     </div>
                     <DialogFooter className="gap-2 sm:gap-0">
+                         {selectedItem?.type === 'report' && (
+                            <Button variant="secondary" asChild>
+                                <Link href={`/reports/${selectedItem.id}`} target="_blank">
+                                    View Full Report
+                                </Link>
+                            </Button>
+                        )}
                         <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
                         <div className="flex-grow"/>
                         <Button variant="destructive" onClick={() => handleConfirmAction('reject')}>Reject</Button>
