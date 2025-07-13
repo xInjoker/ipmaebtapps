@@ -23,6 +23,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { EquipmentCard } from '@/components/equipment-card';
 import { getCalibrationStatus } from '@/lib/utils';
 
+type DashboardStats = {
+    total: number;
+    normal: number;
+    validCerts: number;
+    expiredCerts: number;
+};
+
 export default function EquipmentPage() {
   useSearchParams();
   const { user, isHqUser, branches, userHasPermission } = useAuth();
@@ -38,6 +45,13 @@ export default function EquipmentPage() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
   const [branchFilter, setBranchFilter] = useState('all');
+  
+  const [dashboardStats, setDashboardStats] = useState<DashboardStats>({
+    total: 0,
+    normal: 0,
+    validCerts: 0,
+    expiredCerts: 0,
+  });
   
   useEffect(() => {
     if (user && !isHqUser && !initialFilterSet.current) {
@@ -67,26 +81,27 @@ export default function EquipmentPage() {
     });
   }, [equipmentList, searchTerm, statusFilter, typeFilter, branchFilter]);
 
-  const dashboardStats = useMemo(() => {
-    const total = filteredEquipment.length;
-    const normal = filteredEquipment.filter(e => e.status === 'Normal').length;
-    
-    let validCerts = 0;
-    let expiredCerts = 0;
+  useEffect(() => {
+    if (isClient) {
+        const total = filteredEquipment.length;
+        const normal = filteredEquipment.filter(e => e.status === 'Normal').length;
+        
+        let validCerts = 0;
+        let expiredCerts = 0;
 
-    filteredEquipment.forEach(e => {
-        if (e.calibrationDueDate) {
-            const status = getCalibrationStatus(new Date(e.calibrationDueDate));
-            if (status.variant === 'destructive') {
-                expiredCerts++;
-            } else {
-                validCerts++;
+        filteredEquipment.forEach(e => {
+            if (e.calibrationDueDate) {
+                const status = getCalibrationStatus(new Date(e.calibrationDueDate));
+                if (status.variant === 'destructive') {
+                    expiredCerts++;
+                } else {
+                    validCerts++;
+                }
             }
-        }
-    });
-
-    return { total, normal, validCerts, expiredCerts };
-  }, [filteredEquipment]);
+        });
+        setDashboardStats({ total, normal, validCerts, expiredCerts });
+    }
+  }, [filteredEquipment, isClient]);
   
   const widgetData = [
     {
