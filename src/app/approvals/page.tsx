@@ -12,12 +12,13 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { type TripRequest } from '@/lib/trips';
-import { type ReportItem, type ReportStatus, type ApprovalAction } from '@/lib/reports';
+import { type ReportItem, type ReportStatus, type ApprovalAction, type RadiographicTestReportDetails } from '@/lib/reports';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Separator } from '@/components/ui/separator';
 
 type ApprovalItem = (TripRequest | ReportItem) & { type: 'trip' | 'report' };
 
@@ -70,16 +71,51 @@ export default function ApprovalsPage() {
 
         return [...pendingTrips, ...pendingReports];
     }, [user, trips, reports, projects]);
+    
+    const reportResultSummary = useMemo(() => {
+        if (!selectedItem || selectedItem.type !== 'report' || !selectedItem.details) return null;
 
-    const handleActionClick = (item: ApprovalItem, action: 'approve' | 'reject') => {
+        const details = selectedItem.details;
+        let total = 0;
+        let accepted = 0;
+        let rejected = 0;
+
+        if ('testResults' in details && details.testResults) {
+            // This works for PT, MT, UT
+            if (details.jobType !== 'Radiographic Test') {
+                total = details.testResults.length;
+                details.testResults.forEach(result => {
+                    if ('result' in result) {
+                        if (result.result === 'Accept') accepted++;
+                        else if (result.result === 'Reject') rejected++;
+                    }
+                });
+            } else { 
+                // Specific logic for Radiographic Test
+                const rtDetails = details as RadiographicTestReportDetails;
+                rtDetails.testResults.forEach(result => {
+                    if (result.findings) {
+                        total += result.findings.length;
+                        result.findings.forEach(finding => {
+                             if (finding.result === 'Accept') accepted++;
+                             else if (finding.result === 'Reject') rejected++;
+                        });
+                    }
+                });
+            }
+        }
+        
+        return { total, accepted, rejected };
+    }, [selectedItem]);
+
+    const handleActionClick = (item: ApprovalItem) => {
         setSelectedItem(item);
-        setApprovalAction(action);
         setComments('');
         setIsDialogOpen(true);
     };
 
-    const handleConfirmAction = () => {
-        if (!selectedItem || !approvalAction || !user) return;
+    const handleConfirmAction = (action: 'approve' | 'reject') => {
+        if (!selectedItem || !user) return;
         
         const project = projects.find(p => p.name === (selectedItem.type === 'trip' ? selectedItem.project : selectedItem.details?.project));
         if (!project) return;
@@ -89,7 +125,7 @@ export default function ApprovalsPage() {
             const currentApprovalCount = selectedItem.approvalHistory.filter(h => h.status === 'Approved').length;
             const isFinalApproval = currentApprovalCount + 1 === workflow.length;
 
-            const newStatus = approvalAction === 'reject' ? 'Rejected' : (isFinalApproval ? 'Approved' : 'Pending');
+            const newStatus = action === 'reject' ? 'Rejected' : (isFinalApproval ? 'Approved' : 'Pending');
             const newHistory: ApprovalAction = { actorName: user.name, actorRole: 'Approver', status: newStatus, comments: comments, timestamp: new Date().toISOString() };
             
             const updatedTrip = { ...selectedItem, status: newStatus, approvalHistory: [...selectedItem.approvalHistory, newHistory] };
@@ -101,7 +137,7 @@ export default function ApprovalsPage() {
             const isFinalApproval = currentApprovalCount + 1 === workflow.length;
             
             let newStatus: ReportStatus;
-            if (approvalAction === 'reject') {
+            if (action === 'reject') {
                 newStatus = 'Rejected';
             } else {
                 newStatus = isFinalApproval ? 'Approved' : 'Reviewed';
@@ -112,7 +148,7 @@ export default function ApprovalsPage() {
             updateReport(selectedItem.id, updatedReport);
         }
 
-        toast({ title: `Request ${approvalAction === 'approve' ? 'Approved' : 'Rejected'}`, description: 'The status has been updated successfully.' });
+        toast({ title: `Request ${action === 'approve' ? 'Approved' : 'Rejected'}`, description: 'The status has been updated successfully.' });
         setIsDialogOpen(false);
         setSelectedItem(null);
     };
@@ -152,9 +188,8 @@ export default function ApprovalsPage() {
                                             <TableCell>{(item as TripRequest).destination}</TableCell>
                                             <TableCell>{format(new Date((item as TripRequest).startDate), 'PPP')} - {format(new Date((item as TripRequest).endDate), 'PPP')}</TableCell>
                                             <TableCell>{(item as TripRequest).project}</TableCell>
-                                            <TableCell className="text-right space-x-2">
-                                                <Button size="sm" variant="destructive" onClick={() => handleActionClick(item, 'reject')}>Reject</Button>
-                                                <Button size="sm" onClick={() => handleActionClick(item, 'approve')}>Approve</Button>
+                                            <TableCell className="text-right">
+                                                <Button size="sm" onClick={() => handleActionClick(item)}>Review</Button>
                                             </TableCell>
                                         </TableRow>
                                     ))}
@@ -188,9 +223,8 @@ export default function ApprovalsPage() {
                                             <TableCell>{(item as ReportItem).jobType}</TableCell>
                                             <TableCell>{(item as ReportItem).details?.project}</TableCell>
                                             <TableCell>{(item as ReportItem).approvalHistory[0].actorName}</TableCell>
-                                            <TableCell className="text-right space-x-2">
-                                                <Button size="sm" variant="destructive" onClick={() => handleActionClick(item, 'reject')}>Reject</Button>
-                                                <Button size="sm" onClick={() => handleActionClick(item, 'approve')}>Approve</Button>
+                                            <TableCell className="text-right">
+                                                <Button size="sm" onClick={() => handleActionClick(item)}>Review</Button>
                                             </TableCell>
                                         </TableRow>
                                     ))}
@@ -208,9 +242,9 @@ export default function ApprovalsPage() {
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Confirm {approvalAction === 'approve' ? 'Approval' : 'Rejection'}</DialogTitle>
+                        <DialogTitle>Review Request</DialogTitle>
                         <DialogDescription>
-                            You are about to {approvalAction} this request. Review the details and add comments below.
+                            Review the details below and take action.
                         </DialogDescription>
                     </DialogHeader>
                     
@@ -230,10 +264,19 @@ export default function ApprovalsPage() {
                                 )}
                                 {selectedItem.type === 'report' && (
                                     <>
-                                        <p><span className="font-semibold w-24 inline-block">Report No:</span> {(selectedItem as ReportItem).reportNumber}</p>
-                                        <p><span className="font-semibold w-24 inline-block">Job Type:</span> {(selectedItem as ReportItem).jobType}</p>
-                                        <p><span className="font-semibold w-24 inline-block">Project:</span> {(selectedItem as ReportItem).details?.project}</p>
-                                        <p><span className="font-semibold w-24 inline-block">Created By:</span> {(selectedItem as ReportItem).approvalHistory[0].actorName}</p>
+                                        <p><span className="font-semibold w-28 inline-block">Report No:</span> {(selectedItem as ReportItem).reportNumber}</p>
+                                        <p><span className="font-semibold w-28 inline-block">Job Type:</span> {(selectedItem as ReportItem).jobType}</p>
+                                        <p><span className="font-semibold w-28 inline-block">Project:</span> {(selectedItem as ReportItem).details?.project}</p>
+                                        <p><span className="font-semibold w-28 inline-block">Created By:</span> {(selectedItem as ReportItem).approvalHistory[0].actorName}</p>
+                                        {reportResultSummary && (
+                                            <>
+                                                <Separator className="my-3"/>
+                                                <h4 className="font-semibold mb-1">Results Summary</h4>
+                                                <p><span className="font-semibold w-28 inline-block">Total Items:</span> {reportResultSummary.total}</p>
+                                                <p><span className="font-semibold w-28 inline-block">Accepted:</span> {reportResultSummary.accepted}</p>
+                                                <p><span className="font-semibold w-28 inline-block">Rejected:</span> {reportResultSummary.rejected}</p>
+                                            </>
+                                        )}
                                     </>
                                 )}
                             </CardContent>
@@ -244,11 +287,11 @@ export default function ApprovalsPage() {
                         <Label htmlFor="comments">Comments (Optional)</Label>
                         <Textarea id="comments" value={comments} onChange={(e) => setComments(e.target.value)} />
                     </div>
-                    <DialogFooter>
+                    <DialogFooter className="gap-2 sm:gap-0">
                         <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
-                        <Button onClick={handleConfirmAction} variant={approvalAction === 'reject' ? 'destructive' : 'default'}>
-                            Confirm {approvalAction === 'approve' ? 'Approval' : 'Rejection'}
-                        </Button>
+                        <div className="flex-grow"/>
+                        <Button variant="destructive" onClick={() => handleConfirmAction('reject')}>Reject</Button>
+                        <Button onClick={() => handleConfirmAction('approve')}>Approve</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
