@@ -47,7 +47,7 @@ function DetailItem({ icon: Icon, label, value, iconColor }: { icon: React.Eleme
                 <Icon className="h-5 w-5" style={{ color: iconColor }} />
             </div>
             <div>
-                <p className="text-sm text-muted-foreground">{label}</p>
+                <div className="text-sm text-muted-foreground">{label}</div>
                 <div className="font-medium">{value}</div>
             </div>
         </div>
