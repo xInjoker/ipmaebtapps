@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { type TripRequest } from '@/lib/trips';
-import { type ReportItem, type ReportStatus, type ApprovalAction, type RadiographicTestReportDetails } from '@/lib/reports';
+import { type ReportItem, type ReportStatus, type ApprovalAction, type RadiographicTestReportDetails, type MagneticParticleTestReportDetails, type PenetrantTestReportDetails, type UltrasonicTestReportDetails } from '@/lib/reports';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -20,13 +20,15 @@ import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { HeaderCard } from '@/components/header-card';
+import { useProjects } from '@/context/ProjectContext';
 
 type ApprovalItem = (TripRequest | ReportItem) & { type: 'trip' | 'report' };
 
 export default function ApprovalsPage() {
     const { user, users } = useAuth();
-    const { updateTrip, getPendingTripApprovalsForUser } = useTrips();
-    const { updateReport, getPendingReportApprovalsForUser } = useReports();
+    const { trips, updateTrip, getPendingTripApprovalsForUser } = useTrips();
+    const { reports, updateReport, getPendingReportApprovalsForUser } = useReports();
+    const { projects } = useProjects();
     const { toast } = useToast();
 
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -36,12 +38,13 @@ export default function ApprovalsPage() {
     const pendingTrips = useMemo(() => {
         if (!user) return [];
         return getPendingTripApprovalsForUser(user.id).map(trip => ({ ...trip, type: 'trip' as const }));
-    }, [user, getPendingTripApprovalsForUser]);
+    }, [user, getPendingTripApprovalsForUser, trips]); // Add trips to dependency array
     
     const pendingReports = useMemo(() => {
         if (!user) return [];
         return getPendingReportApprovalsForUser(user.id).map(report => ({ ...report, type: 'report' as const }));
-    }, [user, getPendingReportApprovalsForUser]);
+    }, [user, getPendingReportApprovalsForUser, reports]); // Add reports to dependency array
+
 
     const reportResultSummary = useMemo(() => {
         if (!selectedItem || selectedItem.type !== 'report' || !selectedItem.details) return null;
@@ -51,28 +54,26 @@ export default function ApprovalsPage() {
         let accepted = 0;
         let rejected = 0;
 
-        if ('testResults' in details && details.testResults) {
-            // This works for PT, MT, UT
-            if (details.jobType !== 'Radiographic Test') {
-                total = details.testResults.length;
-                details.testResults.forEach(result => {
-                    if ('result' in result) {
-                        if (result.result === 'Accept') accepted++;
-                        else if (result.result === 'Reject') rejected++;
-                    }
-                });
-            } else { 
-                // Specific logic for Radiographic Test
+        switch (details.jobType) {
+            case 'Penetrant Test':
+            case 'Magnetic Particle Test':
+            case 'Ultrasonic Test': {
+                const testResults = (details as PenetrantTestReportDetails | MagneticParticleTestReportDetails | UltrasonicTestReportDetails).testResults;
+                total = testResults.length;
+                accepted = testResults.filter(r => r.result === 'Accept').length;
+                rejected = testResults.filter(r => r.result === 'Reject').length;
+                break;
+            }
+            case 'Radiographic Test': {
                 const rtDetails = details as RadiographicTestReportDetails;
                 rtDetails.testResults.forEach(result => {
                     if (result.findings) {
                         total += result.findings.length;
-                        result.findings.forEach(finding => {
-                             if (finding.result === 'Accept') accepted++;
-                             else if (finding.result === 'Reject') rejected++;
-                        });
+                        accepted += result.findings.filter(f => f.result === 'Accept').length;
+                        rejected += result.findings.filter(f => f.result === 'Reject').length;
                     }
                 });
+                break;
             }
         }
         
@@ -87,22 +88,30 @@ export default function ApprovalsPage() {
 
     const handleConfirmAction = (action: 'approve' | 'reject') => {
         if (!selectedItem || !user) return;
-        
+    
         if (selectedItem.type === 'trip') {
-            const isFinalApproval = true; // Simplified for this implementation
+            const project = projects.find(p => p.name === selectedItem.project);
+            const workflow = project?.tripApprovalWorkflow || [];
+            const currentApprovalCount = selectedItem.approvalHistory.filter(h => h.status === 'Approved').length;
+            const isFinalApproval = currentApprovalCount + 1 >= workflow.length;
+            
             const newStatus = action === 'reject' ? 'Rejected' : (isFinalApproval ? 'Approved' : 'Pending');
             const newHistory: ApprovalAction = { actorName: user.name, actorRole: 'Approver', status: newStatus, comments: comments, timestamp: new Date().toISOString() };
             
             const updatedTrip = { ...selectedItem, status: newStatus, approvalHistory: [...selectedItem.approvalHistory, newHistory] };
-            updateTrip(selectedItem.id, updatedTrip);
+            updateTrip(selectedItem.id, updatedTrip as TripRequest);
 
         } else if (selectedItem.type === 'report') {
-            // This logic is simplified, a more robust implementation might be needed
+            const project = projects.find(p => p.name === selectedItem.details?.project);
+            const workflow = project?.reportApprovalWorkflow || [];
+            const currentApprovalCount = selectedItem.approvalHistory.filter(h => h.status === 'Reviewed' || h.status === 'Approved').length;
+            const isFinalApproval = currentApprovalCount + 1 >= workflow.length;
+
             let newStatus: ReportStatus;
             if (action === 'reject') {
                 newStatus = 'Rejected';
             } else {
-                newStatus = 'Approved'; // Simplified, in reality would check workflow
+                newStatus = isFinalApproval ? 'Approved' : 'Reviewed';
             }
             
             const newHistory: ApprovalAction = { actorName: user.name, actorRole: 'Approver', status: newStatus, comments: comments, timestamp: new Date().toISOString() };
