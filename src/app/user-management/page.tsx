@@ -53,6 +53,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { getInitials, getAvatarColor } from '@/lib/utils';
 import { cn } from '@/lib/utils';
+import { useProjects } from '@/context/ProjectContext';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 function RoleFormDialog({
   isOpen,
@@ -164,6 +166,79 @@ function RoleFormDialog({
   );
 }
 
+function ProjectAssignmentDialog({
+    userToAssign,
+    onOpenChange,
+    onSave,
+}: {
+    userToAssign: User | null;
+    onOpenChange: (open: boolean) => void;
+    onSave: (userId: number, projectIds: number[]) => void;
+}) {
+    const { projects } = useProjects();
+    const [assignedProjects, setAssignedProjects] = useState<Set<number>>(new Set());
+
+    useEffect(() => {
+        if (userToAssign) {
+            setAssignedProjects(new Set(userToAssign.assignedProjectIds || []));
+        }
+    }, [userToAssign]);
+
+    const handleProjectToggle = (projectId: number) => {
+        setAssignedProjects(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(projectId)) {
+                newSet.delete(projectId);
+            } else {
+                newSet.add(projectId);
+            }
+            return newSet;
+        });
+    };
+
+    const handleSave = () => {
+        if (userToAssign) {
+            onSave(userToAssign.id, Array.from(assignedProjects));
+            onOpenChange(false);
+        }
+    };
+    
+    if (!userToAssign) return null;
+
+    return (
+        <Dialog open={!!userToAssign} onOpenChange={onOpenChange}>
+            <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                    <DialogTitle>Assign Projects to {userToAssign.name}</DialogTitle>
+                    <DialogDescription>
+                        Select the projects this user should have access to.
+                    </DialogDescription>
+                </DialogHeader>
+                <ScrollArea className="h-72 my-4">
+                    <div className="space-y-2 p-1">
+                        {projects.map(project => (
+                            <div key={project.id} className="flex items-center justify-between rounded-md border p-3">
+                                <Label htmlFor={`proj-${project.id}`} className="font-normal">
+                                    {project.name}
+                                </Label>
+                                <Checkbox
+                                    id={`proj-${project.id}`}
+                                    checked={assignedProjects.has(project.id)}
+                                    onCheckedChange={() => handleProjectToggle(project.id)}
+                                />
+                            </div>
+                        ))}
+                    </div>
+                </ScrollArea>
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+                    <Button onClick={handleSave}>Save Assignments</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
 export default function UserManagementPage() {
   const {
     user,
@@ -180,6 +255,7 @@ export default function UserManagementPage() {
   const [managedUsers, setManagedUsers] = useState<User[]>([]);
   const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
   const [roleToEdit, setRoleToEdit] = useState<Role | null>(null);
+  const [assignmentUser, setAssignmentUser] = useState<User | null>(null);
 
   useEffect(() => {
     setManagedUsers(users);
@@ -192,8 +268,8 @@ export default function UserManagementPage() {
 
   const handleUserChange = (
     userId: number,
-    field: 'roleId' | 'branchId',
-    value: string
+    field: keyof User,
+    value: any
   ) => {
     setManagedUsers((currentUsers) =>
       currentUsers.map((u) => (u.id === userId ? { ...u, [field]: value } : u))
@@ -205,10 +281,9 @@ export default function UserManagementPage() {
       const originalUser = users.find((u) => u.id === mu.id);
       if (
         originalUser &&
-        (originalUser.roleId !== mu.roleId ||
-          originalUser.branchId !== mu.branchId)
+        JSON.stringify(originalUser) !== JSON.stringify(mu)
       ) {
-        updateUser(mu.id, { roleId: mu.roleId, branchId: mu.branchId });
+        updateUser(mu.id, mu);
       }
     });
     toast({
@@ -253,7 +328,7 @@ export default function UserManagementPage() {
             <CardHeader>
               <CardTitle>User Assignments</CardTitle>
               <CardDescription>
-                Assign roles and branches to users. Click "Save Changes" to
+                Assign roles, branches, and projects to users. Click "Save Changes" to
                 apply your modifications.
               </CardDescription>
             </CardHeader>
@@ -263,15 +338,9 @@ export default function UserManagementPage() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>User</TableHead>
-                      <TableHead>Email</TableHead>
                       <TableHead>Role</TableHead>
                       <TableHead>Branch</TableHead>
-                      <TableHead className="w-[190px] text-right">
-                        Change Role
-                      </TableHead>
-                      <TableHead className="w-[190px] text-right">
-                        Change Branch
-                      </TableHead>
+                      <TableHead>Assigned Projects</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -303,29 +372,13 @@ export default function UserManagementPage() {
                                   {getInitials(managedUser.name)}
                                 </AvatarFallback>
                               </Avatar>
-                              <span className="font-medium">
-                                {managedUser.name}
-                              </span>
+                              <div>
+                                <p className="font-medium">{managedUser.name}</p>
+                                <p className="text-xs text-muted-foreground">{managedUser.email}</p>
+                              </div>
                             </div>
                           </TableCell>
-                          <TableCell>{managedUser.email}</TableCell>
                           <TableCell>
-                            <Badge
-                              variant={
-                                managedUser.roleId === 'super-admin'
-                                  ? 'destructive'
-                                  : 'secondary'
-                              }
-                            >
-                              {userRole?.name || 'Unknown Role'}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="outline">
-                              {userBranch?.name || 'Unknown Branch'}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right">
                             <Select
                               value={managedUser.roleId}
                               onValueChange={(value: string) =>
@@ -337,7 +390,7 @@ export default function UserManagementPage() {
                               }
                               disabled={managedUser.id === user.id}
                             >
-                              <SelectTrigger className="ml-auto w-[180px]">
+                              <SelectTrigger className="w-[180px]">
                                 <SelectValue placeholder="Change role" />
                               </SelectTrigger>
                               <SelectContent>
@@ -349,8 +402,8 @@ export default function UserManagementPage() {
                               </SelectContent>
                             </Select>
                           </TableCell>
-                          <TableCell className="text-right">
-                            <Select
+                          <TableCell>
+                             <Select
                               value={managedUser.branchId}
                               onValueChange={(value: string) =>
                                 handleUserChange(
@@ -361,7 +414,7 @@ export default function UserManagementPage() {
                               }
                               disabled={managedUser.id === user.id}
                             >
-                              <SelectTrigger className="ml-auto w-[180px]">
+                              <SelectTrigger className="w-[180px]">
                                 <SelectValue placeholder="Change branch" />
                               </SelectTrigger>
                               <SelectContent>
@@ -372,6 +425,18 @@ export default function UserManagementPage() {
                                 ))}
                               </SelectContent>
                             </Select>
+                          </TableCell>
+                          <TableCell>
+                            {userRole?.id === 'project-admin' ? (
+                                <div className="flex items-center gap-2">
+                                    <Badge variant="secondary">{managedUser.assignedProjectIds?.length || 0} projects</Badge>
+                                    <Button variant="outline" size="sm" onClick={() => setAssignmentUser(managedUser)}>
+                                        Manage
+                                    </Button>
+                                </div>
+                            ) : (
+                                <span className="text-muted-foreground text-sm">N/A</span>
+                            )}
                           </TableCell>
                         </TableRow>
                       );
@@ -473,6 +538,11 @@ export default function UserManagementPage() {
         isOpen={isRoleDialogOpen}
         onOpenChange={setIsRoleDialogOpen}
         role={roleToEdit}
+      />
+      <ProjectAssignmentDialog
+        userToAssign={assignmentUser}
+        onOpenChange={() => setAssignmentUser(null)}
+        onSave={(userId, projectIds) => handleUserChange(userId, 'assignedProjectIds', projectIds)}
       />
     </>
   );
