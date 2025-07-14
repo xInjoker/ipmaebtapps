@@ -18,19 +18,19 @@ export function Providers({ children }: { children: ReactNode }) {
     <NextThemesProvider attribute="class" defaultTheme="system" enableSystem>
       <ColorThemeProvider>
         <AuthProvider>
-          <ProjectProvider>
-            <EquipmentProvider>
-              <InspectorProvider>
-                <ReportProvider>
-                  <TripProvider>
-                    <TenderProvider>
-                      <EmployeeProvider>{children}</EmployeeProvider>
-                    </TenderProvider>
-                  </TripProvider>
-                </ReportProvider>
-              </InspectorProvider>
-            </EquipmentProvider>
-          </ProjectProvider>
+          <EmployeeProvider>
+            <ProjectProvider>
+              <EquipmentProvider>
+                <InspectorProvider>
+                  <ReportProvider>
+                    <TripProvider>
+                      <TenderProvider>{children}</TenderProvider>
+                    </TripProvider>
+                  </ReportProvider>
+                </InspectorProvider>
+              </EquipmentProvider>
+            </ProjectProvider>
+          </EmployeeProvider>
         </AuthProvider>
       </ColorThemeProvider>
     </NextThemesProvider>
