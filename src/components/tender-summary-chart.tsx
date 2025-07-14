@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Cell } from 'recharts';
 import {
   ChartContainer,
   ChartTooltip,
@@ -64,7 +64,6 @@ export function TenderSummaryChart({ tenders }: TenderSummaryChartProps) {
     return Object.entries(statusCounts).map(([status, count]) => ({
         status,
         count,
-        fill: `var(--color-${status})`,
     }));
   }, [tenders]);
 
@@ -95,9 +94,12 @@ export function TenderSummaryChart({ tenders }: TenderSummaryChartProps) {
           cursor={false}
           content={<ChartTooltipContent indicator="dot" />}
         />
-        <Bar dataKey="count" radius={4} />
+        <Bar dataKey="count" radius={4}>
+            {chartData.map((entry) => (
+                <Cell key={`cell-${entry.status}`} fill={`var(--color-${entry.status})`} />
+            ))}
+        </Bar>
       </BarChart>
     </ChartContainer>
   );
 }
-
