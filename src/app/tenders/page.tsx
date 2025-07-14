@@ -50,7 +50,7 @@ import { format } from 'date-fns';
 import { useAuth } from '@/context/AuthContext';
 import { Calendar } from '@/components/ui/calendar';
 import { isSameDay, isWithinInterval, startOfDay, addDays } from 'date-fns';
-import { getTenderStatusVariant, formatCurrencyMillions } from '@/lib/utils';
+import { getTenderStatusVariant, formatCurrency, formatCurrencyMillions } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -61,6 +61,7 @@ import {
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TenderSummaryChart } from '@/components/tender-summary-chart';
+import { TenderCountChart } from '@/components/tender-count-chart';
 
 
 export default function TendersPage() {
@@ -310,7 +311,7 @@ export default function TendersPage() {
             </CardHeader>
             <CardContent>
               <div className="text-xl font-bold font-headline sm:text-lg md:text-xl lg:text-2xl">{widget.value}</div>
-              <p className={`text-xs font-bold mt-1 ${widget.iconColor}`}>
+              <p className={`text-xs font-bold mt-2 ${widget.iconColor}`}>
                 {widget.description}
               </p>
             </CardContent>
@@ -373,15 +374,26 @@ export default function TendersPage() {
           <TabsTrigger value="calendar"><CalendarIcon className="mr-2 h-4 w-4" />Calendar View</TabsTrigger>
         </TabsList>
         <TabsContent value="summary">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Tender Value Summary by Status</CardTitle>
-                    <CardDescription>A summary of total tender value for each status.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <TenderSummaryChart tenders={filteredTenders} />
-                </CardContent>
-            </Card>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Tender Value Summary by Status</CardTitle>
+                        <CardDescription>A summary of total tender value for each status.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <TenderSummaryChart tenders={filteredTenders} />
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Tender Count Summary by Status</CardTitle>
+                        <CardDescription>A summary of tender counts for each status.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <TenderCountChart tenders={filteredTenders} />
+                    </CardContent>
+                </Card>
+            </div>
         </TabsContent>
         <TabsContent value="data-table">
             <Card>
@@ -573,6 +585,7 @@ export default function TendersPage() {
     </div>
   );
 }
+
 
 
 
