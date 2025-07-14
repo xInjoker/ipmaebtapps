@@ -1,9 +1,10 @@
 
+
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import * as NextImage from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -60,6 +61,7 @@ export default function PenetrantTestPage() {
     const { projects } = useProjects();
     const { user, isHqUser, roles } = useAuth();
     const { reports, addReport } = useReports();
+    const Image = NextImage.default;
 
     const [currentStep, setCurrentStep] = useState(0);
     const [isAcceptanceCriteriaPopoverOpen, setIsAcceptanceCriteriaPopoverOpen] = useState(false);

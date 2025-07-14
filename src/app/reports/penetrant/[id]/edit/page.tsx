@@ -1,9 +1,10 @@
 
+
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import * as NextImage from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -367,6 +368,7 @@ export default function EditPenetrantTestPage() {
     if (!originalReport) {
         return <div className="flex h-screen items-center justify-center">Loading report...</div>;
     }
+    const Image = NextImage.default;
 
   return (
     <div className="space-y-6">

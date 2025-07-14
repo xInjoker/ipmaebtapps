@@ -1,8 +1,9 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
+import * as NextImage from 'next/image';
 import Link from 'next/link';
 import {
   Card,
@@ -32,6 +33,8 @@ export function EquipmentCard({ item, branchMap }: { item: EquipmentItem; branch
       setCalibration(getCalibrationStatus(new Date(item.calibrationDueDate)));
     }
   }, [item.calibrationDueDate]);
+
+  const Image = NextImage.default;
 
   return (
     <Card key={item.id} className="flex flex-col">

@@ -1,5 +1,7 @@
 
+
 'use client';
+import * as NextImage from 'next/image';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -29,6 +31,7 @@ export function UserNav({ isSidebarFooter = false }: UserNavProps) {
 
   const userRole = roles.find((r: Role) => r.id === user.roleId);
   const avatarColor = getAvatarColor(user.name);
+  const Image = NextImage.default;
 
   if (isSidebarFooter) {
     return (

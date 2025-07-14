@@ -5,7 +5,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
+import * as NextImage from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 import { useEquipment } from '@/context/EquipmentContext';
 import {
@@ -205,6 +205,7 @@ export default function EditEquipmentPage() {
   }
 
   const calibrationDate = equipment.calibrationDueDate ? new Date(equipment.calibrationDueDate) : undefined;
+  const Image = NextImage.default;
 
   return (
     <div className="space-y-6">

@@ -1,10 +1,11 @@
 
+
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
+import * as NextImage from 'next/image';
 import { useReports } from '@/context/ReportContext';
 import { type ReportItem, type ReportDetails, RadiographicFinding } from '@/lib/reports';
 import { Button } from '@/components/ui/button';
@@ -29,49 +30,52 @@ interface jsPDFWithAutoTable extends jsPDF {
 
 
 // --- Reusable Image Gallery ---
-const ImageGallery = ({ allImages }: { allImages: { url: string, jointNo: string, weldId: string }[] }) => (
-    <Card>
-        <CardHeader>
-            <CardTitle>Evidence Images</CardTitle>
-            <CardDescription>A gallery of all images uploaded as evidence for the test results. Click an image to enlarge.</CardDescription>
-        </CardHeader>
-        <CardContent>
-            <Carousel className="w-full" opts={{ align: "start", loop: true }}>
-                <CarouselContent className="-ml-4">
-                    {allImages.map((image, index) => (
-                        <CarouselItem key={index} className="pl-4 md:basis-1/2 lg:basis-1/3">
-                            <div className="p-1">
-                                <Dialog>
-                                    <DialogTrigger asChild>
-                                        <Card className="cursor-pointer">
-                                            <CardContent className="flex aspect-video items-center justify-center p-0 rounded-t-lg overflow-hidden">
-                                                <Image src={image.url} alt={`Image for Joint ${image.jointNo}`} width={400} height={225} className="h-full w-full object-cover" data-ai-hint="test result" />
-                                            </CardContent>
-                                            <CardFooter className="text-xs p-2 bg-muted/50 rounded-b-lg">
-                                                <div className="font-medium truncate">Joint: {image.jointNo} / Weld ID: {image.weldId}</div>
-                                            </CardFooter>
-                                        </Card>
-                                    </DialogTrigger>
-                                    <DialogContent className="max-w-4xl p-0 border-0">
-                                        <DialogHeader className="sr-only">
-                                            <DialogTitle>Enlarged Image</DialogTitle>
-                                            <DialogDescription>
-                                                Enlarged view of the evidence image for Joint {image.jointNo} / Weld ID: {image.weldId}.
-                                            </DialogDescription>
-                                        </DialogHeader>
-                                        <Image src={image.url} alt={`Enlarged evidence image for Joint ${image.jointNo}`} width={1280} height={720} className="h-auto w-full object-contain rounded-lg" />
-                                    </DialogContent>
-                                </Dialog>
-                            </div>
-                        </CarouselItem>
-                    ))}
-                </CarouselContent>
-                <CarouselPrevious />
-                <CarouselNext />
-            </Carousel>
-        </CardContent>
-    </Card>
-);
+const ImageGallery = ({ allImages }: { allImages: { url: string, jointNo: string, weldId: string }[] }) => {
+    const Image = NextImage.default;
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Evidence Images</CardTitle>
+                <CardDescription>A gallery of all images uploaded as evidence for the test results. Click an image to enlarge.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Carousel className="w-full" opts={{ align: "start", loop: true }}>
+                    <CarouselContent className="-ml-4">
+                        {allImages.map((image, index) => (
+                            <CarouselItem key={index} className="pl-4 md:basis-1/2 lg:basis-1/3">
+                                <div className="p-1">
+                                    <Dialog>
+                                        <DialogTrigger asChild>
+                                            <Card className="cursor-pointer">
+                                                <CardContent className="flex aspect-video items-center justify-center p-0 rounded-t-lg overflow-hidden">
+                                                    <Image src={image.url} alt={`Image for Joint ${image.jointNo}`} width={400} height={225} className="h-full w-full object-cover" data-ai-hint="test result" />
+                                                </CardContent>
+                                                <CardFooter className="text-xs p-2 bg-muted/50 rounded-b-lg">
+                                                    <div className="font-medium truncate">Joint: {image.jointNo} / Weld ID: {image.weldId}</div>
+                                                </CardFooter>
+                                            </Card>
+                                        </DialogTrigger>
+                                        <DialogContent className="max-w-4xl p-0 border-0">
+                                            <DialogHeader className="sr-only">
+                                                <DialogTitle>Enlarged Image</DialogTitle>
+                                                <DialogDescription>
+                                                    Enlarged view of the evidence image for Joint {image.jointNo} / Weld ID: {image.weldId}.
+                                                </DialogDescription>
+                                            </DialogHeader>
+                                            <Image src={image.url} alt={`Enlarged evidence image for Joint ${image.jointNo}`} width={1280} height={720} className="h-auto w-full object-contain rounded-lg" />
+                                        </DialogContent>
+                                    </Dialog>
+                                </div>
+                            </CarouselItem>
+                        ))}
+                    </CarouselContent>
+                    <CarouselPrevious />
+                    <CarouselNext />
+                </Carousel>
+            </CardContent>
+        </Card>
+    );
+};
 
 // --- Detail Components Refactored ---
 
@@ -372,6 +376,7 @@ export default function ReportDetailsPage() {
     const { users } = useAuth();
     const [report, setReport] = useState<ReportItem | null>(null);
     const logoUrl = 'https://placehold.co/120x60.png';
+    const Image = NextImage.default;
 
     useEffect(() => {
         if (reportId) {
