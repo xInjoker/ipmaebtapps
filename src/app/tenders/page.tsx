@@ -309,10 +309,8 @@ export default function TendersPage() {
               <widget.icon className={`h-8 w-8 ${widget.iconColor}`} />
             </CardHeader>
             <CardContent>
-              <div className="text-xl font-bold font-headline sm:text-lg md:text-xl lg:text-2xl">
-                {widget.value}
-              </div>
-              <p className="text-xs font-bold text-accent-foreground">
+              <div className="text-xl font-bold font-headline sm:text-lg md:text-xl lg:text-2xl">{widget.value}</div>
+              <p className={`text-xs font-bold mt-1 ${widget.iconColor}`}>
                 {widget.description}
               </p>
             </CardContent>
@@ -575,6 +573,7 @@ export default function TendersPage() {
     </div>
   );
 }
+
 
 
 
