@@ -45,6 +45,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProjectBranchChart } from '@/components/project-branch-chart';
 import { ProjectStatusChart } from '@/components/project-status-chart';
+import { ProjectExpenditureChart } from '@/components/project-expenditure-chart';
 
 export default function ProjectsPage() {
   const { projects, setProjects, getProjectStats } = useProjects();
@@ -652,6 +653,15 @@ export default function ProjectsPage() {
                     </CardHeader>
                     <CardContent>
                         <ProjectStatusChart projects={visibleProjects} />
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Expenditure vs Budget</CardTitle>
+                        <CardDescription>An aggregated view of expenditures vs. budgets across all projects.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <ProjectExpenditureChart projects={visibleProjects} />
                     </CardContent>
                 </Card>
             </div>
