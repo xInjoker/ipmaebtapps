@@ -431,7 +431,7 @@ const SidebarMenuButton = React.forwardRef<
     ref
   ) => {
     const Comp = asChild ? Slot : "button"
-    const { isMobile } = useSidebar()
+    const { isMobile, open } = useSidebar()
 
     if (isMobile) {
       return (
@@ -448,7 +448,7 @@ const SidebarMenuButton = React.forwardRef<
     }
 
     return (
-      <Tooltip>
+      <Tooltip disableHoverableContent={open}>
         <TooltipTrigger asChild>
           <Comp
             ref={ref}
