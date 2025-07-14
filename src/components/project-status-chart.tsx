@@ -12,31 +12,40 @@ import {
   ChartConfig,
 } from '@/components/ui/chart';
 import { useMemo } from 'react';
-import type { Project } from '@/lib/data';
+import type { Project, InvoiceItem } from '@/lib/data';
+import { formatCurrency } from "@/lib/utils";
 
 type ProjectStatusChartProps = {
   projects: Project[];
 };
 
 const chartConfig = {
-  count: {
-    label: 'Project Count',
+  value: {
+    label: 'Invoice Value',
   },
-  'Not Started': {
-    label: 'Not Started',
+  'Paid': {
+    label: 'Paid',
     color: 'hsl(var(--chart-1))',
   },
-  'In Progress': {
-    label: 'In Progress',
+  'Invoiced': {
+    label: 'Invoiced',
     color: 'hsl(var(--chart-2))',
   },
-  'Nearing Completion': {
-    label: 'Nearing Completion',
+  'PAD': {
+    label: 'PAD',
     color: 'hsl(var(--chart-3))',
   },
-  'Completed': {
-    label: 'Completed',
+  'Document Preparation': {
+    label: 'Document Preparation',
     color: 'hsl(var(--chart-4))',
+  },
+  'Re-invoiced': {
+    label: 'Re-invoiced',
+    color: 'hsl(var(--chart-5))',
+  },
+  'Cancel': {
+    label: 'Cancelled',
+    color: 'hsl(var(--destructive))',
   },
 } satisfies ChartConfig;
 
@@ -45,34 +54,21 @@ export function ProjectStatusChart({ projects }: ProjectStatusChartProps) {
   const chartData = useMemo(() => {
     if (!projects) return [];
     
-    const statusCounts = projects.reduce((acc, project) => {
-        const totalInvoiced = project.invoices
-            .filter(inv => inv.status === 'Invoiced' || inv.status === 'Paid')
-            .reduce((sum, inv) => sum + inv.value, 0);
-        
-        const progress = project.value > 0 ? (totalInvoiced / project.value) * 100 : 0;
-
-        let status: keyof typeof chartConfig;
-        if (progress === 0) {
-            status = 'Not Started';
-        } else if (progress < 80) {
-            status = 'In Progress';
-        } else if (progress < 100) {
-            status = 'Nearing Completion';
-        } else {
-            status = 'Completed';
-        }
-        acc[status] = (acc[status] || 0) + 1;
+    const valueByStatus = projects
+      .flatMap(p => p.invoices)
+      .reduce((acc, invoice) => {
+        const status = invoice.status;
+        acc[status] = (acc[status] || 0) + invoice.value;
         return acc;
-    }, {} as Record<string, number>);
+    }, {} as Record<InvoiceItem['status'], number>);
 
     return Object.entries(chartConfig)
-        .filter(([key]) => key !== 'count')
+        .filter(([key]) => key !== 'value')
         .map(([status, config]) => ({
             status,
-            count: statusCounts[status] || 0,
-            fill: `var(--color-${status})`,
-        })).filter(d => d.count > 0);
+            value: valueByStatus[status as InvoiceItem['status']] || 0,
+            fill: `var(--color-${status.replace(/ /g, '')})`,
+        })).filter(d => d.value > 0);
   }, [projects]);
 
 
@@ -81,11 +77,14 @@ export function ProjectStatusChart({ projects }: ProjectStatusChartProps) {
       <PieChart>
         <ChartTooltip
           cursor={false}
-          content={<ChartTooltipContent hideLabel />}
+          content={<ChartTooltipContent 
+            formatter={(value) => formatCurrency(Number(value))}
+            hideLabel 
+          />}
         />
         <Pie
           data={chartData}
-          dataKey="count"
+          dataKey="value"
           nameKey="status"
           innerRadius={80}
           outerRadius={120}
@@ -106,3 +105,4 @@ export function ProjectStatusChart({ projects }: ProjectStatusChartProps) {
     </ChartContainer>
   );
 }
+

@@ -266,7 +266,7 @@ export default function ProjectsPage() {
     <div className="space-y-6">
       <Card className="relative overflow-hidden bg-gradient-to-br from-primary to-primary/80 text-primary-foreground">
         <svg
-            className="absolute -right-16 -top-24 text-amber-500"
+            className="absolute -right-16 -top-24 text-primary-foreground/10"
             fill="currentColor"
             width="400"
             height="400"
@@ -279,10 +279,10 @@ export default function ProjectsPage() {
             />
         </svg>
         <svg
-            className="absolute -left-20 -bottom-24 text-primary-foreground/10"
+            className="absolute -right-24 -top-16 text-primary-foreground/20"
             fill="currentColor"
-            width="400"
-            height="400"
+            width="250"
+            height="250"
             viewBox="0 0 200 200"
             xmlns="http://www.w3.org/2000/svg"
         >
@@ -293,7 +293,7 @@ export default function ProjectsPage() {
         </svg>
         <CardHeader className="flex flex-row items-start justify-between z-10 relative">
           <div className="space-y-1.5">
-            <CardTitle>Projects</CardTitle>
+            <CardTitle className="font-headline">Projects</CardTitle>
             <CardDescription className="text-primary-foreground/90">A list of all your projects.</CardDescription>
           </div>
           {userHasPermission('manage-projects') && (
@@ -621,7 +621,7 @@ export default function ProjectsPage() {
               </CardHeader>
               <CardContent>
                   <div className="text-xl font-bold font-headline sm:text-lg md:text-xl lg:text-2xl mt-1">{widget.value}</div>
-                  <p className={`text-sm font-bold mt-2 ${widget.iconColor}`}>
+                  <p className={`text-sm mt-2 font-bold ${widget.iconColor}`}>
                       {widget.description}
                   </p>
               </CardContent>
@@ -629,7 +629,7 @@ export default function ProjectsPage() {
           ))}
       </div>
 
-      <Tabs defaultValue="list" className="w-full space-y-4">
+      <Tabs defaultValue="summary" className="w-full space-y-4">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="summary"><BarChartBig className="mr-2 h-4 w-4" />Summary Charts</TabsTrigger>
           <TabsTrigger value="list"><List className="mr-2 h-4 w-4" />Project List</TabsTrigger>
@@ -647,8 +647,8 @@ export default function ProjectsPage() {
                 </Card>
                 <Card>
                     <CardHeader>
-                        <CardTitle>Project Status by Count</CardTitle>
-                        <CardDescription>A summary of project counts by their completion status.</CardDescription>
+                        <CardTitle>Invoicing Status by Value</CardTitle>
+                        <CardDescription>A summary of total invoice value for each status.</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <ProjectStatusChart projects={visibleProjects} />
