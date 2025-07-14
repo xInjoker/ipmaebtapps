@@ -45,7 +45,7 @@ import {
   List,
 } from 'lucide-react';
 import { useTenders } from '@/context/TenderContext';
-import { type TenderStatus, tenderStatuses } from '@/lib/tenders';
+import { type TenderStatus, tenderStatuses, regionalOptions } from '@/lib/tenders';
 import { format } from 'date-fns';
 import { useAuth } from '@/context/AuthContext';
 import { Calendar } from '@/components/ui/calendar';
@@ -74,32 +74,53 @@ export default function TendersPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [branchFilter, setBranchFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState<TenderStatus | 'all'>('all');
+  const [regionFilter, setRegionFilter] = useState('all');
   
   useEffect(() => {
     if (user && !isHqUser && !initialFilterSet.current) {
-        setBranchFilter(user.branchId);
+        const userBranch = branches.find(b => b.id === user.branchId);
+        if (userBranch) {
+            setRegionFilter(userBranch.region);
+            setBranchFilter(userBranch.id);
+        }
         initialFilterSet.current = true;
     }
-  }, [user, isHqUser]);
+  }, [user, isHqUser, branches]);
+  
+  const availableBranches = useMemo(() => {
+    if (regionFilter === 'all') {
+      return branches;
+    }
+    return branches.filter(b => b.region === regionFilter);
+  }, [regionFilter, branches]);
+
+  useEffect(() => {
+    if (branchFilter !== 'all' && !availableBranches.some(b => b.id === branchFilter)) {
+        setBranchFilter('all');
+    }
+  }, [availableBranches, branchFilter]);
+
 
   const filteredTenders = useMemo(() => {
     return tenders.filter(tender => {
-        // User permission based filtering (non-HQ can only see their branch)
-        if (!isHqUser && user && tender.branchId !== user.branchId) {
-            return false;
-        }
-
         const searchMatch = searchTerm.toLowerCase() === '' ||
                             tender.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                             tender.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
                             tender.tenderNumber.toLowerCase().includes(searchTerm.toLowerCase());
         
+        const regionMatch = regionFilter === 'all' || tender.regional === regionFilter;
         const branchMatch = branchFilter === 'all' || tender.branchId === branchFilter;
         const statusMatch = statusFilter === 'all' || tender.status === statusFilter;
 
-        return searchMatch && branchMatch && statusMatch;
+        // Non-HQ users should only see tenders from their branch/region
+        if (!isHqUser && user) {
+            const userBranch = branches.find(b => b.id === user.branchId);
+            if (tender.regional !== userBranch?.region) return false;
+        }
+
+        return searchMatch && regionMatch && branchMatch && statusMatch;
     });
-  }, [tenders, searchTerm, branchFilter, statusFilter, user, isHqUser]);
+  }, [tenders, searchTerm, branchFilter, statusFilter, regionFilter, user, isHqUser, branches]);
 
   const dashboardStats = useMemo(() => {
     const statusCounts = filteredTenders.reduce((acc, tender) => {
@@ -196,6 +217,7 @@ export default function TendersPage() {
     setSearchTerm('');
     setStatusFilter('all');
     if (isHqUser) {
+        setRegionFilter('all');
         setBranchFilter('all');
     }
   };
@@ -290,13 +312,22 @@ export default function TendersPage() {
                 />
             </div>
             <div className="flex flex-wrap items-center gap-2">
-                <Select value={branchFilter} onValueChange={setBranchFilter} disabled={!isHqUser}>
+                 <Select value={regionFilter} onValueChange={setRegionFilter} disabled={!isHqUser}>
+                    <SelectTrigger className="w-full sm:w-[180px]">
+                        <SelectValue placeholder="Filter by region" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Regions</SelectItem>
+                        {regionalOptions.map(region => <SelectItem key={region} value={region}>{region}</SelectItem>)}
+                    </SelectContent>
+                </Select>
+                <Select value={branchFilter} onValueChange={setBranchFilter} disabled={!isHqUser && !!user?.branchId}>
                     <SelectTrigger className="w-full sm:w-[180px]">
                         <SelectValue placeholder="Filter by branch" />
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="all">All Branches</SelectItem>
-                        {branches.map(branch => <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>)}
+                        {availableBranches.map(branch => <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>)}
                     </SelectContent>
                 </Select>
                 <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
