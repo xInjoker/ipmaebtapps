@@ -50,7 +50,7 @@ import { format } from 'date-fns';
 import { useAuth } from '@/context/AuthContext';
 import { Calendar } from '@/components/ui/calendar';
 import { isSameDay, isWithinInterval, startOfDay, addDays } from 'date-fns';
-import { getTenderStatusVariant } from '@/lib/utils';
+import { getTenderStatusVariant, formatCurrencyMillions } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -123,52 +123,73 @@ export default function TendersPage() {
   }, [tenders, searchTerm, branchFilter, statusFilter, regionFilter, user, isHqUser, branches]);
 
   const dashboardStats = useMemo(() => {
-    const statusCounts = filteredTenders.reduce((acc, tender) => {
-      acc[tender.status] = (acc[tender.status] || 0) + 1;
+    const initialStats = {
+      count: 0,
+      value: 0,
+    };
+  
+    const statusMetrics = filteredTenders.reduce((acc, tender) => {
+      const status = tender.status;
+      if (!acc[status]) {
+        acc[status] = { count: 0, value: 0 };
+      }
+      acc[status].count += 1;
+      acc[status].value += tender.bidPrice;
       return acc;
-    }, {} as Record<TenderStatus, number>);
-
+    }, {} as Record<TenderStatus, { count: number; value: number }>);
+  
+    const inProgressStatuses: TenderStatus[] = ['Aanwijzing', 'Bidding', 'Evaluation', 'Prequalification'];
+    const lostCancelledStatuses: TenderStatus[] = ['Lost', 'Cancelled'];
+  
+    const getAggregatedStats = (statuses: TenderStatus[]) => {
+      return statuses.reduce((acc, status) => {
+        const metric = statusMetrics[status] || initialStats;
+        acc.count += metric.count;
+        acc.value += metric.value;
+        return acc;
+      }, { count: 0, value: 0 });
+    };
+  
     return {
-      totalTenders: filteredTenders.length,
-      inProgress:
-        (statusCounts['Aanwijzing'] || 0) +
-        (statusCounts['Bidding'] || 0) +
-        (statusCounts['Evaluation'] || 0),
-      awarded: statusCounts['Awarded'] || 0,
-      lostOrCancelled:
-        (statusCounts['Lost'] || 0) + (statusCounts['Cancelled'] || 0),
+      totalTenders: {
+        count: filteredTenders.length,
+        value: filteredTenders.reduce((sum, t) => sum + t.bidPrice, 0),
+      },
+      inProgress: getAggregatedStats(inProgressStatuses),
+      awarded: statusMetrics['Awarded'] || initialStats,
+      lostOrCancelled: getAggregatedStats(lostCancelledStatuses),
     };
   }, [filteredTenders]);
 
   const widgetData = [
     {
       title: 'Total Tenders',
-      value: `${dashboardStats.totalTenders}`,
-      description: 'tenders being tracked',
+      value: `${dashboardStats.totalTenders.count}`,
+      description: `${formatCurrencyMillions(dashboardStats.totalTenders.value)} total value`,
       icon: Users,
       iconColor: 'text-blue-500',
       shapeColor: 'text-blue-500/10',
     },
     {
       title: 'In Progress',
-      value: `${dashboardStats.inProgress}`,
-      description: 'tenders currently active',
+      value: `${dashboardStats.inProgress.count}`,
+      description: `${formatCurrencyMillions(dashboardStats.inProgress.value)} in active tenders`,
       icon: Clock,
       iconColor: 'text-amber-500',
       shapeColor: 'text-amber-500/10',
     },
     {
       title: 'Awarded',
-      value: `${dashboardStats.awarded}`,
-      description: 'tenders successfully won',
+      value: `${dashboardStats.awarded.count}`,
+      description: `${formatCurrencyMillions(dashboardStats.awarded.value)} in won tenders`,
       icon: CheckCircle,
       iconColor: 'text-green-500',
       shapeColor: 'text-green-500/10',
     },
     {
       title: 'Lost / Cancelled',
-      value: `${dashboardStats.lostOrCancelled}`,
-      description: 'tenders not won or cancelled',
+      value: `${dashboardStats.lostOrCancelled.count}`,
+      description: `${formatCurrencyMillions(dashboardStats.lostOrCancelled.value)} in lost tenders`,
       icon: XCircle,
       iconColor: 'text-rose-500',
       shapeColor: 'text-rose-500/10',
@@ -554,3 +575,4 @@ export default function TendersPage() {
     </div>
   );
 }
+
