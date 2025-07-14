@@ -1,7 +1,7 @@
 
 'use client';
 
-import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction } from 'react';
+import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useMemo } from 'react';
 import { initialProjects, type Project } from '@/lib/data';
 
 type ProjectStats = {
@@ -16,6 +16,7 @@ type ProjectContextType = {
   projects: Project[];
   setProjects: Dispatch<SetStateAction<Project[]>>;
   getProjectStats: (projectList: Project[]) => ProjectStats;
+  projectStats: ProjectStats;
 };
 
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
@@ -69,10 +70,11 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
         return acc;
     }, { totalProjectValue: 0, totalCost: 0, totalInvoiced: 0, totalPaid: 0, totalIncome: 0 });
   };
-
+  
+  const projectStats = useMemo(() => getProjectStats(projects), [projects]);
 
   return (
-    <ProjectContext.Provider value={{ projects, setProjects, getProjectStats }}>
+    <ProjectContext.Provider value={{ projects, setProjects, getProjectStats, projectStats }}>
       {children}
     </ProjectContext.Provider>
   );
@@ -85,3 +87,4 @@ export function useProjects() {
   }
   return context;
 }
+

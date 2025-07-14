@@ -29,6 +29,8 @@ import { useMemo } from 'react';
 import { useProjects } from '@/context/ProjectContext';
 import { useAuth } from '@/context/AuthContext';
 import { formatCurrency, formatCurrencyMillions } from '@/lib/utils';
+import { HeaderCard } from '@/components/header-card';
+import { DashboardWidget } from '@/components/dashboard-widget';
 
 const chartData = [
   { month: 'January', invoiced: 186000000, paid: 80000000 },
@@ -58,7 +60,7 @@ const upcomingTasks = [
 ];
 
 export default function DashboardPage() {
-  const { projects, getProjectStats } = useProjects();
+  const { projects, projectStats } = useProjects();
   const { user, isHqUser, branches } = useAuth();
 
   const branchName = useMemo(() => {
@@ -77,7 +79,7 @@ export default function DashboardPage() {
   }, [projects, user, isHqUser]);
 
   const { totalProjectValue, totalPaid, totalExpenditure, costBreakdownData } = useMemo(() => {
-    const { totalProjectValue, totalPaid, totalCost } = getProjectStats(visibleProjects);
+    const stats = projectStats;
 
     const allExpenditures = visibleProjects.flatMap(p => p.expenditures.filter(e => e.status === 'Approved'));
     
@@ -100,8 +102,8 @@ export default function DashboardPage() {
         return { name, value, color };
     });
 
-    return { totalProjectValue, totalPaid, totalExpenditure: totalCost, costBreakdownData };
-  }, [visibleProjects, getProjectStats]);
+    return { totalProjectValue: stats.totalProjectValue, totalPaid: stats.totalPaid, totalExpenditure: stats.totalCost, costBreakdownData };
+  }, [visibleProjects, projectStats]);
 
   const widgetData = [
     {
@@ -141,67 +143,13 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <Card className="relative overflow-hidden bg-gradient-to-br from-primary to-primary/80 text-primary-foreground">
-        <svg
-            className="absolute -right-20 -top-20 text-primary-foreground/10"
-            fill="currentColor"
-            width="300"
-            height="300"
-            viewBox="0 0 200 200"
-            xmlns="http://www.w3.org/2000/svg"
-        >
-            <path
-            d="M51.9,-54.9C64.6,-45.5,71.2,-28.9,72,-12.3C72.8,4.2,67.7,20.8,58.3,34.5C48.9,48.2,35.1,59.1,20,64.2C4.9,69.3,-11.5,68.6,-26.4,62.8C-41.2,57,-54.6,46,-61.7,31.7C-68.9,17.4,-70,-0.1,-64.7,-14.8C-59.4,-29.4,-47.8,-41.3,-35,-50.7C-22.3,-60,-8.4,-67,5.5,-69.6C19.4,-72.2,39.1,-70.4,51.9,-54.9Z"
-            transform="translate(100 100)"
-            />
-        </svg>
-        <svg
-            className="absolute -right-16 -top-24 text-warning"
-            fill="currentColor"
-            width="250"
-            height="250"
-            viewBox="0 0 200 200"
-            xmlns="http://www.w3.org/2000/svg"
-        >
-            <path
-            d="M51.9,-54.9C64.6,-45.5,71.2,-28.9,72,-12.3C72.8,4.2,67.7,20.8,58.3,34.5C48.9,48.2,35.1,59.1,20,64.2C4.9,69.3,-11.5,68.6,-26.4,62.8C-41.2,57,-54.6,46,-61.7,31.7C-68.9,17.4,-70,-0.1,-64.7,-14.8C-59.4,-29.4,-47.8,-41.3,-35,-50.7C-22.3,-60,-8.4,-67,5.5,-69.6C19.4,-72.2,39.1,-70.4,51.9,-54.9Z"
-            transform="translate(100 100)"
-            />
-        </svg>
-        <CardHeader className="relative z-10">
-          <CardTitle>Welcome, {user?.name}</CardTitle>
-          <CardDescription className="text-primary-foreground/90">
-            Here's an overview of your projects from {branchName}.
-          </CardDescription>
-        </CardHeader>
-      </Card>
+      <HeaderCard
+        title={`Welcome, ${user?.name}`}
+        description={`Here's an overview of your projects from ${branchName}.`}
+      />
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {widgetData.map((widget, index) => (
-          <Card key={index} className="relative overflow-hidden">
-            <svg
-                className={`absolute -top-1 -right-1 h-24 w-24 ${widget.shapeColor}`}
-                fill="currentColor"
-                viewBox="0 0 200 200"
-                xmlns="http://www.w3.org/2000/svg"
-            >
-                <path
-                d="M62.3,-53.5C78.2,-41.5,86.8,-20.8,86.4,-0.4C86,20,76.6,40,61.9,54.1C47.2,68.2,27.1,76.4,5.4,75.3C-16.3,74.2,-32.7,63.7,-47.5,51.3C-62.3,38.8,-75.6,24.5,-80.5,6.7C-85.4,-11.1,-82,-32.5,-69.3,-45.5C-56.6,-58.5,-34.7,-63.1,-15.6,-64.3C3.5,-65.5,26.4,-65.5,43.2,-61.7C59.9,-57.9,59.9,-57.9,62.3,-53.5Z"
-                transform="translate(100 100)"
-                />
-            </svg>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                    {widget.title}
-                </CardTitle>
-                <widget.icon className={`h-8 w-8 ${widget.iconColor}`} />
-            </CardHeader>
-            <CardContent>
-                <div className="text-xl font-bold font-headline sm:text-lg md:text-xl lg:text-2xl mt-1">{widget.value}</div>
-                <p className={`text-sm font-bold mt-2 ${widget.iconColor}`}>
-                    {widget.description}
-                </p>
-            </CardContent>
-          </Card>
+          <DashboardWidget key={index} {...widget} />
         ))}
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
