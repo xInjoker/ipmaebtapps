@@ -41,6 +41,8 @@ import {
   Calendar as CalendarIcon,
   X,
   Search,
+  BarChartBig,
+  List,
 } from 'lucide-react';
 import { useTenders } from '@/context/TenderContext';
 import { type TenderStatus, tenderStatuses } from '@/lib/tenders';
@@ -311,11 +313,11 @@ export default function TendersPage() {
         ))}
       </div>
 
-       <Tabs defaultValue="summary" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="summary">Summary Chart</TabsTrigger>
-          <TabsTrigger value="data-table">Data Table</TabsTrigger>
-          <TabsTrigger value="calendar">Calendar View</TabsTrigger>
+       <Tabs defaultValue="summary" className="w-full space-y-4">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="summary"><BarChartBig className="mr-2 h-4 w-4" />Summary Chart</TabsTrigger>
+          <TabsTrigger value="data-table"><List className="mr-2 h-4 w-4" />Data Table</TabsTrigger>
+          <TabsTrigger value="calendar"><CalendarIcon className="mr-2 h-4 w-4" />Calendar View</TabsTrigger>
         </TabsList>
         <TabsContent value="summary">
             <Card>
