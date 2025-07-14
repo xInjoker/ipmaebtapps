@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/chart';
 import { useMemo } from 'react';
 import type { Project } from '@/lib/data';
+import { useProjects } from '@/context/ProjectContext';
 import { formatCurrency, formatCurrencyMillions } from '@/lib/utils';
 
 
@@ -34,27 +35,19 @@ const chartConfig: ChartConfig = {
 
 
 export function ProjectIncomeExpenditureChart({ projects }: ProjectIncomeExpenditureChartProps) {
+  const { getProjectStats } = useProjects();
+  
   const chartData = useMemo(() => {
     if (!projects || projects.length === 0) return [];
-
-    const totalValue = projects.reduce((acc, p) => acc + p.value, 0);
-
-    const totalIncome = projects
-      .flatMap(p => p.invoices)
-      .filter(inv => ['Paid', 'Invoiced', 'PAD', 'Re-invoiced'].includes(inv.status))
-      .reduce((acc, inv) => acc + inv.value, 0);
-
-    const totalExpenditure = projects
-      .flatMap(p => p.expenditures)
-      .filter(exp => exp.status === 'Approved')
-      .reduce((acc, exp) => acc + exp.amount, 0);
+    
+    const { totalProjectValue, totalCost, totalIncome } = getProjectStats(projects);
 
     return [
-      { name: 'Total Value', value: totalValue, fill: 'var(--color-value)' },
+      { name: 'Total Value', value: totalProjectValue, fill: 'var(--color-value)' },
       { name: 'Total Income', value: totalIncome, fill: 'var(--color-income)' },
-      { name: 'Total Expenditure', value: totalExpenditure, fill: 'var(--color-expenditure)' },
+      { name: 'Total Expenditure', value: totalCost, fill: 'var(--color-expenditure)' },
     ];
-  }, [projects]);
+  }, [projects, getProjectStats]);
 
   return (
     <ChartContainer config={chartConfig} className="h-[400px] w-full">
@@ -91,3 +84,4 @@ export function ProjectIncomeExpenditureChart({ projects }: ProjectIncomeExpendi
     </ChartContainer>
   );
 }
+
