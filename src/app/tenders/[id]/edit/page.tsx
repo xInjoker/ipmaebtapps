@@ -54,6 +54,27 @@ export default function EditTenderPage() {
         return servicesBySubPortfolio[tender.subPortfolio as keyof typeof servicesBySubPortfolio] || [];
     }, [tender?.subPortfolio]);
 
+    const availableBranches = useMemo(() => {
+        if (!tender?.regional) return [];
+        return branches.filter(b => b.region === tender!.regional);
+    }, [tender?.regional, branches]);
+
+    const handleRegionalChange = (value: Regional) => {
+        setTender(prev => {
+            if (!prev) return null;
+            // Check if the current branch is valid for the new region
+            const currentBranch = branches.find(b => b.id === prev.branchId);
+            const isBranchInvalid = currentBranch ? currentBranch.region !== value : true;
+
+            return {
+                ...prev,
+                regional: value,
+                // Reset branch if it's not in the new region
+                branchId: isBranchInvalid ? '' : prev.branchId,
+            };
+        });
+    };
+
     const handleSave = () => {
         if (!tender) return;
         if (!tender.tenderNumber || !tender.title || !tender.client || !tender.status || !tender.submissionDate) {
@@ -139,7 +160,7 @@ export default function EditTenderPage() {
                     </div>
                      <div className="space-y-2">
                         <Label htmlFor="regional">Regional</Label>
-                        <Select value={tender.regional} onValueChange={(value: Regional) => setTender({ ...tender, regional: value })}>
+                        <Select value={tender.regional} onValueChange={handleRegionalChange}>
                             <SelectTrigger id="regional"><SelectValue placeholder="Select region" /></SelectTrigger>
                             <SelectContent>
                                 {regionalOptions.map(region => <SelectItem key={region} value={region}>{region}</SelectItem>)}
@@ -148,10 +169,10 @@ export default function EditTenderPage() {
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="branch">Branch</Label>
-                        <Select value={tender.branchId} onValueChange={(value) => setTender({ ...tender, branchId: value })}>
+                        <Select value={tender.branchId} onValueChange={(value) => setTender({ ...tender, branchId: value })} disabled={!tender.regional}>
                             <SelectTrigger id="branch"><SelectValue placeholder="Select branch" /></SelectTrigger>
                             <SelectContent>
-                                {branches.map(branch => <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>)}
+                                {availableBranches.map(branch => <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>)}
                             </SelectContent>
                         </Select>
                     </div>

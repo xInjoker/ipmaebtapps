@@ -55,6 +55,15 @@ export default function NewTenderPage() {
         return servicesBySubPortfolio[newTender.subPortfolio as keyof typeof servicesBySubPortfolio] || [];
     }, [newTender.subPortfolio]);
 
+    const availableBranches = useMemo(() => {
+        if (!newTender.regional) return [];
+        return branches.filter(b => b.region === newTender.regional);
+    }, [newTender.regional, branches]);
+
+    const handleRegionalChange = (value: Regional) => {
+        setNewTender(prev => ({ ...prev, regional: value, branchId: '' }));
+    };
+
     const handleSave = () => {
         if (!newTender.tenderNumber || !newTender.title || !newTender.client || !newTender.status || !newTender.submissionDate) {
             toast({
@@ -152,7 +161,7 @@ export default function NewTenderPage() {
                     </div>
                      <div className="space-y-2">
                         <Label htmlFor="regional">Regional</Label>
-                        <Select value={newTender.regional} onValueChange={(value: Regional) => setNewTender({ ...newTender, regional: value })}>
+                        <Select value={newTender.regional} onValueChange={handleRegionalChange}>
                             <SelectTrigger id="regional"><SelectValue placeholder="Select region" /></SelectTrigger>
                             <SelectContent>
                                 {regionalOptions.map(region => <SelectItem key={region} value={region}>{region}</SelectItem>)}
@@ -161,10 +170,10 @@ export default function NewTenderPage() {
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="branch">Branch</Label>
-                        <Select value={newTender.branchId} onValueChange={(value) => setNewTender({ ...newTender, branchId: value })}>
+                        <Select value={newTender.branchId} onValueChange={(value) => setNewTender({ ...newTender, branchId: value })} disabled={!newTender.regional}>
                             <SelectTrigger id="branch"><SelectValue placeholder="Select branch" /></SelectTrigger>
                             <SelectContent>
-                                {branches.map(branch => <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>)}
+                                {availableBranches.map(branch => <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>)}
                             </SelectContent>
                         </Select>
                     </div>
