@@ -1,5 +1,5 @@
 
-'use client';
+"use client"
 
 import * as React from "react"
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Cell } from 'recharts';
@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/chart';
 import { useMemo } from 'react';
 import type { Tender, TenderStatus } from '@/lib/tenders';
-import { formatCurrency } from '@/lib/utils';
+import { tenderStatuses } from "@/lib/tenders";
 
 type TenderCountChartProps = {
   tenders: Tender[];
@@ -61,28 +61,41 @@ export function TenderCountChart({ tenders }: TenderCountChartProps) {
       return acc;
     }, {} as Record<TenderStatus, number>);
 
-    return Object.entries(statusCounts).map(([status, count]) => ({
-        status,
-        count,
+    return tenderStatuses.map((status) => ({
+      status,
+      count: statusCounts[status] || 0,
     }));
   }, [tenders]);
+
+  const allStatuses = chartData.map(d => d.status);
 
   return (
     <ChartContainer config={chartConfig} className="h-[400px] w-full">
       <RadarChart data={chartData}>
         <ChartTooltip
           cursor={false}
-          content={<ChartTooltipContent hideLabel />}
+          content={
+            <ChartTooltipContent
+              labelKey="status"
+              payloadKey="count"
+              indicator="dot"
+            />
+          }
         />
         <PolarGrid />
         <PolarAngleAxis dataKey="status" />
         <PolarRadiusAxis />
-        <Radar
-          dataKey="count"
-          fill="hsl(var(--chart-1))"
-          fillOpacity={0.6}
-          stroke="hsl(var(--chart-1))"
-        />
+        {allStatuses.map((status) => (
+          <Radar
+            key={status}
+            name={status}
+            dataKey="count"
+            data={chartData.filter((d) => d.status === status)}
+            fill={`var(--color-${status})`}
+            fillOpacity={0.6}
+            stroke={`var(--color-${status})`}
+          />
+        ))}
       </RadarChart>
     </ChartContainer>
   );
