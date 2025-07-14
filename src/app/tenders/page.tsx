@@ -229,56 +229,20 @@ export default function TendersPage() {
             transform="translate(100 100)"
           />
         </svg>
-        <CardHeader className="flex flex-row items-start justify-between">
-          <div className="space-y-1.5 z-10">
+        <CardHeader className="flex flex-row items-start justify-between z-10 relative">
+          <div className="space-y-1.5">
             <CardTitle className="font-headline">Tender Monitoring</CardTitle>
             <CardDescription className="text-primary-foreground/90">
               Track and manage all ongoing and past tenders.
             </CardDescription>
           </div>
-          <Button asChild className="z-10">
+          <Button asChild>
             <Link href="/tenders/new">
               <PlusCircle className="mr-2 h-4 w-4" />
               Add New Tender
             </Link>
           </Button>
         </CardHeader>
-        <CardContent>
-           <div className="flex flex-col gap-4 sm:flex-row sm:items-center z-10 relative">
-            <div className="relative flex-1">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-primary-foreground/60" />
-                <Input
-                    placeholder="Search by title, client, or number..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-8 w-full bg-primary/20 text-primary-foreground placeholder:text-primary-foreground/60 border-primary-foreground/30 focus:bg-primary/30"
-                />
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-                <Select value={branchFilter} onValueChange={setBranchFilter} disabled={!isHqUser}>
-                    <SelectTrigger className="w-full sm:w-[180px] bg-primary/20 text-primary-foreground border-primary-foreground/30">
-                        <SelectValue placeholder="Filter by branch" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">All Branches</SelectItem>
-                        {branches.map(branch => <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>)}
-                    </SelectContent>
-                </Select>
-                <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
-                    <SelectTrigger className="w-full sm:w-[180px] bg-primary/20 text-primary-foreground border-primary-foreground/30">
-                        <SelectValue placeholder="Filter by status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">All Statuses</SelectItem>
-                        {tenderStatuses.map(status => <SelectItem key={status} value={status}>{status}</SelectItem>)}
-                    </SelectContent>
-                </Select>
-                <Button variant="ghost" onClick={handleClearFilters} className="w-full sm:w-auto hover:bg-primary/20">
-                    <X className="mr-2 h-4 w-4" /> Clear
-                </Button>
-            </div>
-           </div>
-        </CardContent>
       </Card>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -313,6 +277,45 @@ export default function TendersPage() {
         ))}
       </div>
 
+       <Card>
+        <CardContent className="p-4">
+           <div className="flex flex-col gap-4 sm:flex-row sm:items-center z-10 relative">
+            <div className="relative flex-1">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                    placeholder="Search by title, client, or number..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-8 w-full"
+                />
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+                <Select value={branchFilter} onValueChange={setBranchFilter} disabled={!isHqUser}>
+                    <SelectTrigger className="w-full sm:w-[180px]">
+                        <SelectValue placeholder="Filter by branch" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Branches</SelectItem>
+                        {branches.map(branch => <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>)}
+                    </SelectContent>
+                </Select>
+                <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
+                    <SelectTrigger className="w-full sm:w-[180px]">
+                        <SelectValue placeholder="Filter by status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Statuses</SelectItem>
+                        {tenderStatuses.map(status => <SelectItem key={status} value={status}>{status}</SelectItem>)}
+                    </SelectContent>
+                </Select>
+                <Button variant="ghost" onClick={handleClearFilters} className="w-full sm:w-auto">
+                    <X className="mr-2 h-4 w-4" /> Clear
+                </Button>
+            </div>
+           </div>
+        </CardContent>
+      </Card>
+
        <Tabs defaultValue="summary" className="w-full space-y-4">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="summary"><BarChartBig className="mr-2 h-4 w-4" />Summary Chart</TabsTrigger>
@@ -322,8 +325,8 @@ export default function TendersPage() {
         <TabsContent value="summary">
             <Card>
                 <CardHeader>
-                    <CardTitle>Tender Status Summary</CardTitle>
-                    <CardDescription>A summary of all tenders based on their current status.</CardDescription>
+                    <CardTitle>Tender Value Summary by Status</CardTitle>
+                    <CardDescription>A summary of total tender value for each status.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <TenderSummaryChart tenders={filteredTenders} />
