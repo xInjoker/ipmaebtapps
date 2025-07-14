@@ -57,7 +57,7 @@ export function TenderSummaryChart({ tenders }: TenderSummaryChartProps) {
     if (!tenders) return [];
     
     const statusValues = tenders.reduce((acc, tender) => {
-      acc[tender.status] = (acc[tender.status] || 0) + tender.value;
+      acc[tender.status] = (acc[tender.status] || 0) + tender.bidPrice;
       return acc;
     }, {} as Record<TenderStatus, number>);
 

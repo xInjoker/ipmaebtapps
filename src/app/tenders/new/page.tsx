@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -40,7 +39,8 @@ export default function NewTenderPage() {
         services: '',
         status: '' as TenderStatus | '',
         submissionDate: undefined as Date | undefined,
-        value: 0,
+        bidPrice: 0,
+        ownerEstimatePrice: 0,
         personInCharge: '',
         branchId: '',
         regional: '' as Regional | '',
@@ -84,7 +84,8 @@ export default function NewTenderPage() {
             services: newTender.services,
             status: newTender.status as TenderStatus,
             submissionDate: format(newTender.submissionDate, 'yyyy-MM-dd'),
-            value: newTender.value,
+            bidPrice: newTender.bidPrice,
+            ownerEstimatePrice: newTender.ownerEstimatePrice,
             personInCharge: newTender.personInCharge,
             branchId: newTender.branchId,
             regional: newTender.regional as Regional,
@@ -276,9 +277,13 @@ export default function NewTenderPage() {
                             </PopoverContent>
                         </Popover>
                     </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="ownerEstimatePrice">Owner Estimate Price (IDR)</Label>
+                        <Input id="ownerEstimatePrice" type="number" value={newTender.ownerEstimatePrice || ''} onChange={e => setNewTender({ ...newTender, ownerEstimatePrice: parseInt(e.target.value) || 0 })} />
+                    </div>
                      <div className="space-y-2">
-                        <Label htmlFor="value">Value (IDR)</Label>
-                        <Input id="value" type="number" value={newTender.value || ''} onChange={e => setNewTender({ ...newTender, value: parseInt(e.target.value) || 0 })} />
+                        <Label htmlFor="bidPrice">Bid Price (IDR)</Label>
+                        <Input id="bidPrice" type="number" value={newTender.bidPrice || ''} onChange={e => setNewTender({ ...newTender, bidPrice: parseInt(e.target.value) || 0 })} />
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="personInCharge">Person In Charge (PIC)</Label>

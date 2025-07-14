@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -279,9 +278,13 @@ export default function EditTenderPage() {
                             </PopoverContent>
                         </Popover>
                     </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="ownerEstimatePrice">Owner Estimate Price (IDR)</Label>
+                        <Input id="ownerEstimatePrice" type="number" value={tender.ownerEstimatePrice || ''} onChange={e => setTender({ ...tender, ownerEstimatePrice: parseInt(e.target.value) || 0 })} />
+                    </div>
                      <div className="space-y-2">
-                        <Label htmlFor="value">Value (IDR)</Label>
-                        <Input id="value" type="number" value={tender.value || ''} onChange={e => setTender({ ...tender, value: parseInt(e.target.value) || 0 })} />
+                        <Label htmlFor="bidPrice">Bid Price (IDR)</Label>
+                        <Input id="bidPrice" type="number" value={tender.bidPrice || ''} onChange={e => setTender({ ...tender, bidPrice: parseInt(e.target.value) || 0 })} />
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="personInCharge">Person In Charge (PIC)</Label>

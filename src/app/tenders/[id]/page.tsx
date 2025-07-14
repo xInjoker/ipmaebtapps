@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -129,7 +128,8 @@ export default function TenderDetailsPage() {
                     <DetailItem icon={Building} label="Branch" value={tender.branchId ? branchMap[tender.branchId] : 'N/A'} />
                     <DetailItem icon={UserCheck} label="Person In Charge" value={tender.personInCharge} />
                     <DetailItem icon={Calendar} label="Submission Date" value={format(new Date(tender.submissionDate), 'PPP')} />
-                    <DetailItem icon={CircleDollarSign} label="Value" value={formatCurrency(tender.value)} />
+                    <DetailItem icon={CircleDollarSign} label="Owner Estimate Price" value={formatCurrency(tender.ownerEstimatePrice || 0)} />
+                    <DetailItem icon={CircleDollarSign} label="Bid Price" value={formatCurrency(tender.bidPrice)} />
                 </CardContent>
             </Card>
         </div>
