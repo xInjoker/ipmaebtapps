@@ -1,19 +1,17 @@
 
 'use client';
 
-import { Pie, PieChart, Cell } from 'recharts';
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Cell } from 'recharts';
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
   ChartConfig,
-  ChartLegend,
-  ChartLegendContent,
 } from '@/components/ui/chart';
 import { useMemo } from 'react';
 import type { Project } from '@/lib/data';
 import type { Branch } from '@/lib/users';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, formatCurrencyMillions } from '@/lib/utils';
 
 type ProjectBranchChartProps = {
   projects: Project[];
@@ -56,43 +54,48 @@ export function ProjectBranchChart({ projects, branches }: ProjectBranchChartPro
             return {
                 name: branch.name.replace('Cabang ', ''),
                 value: branchValue,
-                fill: `var(--color-chart-${colorIndex})`
+                fill: color
             };
         })
         .filter(Boolean)
-        .sort((a, b) => (b?.value ?? 0) - (a?.value ?? 0));
+        .sort((a, b) => (a?.value ?? 0) - (b?.value ?? 0));
   }, [projects, branches]);
 
   return (
     <ChartContainer config={chartConfig} className="h-[400px] w-full">
-      <PieChart accessibilityLayer>
+      <BarChart 
+        data={chartData} 
+        layout="vertical"
+        margin={{ left: 20 }}
+        accessibilityLayer
+      >
+        <CartesianGrid horizontal={false} />
+        <YAxis
+          dataKey="name"
+          type="category"
+          tickLine={false}
+          axisLine={false}
+          tickMargin={10}
+          width={80}
+        />
+        <XAxis
+            type="number"
+            tickFormatter={(value) => formatCurrencyMillions(Number(value))}
+        />
         <ChartTooltip
           cursor={false}
           content={<ChartTooltipContent 
-            formatter={(value, name) => `${name}: ${formatCurrency(Number(value))}`}
-            hideLabel
+            formatter={(value, name) => `${formatCurrency(Number(value))}`}
+            labelFormatter={(label) => label}
+            indicator="dot"
           />}
         />
-         <Pie
-          data={chartData}
-          dataKey="value"
-          nameKey="name"
-          innerRadius={80}
-          outerRadius={140}
-          strokeWidth={2}
-        >
-           {chartData.map((entry, index) => (
-            <Cell key={`cell-${index}`} fill={entry.fill} />
-          ))}
-        </Pie>
-        <ChartLegend
-          content={<ChartLegendContent nameKey="name" />}
-          verticalAlign="bottom"
-          align="center"
-          iconType="circle"
-          className="flex-wrap"
-        />
-      </PieChart>
+        <Bar dataKey="value" radius={4}>
+            {chartData.map((entry) => (
+                <Cell key={`cell-${entry.name}`} fill={entry.fill} />
+            ))}
+        </Bar>
+      </BarChart>
     </ChartContainer>
   );
 }
