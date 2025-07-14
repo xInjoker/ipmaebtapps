@@ -232,10 +232,6 @@ export default function NewTenderPage() {
                         <Label htmlFor="principal">Principal</Label>
                         <Input id="principal" value={newTender.principal} onChange={e => setNewTender({ ...newTender, principal: e.target.value })} />
                     </div>
-                     <div className="space-y-2 md:col-span-2">
-                        <Label htmlFor="description">Description</Label>
-                        <Textarea id="description" value={newTender.description} onChange={(e) => setNewTender({ ...newTender, description: e.target.value })} />
-                    </div>
                     <div className="space-y-2">
                         <Label htmlFor="status">Status</Label>
                         <Select value={newTender.status} onValueChange={(value: TenderStatus) => setNewTender({ ...newTender, status: value })}>
@@ -278,6 +274,10 @@ export default function NewTenderPage() {
                     <div className="space-y-2">
                         <Label htmlFor="personInCharge">Person In Charge (PIC)</Label>
                         <Input id="personInCharge" value={newTender.personInCharge} onChange={e => setNewTender({ ...newTender, personInCharge: e.target.value })} />
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                        <Label htmlFor="description">Description</Label>
+                        <Textarea id="description" value={newTender.description} onChange={(e) => setNewTender({ ...newTender, description: e.target.value })} />
                     </div>
                 </CardContent>
                 <CardFooter className="flex justify-end gap-2">
