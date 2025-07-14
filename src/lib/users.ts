@@ -14,6 +14,8 @@ export const permissions = [
   'manage-trips',
   'view-approvals',
   'super-admin', // Special permission for super-admin only checks
+  'view-tenders',
+  'manage-tenders',
 ] as const;
 
 export type Permission = (typeof permissions)[number];
@@ -107,6 +109,8 @@ export const initialRoles: Role[] = [
       'manage-employees',
       'manage-trips',
       'view-approvals',
+      'view-tenders',
+      'manage-tenders',
     ],
     isEditable: true,
   },
@@ -182,7 +186,8 @@ export const initialRoles: Role[] = [
     name: 'Tender Admin',
     permissions: [
       'view-dashboard',
-      'manage-projects', // Re-using for tender access
+      'view-tenders',
+      'manage-tenders',
       'view-profile',
     ],
     isEditable: true,

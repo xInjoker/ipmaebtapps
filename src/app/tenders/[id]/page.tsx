@@ -52,7 +52,7 @@ export default function TenderDetailsPage() {
   const params = useParams();
   const tenderId = params.id as string;
   const { getTenderById } = useTenders();
-  const { branches } = useAuth();
+  const { branches, userHasPermission } = useAuth();
   const [tender, setTender] = useState<Tender | null>(null);
 
   useEffect(() => {
@@ -101,12 +101,14 @@ export default function TenderDetailsPage() {
                     </CardDescription>
                 </div>
                 </div>
-                <Button asChild>
-                    <Link href={`/tenders/${tender.id}/edit`}>
-                    <Edit className="mr-2 h-4 w-4" />
-                    Edit Tender
-                    </Link>
-                </Button>
+                {userHasPermission('manage-tenders') && (
+                    <Button asChild>
+                        <Link href={`/tenders/${tender.id}/edit`}>
+                        <Edit className="mr-2 h-4 w-4" />
+                        Edit Tender
+                        </Link>
+                    </Button>
+                )}
             </div>
             </CardHeader>
         </Card>

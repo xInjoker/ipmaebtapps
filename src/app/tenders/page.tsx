@@ -67,7 +67,7 @@ import { TenderCountChart } from '@/components/tender-count-chart';
 export default function TendersPage() {
   useSearchParams();
   const { tenders, updateTender } = useTenders();
-  const { user, isHqUser, branches } = useAuth();
+  const { user, isHqUser, branches, userHasPermission } = useAuth();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const initialFilterSet = useRef(false);
 
@@ -280,12 +280,14 @@ export default function TendersPage() {
               Track and manage all ongoing and past tenders.
             </CardDescription>
           </div>
-          <Button asChild>
-            <Link href="/tenders/new">
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Add New Tender
-            </Link>
-          </Button>
+          {userHasPermission('manage-tenders') && (
+            <Button asChild>
+                <Link href="/tenders/new">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add New Tender
+                </Link>
+            </Button>
+          )}
         </CardHeader>
       </Card>
 
@@ -310,8 +312,8 @@ export default function TendersPage() {
               <widget.icon className={`h-8 w-8 ${widget.iconColor}`} />
             </CardHeader>
             <CardContent>
-              <div className="text-xl font-bold font-headline sm:text-lg md:text-xl lg:text-2xl">{widget.value}</div>
-              <p className={`text-xs font-bold mt-2 ${widget.iconColor}`}>
+              <div className="text-xl font-bold font-headline sm:text-lg md:text-xl lg:text-2xl mt-1">{widget.value}</div>
+              <p className={`text-sm font-bold mt-2 ${widget.iconColor}`}>
                 {widget.description}
               </p>
             </CardContent>
@@ -449,30 +451,34 @@ export default function TendersPage() {
                                         View Details
                                         </Link>
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem asChild>
-                                        <Link href={`/tenders/${tender.id}/edit`}>
-                                        Edit
-                                        </Link>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSub>
-                                        <DropdownMenuSubTrigger>
-                                        Update Status
-                                        </DropdownMenuSubTrigger>
-                                        <DropdownMenuPortal>
-                                        <DropdownMenuSubContent>
-                                            {tenderStatuses.map((status) => (
-                                            <DropdownMenuItem
-                                                key={status}
-                                                onSelect={() =>
-                                                handleStatusUpdate(tender.id, status)
-                                                }
-                                            >
-                                                {status}
+                                    {userHasPermission('manage-tenders') && (
+                                        <>
+                                            <DropdownMenuItem asChild>
+                                                <Link href={`/tenders/${tender.id}/edit`}>
+                                                Edit
+                                                </Link>
                                             </DropdownMenuItem>
-                                            ))}
-                                        </DropdownMenuSubContent>
-                                        </DropdownMenuPortal>
-                                    </DropdownMenuSub>
+                                            <DropdownMenuSub>
+                                                <DropdownMenuSubTrigger>
+                                                Update Status
+                                                </DropdownMenuSubTrigger>
+                                                <DropdownMenuPortal>
+                                                <DropdownMenuSubContent>
+                                                    {tenderStatuses.map((status) => (
+                                                    <DropdownMenuItem
+                                                        key={status}
+                                                        onSelect={() =>
+                                                        handleStatusUpdate(tender.id, status)
+                                                        }
+                                                    >
+                                                        {status}
+                                                    </DropdownMenuItem>
+                                                    ))}
+                                                </DropdownMenuSubContent>
+                                                </DropdownMenuPortal>
+                                            </DropdownMenuSub>
+                                        </>
+                                    )}
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                                 </TableCell>
@@ -585,8 +591,3 @@ export default function TendersPage() {
     </div>
   );
 }
-
-
-
-
-

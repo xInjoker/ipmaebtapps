@@ -79,7 +79,7 @@ export function SidebarNav() {
       href: '/tenders',
       label: 'Tenders',
       icon: FileText,
-      permission: 'manage-projects', // Re-using permission for now
+      permission: 'view-tenders',
     },
     {
       href: '/projects',
