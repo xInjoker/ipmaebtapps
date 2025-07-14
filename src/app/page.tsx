@@ -24,13 +24,15 @@ import {
   ChartConfig,
 } from '@/components/ui/chart';
 import { Bar, BarChart, CartesianGrid, XAxis, Pie, PieChart, Cell } from 'recharts';
-import { TrendingUp, CircleDollarSign, ListTodo, Receipt } from 'lucide-react';
+import { TrendingUp, CircleDollarSign, ListTodo, Receipt, Wrench, ClipboardEdit, Plane, FileText } from 'lucide-react';
 import { useMemo } from 'react';
 import { useProjects } from '@/context/ProjectContext';
 import { useAuth } from '@/context/AuthContext';
+import { useTenders } from '@/context/TenderContext';
 import { formatCurrency, formatCurrencyMillions } from '@/lib/utils';
 import { HeaderCard } from '@/components/header-card';
 import { DashboardWidget } from '@/components/dashboard-widget';
+import Link from 'next/link';
 
 const chartData = [
   { month: 'January', invoiced: 186000000, paid: 80000000 },
@@ -60,15 +62,10 @@ const upcomingTasks = [
 ];
 
 export default function DashboardPage() {
-  const { projects, projectStats } = useProjects();
+  const { projects, getProjectStats } = useProjects();
   const { user, isHqUser, branches } = useAuth();
+  const { widgetData: tenderWidgets } = useTenders();
 
-  const branchName = useMemo(() => {
-    if (!user) return '';
-    const branch = branches.find(b => b.id === user.branchId);
-    return branch ? branch.name : 'your branch';
-  }, [user, branches]);
-  
   const visibleProjects = useMemo(() => {
     if (!user) return [];
     if (user.roleId === 'project-admin') {
@@ -78,9 +75,64 @@ export default function DashboardPage() {
     return projects.filter(p => p.branchId === user.branchId);
   }, [projects, user, isHqUser]);
 
-  const { totalProjectValue, totalPaid, totalExpenditure, costBreakdownData } = useMemo(() => {
-    const stats = projectStats;
+  const projectStats = useMemo(() => getProjectStats(visibleProjects), [visibleProjects, getProjectStats]);
 
+  const { welcomeDescription, projectWidgets, otherUserWidgets } = useMemo(() => {
+    let desc = `Here's an overview of the company's performance.`;
+    if (!isHqUser && user) {
+        const branchName = branches.find(b => b.id === user.branchId)?.name || 'your branch';
+        desc = `Here's an overview of activities for ${branchName}.`;
+    } else if (user?.roleId === 'project-admin') {
+        desc = `Here's an overview of your ${user.assignedProjectIds?.length || 0} assigned projects.`;
+    }
+    
+    const pWidgets = [
+      {
+        title: 'Total Project Value',
+        value: formatCurrencyMillions(projectStats.totalProjectValue),
+        description: `Across ${visibleProjects.length} projects`,
+        icon: CircleDollarSign,
+        iconColor: 'text-blue-500',
+        shapeColor: 'text-blue-500/10',
+      },
+      {
+        title: 'Invoice Progress',
+        value: formatCurrencyMillions(projectStats.totalPaid),
+        description: 'Total invoices paid to date',
+        icon: TrendingUp,
+        iconColor: 'text-green-500',
+        shapeColor: 'text-green-500/10',
+      },
+      {
+        title: 'Upcoming Tasks',
+        value: `${upcomingTasks.length} Tasks`,
+        description: 'Due within the next 30 days',
+        icon: ListTodo,
+        iconColor: 'text-amber-500',
+        shapeColor: 'text-amber-500/10',
+      },
+      {
+        title: 'Project Expenditure',
+        value: formatCurrencyMillions(projectStats.totalCost),
+        description: 'Total expenditure across all projects',
+        icon: Receipt,
+        iconColor: 'text-rose-500',
+        shapeColor: 'text-rose-500/10',
+      },
+    ];
+
+     const oWidgets = [
+      { href: '/reports', title: 'Reporting', description: 'Create and manage NDT reports', icon: ClipboardEdit, iconColor: 'text-blue-500', shapeColor: 'text-blue-500/10' },
+      { href: '/equipment', title: 'Equipment', description: 'View and track equipment status', icon: Wrench, iconColor: 'text-green-500', shapeColor: 'text-green-500/10' },
+      { href: '/trips', title: 'Business Trips', description: 'Request and monitor trip approvals', icon: Plane, iconColor: 'text-amber-500', shapeColor: 'text-amber-500/10' },
+      { href: '/tenders', title: 'Tenders', description: 'Monitor all ongoing and past tenders', icon: FileText, iconColor: 'text-rose-500', shapeColor: 'text-rose-500/10' },
+    ];
+
+    return { welcomeDescription: desc, projectWidgets: pWidgets, otherUserWidgets: oWidgets };
+  }, [user, isHqUser, branches, projectStats, visibleProjects.length]);
+
+
+  const costBreakdownData = useMemo(() => {
     const allExpenditures = visibleProjects.flatMap(p => p.expenditures.filter(e => e.status === 'Approved'));
     
     const costByCategory = allExpenditures.reduce((acc, item) => {
@@ -96,61 +148,41 @@ export default function DashboardPage() {
         'hsl(var(--chart-5))',
     ];
     let colorIndex = 0;
-    const costBreakdownData = Object.entries(costByCategory).map(([name, value]) => {
+    return Object.entries(costByCategory).map(([name, value]) => {
         const color = chartColors[colorIndex % chartColors.length];
         colorIndex++;
         return { name, value, color };
     });
+  }, [visibleProjects]);
 
-    return { totalProjectValue: stats.totalProjectValue, totalPaid: stats.totalPaid, totalExpenditure: stats.totalCost, costBreakdownData };
-  }, [visibleProjects, projectStats]);
+  const renderWidgets = () => {
+    const roleId = user?.roleId;
 
-  const widgetData = [
-    {
-      title: 'Total Project Value',
-      value: formatCurrencyMillions(totalProjectValue),
-      description: `Across ${visibleProjects.length} projects`,
-      icon: CircleDollarSign,
-      iconColor: 'text-blue-500',
-      shapeColor: 'text-blue-500/10',
-    },
-    {
-      title: 'Invoice Progress',
-      value: formatCurrencyMillions(totalPaid),
-      description: 'Total invoices paid to date',
-      icon: TrendingUp,
-      iconColor: 'text-green-500',
-      shapeColor: 'text-green-500/10',
-    },
-    {
-      title: 'Upcoming Tasks',
-      value: `${upcomingTasks.length} Tasks`,
-      description: 'Due within the next 30 days',
-      icon: ListTodo,
-      iconColor: 'text-amber-500',
-      shapeColor: 'text-amber-500/10',
-    },
-    {
-      title: 'Project Expenditure',
-      value: formatCurrencyMillions(totalExpenditure),
-      description: 'Total expenditure across all projects',
-      icon: Receipt,
-      iconColor: 'text-rose-500',
-      shapeColor: 'text-rose-500/10',
-    },
-  ];
+    if (roleId === 'super-admin' || roleId === 'project-manager' || roleId === 'project-admin') {
+      return projectWidgets.map((widget, index) => <DashboardWidget key={index} {...widget} />);
+    }
+
+    if (roleId === 'tender-admin') {
+      return tenderWidgets.map((widget, index) => <DashboardWidget key={index} {...widget} />);
+    }
+
+    // Default widgets for other roles (Inspectors, Staff, etc.)
+    return otherUserWidgets.map((widget, index) => (
+      <Link key={index} href={widget.href}>
+        <DashboardWidget title={widget.title} value="" description={widget.description} icon={widget.icon} iconColor={widget.iconColor} shapeColor={widget.shapeColor} />
+      </Link>
+    ));
+  };
 
 
   return (
     <div className="space-y-6">
       <HeaderCard
         title={`Welcome, ${user?.name}`}
-        description={`Here's an overview of your projects from ${branchName}.`}
+        description={welcomeDescription}
       />
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {widgetData.map((widget, index) => (
-          <DashboardWidget key={index} {...widget} />
-        ))}
+        {renderWidgets()}
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
         <Card className="lg:col-span-4">
