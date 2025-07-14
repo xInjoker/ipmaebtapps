@@ -42,6 +42,7 @@ import {
 import { useProjects } from '@/context/ProjectContext';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { Separator } from '@/components/ui/separator';
 
 export default function NewProjectPage() {
   const router = useRouter();
@@ -183,87 +184,110 @@ export default function NewProjectPage() {
           </div>
         </div>
       </CardHeader>
-      <CardContent className="grid gap-6 md:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="portfolio">Portfolio</Label>
-          <Select value={newProject.portfolio} onValueChange={(value) => setNewProject({ ...newProject, portfolio: value })}>
-            <SelectTrigger id="portfolio"><SelectValue placeholder="Select a portfolio" /></SelectTrigger>
-            <SelectContent>{portfolios.map((p) => (<SelectItem key={p} value={p}>{p}</SelectItem>))}</SelectContent>
-          </Select>
+      <CardContent className="space-y-8">
+        <div className="space-y-4">
+            <h3 className="font-semibold text-lg">Service & Classification</h3>
+            <Separator />
+            <div className="grid gap-6 md:grid-cols-2">
+                <div className="space-y-2">
+                <Label htmlFor="portfolio">Portfolio</Label>
+                <Select value={newProject.portfolio} onValueChange={(value) => setNewProject({ ...newProject, portfolio: value })}>
+                    <SelectTrigger id="portfolio"><SelectValue placeholder="Select a portfolio" /></SelectTrigger>
+                    <SelectContent>{portfolios.map((p) => (<SelectItem key={p} value={p}>{p}</SelectItem>))}</SelectContent>
+                </Select>
+                </div>
+                <div className="space-y-2">
+                <Label htmlFor="subPortfolio">Sub-Portfolio</Label>
+                <Select value={newProject.subPortfolio} onValueChange={(value) => { setNewProject({ ...newProject, subPortfolio: value, serviceCode: '', serviceName: '' }); }}>
+                    <SelectTrigger id="subPortfolio"><SelectValue placeholder="Select a sub-portfolio" /></SelectTrigger>
+                    <SelectContent>{subPortfolios.map((sp) => (<SelectItem key={sp} value={sp}>{sp}</SelectItem>))}</SelectContent>
+                </Select>
+                </div>
+                <div className="space-y-2">
+                <Label htmlFor="serviceCode">Service Code</Label>
+                <Select value={newProject.serviceCode} onValueChange={(value) => { const service = availableServices.find(s => s.code === value); setNewProject({ ...newProject, serviceCode: value, serviceName: service?.name || '' }); }} disabled={!newProject.subPortfolio}>
+                    <SelectTrigger id="serviceCode"><SelectValue placeholder="Select a service code" /></SelectTrigger>
+                    <SelectContent>{availableServices.map((s) => (<SelectItem key={s.code} value={s.code}>{s.code}</SelectItem>))}</SelectContent>
+                </Select>
+                </div>
+                <div className="space-y-2">
+                <Label htmlFor="serviceName">Service Name</Label>
+                <Select value={newProject.serviceName} onValueChange={(value) => { const service = availableServices.find(s => s.name === value); setNewProject({ ...newProject, serviceName: value, serviceCode: service?.code || '' }); }} disabled={!newProject.subPortfolio}>
+                    <SelectTrigger id="serviceName"><SelectValue placeholder="Select a service name" /></SelectTrigger>
+                    <SelectContent>{availableServices.map((s) => (<SelectItem key={s.name} value={s.name}>{s.name}</SelectItem>))}</SelectContent>
+                </Select>
+                </div>
+            </div>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="subPortfolio">Sub-Portfolio</Label>
-          <Select value={newProject.subPortfolio} onValueChange={(value) => { setNewProject({ ...newProject, subPortfolio: value, serviceCode: '', serviceName: '' }); }}>
-            <SelectTrigger id="subPortfolio"><SelectValue placeholder="Select a sub-portfolio" /></SelectTrigger>
-            <SelectContent>{subPortfolios.map((sp) => (<SelectItem key={sp} value={sp}>{sp}</SelectItem>))}</SelectContent>
-          </Select>
+        <div className="space-y-4">
+            <h3 className="font-semibold text-lg">Contract Information</h3>
+            <Separator />
+            <div className="grid gap-6 md:grid-cols-2">
+                <div className="space-y-2">
+                    <Label htmlFor="contractExecutor">Contract Executor</Label>
+                    {isHqUser ? (
+                        <Select value={newProject.contractExecutor} onValueChange={(value) => setNewProject({ ...newProject, contractExecutor: value })}>
+                        <SelectTrigger id="contractExecutor"><SelectValue placeholder="Select a branch" /></SelectTrigger>
+                        <SelectContent>{branches.map((branch) => (<SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>))}</SelectContent>
+                        </Select>
+                    ) : (
+                        <Input id="contractExecutor" value={branches.find((b) => b.id === user?.branchId)?.name || ''} disabled />
+                    )}
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="client">Client</Label>
+                    <Input id="client" value={newProject.client} onChange={(e) => setNewProject({ ...newProject, client: e.target.value })} placeholder="Client name" />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="name">Contract Title</Label>
+                    <Input id="name" value={newProject.name} onChange={(e) => setNewProject({ ...newProject, name: e.target.value })} placeholder="Contract title" />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="contractNumber">Contract No.</Label>
+                    <Input id="contractNumber" value={newProject.contractNumber} onChange={(e) => setNewProject({ ...newProject, contractNumber: e.target.value })} placeholder="Contract number" />
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="rabNumber">RAB No.</Label>
+                    <Input id="rabNumber" value={newProject.rabNumber} onChange={(e) => setNewProject({ ...newProject, rabNumber: e.target.value })} placeholder="RAB number" />
+                </div>
+            </div>
         </div>
-         <div className="space-y-2">
-          <Label htmlFor="contractExecutor">Contract Executor</Label>
-          {isHqUser ? (
-            <Select value={newProject.contractExecutor} onValueChange={(value) => setNewProject({ ...newProject, contractExecutor: value })}>
-              <SelectTrigger id="contractExecutor"><SelectValue placeholder="Select a branch" /></SelectTrigger>
-              <SelectContent>{branches.map((branch) => (<SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>))}</SelectContent>
-            </Select>
-          ) : (
-            <Input id="contractExecutor" value={branches.find((b) => b.id === user?.branchId)?.name || ''} disabled />
-          )}
+        <div className="space-y-4">
+            <h3 className="font-semibold text-lg">Timeline & Value</h3>
+            <Separator />
+            <div className="grid gap-6 md:grid-cols-2">
+                <div className="space-y-2">
+                <Label htmlFor="period">Period</Label>
+                <Popover>
+                    <PopoverTrigger asChild>
+                    <Button id="period" variant={"outline"} className={cn("w-full justify-start text-left font-normal", !date && "text-muted-foreground")}>
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {date?.from ? (date.to ? (<>{format(date.from, "LLL dd, y")} - {format(date.to, "LLL dd, y")}</>) : (format(date.from, "LLL dd, y"))) : (<span>Pick a date range</span>)}
+                    </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar initialFocus mode="range" defaultMonth={date?.from} selected={date} onSelect={setDate} numberOfMonths={2} />
+                    </PopoverContent>
+                </Popover>
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="duration">Duration</Label>
+                    <Input id="duration" value={duration} placeholder="Calculated automatically" readOnly />
+                </div>
+                <div className="space-y-2">
+                <Label htmlFor="value">Value (IDR)</Label>
+                <Input id="value" type="number" value={newProject.value || ''} onChange={(e) => setNewProject({ ...newProject, value: parseInt(e.target.value) || 0 })} placeholder="Contract value" />
+                </div>
+            </div>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="serviceCode">Service Code</Label>
-          <Select value={newProject.serviceCode} onValueChange={(value) => { const service = availableServices.find(s => s.code === value); setNewProject({ ...newProject, serviceCode: value, serviceName: service?.name || '' }); }} disabled={!newProject.subPortfolio}>
-            <SelectTrigger id="serviceCode"><SelectValue placeholder="Select a service code" /></SelectTrigger>
-            <SelectContent>{availableServices.map((s) => (<SelectItem key={s.code} value={s.code}>{s.code}</SelectItem>))}</SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="serviceName">Service Name</Label>
-          <Select value={newProject.serviceName} onValueChange={(value) => { const service = availableServices.find(s => s.name === value); setNewProject({ ...newProject, serviceName: value, serviceCode: service?.code || '' }); }} disabled={!newProject.subPortfolio}>
-            <SelectTrigger id="serviceName"><SelectValue placeholder="Select a service name" /></SelectTrigger>
-            <SelectContent>{availableServices.map((s) => (<SelectItem key={s.name} value={s.name}>{s.name}</SelectItem>))}</SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="name">Contract Title</Label>
-          <Input id="name" value={newProject.name} onChange={(e) => setNewProject({ ...newProject, name: e.target.value })} placeholder="Contract title" />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="contractNumber">Contract No.</Label>
-          <Input id="contractNumber" value={newProject.contractNumber} onChange={(e) => setNewProject({ ...newProject, contractNumber: e.target.value })} placeholder="Contract number" />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="rabNumber">RAB No.</Label>
-          <Input id="rabNumber" value={newProject.rabNumber} onChange={(e) => setNewProject({ ...newProject, rabNumber: e.target.value })} placeholder="RAB number" />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="client">Client</Label>
-          <Input id="client" value={newProject.client} onChange={(e) => setNewProject({ ...newProject, client: e.target.value })} placeholder="Client name" />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="period">Period</Label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button id="period" variant={"outline"} className={cn("w-full justify-start text-left font-normal", !date && "text-muted-foreground")}>
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {date?.from ? (date.to ? (<>{format(date.from, "LLL dd, y")} - {format(date.to, "LLL dd, y")}</>) : (format(date.from, "LLL dd, y"))) : (<span>Pick a date range</span>)}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar initialFocus mode="range" defaultMonth={date?.from} selected={date} onSelect={setDate} numberOfMonths={2} />
-            </PopoverContent>
-          </Popover>
-        </div>
-        <div className="space-y-2">
-            <Label htmlFor="duration">Duration</Label>
-            <Input id="duration" value={duration} placeholder="Calculated automatically" readOnly />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="value">Value (IDR)</Label>
-          <Input id="value" type="number" value={newProject.value || ''} onChange={(e) => setNewProject({ ...newProject, value: parseInt(e.target.value) || 0 })} placeholder="Contract value" />
-        </div>
-         <div className="md:col-span-2 space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea id="description" value={newProject.description} onChange={(e) => setNewProject({ ...newProject, description: e.target.value })} placeholder="A short description of the project." rows={3} />
+         <div className="space-y-4">
+            <h3 className="font-semibold text-lg">Description</h3>
+            <Separator />
+            <div className="grid gap-6">
+                <div className="space-y-2">
+                    <Textarea id="description" value={newProject.description} onChange={(e) => setNewProject({ ...newProject, description: e.target.value })} placeholder="A short description of the project." rows={3} />
+                </div>
+            </div>
         </div>
       </CardContent>
       <CardFooter className="flex justify-end gap-2">
