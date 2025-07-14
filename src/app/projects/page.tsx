@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useEffect, useRef } from 'react';
@@ -52,7 +53,7 @@ export default function ProjectsPage() {
 
     if (user?.roleId === 'project-admin') {
         projectsToFilter = projects.filter(p => user.assignedProjectIds?.includes(p.id));
-    } else if (!isHqUser) {
+    } else if (!isHqUser && user) {
         projectsToFilter = projects.filter(p => p.branchId === user?.branchId);
     }
 
@@ -172,7 +173,7 @@ export default function ProjectsPage() {
         </TabsList>
         <TabsContent value="summary">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card className="lg:col-span-2">
+                <Card>
                     <CardHeader>
                         <CardTitle>Project Value by Branch</CardTitle>
                         <CardDescription>A summary of total project value for each branch.</CardDescription>
