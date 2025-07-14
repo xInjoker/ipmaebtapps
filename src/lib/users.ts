@@ -42,6 +42,7 @@ export type User = {
   branchId: string;
   avatarUrl: string;
   signatureUrl?: string;
+  assignedProjectIds?: number[];
 };
 
 export type Branch = {
@@ -195,7 +196,7 @@ export const initialUsers: User[] = [
   { id: 4, name: 'John Smith', email: 'john.smith@example.com', roleId: 'project-manager', branchId: 'surabaya', avatarUrl: '', signatureUrl: '' },
   { id: 5, name: 'QAQC Client', email: 'qaqc.client@example.com', roleId: 'client-qaqc', branchId: 'kantor-pusat', avatarUrl: '', signatureUrl: '' },
   { id: 6, name: 'Rep Client', email: 'rep.client@example.com', roleId: 'client-rep', branchId: 'kantor-pusat', avatarUrl: '', signatureUrl: '' },
-  { id: 7, name: 'Project Admin User', email: 'pa@example.com', roleId: 'project-admin', branchId: 'jakarta', avatarUrl: '', signatureUrl: '' },
+  { id: 7, name: 'Project Admin User', email: 'pa@example.com', roleId: 'project-admin', branchId: 'jakarta', avatarUrl: '', signatureUrl: '', assignedProjectIds: [1, 3] },
   { id: 8, name: 'Inspector User', email: 'inspector@example.com', roleId: 'inspector', branchId: 'jakarta', avatarUrl: '', signatureUrl: '' },
   { id: 9, name: 'Inspector1', email: 'inspector1@example.com', roleId: 'inspector', branchId: 'kantor-pusat', avatarUrl: '', signatureUrl: '' },
   { id: 10, name: 'Employee User', email: 'employee@example.com', roleId: 'employee', branchId: 'jakarta', avatarUrl: '', signatureUrl: '' },

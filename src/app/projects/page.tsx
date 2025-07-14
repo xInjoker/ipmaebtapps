@@ -100,13 +100,15 @@ export default function ProjectsPage() {
   }, [isDialogOpen, isHqUser, user?.branchId]);
 
   const visibleProjects = useMemo(() => {
-    return projects.filter(project => {
-      // User permission based filtering (non-HQ can only see their branch)
-      if (!isHqUser && user && project.branchId !== user.branchId) {
-        return false;
-      }
+    let projectsToFilter = projects;
 
-      // UI-based filtering
+    if (user?.roleId === 'project-admin') {
+        projectsToFilter = projects.filter(p => user.assignedProjectIds?.includes(p.id));
+    } else if (!isHqUser) {
+        projectsToFilter = projects.filter(p => p.branchId === user?.branchId);
+    }
+
+    return projectsToFilter.filter(project => {
       const searchMatch = searchTerm.toLowerCase() === '' ||
                           project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           project.client.toLowerCase().includes(searchTerm.toLowerCase()) ||

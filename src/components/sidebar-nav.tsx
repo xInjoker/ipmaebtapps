@@ -54,9 +54,12 @@ export function SidebarNav() {
   const { user, isHqUser, userHasPermission } = useAuth();
 
   const visibleProjects = useMemo(() => {
-    if (isHqUser) return projects;
     if (!user) return [];
-    return projects.filter((p) => p.branchId === user.branchId);
+    if (user.roleId === 'project-admin') {
+      return projects.filter(p => user.assignedProjectIds?.includes(p.id));
+    }
+    if (isHqUser) return projects;
+    return projects.filter(p => p.branchId === user.branchId);
   }, [projects, user, isHqUser]);
 
   const menuItems: MenuItem[] = [

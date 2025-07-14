@@ -68,8 +68,11 @@ export default function DashboardPage() {
   }, [user, branches]);
   
   const visibleProjects = useMemo(() => {
-    if (isHqUser) return projects;
     if (!user) return [];
+    if (user.roleId === 'project-admin') {
+      return projects.filter(p => user.assignedProjectIds?.includes(p.id));
+    }
+    if (isHqUser) return projects;
     return projects.filter(p => p.branchId === user.branchId);
   }, [projects, user, isHqUser]);
 
