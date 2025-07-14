@@ -62,6 +62,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TenderSummaryChart } from '@/components/tender-summary-chart';
 import { TenderCountChart } from '@/components/tender-count-chart';
+import { TenderBranchChart } from '@/components/tender-branch-chart';
 
 
 export default function TendersPage() {
@@ -377,6 +378,15 @@ export default function TendersPage() {
         </TabsList>
         <TabsContent value="summary">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card className="lg:col-span-2">
+                    <CardHeader>
+                        <CardTitle>Tender Value by Branch</CardTitle>
+                        <CardDescription>A summary of total tender bid value for each branch.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <TenderBranchChart tenders={filteredTenders} branches={branches} />
+                    </CardContent>
+                </Card>
                 <Card>
                     <CardHeader>
                         <CardTitle>Tender Value Summary by Status</CardTitle>
