@@ -462,6 +462,17 @@ export default function ReportDetailsPage() {
             finalY = (doc as any).lastAutoTable.finalY;
         }
 
+        const getBase64Image = async (url: string): Promise<string> => {
+            const response = await fetch(url);
+            const blob = await response.blob();
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result as string);
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+            });
+        };
+
         // --- Image Section ---
         const allImages = details.testResults?.flatMap(result =>
             (result.imageUrls || []).map(url => ({
@@ -479,16 +490,11 @@ export default function ReportDetailsPage() {
 
             for (const image of allImages) {
                 try {
-                    const img = new Image();
-                    img.crossOrigin = 'Anonymous';
+                    const base64Img = await getBase64Image(image.url);
                     
-                    const imgPromise = new Promise((resolve, reject) => {
-                        img.onload = () => resolve(true);
-                        img.onerror = (err) => reject(err);
-                    });
-
-                    img.src = image.url;
-                    await imgPromise;
+                    const img = new Image();
+                    img.src = base64Img;
+                    await new Promise(resolve => { img.onload = resolve; });
 
                     const imgWidth = 80;
                     const imgHeight = (img.height * imgWidth) / img.width;
@@ -498,7 +504,7 @@ export default function ReportDetailsPage() {
                         finalY = pageMargin;
                     }
 
-                    doc.addImage(img, 'PNG', pageMargin, finalY, imgWidth, imgHeight);
+                    doc.addImage(base64Img, 'PNG', pageMargin, finalY, imgWidth, imgHeight);
                     doc.setFontSize(8);
                     doc.text(image.caption, pageMargin, finalY + imgHeight + 4);
                     finalY += imgHeight + 10;
