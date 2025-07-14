@@ -263,8 +263,8 @@ export default function InspectorsPage() {
                     <widget.icon className={`h-8 w-8 ${widget.iconColor}`} />
                 </CardHeader>
                 <CardContent>
-                    <div className="text-xl font-bold font-headline sm:text-lg md:text-xl lg:text-2xl">{widget.value}</div>
-                    <p className="text-xs text-muted-foreground">
+                    <div className="text-xl font-bold font-headline sm:text-lg md:text-xl lg:text-2xl mt-1">{widget.value}</div>
+                    <p className={`text-sm font-bold mt-2 ${widget.iconColor}`}>
                         {widget.description}
                     </p>
                 </CardContent>
