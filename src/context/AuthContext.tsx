@@ -47,7 +47,7 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const DATA_VERSION = '1.5';
+const DATA_VERSION = '1.6'; // Updated version for new branch structure
 
 const loadRoles = (): Role[] => {
   const storedRolesString = localStorage.getItem('roles');
@@ -312,7 +312,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const isAuthenticated = !isInitializing && !!user;
-  const isHqUser = user?.branchId === 'hq';
+  const isHqUser = user?.branchId === 'kantor-pusat';
 
   return (
     <AuthContext.Provider

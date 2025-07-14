@@ -47,15 +47,40 @@ export type User = {
 export type Branch = {
   id: string;
   name: string;
+  region: 'Kantor Pusat' | 'Regional Barat' | 'Regional Timur';
 };
 
 export const initialBranches: Branch[] = [
-  { id: 'hq', name: 'Headquarters' },
-  { id: 'samarinda', name: 'Cabang Samarinda' },
-  { id: 'balikpapan', name: 'Cabang Balikpapan' },
-  { id: 'jakarta', name: 'Cabang Jakarta' },
-  { id: 'surabaya', name: 'Cabang Surabaya' },
-  { id: 'pekanbaru', name: 'Cabang Pekanbaru' },
+  { id: 'kantor-pusat', name: 'Kantor Pusat', region: 'Kantor Pusat' },
+  { id: 'bandar-lampung', name: 'Cabang Bandar Lampung', region: 'Regional Barat' },
+  { id: 'bandung', name: 'Cabang Bandung', region: 'Regional Barat' },
+  { id: 'batam', name: 'Cabang Batam', region: 'Regional Barat' },
+  { id: 'bekasi', name: 'Cabang Bekasi', region: 'Regional Barat' },
+  { id: 'bengkulu', name: 'Cabang Bengkulu', region: 'Regional Barat' },
+  { id: 'cilacap', name: 'Cabang Cilacap', region: 'Regional Barat' },
+  { id: 'cilegon', name: 'Cabang Cilegon', region: 'Regional Barat' },
+  { id: 'cirebon', name: 'Cabang Cirebon', region: 'Regional Barat' },
+  { id: 'dumai', name: 'Cabang Dumai', region: 'Regional Barat' },
+  { id: 'jakarta', name: 'Cabang Jakarta', region: 'Regional Barat' },
+  { id: 'jambi', name: 'Cabang Jambi', region: 'Regional Barat' },
+  { id: 'medan', name: 'Cabang Medan', region: 'Regional Barat' },
+  { id: 'padang', name: 'Cabang Padang', region: 'Regional Barat' },
+  { id: 'pekanbaru', name: 'Cabang Pekanbaru', region: 'Regional Barat' },
+  { id: 'palembang', name: 'Cabang Palembang', region: 'Regional Barat' },
+  { id: 'semarang', name: 'Cabang Semarang', region: 'Regional Barat' },
+  { id: 'balikpapan', name: 'Cabang Balikpapan', region: 'Regional Timur' },
+  { id: 'banjarmasin', name: 'Cabang Banjarmasin', region: 'Regional Timur' },
+  { id: 'batu-licin', name: 'Cabang Batu Licin', region: 'Regional Timur' },
+  { id: 'bontang', name: 'Cabang Bontang', region: 'Regional Timur' },
+  { id: 'denpasar', name: 'Cabang Denpasar', region: 'Regional Timur' },
+  { id: 'makassar', name: 'Cabang Makassar', region: 'Regional Timur' },
+  { id: 'kendari', name: 'Cabang Kendari', region: 'Regional Timur' },
+  { id: 'pontianak', name: 'Cabang Pontianak', region: 'Regional Timur' },
+  { id: 'samarinda', name: 'Cabang Samarinda', region: 'Regional Timur' },
+  { id: 'sangatta', name: 'Cabang Sangatta', region: 'Regional Timur' },
+  { id: 'surabaya', name: 'Cabang Surabaya', region: 'Regional Timur' },
+  { id: 'tarakan', name: 'Cabang Tarakan', region: 'Regional Timur' },
+  { id: 'timika', name: 'Cabang Timika', region: 'Regional Timur' },
 ];
 
 export const initialRoles: Role[] = [
@@ -164,15 +189,15 @@ export const initialRoles: Role[] = [
 ];
 
 export const initialUsers: User[] = [
-  { id: 1, name: 'Super Admin', email: 'superuser@example.com', roleId: 'super-admin', branchId: 'hq', avatarUrl: '', signatureUrl: '' },
+  { id: 1, name: 'Super Admin', email: 'superuser@example.com', roleId: 'super-admin', branchId: 'kantor-pusat', avatarUrl: '', signatureUrl: '' },
   { id: 2, name: 'Project Manager', email: 'pm@example.com', roleId: 'project-manager', branchId: 'jakarta', avatarUrl: '', signatureUrl: '' },
   { id: 3, name: 'Jane Doe', email: 'jane.doe@example.com', roleId: 'project-manager', branchId: 'jakarta', avatarUrl: '', signatureUrl: '' },
   { id: 4, name: 'John Smith', email: 'john.smith@example.com', roleId: 'project-manager', branchId: 'surabaya', avatarUrl: '', signatureUrl: '' },
-  { id: 5, name: 'QAQC Client', email: 'qaqc.client@example.com', roleId: 'client-qaqc', branchId: 'hq', avatarUrl: '', signatureUrl: '' },
-  { id: 6, name: 'Rep Client', email: 'rep.client@example.com', roleId: 'client-rep', branchId: 'hq', avatarUrl: '', signatureUrl: '' },
+  { id: 5, name: 'QAQC Client', email: 'qaqc.client@example.com', roleId: 'client-qaqc', branchId: 'kantor-pusat', avatarUrl: '', signatureUrl: '' },
+  { id: 6, name: 'Rep Client', email: 'rep.client@example.com', roleId: 'client-rep', branchId: 'kantor-pusat', avatarUrl: '', signatureUrl: '' },
   { id: 7, name: 'Project Admin User', email: 'pa@example.com', roleId: 'project-admin', branchId: 'jakarta', avatarUrl: '', signatureUrl: '' },
   { id: 8, name: 'Inspector User', email: 'inspector@example.com', roleId: 'inspector', branchId: 'jakarta', avatarUrl: '', signatureUrl: '' },
-  { id: 9, name: 'Inspector1', email: 'inspector1@example.com', roleId: 'inspector', branchId: 'hq', avatarUrl: '', signatureUrl: '' },
+  { id: 9, name: 'Inspector1', email: 'inspector1@example.com', roleId: 'inspector', branchId: 'kantor-pusat', avatarUrl: '', signatureUrl: '' },
   { id: 10, name: 'Employee User', email: 'employee@example.com', roleId: 'employee', branchId: 'jakarta', avatarUrl: '', signatureUrl: '' },
-  { id: 11, name: 'Tender Admin', email: 'tender@example.com', roleId: 'tender-admin', branchId: 'hq', avatarUrl: '', signatureUrl: '' },
+  { id: 11, name: 'Tender Admin', email: 'tender@example.com', roleId: 'tender-admin', branchId: 'kantor-pusat', avatarUrl: '', signatureUrl: '' },
 ];
