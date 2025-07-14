@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -184,14 +185,6 @@ export default function NewProjectPage() {
       </CardHeader>
       <CardContent className="grid gap-6 md:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="contractNumber">Contract No.</Label>
-          <Input id="contractNumber" value={newProject.contractNumber} onChange={(e) => setNewProject({ ...newProject, contractNumber: e.target.value })} placeholder="Contract number" />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="rabNumber">RAB No.</Label>
-          <Input id="rabNumber" value={newProject.rabNumber} onChange={(e) => setNewProject({ ...newProject, rabNumber: e.target.value })} placeholder="RAB number" />
-        </div>
-        <div className="space-y-2">
           <Label htmlFor="portfolio">Portfolio</Label>
           <Select value={newProject.portfolio} onValueChange={(value) => setNewProject({ ...newProject, portfolio: value })}>
             <SelectTrigger id="portfolio"><SelectValue placeholder="Select a portfolio" /></SelectTrigger>
@@ -204,6 +197,17 @@ export default function NewProjectPage() {
             <SelectTrigger id="subPortfolio"><SelectValue placeholder="Select a sub-portfolio" /></SelectTrigger>
             <SelectContent>{subPortfolios.map((sp) => (<SelectItem key={sp} value={sp}>{sp}</SelectItem>))}</SelectContent>
           </Select>
+        </div>
+         <div className="space-y-2">
+          <Label htmlFor="contractExecutor">Contract Executor</Label>
+          {isHqUser ? (
+            <Select value={newProject.contractExecutor} onValueChange={(value) => setNewProject({ ...newProject, contractExecutor: value })}>
+              <SelectTrigger id="contractExecutor"><SelectValue placeholder="Select a branch" /></SelectTrigger>
+              <SelectContent>{branches.map((branch) => (<SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>))}</SelectContent>
+            </Select>
+          ) : (
+            <Input id="contractExecutor" value={branches.find((b) => b.id === user?.branchId)?.name || ''} disabled />
+          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="serviceCode">Service Code</Label>
@@ -220,27 +224,20 @@ export default function NewProjectPage() {
           </Select>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="name">Name</Label>
-          <Input id="name" value={newProject.name} onChange={(e) => setNewProject({ ...newProject, name: e.target.value })} placeholder="Contract name" />
+          <Label htmlFor="name">Contract Title</Label>
+          <Input id="name" value={newProject.name} onChange={(e) => setNewProject({ ...newProject, name: e.target.value })} placeholder="Contract title" />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="contractNumber">Contract No.</Label>
+          <Input id="contractNumber" value={newProject.contractNumber} onChange={(e) => setNewProject({ ...newProject, contractNumber: e.target.value })} placeholder="Contract number" />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="rabNumber">RAB No.</Label>
+          <Input id="rabNumber" value={newProject.rabNumber} onChange={(e) => setNewProject({ ...newProject, rabNumber: e.target.value })} placeholder="RAB number" />
         </div>
         <div className="space-y-2">
           <Label htmlFor="client">Client</Label>
           <Input id="client" value={newProject.client} onChange={(e) => setNewProject({ ...newProject, client: e.target.value })} placeholder="Client name" />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="contractExecutor">Contract Executor</Label>
-          {isHqUser ? (
-            <Select value={newProject.contractExecutor} onValueChange={(value) => setNewProject({ ...newProject, contractExecutor: value })}>
-              <SelectTrigger id="contractExecutor"><SelectValue placeholder="Select a branch" /></SelectTrigger>
-              <SelectContent>{branches.map((branch) => (<SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>))}</SelectContent>
-            </Select>
-          ) : (
-            <Input id="contractExecutor" value={branches.find((b) => b.id === user?.branchId)?.name || ''} disabled />
-          )}
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="value">Value (IDR)</Label>
-          <Input id="value" type="number" value={newProject.value || ''} onChange={(e) => setNewProject({ ...newProject, value: parseInt(e.target.value) || 0 })} placeholder="Contract value" />
         </div>
         <div className="space-y-2">
           <Label htmlFor="period">Period</Label>
@@ -259,6 +256,10 @@ export default function NewProjectPage() {
         <div className="space-y-2">
             <Label htmlFor="duration">Duration</Label>
             <Input id="duration" value={duration} placeholder="Calculated automatically" readOnly />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="value">Value (IDR)</Label>
+          <Input id="value" type="number" value={newProject.value || ''} onChange={(e) => setNewProject({ ...newProject, value: parseInt(e.target.value) || 0 })} placeholder="Contract value" />
         </div>
          <div className="md:col-span-2 space-y-2">
             <Label htmlFor="description">Description</Label>
