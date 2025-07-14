@@ -2,7 +2,7 @@
 "use client"
 
 import * as React from "react"
-import { Pie, PieChart, Cell } from 'recharts';
+import { Pie, PieChart, Cell, Sector } from 'recharts';
 import {
   ChartContainer,
   ChartTooltip,
@@ -53,8 +53,41 @@ const chartConfig: ChartConfig = {
   },
 };
 
+const renderActiveShape = (props: any, totalTenders: number) => {
+    const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
+    return (
+        <g>
+            <text x={cx} y={cy - 10} dy={8} textAnchor="middle" fill="hsl(var(--foreground))" className="text-2xl font-bold">
+                {totalTenders}
+            </text>
+            <text x={cx} y={cy + 10} dy={8} textAnchor="middle" fill="hsl(var(--muted-foreground))" className="text-sm">
+                Total Tenders
+            </text>
+            <Sector
+                cx={cx}
+                cy={cy}
+                innerRadius={innerRadius}
+                outerRadius={outerRadius}
+                startAngle={startAngle}
+                endAngle={endAngle}
+                fill={fill}
+            />
+            <Sector
+                cx={cx}
+                cy={cy}
+                startAngle={startAngle}
+                endAngle={endAngle}
+                innerRadius={outerRadius + 6}
+                outerRadius={outerRadius + 10}
+                fill={fill}
+            />
+        </g>
+    );
+};
+
 
 export function TenderCountChart({ tenders }: TenderCountChartProps) {
+  const [activeIndex, setActiveIndex] = React.useState(0);
   const chartData = useMemo(() => {
     if (!tenders) return [];
     
@@ -70,6 +103,14 @@ export function TenderCountChart({ tenders }: TenderCountChartProps) {
     })).filter(d => d.count > 0);
   }, [tenders]);
 
+  const totalTenders = useMemo(() => {
+    return chartData.reduce((acc, curr) => acc + curr.count, 0);
+  }, [chartData]);
+  
+  const onPieEnter = (_: any, index: number) => {
+    setActiveIndex(index);
+  };
+
   return (
     <ChartContainer config={chartConfig} className="h-[400px] w-full">
       <PieChart>
@@ -78,11 +119,15 @@ export function TenderCountChart({ tenders }: TenderCountChartProps) {
           content={<ChartTooltipContent hideLabel />}
         />
         <Pie
+          activeIndex={activeIndex}
+          activeShape={(props) => renderActiveShape(props, totalTenders)}
           data={chartData}
           dataKey="count"
           nameKey="status"
-          innerRadius={60}
-          strokeWidth={5}
+          innerRadius={80}
+          outerRadius={120}
+          strokeWidth={2}
+          onMouseEnter={onPieEnter}
         >
            {chartData.map((entry) => (
             <Cell key={`cell-${entry.status}`} fill={entry.fill} />
