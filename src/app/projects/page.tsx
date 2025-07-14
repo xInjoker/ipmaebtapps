@@ -46,6 +46,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProjectBranchChart } from '@/components/project-branch-chart';
 import { ProjectStatusChart } from '@/components/project-status-chart';
 import { ProjectExpenditureChart } from '@/components/project-expenditure-chart';
+import { ProjectIncomeExpenditureChart } from '@/components/project-income-expenditure-chart';
 
 export default function ProjectsPage() {
   const { projects, setProjects, getProjectStats } = useProjects();
@@ -637,13 +638,22 @@ export default function ProjectsPage() {
         </TabsList>
         <TabsContent value="summary">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card className="lg:col-span-2">
+                <Card>
                     <CardHeader>
                         <CardTitle>Project Value by Branch</CardTitle>
                         <CardDescription>A summary of total project value for each branch.</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <ProjectBranchChart projects={visibleProjects} branches={branches} />
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Income vs Expenditure</CardTitle>
+                        <CardDescription>A comparison of total income, expenditure, and contract value.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <ProjectIncomeExpenditureChart projects={visibleProjects} />
                     </CardContent>
                 </Card>
                 <Card>
