@@ -2,11 +2,13 @@
 "use client"
 
 import * as React from "react"
-import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Cell } from 'recharts';
+import { Pie, PieChart, Cell } from 'recharts';
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
   ChartConfig,
 } from '@/components/ui/chart';
 import { useMemo } from 'react';
@@ -64,39 +66,36 @@ export function TenderCountChart({ tenders }: TenderCountChartProps) {
     return tenderStatuses.map((status) => ({
       status,
       count: statusCounts[status] || 0,
-    }));
+      fill: `var(--color-${status})`,
+    })).filter(d => d.count > 0);
   }, [tenders]);
-
-  const allStatuses = chartData.map(d => d.status);
 
   return (
     <ChartContainer config={chartConfig} className="h-[400px] w-full">
-      <RadarChart data={chartData}>
+      <PieChart>
         <ChartTooltip
           cursor={false}
-          content={
-            <ChartTooltipContent
-              labelKey="status"
-              payloadKey="count"
-              indicator="dot"
-            />
-          }
+          content={<ChartTooltipContent hideLabel />}
         />
-        <PolarGrid />
-        <PolarAngleAxis dataKey="status" />
-        <PolarRadiusAxis />
-        {allStatuses.map((status) => (
-          <Radar
-            key={status}
-            name={status}
-            dataKey="count"
-            data={chartData.filter((d) => d.status === status)}
-            fill={`var(--color-${status})`}
-            fillOpacity={0.6}
-            stroke={`var(--color-${status})`}
-          />
-        ))}
-      </RadarChart>
+        <Pie
+          data={chartData}
+          dataKey="count"
+          nameKey="status"
+          innerRadius={60}
+          strokeWidth={5}
+        >
+           {chartData.map((entry) => (
+            <Cell key={`cell-${entry.status}`} fill={entry.fill} />
+          ))}
+        </Pie>
+        <ChartLegend
+          content={<ChartLegendContent nameKey="status" />}
+          verticalAlign="bottom"
+          align="center"
+          iconType="circle"
+          className="flex-wrap"
+        />
+      </PieChart>
     </ChartContainer>
   );
 }
