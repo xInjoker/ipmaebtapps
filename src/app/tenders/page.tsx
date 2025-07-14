@@ -164,32 +164,32 @@ export default function TendersPage() {
   const widgetData = [
     {
       title: 'Total Tenders',
-      value: `${dashboardStats.totalTenders.count}`,
-      description: `${formatCurrencyMillions(dashboardStats.totalTenders.value)} total value`,
+      value: `${formatCurrencyMillions(dashboardStats.totalTenders.value)}`,
+      description: `${dashboardStats.totalTenders.count} total tenders`,
       icon: Users,
       iconColor: 'text-blue-500',
       shapeColor: 'text-blue-500/10',
     },
     {
       title: 'In Progress',
-      value: `${dashboardStats.inProgress.count}`,
-      description: `${formatCurrencyMillions(dashboardStats.inProgress.value)} in active tenders`,
+      value: `${formatCurrencyMillions(dashboardStats.inProgress.value)}`,
+      description: `${dashboardStats.inProgress.count} active tenders`,
       icon: Clock,
       iconColor: 'text-amber-500',
       shapeColor: 'text-amber-500/10',
     },
     {
       title: 'Awarded',
-      value: `${dashboardStats.awarded.count}`,
-      description: `${formatCurrencyMillions(dashboardStats.awarded.value)} in won tenders`,
+      value: `${formatCurrencyMillions(dashboardStats.awarded.value)}`,
+      description: `${dashboardStats.awarded.count} won tenders`,
       icon: CheckCircle,
       iconColor: 'text-green-500',
       shapeColor: 'text-green-500/10',
     },
     {
       title: 'Lost / Cancelled',
-      value: `${dashboardStats.lostOrCancelled.count}`,
-      description: `${formatCurrencyMillions(dashboardStats.lostOrCancelled.value)} in lost tenders`,
+      value: `${formatCurrencyMillions(dashboardStats.lostOrCancelled.value)}`,
+      description: `${dashboardStats.lostOrCancelled.count} lost or cancelled`,
       icon: XCircle,
       iconColor: 'text-rose-500',
       shapeColor: 'text-rose-500/10',
@@ -575,4 +575,5 @@ export default function TendersPage() {
     </div>
   );
 }
+
 
