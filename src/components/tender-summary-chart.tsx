@@ -71,23 +71,16 @@ export function TenderSummaryChart({ tenders }: TenderSummaryChartProps) {
     <ChartContainer config={chartConfig} className="h-[400px] w-full">
       <BarChart 
         data={chartData} 
-        layout="vertical"
-        margin={{
-            left: 20
-        }}
         accessibilityLayer
        >
-        <CartesianGrid horizontal={false} />
-        <YAxis
+        <CartesianGrid vertical={false} />
+        <XAxis
           dataKey="status"
-          type="category"
           tickLine={false}
           tickMargin={10}
           axisLine={false}
         />
-        <XAxis
-            type="number"
-            dataKey="value"
+        <YAxis
             tickFormatter={(value) => formatCurrencyMillions(Number(value))}
         />
         <ChartTooltip
@@ -106,3 +99,4 @@ export function TenderSummaryChart({ tenders }: TenderSummaryChartProps) {
     </ChartContainer>
   );
 }
+
