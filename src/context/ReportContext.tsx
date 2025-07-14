@@ -46,12 +46,14 @@ export function ReportProvider({ children }: { children: ReactNode }) {
         const project = projects.find(p => p.name === report.details?.project);
         if (!project?.reportApprovalWorkflow || project.reportApprovalWorkflow.length === 0) return false;
 
-        const currentApprovalCount = report.approvalHistory.filter(h => h.status === 'Reviewed' || h.status === 'Approved').length;
-        
-        // This count includes the initial "Submitted" action, so we subtract 1
-        const nextApproverIndex = currentApprovalCount - 1;
+        const approvalActions = report.approvalHistory.filter(h => ['Submitted', 'Reviewed', 'Approved'].includes(h.status));
+        const currentApprovalCount = approvalActions.length - 1; // Subtract 1 for the initial "Submitted" action
 
-        if (nextApproverIndex < 0 || nextApproverIndex >= project.reportApprovalWorkflow.length) return false;
+        if (currentApprovalCount < 0) return false;
+
+        const nextApproverIndex = currentApprovalCount;
+
+        if (nextApproverIndex >= project.reportApprovalWorkflow.length) return false;
 
         const nextApprover = project.reportApprovalWorkflow[nextApproverIndex];
         return nextApprover.approverId === userId.toString();
