@@ -238,9 +238,9 @@ export default function NewProjectPage() {
                     <Label htmlFor="client">Client</Label>
                     <Input id="client" value={newProject.client} onChange={(e) => setNewProject({ ...newProject, client: e.target.value })} placeholder="Client name" />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-2 md:col-span-2">
                     <Label htmlFor="name">Contract Title</Label>
-                    <Input id="name" value={newProject.name} onChange={(e) => setNewProject({ ...newProject, name: e.target.value })} placeholder="Contract title" />
+                    <Textarea id="name" value={newProject.name} onChange={(e) => setNewProject({ ...newProject, name: e.target.value })} placeholder="Enter the full contract title" rows={3} />
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="contractNumber">Contract No.</Label>
