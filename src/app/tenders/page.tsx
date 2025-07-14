@@ -312,7 +312,7 @@ export default function TendersPage() {
               <div className="text-xl font-bold font-headline sm:text-lg md:text-xl lg:text-2xl">
                 {widget.value}
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs font-bold text-accent-foreground">
                 {widget.description}
               </p>
             </CardContent>
@@ -575,5 +575,6 @@ export default function TendersPage() {
     </div>
   );
 }
+
 
 
