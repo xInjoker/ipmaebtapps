@@ -1,17 +1,19 @@
 
 'use client';
 
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
+import { Pie, PieChart, Cell } from 'recharts';
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
   ChartConfig,
+  ChartLegend,
+  ChartLegendContent,
 } from '@/components/ui/chart';
 import { useMemo } from 'react';
 import type { Project } from '@/lib/data';
 import type { Branch } from '@/lib/users';
-import { formatCurrency, formatCurrencyMillions } from '@/lib/utils';
+import { formatCurrency } from '@/lib/utils';
 
 type ProjectBranchChartProps = {
   projects: Project[];
@@ -21,7 +23,6 @@ type ProjectBranchChartProps = {
 const chartConfig = {
   value: {
     label: 'Project Value',
-    color: 'hsl(var(--chart-1))',
   },
 } satisfies ChartConfig;
 
@@ -37,13 +38,25 @@ export function ProjectBranchChart({ projects, branches }: ProjectBranchChartPro
         return acc;
     }, {} as Record<string, number>);
 
+    const chartColors = [
+      'hsl(var(--chart-1))',
+      'hsl(var(--chart-2))',
+      'hsl(var(--chart-3))',
+      'hsl(var(--chart-4))',
+      'hsl(var(--chart-5))',
+    ];
+    let colorIndex = 0;
+
     return branches
         .map(branch => {
             const branchValue = valueByBranch[branch.id];
             if (!branchValue) return null;
+            const color = chartColors[colorIndex % chartColors.length];
+            colorIndex++;
             return {
                 name: branch.name.replace('Cabang ', ''),
-                value: branchValue
+                value: branchValue,
+                fill: `var(--color-chart-${colorIndex})`
             };
         })
         .filter(Boolean)
@@ -52,36 +65,34 @@ export function ProjectBranchChart({ projects, branches }: ProjectBranchChartPro
 
   return (
     <ChartContainer config={chartConfig} className="h-[400px] w-full">
-      <BarChart 
-        data={chartData} 
-        layout="vertical"
-        margin={{
-            left: 20
-        }}
-        accessibilityLayer
-       >
-        <CartesianGrid horizontal={false} />
-        <YAxis
-          dataKey="name"
-          type="category"
-          tickLine={false}
-          tickMargin={10}
-          axisLine={false}
-          width={80}
-        />
-        <XAxis
-            type="number"
-            tickFormatter={(value) => formatCurrencyMillions(Number(value))}
-        />
+      <PieChart accessibilityLayer>
         <ChartTooltip
           cursor={false}
           content={<ChartTooltipContent 
-            formatter={(value) => formatCurrency(Number(value))}
-            indicator="dot" 
+            formatter={(value, name) => `${name}: ${formatCurrency(Number(value))}`}
+            hideLabel
           />}
         />
-        <Bar dataKey="value" fill="var(--color-value)" radius={4} />
-      </BarChart>
+         <Pie
+          data={chartData}
+          dataKey="value"
+          nameKey="name"
+          innerRadius={80}
+          outerRadius={140}
+          strokeWidth={2}
+        >
+           {chartData.map((entry, index) => (
+            <Cell key={`cell-${index}`} fill={entry.fill} />
+          ))}
+        </Pie>
+        <ChartLegend
+          content={<ChartLegendContent nameKey="name" />}
+          verticalAlign="bottom"
+          align="center"
+          iconType="circle"
+          className="flex-wrap"
+        />
+      </PieChart>
     </ChartContainer>
   );
 }
