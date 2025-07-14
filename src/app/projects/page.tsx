@@ -268,7 +268,7 @@ export default function ProjectsPage() {
     <div className="space-y-6">
       <Card className="relative overflow-hidden bg-gradient-to-br from-primary to-primary/80 text-primary-foreground">
         <svg
-            className="absolute -right-16 -top-24 text-primary-foreground/10"
+            className="absolute -right-16 -top-24 text-warning"
             fill="currentColor"
             width="400"
             height="400"
@@ -281,10 +281,10 @@ export default function ProjectsPage() {
             />
         </svg>
         <svg
-            className="absolute -right-24 -top-16 text-primary-foreground/20"
+            className="absolute -left-20 -bottom-24 text-primary-foreground/10"
             fill="currentColor"
-            width="250"
-            height="250"
+            width="400"
+            height="400"
             viewBox="0 0 200 200"
             xmlns="http://www.w3.org/2000/svg"
         >
