@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useMemo, useEffect, useRef } from 'react';
@@ -58,6 +57,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { TenderSummaryChart } from '@/components/tender-summary-chart';
+
 
 export default function TendersPage() {
   useSearchParams();
@@ -239,6 +241,42 @@ export default function TendersPage() {
             </Link>
           </Button>
         </CardHeader>
+        <CardContent>
+           <div className="flex flex-col gap-4 sm:flex-row sm:items-center z-10 relative">
+            <div className="relative flex-1">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-primary-foreground/60" />
+                <Input
+                    placeholder="Search by title, client, or number..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-8 w-full bg-primary/20 text-primary-foreground placeholder:text-primary-foreground/60 border-primary-foreground/30 focus:bg-primary/30"
+                />
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+                <Select value={branchFilter} onValueChange={setBranchFilter} disabled={!isHqUser}>
+                    <SelectTrigger className="w-full sm:w-[180px] bg-primary/20 text-primary-foreground border-primary-foreground/30">
+                        <SelectValue placeholder="Filter by branch" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Branches</SelectItem>
+                        {branches.map(branch => <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>)}
+                    </SelectContent>
+                </Select>
+                <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
+                    <SelectTrigger className="w-full sm:w-[180px] bg-primary/20 text-primary-foreground border-primary-foreground/30">
+                        <SelectValue placeholder="Filter by status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">All Statuses</SelectItem>
+                        {tenderStatuses.map(status => <SelectItem key={status} value={status}>{status}</SelectItem>)}
+                    </SelectContent>
+                </Select>
+                <Button variant="ghost" onClick={handleClearFilters} className="w-full sm:w-auto hover:bg-primary/20">
+                    <X className="mr-2 h-4 w-4" /> Clear
+                </Button>
+            </div>
+           </div>
+        </CardContent>
       </Card>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -273,234 +311,210 @@ export default function TendersPage() {
         ))}
       </div>
 
-       <Card>
-        <CardContent className="p-4">
-           <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-            <div className="relative flex-1">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                    placeholder="Search by title, client, or number..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-8 w-full"
-                />
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-                <Select value={branchFilter} onValueChange={setBranchFilter} disabled={!isHqUser}>
-                    <SelectTrigger className="w-full sm:w-[180px]">
-                        <SelectValue placeholder="Filter by branch" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">All Branches</SelectItem>
-                        {branches.map(branch => <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>)}
-                    </SelectContent>
-                </Select>
-                <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
-                    <SelectTrigger className="w-full sm:w-[180px]">
-                        <SelectValue placeholder="Filter by status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">All Statuses</SelectItem>
-                        {tenderStatuses.map(status => <SelectItem key={status} value={status}>{status}</SelectItem>)}
-                    </SelectContent>
-                </Select>
-                <Button variant="ghost" onClick={handleClearFilters} className="w-full sm:w-auto">
-                    <X className="mr-2 h-4 w-4" /> Clear
-                </Button>
-            </div>
-           </div>
-        </CardContent>
-      </Card>
-
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Upcoming 7 Days</CardTitle>
-              <CardDescription>
-                Tenders with submission deadlines in the next week.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {upcomingTenders.length > 0 ? (
-                <ul className="space-y-2 text-sm">
-                  {upcomingTenders.map((tender) => (
-                    <li
-                      key={tender.id}
-                      className="p-2 rounded-md bg-blue-500/10"
-                    >
-                      <p className="font-semibold">{tender.title}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {tender.client} &bull; Due:{' '}
-                        {format(new Date(tender.submissionDate), 'PPP')}
-                      </p>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  No upcoming submissions in the next 7 days.
-                </p>
-              )}
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CalendarIcon className="h-5 w-5" />
-                Tender Calendar
-              </CardTitle>
-              <CardDescription>
-                Click a date to see submission deadlines.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="flex justify-center">
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={handleDateSelect}
-                modifiers={{
-                  due: submissionDates,
-                }}
-                modifiersClassNames={{
-                  due: 'bg-primary text-primary-foreground rounded-full',
-                }}
-              />
-            </CardContent>
-          </Card>
-          {selectedDate && (
+       <Tabs defaultValue="summary" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="summary">Summary Chart</TabsTrigger>
+          <TabsTrigger value="data-table">Data Table</TabsTrigger>
+          <TabsTrigger value="calendar">Calendar View</TabsTrigger>
+        </TabsList>
+        <TabsContent value="summary">
             <Card>
-              <CardHeader>
-                <CardTitle>
-                  Submissions on {format(selectedDate, 'PPP')}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {tendersForSelectedDate.length > 0 ? (
-                  <ul className="space-y-2 text-sm">
-                    {tendersForSelectedDate.map((tender) => (
-                      <li
-                        key={tender.id}
-                        className="p-2 rounded-md bg-blue-500/10"
-                      >
-                        <p className="font-semibold">{tender.title}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {tender.client}
-                        </p>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    No tender submissions on this date.
-                  </p>
-                )}
-              </CardContent>
+                <CardHeader>
+                    <CardTitle>Tender Status Summary</CardTitle>
+                    <CardDescription>A summary of all tenders based on their current status.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <TenderSummaryChart tenders={filteredTenders} />
+                </CardContent>
             </Card>
-          )}
-        </div>
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <div className="flex justify-between items-center">
-              <div>
-                <CardTitle>Tender List</CardTitle>
-                <CardDescription>
-                  Showing {filteredTenders.length} of {tenders.length} tenders.
-                </CardDescription>
-              </div>
+        </TabsContent>
+        <TabsContent value="data-table">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Tender List</CardTitle>
+                    <CardDescription>
+                    Showing {filteredTenders.length} of {tenders.length} tenders.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="p-0">
+                    <div className="rounded-md border-0">
+                    <Table>
+                        <TableHeader>
+                        <TableRow>
+                            <TableHead>Tender Title</TableHead>
+                            <TableHead>Client</TableHead>
+                            <TableHead>Branch</TableHead>
+                            <TableHead>Submission Date</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                        {filteredTenders.length > 0 ? (
+                            filteredTenders.map((tender) => (
+                            <TableRow key={tender.id}>
+                                <TableCell className="font-medium">
+                                {tender.title}
+                                </TableCell>
+                                <TableCell>{tender.client}</TableCell>
+                                <TableCell>
+                                {tender.branchId ? branchMap[tender.branchId] : 'N/A'}
+                                </TableCell>
+                                <TableCell>
+                                {format(new Date(tender.submissionDate), 'PPP')}
+                                </TableCell>
+                                <TableCell>
+                                <Badge variant={getTenderStatusVariant(tender.status)}>
+                                    {tender.status}
+                                </Badge>
+                                </TableCell>
+                                <TableCell className="text-right">
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" className="h-8 w-8 p-0">
+                                        <span className="sr-only">Open menu</span>
+                                        <MoreHorizontal className="h-4 w-4" />
+                                    </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                    <DropdownMenuItem asChild>
+                                        <Link href={`/tenders/${tender.id}`}>
+                                        View Details
+                                        </Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem asChild>
+                                        <Link href={`/tenders/${tender.id}/edit`}>
+                                        Edit
+                                        </Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSub>
+                                        <DropdownMenuSubTrigger>
+                                        Update Status
+                                        </DropdownMenuSubTrigger>
+                                        <DropdownMenuPortal>
+                                        <DropdownMenuSubContent>
+                                            {tenderStatuses.map((status) => (
+                                            <DropdownMenuItem
+                                                key={status}
+                                                onSelect={() =>
+                                                handleStatusUpdate(tender.id, status)
+                                                }
+                                            >
+                                                {status}
+                                            </DropdownMenuItem>
+                                            ))}
+                                        </DropdownMenuSubContent>
+                                        </DropdownMenuPortal>
+                                    </DropdownMenuSub>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                                </TableCell>
+                            </TableRow>
+                            ))
+                        ) : (
+                            <TableRow>
+                            <TableCell colSpan={6} className="h-24 text-center">
+                                No tenders found.
+                            </TableCell>
+                            </TableRow>
+                        )}
+                        </TableBody>
+                    </Table>
+                    </div>
+                </CardContent>
+            </Card>
+        </TabsContent>
+        <TabsContent value="calendar">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="space-y-6 lg:col-span-1">
+                    <Card>
+                        <CardHeader>
+                        <CardTitle>Upcoming 7 Days</CardTitle>
+                        <CardDescription>
+                            Tenders with submission deadlines in the next week.
+                        </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                        {upcomingTenders.length > 0 ? (
+                            <ul className="space-y-2 text-sm">
+                            {upcomingTenders.map((tender) => (
+                                <li
+                                key={tender.id}
+                                className="p-2 rounded-md bg-blue-500/10"
+                                >
+                                <p className="font-semibold">{tender.title}</p>
+                                <p className="text-xs text-muted-foreground">
+                                    {tender.client} &bull; Due:{' '}
+                                    {format(new Date(tender.submissionDate), 'PPP')}
+                                </p>
+                                </li>
+                            ))}
+                            </ul>
+                        ) : (
+                            <p className="text-sm text-muted-foreground text-center py-4">
+                            No upcoming submissions in the next 7 days.
+                            </p>
+                        )}
+                        </CardContent>
+                    </Card>
+                    {selectedDate && (
+                        <Card>
+                        <CardHeader>
+                            <CardTitle>
+                            Submissions on {format(selectedDate, 'PPP')}
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {tendersForSelectedDate.length > 0 ? (
+                            <ul className="space-y-2 text-sm">
+                                {tendersForSelectedDate.map((tender) => (
+                                <li
+                                    key={tender.id}
+                                    className="p-2 rounded-md bg-blue-500/10"
+                                >
+                                    <p className="font-semibold">{tender.title}</p>
+                                    <p className="text-xs text-muted-foreground">
+                                    {tender.client}
+                                    </p>
+                                </li>
+                                ))}
+                            </ul>
+                            ) : (
+                            <p className="text-sm text-muted-foreground">
+                                No tender submissions on this date.
+                            </p>
+                            )}
+                        </CardContent>
+                        </Card>
+                    )}
+                </div>
+                <Card className="lg:col-span-2">
+                    <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <CalendarIcon className="h-5 w-5" />
+                        Tender Calendar
+                    </CardTitle>
+                    <CardDescription>
+                        Click a date to see submission deadlines.
+                    </CardDescription>
+                    </CardHeader>
+                    <CardContent className="flex justify-center">
+                    <Calendar
+                        mode="single"
+                        selected={selectedDate}
+                        onSelect={handleDateSelect}
+                        modifiers={{
+                        due: submissionDates,
+                        }}
+                        modifiersClassNames={{
+                        due: 'bg-primary text-primary-foreground rounded-full',
+                        }}
+                    />
+                    </CardContent>
+                </Card>
             </div>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="rounded-md border-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Tender Title</TableHead>
-                    <TableHead>Client</TableHead>
-                    <TableHead>Branch</TableHead>
-                    <TableHead>Submission Date</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredTenders.length > 0 ? (
-                    filteredTenders.map((tender) => (
-                      <TableRow key={tender.id}>
-                        <TableCell className="font-medium">
-                          {tender.title}
-                        </TableCell>
-                        <TableCell>{tender.client}</TableCell>
-                        <TableCell>
-                          {tender.branchId ? branchMap[tender.branchId] : 'N/A'}
-                        </TableCell>
-                        <TableCell>
-                          {format(new Date(tender.submissionDate), 'PPP')}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={getTenderStatusVariant(tender.status)}>
-                            {tender.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" className="h-8 w-8 p-0">
-                                <span className="sr-only">Open menu</span>
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem asChild>
-                                <Link href={`/tenders/${tender.id}`}>
-                                  View Details
-                                </Link>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem asChild>
-                                <Link href={`/tenders/${tender.id}/edit`}>
-                                  Edit
-                                </Link>
-                              </DropdownMenuItem>
-                              <DropdownMenuSub>
-                                <DropdownMenuSubTrigger>
-                                  Update Status
-                                </DropdownMenuSubTrigger>
-                                <DropdownMenuPortal>
-                                  <DropdownMenuSubContent>
-                                    {tenderStatuses.map((status) => (
-                                      <DropdownMenuItem
-                                        key={status}
-                                        onSelect={() =>
-                                          handleStatusUpdate(tender.id, status)
-                                        }
-                                      >
-                                        {status}
-                                      </DropdownMenuItem>
-                                    ))}
-                                  </DropdownMenuSubContent>
-                                </DropdownMenuPortal>
-                              </DropdownMenuSub>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={6} className="h-24 text-center">
-                        No tenders found.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
-
-    
