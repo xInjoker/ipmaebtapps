@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo, useEffect, useRef } from 'react';
@@ -13,15 +12,6 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import {
     Select,
     SelectContent,
     SelectItem,
@@ -29,19 +19,11 @@ import {
     SelectValue,
   } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { PlusCircle, Calendar as CalendarIcon, CircleDollarSign, Wallet, TrendingUp, Landmark, Search, X, BarChartBig, List } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { cn, formatCurrency, formatCurrencyMillions } from '@/lib/utils';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { format } from 'date-fns';
-import { DateRange } from 'react-day-picker';
-import { Textarea } from '@/components/ui/textarea';
-import { type Project, portfolios, subPortfolios, servicesBySubPortfolio, type Service } from '@/lib/data';
 import { useProjects } from '@/context/ProjectContext';
 import { useAuth } from '@/context/AuthContext';
-import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProjectBranchChart } from '@/components/project-branch-chart';
 import { ProjectStatusChart } from '@/components/project-status-chart';
@@ -51,34 +33,12 @@ import { HeaderCard } from '@/components/header-card';
 import { DashboardWidget } from '@/components/dashboard-widget';
 
 export default function ProjectsPage() {
-  const { projects, setProjects, projectStats } = useProjects();
+  const { projects, getProjectStats } = useProjects();
   const { user, isHqUser, branches, userHasPermission } = useAuth();
-  const { toast } = useToast();
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const initialFilterSet = useRef(false);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [branchFilter, setBranchFilter] = useState('all');
-
-  const [newProject, setNewProject] = useState({
-    contractNumber: '',
-    rabNumber: '',
-    name: '',
-    client: '',
-    description: '',
-    value: 0,
-    contractExecutor: '',
-    portfolio: '',
-    subPortfolio: '',
-    serviceCode: '',
-    serviceName: '',
-  });
-  const [date, setDate] = useState<DateRange | undefined>(undefined);
-
-  const availableServices = useMemo(() => {
-    if (!newProject.subPortfolio) return [];
-    return servicesBySubPortfolio[newProject.subPortfolio as keyof typeof servicesBySubPortfolio] || [];
-  }, [newProject.subPortfolio]);
 
   useEffect(() => {
     if (user && !isHqUser && !initialFilterSet.current) {
@@ -86,25 +46,6 @@ export default function ProjectsPage() {
         initialFilterSet.current = true;
     }
   }, [user, isHqUser]);
-
-  useEffect(() => {
-    if (isDialogOpen) {
-      setNewProject({
-        contractNumber: '',
-        rabNumber: '',
-        name: '',
-        client: '',
-        description: '',
-        value: 0,
-        contractExecutor: isHqUser ? '' : user?.branchId || '',
-        portfolio: '',
-        subPortfolio: '',
-        serviceCode: '',
-        serviceName: '',
-      });
-      setDate(undefined);
-    }
-  }, [isDialogOpen, isHqUser, user?.branchId]);
 
   const visibleProjects = useMemo(() => {
     let projectsToFilter = projects;
@@ -127,7 +68,7 @@ export default function ProjectsPage() {
     });
   }, [projects, user, isHqUser, searchTerm, branchFilter]);
 
-  const { totalProjectValue, totalCost, totalInvoiced, totalPaid } = projectStats;
+  const { totalProjectValue, totalCost, totalInvoiced, totalPaid } = getProjectStats(visibleProjects);
 
     const widgetData = [
     {
@@ -164,100 +105,6 @@ export default function ProjectsPage() {
     },
   ];
 
-  const { period, duration } = useMemo(() => {
-    if (date?.from && date?.to) {
-      const fromDate = date.from;
-      const toDate = date.to;
-      const periodString =
-        format(fromDate, 'yyyy') === format(toDate, 'yyyy')
-          ? format(fromDate, 'yyyy')
-          : `${format(fromDate, 'yyyy')}-${format(toDate, 'yyyy')}`;
-
-      let months = (toDate.getFullYear() - fromDate.getFullYear()) * 12;
-      months -= fromDate.getMonth();
-      months += toDate.getMonth();
-      const durationValue = months <= 0 ? 1 : months + 1;
-      const durationString = `${durationValue} ${
-        durationValue > 1 ? 'Months' : 'Month'
-      }`;
-
-      return { period: periodString, duration: durationString };
-    }
-    return { period: '', duration: '' };
-  }, [date]);
-
-
-  const handleAddProject = () => {
-    const assignedBranchId = isHqUser ? newProject.contractExecutor : user?.branchId;
-
-    if (
-      !newProject.contractNumber ||
-      !newProject.rabNumber ||
-      !newProject.name ||
-      !newProject.client ||
-      !newProject.description ||
-      !assignedBranchId ||
-      newProject.value <= 0 ||
-      !date?.from ||
-      !date.to
-    ) {
-      toast({
-        variant: 'destructive',
-        title: 'Missing Information',
-        description:
-          'Please fill out all fields, including executor, a positive value and a complete date range.',
-      });
-      return;
-    }
-
-    if (!user) {
-      toast({
-        variant: 'destructive',
-        title: 'Authentication Error',
-        description: 'Could not determine user. Please try logging in again.',
-      });
-      return;
-    }
-
-    const executorName = branches.find(b => b.id === assignedBranchId)?.name;
-    if (!executorName) {
-        toast({
-            variant: 'destructive',
-            title: 'Invalid Branch',
-            description: 'The selected contract executor branch is not valid.',
-        });
-        return;
-    }
-
-
-    const newId =
-      projects.length > 0 ? Math.max(...projects.map((p) => p.id)) + 1 : 1;
-
-    const { contractExecutor, ...restOfNewProject } = newProject;
-
-    const projectToAdd: Project = {
-      ...restOfNewProject,
-      id: newId,
-      branchId: assignedBranchId,
-      contractExecutor: executorName,
-      period,
-      duration,
-      serviceOrders: [],
-      invoices: [],
-      budgets: {},
-      expenditures: [],
-      tripApprovalWorkflow: [],
-      reportApprovalWorkflow: [],
-    };
-
-    setProjects([...projects, projectToAdd]);
-    setIsDialogOpen(false);
-    toast({
-      title: 'Project Added',
-      description: `Project "${projectToAdd.name}" has been successfully created.`,
-    });
-  };
-
   const handleClearFilters = () => {
     setSearchTerm('');
     if (isHqUser) {
@@ -273,278 +120,13 @@ export default function ProjectsPage() {
         description="A list of all your projects."
       >
         {userHasPermission('manage-projects') && (
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  Add New Project
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-lg">
-                <DialogHeader>
-                  <DialogTitle>Add New Project</DialogTitle>
-                  <DialogDescription>
-                    Fill in the details below to add a new project.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="contractNumber" className="text-right">
-                      Contract No.
-                    </Label>
-                    <Input
-                      id="contractNumber"
-                      value={newProject.contractNumber}
-                      onChange={(e) => setNewProject({ ...newProject, contractNumber: e.target.value })}
-                      className="col-span-3"
-                      placeholder="Contract number"
-                    />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="rabNumber" className="text-right">
-                      RAB No.
-                    </Label>
-                    <Input
-                      id="rabNumber"
-                      value={newProject.rabNumber}
-                      onChange={(e) => setNewProject({ ...newProject, rabNumber: e.target.value })}
-                      className="col-span-3"
-                      placeholder="RAB number"
-                    />
-                  </div>
-                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="portfolio" className="text-right">
-                      Portfolio
-                    </Label>
-                    <Select
-                      value={newProject.portfolio}
-                      onValueChange={(value) => setNewProject({ ...newProject, portfolio: value })}
-                    >
-                      <SelectTrigger className="col-span-3" id="portfolio">
-                        <SelectValue placeholder="Select a portfolio" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {portfolios.map((p) => (
-                          <SelectItem key={p} value={p}>
-                            {p}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="subPortfolio" className="text-right">
-                      Sub-Portfolio
-                    </Label>
-                    <Select
-                      value={newProject.subPortfolio}
-                      onValueChange={(value) => {
-                        setNewProject({ ...newProject, subPortfolio: value, serviceCode: '', serviceName: '' });
-                      }}
-                    >
-                      <SelectTrigger className="col-span-3" id="subPortfolio">
-                        <SelectValue placeholder="Select a sub-portfolio" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {subPortfolios.map((sp) => (
-                          <SelectItem key={sp} value={sp}>
-                            {sp}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="serviceCode" className="text-right">
-                      Service Code
-                    </Label>
-                    <Select
-                      value={newProject.serviceCode}
-                      onValueChange={(value) => {
-                        const service = availableServices.find(s => s.code === value);
-                        setNewProject({ ...newProject, serviceCode: value, serviceName: service?.name || '' });
-                      }}
-                      disabled={!newProject.subPortfolio}
-                    >
-                      <SelectTrigger className="col-span-3" id="serviceCode">
-                        <SelectValue placeholder="Select a service code" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {availableServices.map((s) => (
-                          <SelectItem key={s.code} value={s.code}>
-                            {s.code}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="serviceName" className="text-right">
-                      Service Name
-                    </Label>
-                    <Select
-                      value={newProject.serviceName}
-                      onValueChange={(value) => {
-                        const service = availableServices.find(s => s.name === value);
-                        setNewProject({ ...newProject, serviceName: value, serviceCode: service?.code || '' });
-                      }}
-                      disabled={!newProject.subPortfolio}
-                    >
-                      <SelectTrigger className="col-span-3" id="serviceName">
-                        <SelectValue placeholder="Select a service name" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {availableServices.map((s) => (
-                          <SelectItem key={s.name} value={s.name}>
-                            {s.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="name" className="text-right">
-                      Name
-                    </Label>
-                    <Input
-                      id="name"
-                      value={newProject.name}
-                      onChange={(e) => setNewProject({ ...newProject, name: e.target.value })}
-                      className="col-span-3"
-                      placeholder="Contract name"
-                    />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="client" className="text-right">
-                      Client
-                    </Label>
-                    <Input
-                      id="client"
-                      value={newProject.client}
-                      onChange={(e) => setNewProject({ ...newProject, client: e.target.value })}
-                      className="col-span-3"
-                      placeholder="Client name"
-                    />
-                  </div>
-                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="contractExecutor" className="text-right">
-                      Contract Executor
-                    </Label>
-                    {isHqUser ? (
-                      <Select
-                        value={newProject.contractExecutor}
-                        onValueChange={(value) =>
-                          setNewProject({ ...newProject, contractExecutor: value })
-                        }
-                      >
-                        <SelectTrigger className="col-span-3" id="contractExecutor">
-                          <SelectValue placeholder="Select a branch" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {branches.map((branch) => (
-                            <SelectItem key={branch.id} value={branch.id}>
-                              {branch.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    ) : (
-                      <Input
-                        id="contractExecutor"
-                        value={branches.find((b) => b.id === user?.branchId)?.name || ''}
-                        className="col-span-3"
-                        disabled
-                      />
-                    )}
-                  </div>
-                  <div className="grid grid-cols-4 items-start gap-4">
-                    <Label htmlFor="description" className="text-right pt-2">
-                      Description
-                    </Label>
-                    <Textarea
-                      id="description"
-                      value={newProject.description}
-                      onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
-                      className="col-span-3"
-                      placeholder="A short description of the project."
-                      rows={3}
-                    />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="value" className="text-right">
-                      Value (IDR)
-                    </Label>
-                    <Input
-                      id="value"
-                      type="number"
-                      value={newProject.value || ''}
-                      onChange={(e) => setNewProject({ ...newProject, value: parseInt(e.target.value) || 0 })}
-                      className="col-span-3"
-                      placeholder="Contract value"
-                    />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="period" className="text-right">
-                      Period
-                    </Label>
-                     <Popover>
-                        <PopoverTrigger asChild>
-                            <Button
-                                id="period"
-                                variant={"outline"}
-                                className={cn(
-                                    "col-span-3 justify-start text-left font-normal",
-                                    !date && "text-muted-foreground"
-                                )}
-                            >
-                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                {date?.from ? (
-                                    date.to ? (
-                                        <>
-                                            {format(date.from, "LLL dd, y")} -{" "}
-                                            {format(date.to, "LLL dd, y")}
-                                        </>
-                                    ) : (
-                                        format(date.from, "LLL dd, y")
-                                    )
-                                ) : (
-                                    <span>Pick a date range</span>
-                                )}
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                                initialFocus
-                                mode="range"
-                                defaultMonth={date?.from}
-                                selected={date}
-                                onSelect={setDate}
-                                numberOfMonths={2}
-                            />
-                        </PopoverContent>
-                    </Popover>
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="duration" className="text-right">
-                      Duration
-                    </Label>
-                    <Input
-                      id="duration"
-                      value={duration}
-                      className="col-span-3"
-                      placeholder="Calculated automatically"
-                      readOnly
-                    />
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button type="submit" onClick={handleAddProject}>
-                    Add Project
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          )}
+          <Button asChild>
+            <Link href="/projects/new">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add New Project
+            </Link>
+          </Button>
+        )}
       </HeaderCard>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -590,7 +172,7 @@ export default function ProjectsPage() {
         </TabsList>
         <TabsContent value="summary">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card>
+                <Card className="lg:col-span-2">
                     <CardHeader>
                         <CardTitle>Project Value by Branch</CardTitle>
                         <CardDescription>A summary of total project value for each branch.</CardDescription>
@@ -632,8 +214,8 @@ export default function ProjectsPage() {
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {visibleProjects.length > 0 ? (
                 visibleProjects.map((project) => {
-                    const projectStats = useProjects().getProjectStats([project]);
-                    const progress = project.value > 0 ? Math.round((projectStats.totalInvoiced / project.value) * 100) : 0;
+                    const { totalInvoiced } = getProjectStats([project]);
+                    const progress = project.value > 0 ? Math.round((totalInvoiced / project.value) * 100) : 0;
                     return (
                     <Card key={project.id}>
                         <CardHeader>
