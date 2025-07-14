@@ -30,7 +30,7 @@ import {
   } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { PlusCircle, Calendar as CalendarIcon, CircleDollarSign, Wallet, TrendingUp, Landmark, Search, X } from 'lucide-react';
+import { PlusCircle, Calendar as CalendarIcon, CircleDollarSign, Wallet, TrendingUp, Landmark, Search, X, BarChartBig, List } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { cn, formatCurrency, formatCurrencyMillions } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -42,6 +42,9 @@ import { type Project, portfolios, subPortfolios, servicesBySubPortfolio, type S
 import { useProjects } from '@/context/ProjectContext';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ProjectBranchChart } from '@/components/project-branch-chart';
+import { ProjectStatusChart } from '@/components/project-status-chart';
 
 export default function ProjectsPage() {
   const { projects, setProjects, getProjectStats } = useProjects();
@@ -114,7 +117,7 @@ export default function ProjectsPage() {
                           project.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           project.contractNumber.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const branchMatch = branchFilter === 'all' || project.branchId === branchFilter;
+      const branchMatch = branchFilter === 'all' || project.branchId === branchMatch;
 
       return searchMatch && branchMatch;
     });
@@ -596,103 +599,133 @@ export default function ProjectsPage() {
         </CardContent>
       </Card>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {widgetData.map((widget, index) => (
-            <Card key={index} className="relative overflow-hidden">
-                <svg
-                    className={`absolute -top-1 -right-1 h-24 w-24 ${widget.shapeColor}`}
-                    fill="currentColor"
-                    viewBox="0 0 200 200"
-                    xmlns="http://www.w3.org/2000/svg"
-                >
-                    <path
-                    d="M62.3,-53.5C78.2,-41.5,86.8,-20.8,86.4,-0.4C86,20,76.6,40,61.9,54.1C47.2,68.2,27.1,76.4,5.4,75.3C-16.3,74.2,-32.7,63.7,-47.5,51.3C-62.3,38.8,-75.6,24.5,-80.5,6.7C-85.4,-11.1,-82,-32.5,-69.3,-45.5C-56.6,-58.5,-34.7,-63.1,-15.6,-64.3C3.5,-65.5,26.4,-65.5,43.2,-61.7C59.9,-57.9,59.9,-57.9,62.3,-53.5Z"
-                    transform="translate(100 100)"
-                    />
-                </svg>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">
-                        {widget.title}
-                    </CardTitle>
-                    <widget.icon className={`h-8 w-8 ${widget.iconColor}`} />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-xl font-bold font-headline sm:text-lg md:text-xl lg:text-2xl mt-1">{widget.value}</div>
-                    <p className={`text-sm font-bold mt-2 ${widget.iconColor}`}>
-                        {widget.description}
-                    </p>
-                </CardContent>
-            </Card>
-            ))}
-        </div>
-
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {visibleProjects.length > 0 ? (
-          visibleProjects.map((project) => {
-            const stats = getProjectStats([project]);
-            const progress = project.value > 0 ? Math.round((stats.totalInvoiced / project.value) * 100) : 0;
-            return (
-              <Card key={project.id}>
-                <CardHeader>
-                  <CardTitle className="font-headline">{project.name}</CardTitle>
-                  <CardDescription>{project.description}</CardDescription>
-                </CardHeader>
-                <CardContent className="pt-4">
-                  <div className="space-y-4">
-                    <div className="flex justify-between text-sm">
-                        <p className="text-muted-foreground">Client</p>
-                        <p className="font-medium">{project.client}</p>
-                    </div>
-                     <div className="flex justify-between text-sm">
-                        <p className="text-muted-foreground">Contract No.</p>
-                        <p className="font-medium">{project.contractNumber}</p>
-                    </div>
-                     <div className="flex justify-between text-sm">
-                        <p className="text-muted-foreground">RAB No.</p>
-                        <p className="font-medium">{project.rabNumber}</p>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <p className="text-muted-foreground">Contract Executor</p>
-                      <p className="font-medium text-right">{project.contractExecutor}</p>
-                    </div>
-                     <div className="flex justify-between text-sm">
-                        <p className="text-muted-foreground">Period</p>
-                        <p className="font-medium">{project.period}</p>
-                    </div>
-                     <div className="flex justify-between text-sm">
-                        <p className="text-muted-foreground">Duration</p>
-                        <p className="font-medium">{project.duration}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Contract Value</p>
-                      <p className="text-2xl font-bold text-primary">
-                        {formatCurrency(project.value)}
-                      </p>
-                    </div>
-                    <div>
-                      <div className="flex justify-between items-baseline mb-1">
-                        <p className="text-sm text-muted-foreground">Progress</p>
-                        <p className="text-sm font-semibold">{progress}%</p>
-                      </div>
-                      <Progress value={progress} className="h-2" />
-                    </div>
-                  </div>
-                </CardContent>
-                <CardFooter>
-                   <Button variant="outline" className="w-full" asChild>
-                    <Link href={`/projects/${project.id}`}>View Details</Link>
-                  </Button>
-                </CardFooter>
-              </Card>
-            );
-          })
-        ) : (
-          <div className="col-span-full text-center text-muted-foreground py-12">
-            <h3 className="text-lg font-semibold">No Projects Found</h3>
-            <p>Try adjusting your search or filter criteria.</p>
-          </div>
-        )}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {widgetData.map((widget, index) => (
+          <Card key={index} className="relative overflow-hidden">
+              <svg
+                  className={`absolute -top-1 -right-1 h-24 w-24 ${widget.shapeColor}`}
+                  fill="currentColor"
+                  viewBox="0 0 200 200"
+                  xmlns="http://www.w3.org/2000/svg"
+              >
+                  <path
+                  d="M62.3,-53.5C78.2,-41.5,86.8,-20.8,86.4,-0.4C86,20,76.6,40,61.9,54.1C47.2,68.2,27.1,76.4,5.4,75.3C-16.3,74.2,-32.7,63.7,-47.5,51.3C-62.3,38.8,-75.6,24.5,-80.5,6.7C-85.4,-11.1,-82,-32.5,-69.3,-45.5C-56.6,-58.5,-34.7,-63.1,-15.6,-64.3C3.5,-65.5,26.4,-65.5,43.2,-61.7C59.9,-57.9,59.9,-57.9,62.3,-53.5Z"
+                  transform="translate(100 100)"
+                  />
+              </svg>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                      {widget.title}
+                  </CardTitle>
+                  <widget.icon className={`h-8 w-8 ${widget.iconColor}`} />
+              </CardHeader>
+              <CardContent>
+                  <div className="text-xl font-bold font-headline sm:text-lg md:text-xl lg:text-2xl mt-1">{widget.value}</div>
+                  <p className={`text-sm font-bold mt-2 ${widget.iconColor}`}>
+                      {widget.description}
+                  </p>
+              </CardContent>
+          </Card>
+          ))}
       </div>
+
+      <Tabs defaultValue="list" className="w-full space-y-4">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="summary"><BarChartBig className="mr-2 h-4 w-4" />Summary Charts</TabsTrigger>
+          <TabsTrigger value="list"><List className="mr-2 h-4 w-4" />Project List</TabsTrigger>
+        </TabsList>
+        <TabsContent value="summary">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card className="lg:col-span-2">
+                    <CardHeader>
+                        <CardTitle>Project Value by Branch</CardTitle>
+                        <CardDescription>A summary of total project value for each branch.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <ProjectBranchChart projects={visibleProjects} branches={branches} />
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Project Status by Count</CardTitle>
+                        <CardDescription>A summary of project counts by their completion status.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <ProjectStatusChart projects={visibleProjects} />
+                    </CardContent>
+                </Card>
+            </div>
+        </TabsContent>
+        <TabsContent value="list">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {visibleProjects.length > 0 ? (
+                visibleProjects.map((project) => {
+                    const stats = getProjectStats([project]);
+                    const progress = project.value > 0 ? Math.round((stats.totalInvoiced / project.value) * 100) : 0;
+                    return (
+                    <Card key={project.id}>
+                        <CardHeader>
+                        <CardTitle className="font-headline">{project.name}</CardTitle>
+                        <CardDescription>{project.description}</CardDescription>
+                        </CardHeader>
+                        <CardContent className="pt-4">
+                        <div className="space-y-4">
+                            <div className="flex justify-between text-sm">
+                                <p className="text-muted-foreground">Client</p>
+                                <p className="font-medium">{project.client}</p>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                                <p className="text-muted-foreground">Contract No.</p>
+                                <p className="font-medium">{project.contractNumber}</p>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                                <p className="text-muted-foreground">RAB No.</p>
+                                <p className="font-medium">{project.rabNumber}</p>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                            <p className="text-muted-foreground">Contract Executor</p>
+                            <p className="font-medium text-right">{project.contractExecutor}</p>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                                <p className="text-muted-foreground">Period</p>
+                                <p className="font-medium">{project.period}</p>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                                <p className="text-muted-foreground">Duration</p>
+                                <p className="font-medium">{project.duration}</p>
+                            </div>
+                            <div>
+                            <p className="text-sm text-muted-foreground">Contract Value</p>
+                            <p className="text-2xl font-bold text-primary">
+                                {formatCurrency(project.value)}
+                            </p>
+                            </div>
+                            <div>
+                            <div className="flex justify-between items-baseline mb-1">
+                                <p className="text-sm text-muted-foreground">Progress</p>
+                                <p className="text-sm font-semibold">{progress}%</p>
+                            </div>
+                            <Progress value={progress} className="h-2" />
+                            </div>
+                        </div>
+                        </CardContent>
+                        <CardFooter>
+                        <Button variant="outline" className="w-full" asChild>
+                            <Link href={`/projects/${project.id}`}>View Details</Link>
+                        </Button>
+                        </CardFooter>
+                    </Card>
+                    );
+                })
+                ) : (
+                <div className="col-span-full text-center text-muted-foreground py-12">
+                    <h3 className="text-lg font-semibold">No Projects Found</h3>
+                    <p>Try adjusting your search or filter criteria.</p>
+                </div>
+                )}
+            </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
