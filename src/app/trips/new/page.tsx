@@ -1,7 +1,8 @@
 
+
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
@@ -20,11 +21,16 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { DateRange } from 'react-day-picker';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { useProjects } from '@/context/ProjectContext';
+import { useEmployees } from '@/context/EmployeeContext';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function NewTripPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isHqUser, branches } = useAuth();
   const { addTrip } = useTrips();
+  const { projects } = useProjects();
+  const { employees } = useEmployees();
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
@@ -39,9 +45,33 @@ export default function NewTripPage() {
   const [date, setDate] = useState<DateRange | undefined>(undefined);
   const [isCompanyPopoverOpen, setIsCompanyPopoverOpen] = useState(false);
 
+  useEffect(() => {
+    if (user) {
+        const employeeRecord = employees.find(e => e.email === user.email);
+        const userBranch = branches.find(b => b.id === user.branchId);
+        
+        setFormData(prev => ({
+            ...prev,
+            position: employeeRecord?.position || '',
+            division: userBranch?.name || '',
+        }));
+    }
+  }, [user, employees, branches]);
+
+
+  const visibleProjects = useMemo(() => {
+    if (!user) return [];
+    if (isHqUser) return projects;
+    return projects.filter(p => p.branchId === user.branchId);
+  }, [projects, user, isHqUser]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
     setFormData(prev => ({...prev, [id]: value }));
+  }
+
+  const handleSelectChange = (field: 'project', value: string) => {
+    setFormData(prev => ({...prev, [field]: value }));
   }
   
   const handleCreateRequest = () => {
@@ -116,7 +146,18 @@ export default function NewTripPage() {
             </div>
              <div className="space-y-2">
                 <Label htmlFor="project">Project</Label>
-                <Input id="project" value={formData.project} onChange={handleInputChange} placeholder="e.g., Corporate Website Revamp" />
+                <Select value={formData.project} onValueChange={(value) => handleSelectChange('project', value)}>
+                    <SelectTrigger id="project">
+                        <SelectValue placeholder="Select a project" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {visibleProjects.map((project) => (
+                            <SelectItem key={project.id} value={project.name}>
+                                {project.name}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
             </div>
             <div className="space-y-2">
                 <Label htmlFor="destination">Destination</Label>
