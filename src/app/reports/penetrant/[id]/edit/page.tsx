@@ -21,7 +21,7 @@ import { cn } from '@/lib/utils';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { useProjects } from '@/context/ProjectContext';
 import { useAuth } from '@/context/AuthContext';
-import { type ReportItem, type PenetrantTestReportDetails } from '@/lib/reports';
+import { type ReportItem, type PenetrantTestReportDetails, acceptanceCriteriaOptions, ptProcedureNoOptions } from '@/lib/reports';
 import { Badge } from '@/components/ui/badge';
 import { useReports } from '@/context/ReportContext';
 import { useToast } from '@/hooks/use-toast';
@@ -62,9 +62,6 @@ type TestResult = {
     images: File[];
     imageUrls?: string[];
 };
-
-const acceptanceCriteriaOptions = ['ASME B31.3', 'API 1104', 'ASME Section V', 'AWS D1.1'];
-const procedureNoOptions = ['PO/AE.MIG-OPS/35'];
 
 function createReportDetails(formData: FormData): PenetrantTestReportDetails {
     return {
@@ -530,7 +527,7 @@ export default function EditPenetrantTestPage() {
                                     <CommandList>
                                         <CommandEmpty>No procedure found.</CommandEmpty>
                                         <CommandGroup>
-                                            {procedureNoOptions.map((option) => (
+                                            {ptProcedureNoOptions.map((option) => (
                                                 <CommandItem
                                                     key={option}
                                                     value={option}

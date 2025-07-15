@@ -527,7 +527,7 @@ export default function EditPenetrantTestPage() {
                                     <CommandList>
                                         <CommandEmpty>No procedure found.</CommandEmpty>
                                         <CommandGroup>
-                                            {procedureNoOptions.map((option) => (
+                                            {ptProcedureNoOptions.map((option) => (
                                                 <CommandItem
                                                     key={option}
                                                     value={option}
