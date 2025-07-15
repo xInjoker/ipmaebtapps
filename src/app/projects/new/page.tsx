@@ -47,7 +47,7 @@ import { CurrencyInput } from '@/components/ui/currency-input';
 
 export default function NewProjectPage() {
   const router = useRouter();
-  const { projects, setProjects } = useProjects();
+  const { addProject } = useProjects();
   const { user, isHqUser, branches } = useAuth();
   const { toast } = useToast();
 
@@ -99,7 +99,7 @@ export default function NewProjectPage() {
     return { period: '', duration: '' };
   }, [date]);
 
-  const handleAddProject = () => {
+  const handleAddProject = async () => {
     const assignedBranchId = isHqUser ? newProject.contractExecutor : user?.branchId;
 
     if (
@@ -141,14 +141,10 @@ export default function NewProjectPage() {
         return;
     }
 
-    const newId =
-      projects.length > 0 ? Math.max(...projects.map((p) => p.id)) + 1 : 1;
-
     const { contractExecutor, ...restOfNewProject } = newProject;
 
-    const projectToAdd: Project = {
+    const projectToAdd: Omit<Project, 'id'> = {
       ...restOfNewProject,
-      id: newId,
       branchId: assignedBranchId,
       contractExecutor: executorName,
       period,
@@ -161,7 +157,7 @@ export default function NewProjectPage() {
       reportApprovalWorkflow: [],
     };
 
-    setProjects([...projects, projectToAdd]);
+    await addProject(projectToAdd);
     toast({
       title: 'Project Added',
       description: `Project "${projectToAdd.name}" has been successfully created.`,

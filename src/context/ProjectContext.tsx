@@ -1,8 +1,10 @@
 
 'use client';
 
-import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useMemo, useCallback } from 'react';
+import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useMemo, useCallback, useEffect } from 'react';
 import { initialProjects, type Project } from '@/lib/data';
+import * as projectService from '@/services/projectService';
+import { useAuth } from './AuthContext';
 
 type ProjectStats = {
   totalProjectValue: number;
@@ -14,7 +16,10 @@ type ProjectStats = {
 
 type ProjectContextType = {
   projects: Project[];
-  setProjects: Dispatch<SetStateAction<Project[]>>;
+  setProjects: Dispatch<SetStateAction<Project[]>>; // Note: Direct setting might be limited with Firestore backend
+  addProject: (project: Omit<Project, 'id'>) => Promise<void>;
+  updateProject: (id: string, project: Partial<Project>) => Promise<void>;
+  getProjectById: (id: string) => Project | undefined;
   getProjectStats: (projectList: Project[]) => ProjectStats;
   projectStats: ProjectStats;
 };
@@ -22,7 +27,40 @@ type ProjectContextType = {
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
 
 export function ProjectProvider({ children }: { children: ReactNode }) {
-  const [projects, setProjects] = useState<Project[]>(initialProjects);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const { isInitializing } = useAuth(); // Use auth loading state to delay firestore fetch
+
+  useEffect(() => {
+    if (isInitializing) return;
+
+    const unsubscribe = projectService.streamProjects((fetchedProjects) => {
+        // One-time data seeding for new users
+        if (fetchedProjects.length === 0) {
+            projectService.seedInitialProjects();
+            // The stream will automatically provide the seeded projects, so no need to set state here.
+        } else {
+            setProjects(fetchedProjects);
+        }
+    });
+
+    return () => unsubscribe();
+  }, [isInitializing]);
+
+
+  const addProject = async (projectData: Omit<Project, 'id'>) => {
+      await projectService.addProject(projectData);
+      // State will be updated by the real-time listener
+  };
+
+  const updateProject = async (id: string, projectData: Partial<Project>) => {
+      await projectService.updateProject(id, projectData);
+      // State will be updated by the real-time listener
+  };
+  
+  const getProjectById = (id: string) => {
+    return projects.find(project => project.id.toString() === id);
+  };
+
 
   const getProjectStats = useCallback((projectList: Project[]): ProjectStats => {
     return projectList.reduce((acc, project) => {
@@ -74,7 +112,7 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
   const projectStats = useMemo(() => getProjectStats(projects), [projects, getProjectStats]);
 
   return (
-    <ProjectContext.Provider value={{ projects, setProjects, getProjectStats, projectStats }}>
+    <ProjectContext.Provider value={{ projects, setProjects, addProject, updateProject, getProjectById, getProjectStats, projectStats }}>
       {children}
     </ProjectContext.Provider>
   );

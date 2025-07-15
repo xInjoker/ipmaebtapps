@@ -49,11 +49,11 @@ import type { ApprovalStage } from '@/lib/data';
 
 export default function ProjectDetailsPage() {
   const params = useParams();
-  const projectId = parseInt(params.id as string, 10);
-  const { projects, setProjects } = useProjects();
+  const projectId = params.id as string;
+  const { getProjectById, updateProject } = useProjects();
   const { users } = useAuth();
   
-  const project = projects.find((p) => p.id === projectId);
+  const project = getProjectById(projectId);
 
   const {
     totalCost,
@@ -159,18 +159,13 @@ export default function ProjectDetailsPage() {
   }, [project]);
 
   const handleWorkflowChange = (type: 'trip' | 'report', newWorkflow: ApprovalStage[]) => {
-    setProjects(prevProjects =>
-      prevProjects.map(p => {
-        if (p.id === project?.id) {
-          if (type === 'trip') {
-            return { ...p, tripApprovalWorkflow: newWorkflow };
-          } else {
-            return { ...p, reportApprovalWorkflow: newWorkflow };
-          }
+    if (project) {
+        if (type === 'trip') {
+          updateProject(project.id, { tripApprovalWorkflow: newWorkflow });
+        } else {
+          updateProject(project.id, { reportApprovalWorkflow: newWorkflow });
         }
-        return p;
-      })
-    );
+    }
   };
 
 
@@ -399,13 +394,13 @@ export default function ProjectDetailsPage() {
           </TabsTrigger>
         </TabsList>
         <TabsContent value="service-orders">
-          <ProjectServiceOrderTab project={project} setProjects={setProjects} />
+          <ProjectServiceOrderTab project={project} setProjects={() => {}} />
         </TabsContent>
         <TabsContent value="invoices">
-          <ProjectInvoicingTab project={project} setProjects={setProjects} />
+          <ProjectInvoicingTab project={project} setProjects={() => {}} />
         </TabsContent>
         <TabsContent value="expenditure">
-           <ProjectExpenditureTab project={project} setProjects={setProjects} />
+           <ProjectExpenditureTab project={project} setProjects={() => {}} />
         </TabsContent>
          <TabsContent value="approval-settings" className="space-y-6">
            <ApprovalWorkflowManager
