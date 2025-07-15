@@ -65,7 +65,7 @@ export default function NewTenderPage() {
         setNewTender(prev => ({ ...prev, regional: value, branchId: '' }));
     };
 
-    const handleSave = () => {
+    const handleSave = async () => {
         if (!newTender.tenderNumber || !newTender.title || !newTender.client || !newTender.status || !newTender.submissionDate) {
             toast({
                 variant: 'destructive',
@@ -96,7 +96,7 @@ export default function NewTenderPage() {
             serviceName: newTender.serviceName,
         };
 
-        addTender(newTenderData);
+        await addTender(newTenderData);
         toast({ title: 'Tender Added', description: `Successfully added tender ${newTender.tenderNumber}.` });
         router.push('/tenders');
     };

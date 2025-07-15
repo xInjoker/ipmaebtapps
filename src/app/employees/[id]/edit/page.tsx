@@ -33,9 +33,9 @@ export default function EditEmployeePage() {
     }
   }, [employeeId, getEmployeeById, router, toast]);
 
-  const handleSave = (data: Employee) => {
+  const handleSave = async (data: Employee) => {
     if (employee) {
-      updateEmployee(employee.id, data);
+      await updateEmployee(employee.id, data);
       toast({ title: 'Employee Updated', description: `${data.name}'s details have been updated.` });
       router.push('/employees');
     }

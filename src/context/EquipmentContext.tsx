@@ -7,8 +7,8 @@ import { initialEquipment, type EquipmentItem } from '@/lib/equipment';
 type EquipmentContextType = {
   equipmentList: EquipmentItem[];
   setEquipmentList: Dispatch<SetStateAction<EquipmentItem[]>>;
-  addEquipment: (item: Omit<EquipmentItem, 'id'>) => void;
-  updateEquipment: (id: string, item: EquipmentItem) => void;
+  addEquipment: (item: Omit<EquipmentItem, 'id'>) => Promise<void>;
+  updateEquipment: (id: string, item: EquipmentItem) => Promise<void>;
   getEquipmentById: (id: string) => EquipmentItem | undefined;
 };
 
@@ -17,7 +17,8 @@ const EquipmentContext = createContext<EquipmentContextType | undefined>(undefin
 export function EquipmentProvider({ children }: { children: ReactNode }) {
   const [equipmentList, setEquipmentList] = useState<EquipmentItem[]>(initialEquipment);
 
-  const addEquipment = (item: Omit<EquipmentItem, 'id'>) => {
+  const addEquipment = async (item: Omit<EquipmentItem, 'id'>) => {
+    await new Promise(resolve => setTimeout(resolve, 500));
     const newId = `EQ-${String(equipmentList.length + 1).padStart(3, '0')}`;
     const newItem = { 
       ...item, 
@@ -28,7 +29,8 @@ export function EquipmentProvider({ children }: { children: ReactNode }) {
     setEquipmentList(prev => [...prev, newItem]);
   };
   
-  const updateEquipment = (id: string, updatedItem: EquipmentItem) => {
+  const updateEquipment = async (id: string, updatedItem: EquipmentItem) => {
+    await new Promise(resolve => setTimeout(resolve, 500));
     setEquipmentList(prev => prev.map(item => item.id === id ? updatedItem : item));
   };
   

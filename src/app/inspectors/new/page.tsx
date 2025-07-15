@@ -76,7 +76,7 @@ export default function NewInspectorPage() {
     });
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!newInspector.name || !newInspector.email || !newInspector.position || !newInspector.branchId || !newInspector.employmentStatus) {
       toast({
         variant: 'destructive',
@@ -86,7 +86,7 @@ export default function NewInspectorPage() {
       return;
     }
 
-    addInspector({
+    await addInspector({
       ...newInspector,
       id: generatedId,
       position: newInspector.position as Inspector['position'],

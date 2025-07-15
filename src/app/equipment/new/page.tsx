@@ -120,7 +120,7 @@ export default function NewEquipmentPage() {
     });
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!newEquipment.name || !newEquipment.serialNumber || !newEquipment.type || !newEquipment.owningBranchId || !newEquipment.calibrationDueDate) {
       toast({
         variant: 'destructive',
@@ -130,7 +130,7 @@ export default function NewEquipmentPage() {
       return;
     }
 
-    addEquipment({
+    await addEquipment({
       name: newEquipment.name,
       serialNumber: newEquipment.serialNumber,
       type: newEquipment.type as EquipmentType,

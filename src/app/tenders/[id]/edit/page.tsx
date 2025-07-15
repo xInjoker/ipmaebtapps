@@ -75,7 +75,7 @@ export default function EditTenderPage() {
         });
     };
 
-    const handleSave = () => {
+    const handleSave = async () => {
         if (!tender) return;
         if (!tender.tenderNumber || !tender.title || !tender.client || !tender.status || !tender.submissionDate) {
             toast({ variant: 'destructive', title: 'Missing Information', description: 'Please fill out all required fields.' });
@@ -87,7 +87,7 @@ export default function EditTenderPage() {
             submissionDate: format(new Date(tender.submissionDate), 'yyyy-MM-dd'),
         };
 
-        updateTender(tender.id, updatedTenderData);
+        await updateTender(tender.id, updatedTenderData);
         toast({ title: 'Tender Updated', description: `Successfully updated tender ${tender.tenderNumber}.` });
         router.push('/tenders');
     };
@@ -285,7 +285,7 @@ export default function EditTenderPage() {
                     </div>
                      <div className="space-y-2">
                         <Label htmlFor="bidPrice">Bid Price (IDR)</Label>
-                        <CurrencyInput id="bidPrice" value={tender.bidPrice || 0} onValueChange={value => setTender({ ...tender, bidPrice: value })} />
+                        <CurrencyInput id="bidPrice" value={tender.bidPrice} onValueChange={value => setTender({ ...tender, bidPrice: value })} />
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="personInCharge">Person In Charge (PIC)</Label>

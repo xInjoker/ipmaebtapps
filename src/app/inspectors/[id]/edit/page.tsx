@@ -94,7 +94,7 @@ export default function EditInspectorPage() {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!inspector) return;
     if (!inspector.name || !inspector.email || !inspector.position || !inspector.branchId) {
       toast({
@@ -124,7 +124,7 @@ export default function EditInspectorPage() {
         otherDocuments: [...inspector.otherDocuments, ...newOthersToSave],
     };
 
-    updateInspector(inspector.id, updatedInspectorData);
+    await updateInspector(inspector.id, updatedInspectorData);
     
     toast({
         title: 'Inspector Updated',

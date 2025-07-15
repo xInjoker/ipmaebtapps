@@ -16,8 +16,8 @@ type InspectorStats = {
 type InspectorContextType = {
   inspectors: Inspector[];
   setInspectors: Dispatch<SetStateAction<Inspector[]>>;
-  addInspector: (item: Inspector) => void;
-  updateInspector: (id: string, item: Inspector) => void;
+  addInspector: (item: Inspector) => Promise<void>;
+  updateInspector: (id: string, item: Inspector) => Promise<void>;
   getInspectorById: (id: string) => Inspector | undefined;
   inspectorStats: InspectorStats;
   widgetData: { title: string; value: string; description: string; icon: React.ElementType; iconColor: string; shapeColor: string; }[];
@@ -28,11 +28,13 @@ const InspectorContext = createContext<InspectorContextType | undefined>(undefin
 export function InspectorProvider({ children }: { children: ReactNode }) {
   const [inspectors, setInspectors] = useState<Inspector[]>(initialInspectors);
 
-  const addInspector = (item: Inspector) => {
+  const addInspector = async (item: Inspector) => {
+    await new Promise(resolve => setTimeout(resolve, 500));
     setInspectors(prev => [...prev, item]);
   };
   
-  const updateInspector = (id: string, updatedItem: Inspector) => {
+  const updateInspector = async (id: string, updatedItem: Inspector) => {
+    await new Promise(resolve => setTimeout(resolve, 500));
     setInspectors(prev => prev.map(item => item.id === id ? updatedItem : item));
   };
   

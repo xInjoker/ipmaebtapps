@@ -12,8 +12,8 @@ export default function NewEmployeePage() {
   const { addEmployee } = useEmployees();
   const { toast } = useToast();
 
-  const handleSave = (data: Employee) => {
-    addEmployee(data);
+  const handleSave = async (data: Employee) => {
+    await addEmployee(data);
     toast({ title: 'Employee Added', description: `${data.name} has been added to the system.` });
     router.push('/employees');
   };

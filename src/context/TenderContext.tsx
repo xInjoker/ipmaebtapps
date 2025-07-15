@@ -16,8 +16,8 @@ type TenderStats = {
 type TenderContextType = {
   tenders: Tender[];
   setTenders: Dispatch<SetStateAction<Tender[]>>;
-  addTender: (item: Tender) => void;
-  updateTender: (id: string, item: Tender) => void;
+  addTender: (item: Tender) => Promise<void>;
+  updateTender: (id: string, item: Tender) => Promise<void>;
   getTenderById: (id: string) => Tender | undefined;
   tenderStats: TenderStats;
   widgetData: { title: string; value: string; description: string; icon: React.ElementType; iconColor: string; shapeColor: string; }[];
@@ -28,11 +28,13 @@ const TenderContext = createContext<TenderContextType | undefined>(undefined);
 export function TenderProvider({ children }: { children: ReactNode }) {
   const [tenders, setTenders] = useState<Tender[]>(initialTenders);
 
-  const addTender = (item: Tender) => {
+  const addTender = async (item: Tender) => {
+    await new Promise(resolve => setTimeout(resolve, 500));
     setTenders(prev => [...prev, item]);
   };
 
-  const updateTender = (id: string, updatedItem: Tender) => {
+  const updateTender = async (id: string, updatedItem: Tender) => {
+    await new Promise(resolve => setTimeout(resolve, 500));
     setTenders(prev => prev.map(item => item.id === id ? updatedItem : item));
   };
 

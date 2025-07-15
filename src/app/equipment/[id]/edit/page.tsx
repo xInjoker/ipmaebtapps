@@ -168,7 +168,7 @@ export default function EditEquipmentPage() {
     setEquipment({...equipment, assignedPersonnelIds: newAssigned});
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!equipment) return;
     if (!equipment.name || !equipment.serialNumber || !equipment.type || !equipment.owningBranchId || !equipment.calibrationDueDate) {
       toast({
@@ -186,7 +186,7 @@ export default function EditEquipmentPage() {
         personnelCertificationUrls: [...equipment.personnelCertificationUrls, ...newPersonnelCerts.map(file => file.name)],
     };
 
-    updateEquipment(equipment.id, updatedEquipmentData);
+    await updateEquipment(equipment.id, updatedEquipmentData);
     
     toast({
         title: 'Equipment Updated',
