@@ -29,7 +29,7 @@ import {
 } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, Calendar as CalendarIcon, Save } from 'lucide-react';
+import { ArrowLeft, Calendar as CalendarIcon, Save, Loader2 } from 'lucide-react';
 import { DateRange } from 'react-day-picker';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -42,6 +42,8 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
 import { CurrencyInput } from '@/components/ui/currency-input';
+
+type SubmissionStatus = 'idle' | 'loading' | 'success' | 'error';
 
 export default function NewProjectPage() {
   const router = useRouter();
@@ -63,6 +65,7 @@ export default function NewProjectPage() {
     serviceName: '',
   });
   const [date, setDate] = useState<DateRange | undefined>(undefined);
+  const [submissionStatus, setSubmissionStatus] = useState<SubmissionStatus>('idle');
 
   const availableServices = useMemo(() => {
     if (!newProject.subPortfolio) return [];
@@ -74,6 +77,20 @@ export default function NewProjectPage() {
       setNewProject(prev => ({...prev, contractExecutor: user.branchId}));
     }
   }, [isHqUser, user]);
+  
+  // Effect to handle navigation after toast is shown
+  useEffect(() => {
+    if (submissionStatus === 'success') {
+      toast({
+        title: 'Project Added',
+        description: `Project "${newProject.name}" has been successfully created.`,
+      });
+      router.push('/projects');
+    }
+    if (submissionStatus === 'error') {
+       setSubmissionStatus('idle'); // Reset status to allow retry
+    }
+  }, [submissionStatus, newProject.name, router, toast]);
 
   const { period, duration } = useMemo(() => {
     if (date?.from && date?.to) {
@@ -98,6 +115,7 @@ export default function NewProjectPage() {
   }, [date]);
 
   const handleAddProject = async () => {
+    setSubmissionStatus('loading');
     const assignedBranchId = isHqUser ? newProject.contractExecutor : user?.branchId;
 
     if (
@@ -117,6 +135,7 @@ export default function NewProjectPage() {
         description:
           'Please fill out all fields, including executor, a positive value and a complete date range.',
       });
+      setSubmissionStatus('error');
       return;
     }
 
@@ -126,6 +145,7 @@ export default function NewProjectPage() {
         title: 'Authentication Error',
         description: 'Could not determine user. Please try logging in again.',
       });
+       setSubmissionStatus('error');
       return;
     }
 
@@ -136,6 +156,7 @@ export default function NewProjectPage() {
             title: 'Invalid Branch',
             description: 'The selected contract executor branch is not valid.',
         });
+        setSubmissionStatus('error');
         return;
     }
 
@@ -155,13 +176,18 @@ export default function NewProjectPage() {
       reportApprovalWorkflow: [],
     };
 
-    await addProject(projectToAdd);
-    
-    toast({
-      title: 'Project Added',
-      description: `Project "${projectToAdd.name}" has been successfully created.`,
-    });
-    router.push('/projects');
+    try {
+        await addProject(projectToAdd);
+        setSubmissionStatus('success');
+    } catch (error) {
+        console.error("Failed to add project", error);
+        toast({
+            variant: 'destructive',
+            title: 'Save Failed',
+            description: 'Could not save the project to the database.',
+        });
+        setSubmissionStatus('error');
+    }
   };
 
   return (
@@ -293,7 +319,14 @@ export default function NewProjectPage() {
       </CardContent>
       <CardFooter className="flex justify-end gap-2">
         <Button variant="outline" asChild><Link href="/projects">Cancel</Link></Button>
-        <Button onClick={handleAddProject}><Save className="mr-2 h-4 w-4" /> Save Project</Button>
+        <Button onClick={handleAddProject} disabled={submissionStatus === 'loading'}>
+            {submissionStatus === 'loading' ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+                <Save className="mr-2 h-4 w-4" />
+            )}
+            Save Project
+        </Button>
       </CardFooter>
     </Card>
   );
