@@ -18,6 +18,7 @@ import type { Project, ServiceOrderItem } from '@/lib/data';
 import { formatCurrency, cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
+import { CurrencyInput } from './ui/currency-input';
 
 type ProjectServiceOrderTabProps = {
     project: Project;
@@ -186,7 +187,7 @@ export function ProjectServiceOrderTab({ project, setProjects }: ProjectServiceO
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="value" className="text-right">Value (IDR)</Label>
-                <Input id="value" type="number" value={state.value || ''} onChange={(e) => setter({ ...state, value: parseInt(e.target.value) || 0 })} className="col-span-3" />
+                <CurrencyInput id="value" value={state.value || 0} onValueChange={(value) => setter({ ...state, value })} className="col-span-3" />
             </div>
         </div>
     );

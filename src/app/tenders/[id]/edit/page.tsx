@@ -21,6 +21,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Textarea } from '@/components/ui/textarea';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { portfolios, subPortfolios, servicesBySubPortfolio } from '@/lib/data';
+import { CurrencyInput } from '@/components/ui/currency-input';
 
 export default function EditTenderPage() {
     const router = useRouter();
@@ -280,11 +281,11 @@ export default function EditTenderPage() {
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="ownerEstimatePrice">Owner Estimate Price (IDR)</Label>
-                        <Input id="ownerEstimatePrice" type="number" value={tender.ownerEstimatePrice || ''} onChange={e => setTender({ ...tender, ownerEstimatePrice: parseInt(e.target.value) || 0 })} />
+                        <CurrencyInput id="ownerEstimatePrice" value={tender.ownerEstimatePrice || 0} onValueChange={value => setTender({ ...tender, ownerEstimatePrice: value })} />
                     </div>
                      <div className="space-y-2">
                         <Label htmlFor="bidPrice">Bid Price (IDR)</Label>
-                        <Input id="bidPrice" type="number" value={tender.bidPrice || ''} onChange={e => setTender({ ...tender, bidPrice: parseInt(e.target.value) || 0 })} />
+                        <CurrencyInput id="bidPrice" value={tender.bidPrice || 0} onValueChange={value => setTender({ ...tender, bidPrice: value })} />
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="personInCharge">Person In Charge (PIC)</Label>

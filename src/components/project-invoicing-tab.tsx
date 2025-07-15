@@ -17,6 +17,7 @@ import type { Project, InvoiceItem, ServiceOrderItem } from '@/lib/data';
 import { formatCurrency } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
+import { CurrencyInput } from './ui/currency-input';
 
 type ProjectInvoicingTabProps = {
     project: Project;
@@ -241,7 +242,7 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
                                     </div>
                                     <div className="grid grid-cols-4 items-center gap-4">
                                         <Label htmlFor="value" className="text-right">Value (IDR)</Label>
-                                        <Input id="value" type="number" value={newInvoice.value || ''} onChange={(e) => setNewInvoice({ ...newInvoice, value: parseInt(e.target.value) || 0 })} className="col-span-3" />
+                                        <CurrencyInput id="value" value={newInvoice.value} onValueChange={(value) => setNewInvoice({ ...newInvoice, value })} className="col-span-3" />
                                     </div>
                                     {addSoDetails.warning && (
                                         <div className="grid grid-cols-4 items-center gap-4">
@@ -375,7 +376,7 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
                                 </div>
                                 <div className="grid grid-cols-4 items-center gap-4">
                                     <Label htmlFor="editValue" className="text-right">Value (IDR)</Label>
-                                    <Input id="editValue" type="number" value={editedInvoice.value || ''} onChange={(e) => setEditedInvoice({ ...editedInvoice, value: parseInt(e.target.value) || 0 })} className="col-span-3" />
+                                    <CurrencyInput id="editValue" value={editedInvoice.value} onValueChange={(value) => setEditedInvoice({ ...editedInvoice, value })} className="col-span-3" />
                                 </div>
                                  {editSoDetails.warning && (
                                     <div className="grid grid-cols-4 items-center gap-4">
@@ -394,4 +395,3 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
         </>
     );
 }
-

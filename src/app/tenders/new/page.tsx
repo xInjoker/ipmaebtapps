@@ -21,6 +21,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Textarea } from '@/components/ui/textarea';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { portfolios, subPortfolios, servicesBySubPortfolio } from '@/lib/data';
+import { CurrencyInput } from '@/components/ui/currency-input';
 
 export default function NewTenderPage() {
     const router = useRouter();
@@ -279,11 +280,11 @@ export default function NewTenderPage() {
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="ownerEstimatePrice">Owner Estimate Price (IDR)</Label>
-                        <Input id="ownerEstimatePrice" type="number" value={newTender.ownerEstimatePrice || ''} onChange={e => setNewTender({ ...newTender, ownerEstimatePrice: parseInt(e.target.value) || 0 })} />
+                        <CurrencyInput id="ownerEstimatePrice" value={newTender.ownerEstimatePrice} onValueChange={(value) => setNewTender({ ...newTender, ownerEstimatePrice: value })} />
                     </div>
                      <div className="space-y-2">
                         <Label htmlFor="bidPrice">Bid Price (IDR)</Label>
-                        <Input id="bidPrice" type="number" value={newTender.bidPrice || ''} onChange={e => setNewTender({ ...newTender, bidPrice: parseInt(e.target.value) || 0 })} />
+                        <CurrencyInput id="bidPrice" value={newTender.bidPrice} onValueChange={(value) => setNewTender({ ...newTender, bidPrice: value })} />
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="personInCharge">Person In Charge (PIC)</Label>

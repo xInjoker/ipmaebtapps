@@ -15,6 +15,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import type { Project, ExpenditureItem } from '@/lib/data';
 import { formatCurrency } from '@/lib/utils';
+import { CurrencyInput } from './ui/currency-input';
 
 const expenditureCategories = [
     'PT dan PTT',
@@ -209,10 +210,9 @@ export function ProjectExpenditureTab({ project, setProjects }: ProjectExpenditu
                                     <TableRow key={category}>
                                         <TableCell className="font-medium">{category}</TableCell>
                                         <TableCell className="text-right">
-                                            <Input
-                                                type="number"
+                                            <CurrencyInput
                                                 value={project.budgets[category] || 0}
-                                                onChange={(e) => handleBudgetChange(category, parseInt(e.target.value) || 0)}
+                                                onValueChange={(value) => handleBudgetChange(category, value)}
                                                 className="ml-auto max-w-xs text-right"
                                                 placeholder="Enter budget"
                                                 disabled={category === 'Other'}
@@ -340,11 +340,10 @@ export function ProjectExpenditureTab({ project, setProjects }: ProjectExpenditu
                                         </div>
                                         <div className="grid grid-cols-4 items-center gap-4">
                                             <Label htmlFor="amount" className="text-right">Amount (IDR)</Label>
-                                            <Input
+                                             <CurrencyInput
                                                 id="amount"
-                                                type="number"
-                                                value={newExpenditure.amount || ''}
-                                                onChange={(e) => setNewExpenditure({ ...newExpenditure, amount: parseInt(e.target.value) || 0 })}
+                                                value={newExpenditure.amount}
+                                                onValueChange={(value) => setNewExpenditure({ ...newExpenditure, amount: value })}
                                                 className="col-span-3"
                                             />
                                         </div>
@@ -477,11 +476,10 @@ export function ProjectExpenditureTab({ project, setProjects }: ProjectExpenditu
                                 </div>
                                 <div className="grid grid-cols-4 items-center gap-4">
                                     <Label htmlFor="editExpAmount" className="text-right">Amount (IDR)</Label>
-                                    <Input
+                                    <CurrencyInput
                                         id="editExpAmount"
-                                        type="number"
-                                        value={expenditureToEdit.amount || ''}
-                                        onChange={(e) => setExpenditureToEdit({ ...expenditureToEdit, amount: parseInt(e.target.value) || 0 })}
+                                        value={expenditureToEdit.amount}
+                                        onValueChange={(value) => setExpenditureToEdit({ ...expenditureToEdit, amount: value })}
                                         className="col-span-3"
                                     />
                                 </div>

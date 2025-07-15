@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import Link from 'next/link';
@@ -31,6 +31,7 @@ import { ScrollArea } from './ui/scroll-area';
 import { useAuth } from '@/context/AuthContext';
 import { useProjects } from '@/context/ProjectContext';
 import { useEmployees } from '@/context/EmployeeContext';
+import { CurrencyInput } from './ui/currency-input';
 
 const employeeSchema = z.object({
   // Step 1: Work & Project
@@ -361,7 +362,19 @@ export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
                 )}
                 {currentStep === 4 && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2"><Label>Salary</Label><Input type="number" {...form.register('salary')} /></div>
+                        <div className="space-y-2">
+                            <Label>Salary</Label>
+                            <Controller
+                                name="salary"
+                                control={form.control}
+                                render={({ field }) => (
+                                    <CurrencyInput
+                                        value={field.value || 0}
+                                        onValueChange={field.onChange}
+                                    />
+                                )}
+                            />
+                        </div>
                         <div className="space-y-2"><Label>Bank Name</Label><Input {...form.register('bankName')} /></div>
                         <div className="space-y-2"><Label>Bank Account Number</Label><Input {...form.register('bankAccountNumber')} /></div>
                         <div className="space-y-2"><Label>NPWP Number</Label><Input {...form.register('npwp')} /></div>

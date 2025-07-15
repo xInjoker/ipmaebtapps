@@ -43,6 +43,7 @@ import { useProjects } from '@/context/ProjectContext';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
+import { CurrencyInput } from '@/components/ui/currency-input';
 
 export default function NewProjectPage() {
   const router = useRouter();
@@ -276,7 +277,12 @@ export default function NewProjectPage() {
                 </div>
                 <div className="space-y-2">
                 <Label htmlFor="value">Value (IDR)</Label>
-                <Input id="value" type="number" value={newProject.value || ''} onChange={(e) => setNewProject({ ...newProject, value: parseInt(e.target.value) || 0 })} placeholder="Contract value" />
+                <CurrencyInput
+                    id="value"
+                    value={newProject.value}
+                    onValueChange={(value) => setNewProject({ ...newProject, value })}
+                    placeholder="Contract value"
+                />
                 </div>
             </div>
         </div>
