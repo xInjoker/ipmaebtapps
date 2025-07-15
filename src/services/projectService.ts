@@ -43,7 +43,8 @@ export const streamProjects = (callback: (projects: Project[]) => void) => {
 // --- CRUD Operations ---
 export const addProject = async (projectData: Omit<Project, 'id'>) => {
     const projectsCollection = collection(db, PROJECTS_COLLECTION);
-    await addDoc(projectsCollection, projectData);
+    // Correctly return the promise from the addDoc call
+    return await addDoc(projectsCollection, projectData);
 };
 
 export const updateProject = async (id: string, projectData: Partial<Project>) => {

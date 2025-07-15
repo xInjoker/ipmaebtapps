@@ -169,7 +169,7 @@ export default function NewProjectPage() {
             title: 'Project Added',
             description: `Project "${newProject.name}" has been successfully created.`,
         });
-        setSubmissionStatus('success');
+        // Use a short timeout to allow the toast to render before navigation
         setTimeout(() => router.push('/projects'), 500);
     } catch (error) {
         console.error("Failed to add project", error);
