@@ -15,7 +15,7 @@ export default function NewEmployeePage() {
   const handleSave = async (data: Employee) => {
     await addEmployee(data);
     toast({ title: 'Employee Added', description: `${data.name} has been added to the system.` });
-    router.push('/employees');
+    setTimeout(() => router.push('/employees'), 500);
   };
 
   return <EmployeeForm onSave={handleSave} />;

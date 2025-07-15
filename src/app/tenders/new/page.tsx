@@ -98,7 +98,7 @@ export default function NewTenderPage() {
 
         await addTender(newTenderData);
         toast({ title: 'Tender Added', description: `Successfully added tender ${newTender.tenderNumber}.` });
-        router.push('/tenders');
+        setTimeout(() => router.push('/tenders'), 500);
     };
 
     return (

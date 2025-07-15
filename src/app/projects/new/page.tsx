@@ -78,19 +78,6 @@ export default function NewProjectPage() {
     }
   }, [isHqUser, user]);
   
-  // Effect to handle navigation after toast is shown
-  useEffect(() => {
-    if (submissionStatus === 'success') {
-      toast({
-        title: 'Project Added',
-        description: `Project "${newProject.name}" has been successfully created.`,
-      });
-      router.push('/projects');
-    }
-    if (submissionStatus === 'error') {
-       setSubmissionStatus('idle'); // Reset status to allow retry
-    }
-  }, [submissionStatus, newProject.name, router, toast]);
 
   const { period, duration } = useMemo(() => {
     if (date?.from && date?.to) {
@@ -135,7 +122,7 @@ export default function NewProjectPage() {
         description:
           'Please fill out all fields, including executor, a positive value and a complete date range.',
       });
-      setSubmissionStatus('error');
+      setSubmissionStatus('idle');
       return;
     }
 
@@ -145,7 +132,7 @@ export default function NewProjectPage() {
         title: 'Authentication Error',
         description: 'Could not determine user. Please try logging in again.',
       });
-       setSubmissionStatus('error');
+       setSubmissionStatus('idle');
       return;
     }
 
@@ -156,7 +143,7 @@ export default function NewProjectPage() {
             title: 'Invalid Branch',
             description: 'The selected contract executor branch is not valid.',
         });
-        setSubmissionStatus('error');
+        setSubmissionStatus('idle');
         return;
     }
 
@@ -178,7 +165,11 @@ export default function NewProjectPage() {
 
     try {
         await addProject(projectToAdd);
-        setSubmissionStatus('success');
+        toast({
+            title: 'Project Added',
+            description: `Project "${newProject.name}" has been successfully created.`,
+        });
+        setTimeout(() => router.push('/projects'), 500);
     } catch (error) {
         console.error("Failed to add project", error);
         toast({
@@ -186,7 +177,7 @@ export default function NewProjectPage() {
             title: 'Save Failed',
             description: 'Could not save the project to the database.',
         });
-        setSubmissionStatus('error');
+        setSubmissionStatus('idle');
     }
   };
 

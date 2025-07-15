@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -110,7 +109,7 @@ export default function NewInspectorPage() {
         description: `Successfully added ${newInspector.name}.`,
     });
 
-    router.push('/inspectors');
+    setTimeout(() => router.push('/inspectors'), 500);
   };
 
   return (

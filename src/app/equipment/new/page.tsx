@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -149,7 +148,7 @@ export default function NewEquipmentPage() {
         description: `Successfully added ${newEquipment.name}.`,
     });
 
-    router.push('/equipment');
+    setTimeout(() => router.push('/equipment'), 500);
   };
 
   const calibrationDate = newEquipment.calibrationDueDate ? new Date(newEquipment.calibrationDueDate) : undefined;
