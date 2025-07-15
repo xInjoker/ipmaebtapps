@@ -17,6 +17,7 @@ type ToasterToast = ToastProps & {
   title?: React.ReactNode
   description?: React.ReactNode
   action?: ToastActionElement
+  onClose?: () => void
 }
 
 const actionTypes = {
@@ -160,7 +161,11 @@ function toast({ ...props }: Toast) {
       id,
       open: true,
       onOpenChange: (open) => {
-        if (!open) dismiss()
+        if (!open) {
+          dismiss()
+          // Call the onClose callback if it exists
+          props.onClose?.();
+        }
       },
     },
   })

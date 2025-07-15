@@ -157,15 +157,11 @@ export default function NewProjectPage() {
 
     await addProject(projectToAdd);
     
-    toast({
+     toast({
       title: 'Project Added',
       description: `Project "${projectToAdd.name}" has been successfully created.`,
+      onClose: () => router.push('/projects'),
     });
-    
-    // Add a small delay to ensure the toast is visible before navigating
-    setTimeout(() => {
-        router.push('/projects');
-    }, 500);
   };
 
   return (
