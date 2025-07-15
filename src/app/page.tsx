@@ -24,8 +24,8 @@ import {
   ChartConfig,
 } from '@/components/ui/chart';
 import { Bar, BarChart, CartesianGrid, XAxis, Pie, PieChart, Cell } from 'recharts';
-import { TrendingUp, CircleDollarSign, ListTodo, Receipt, Wrench, ClipboardEdit, Plane, FileText } from 'lucide-react';
-import { useMemo } from 'react';
+import { TrendingUp, CircleDollarSign, ListTodo, Receipt, Wrench, ClipboardEdit, Plane, FileText, Wifi, WifiOff, Clock } from 'lucide-react';
+import { useMemo, useEffect, useState } from 'react';
 import { useProjects } from '@/context/ProjectContext';
 import { useAuth } from '@/context/AuthContext';
 import { useTenders } from '@/context/TenderContext';
@@ -33,6 +33,9 @@ import { formatCurrency, formatCurrencyMillions } from '@/lib/utils';
 import { HeaderCard } from '@/components/header-card';
 import { DashboardWidget } from '@/components/dashboard-widget';
 import Link from 'next/link';
+import { db } from '@/lib/firebase';
+import { collection, getDocs } from 'firebase/firestore';
+
 
 const chartData = [
   { month: 'January', invoiced: 186000000, paid: 80000000 },
@@ -65,6 +68,20 @@ export default function DashboardPage() {
   const { projects, getProjectStats } = useProjects();
   const { user, isHqUser, branches } = useAuth();
   const { widgetData: tenderWidgets } = useTenders();
+  const [firestoreStatus, setFirestoreStatus] = useState<'checking' | 'success' | 'error'>('checking');
+
+  useEffect(() => {
+    const checkFirestoreConnection = async () => {
+      try {
+        await getDocs(collection(db, 'test-connection'));
+        setFirestoreStatus('success');
+      } catch (error) {
+        console.error("Firestore connection error:", error);
+        setFirestoreStatus('error');
+      }
+    };
+    checkFirestoreConnection();
+  }, []);
 
   const visibleProjects = useMemo(() => {
     if (!user) return [];
@@ -177,6 +194,31 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Firestore Connection Status</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {firestoreStatus === 'checking' && (
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Clock className="h-4 w-4 animate-spin" />
+              <span>Checking connection...</span>
+            </div>
+          )}
+          {firestoreStatus === 'success' && (
+            <div className="flex items-center gap-2 text-green-600">
+              <Wifi className="h-4 w-4" />
+              <span>Connection to Firestore successful!</span>
+            </div>
+          )}
+          {firestoreStatus === 'error' && (
+            <div className="flex items-center gap-2 text-destructive">
+              <WifiOff className="h-4 w-4" />
+              <span>Failed to connect to Firestore. Please check your API keys in the .env file.</span>
+            </div>
+          )}
+        </CardContent>
+      </Card>
       <HeaderCard
         title={`Welcome, ${user?.name}`}
         description={welcomeDescription}
