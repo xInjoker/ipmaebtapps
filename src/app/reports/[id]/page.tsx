@@ -492,7 +492,7 @@ export default function ReportDetailsPage() {
                 try {
                     const base64Img = await getBase64Image(image.url);
                     
-                    const img = new Image();
+                    const img = new (NextImage.default)();
                     img.src = base64Img;
                     await new Promise(resolve => { img.onload = resolve; });
 

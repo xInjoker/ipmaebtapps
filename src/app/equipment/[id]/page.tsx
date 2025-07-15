@@ -33,7 +33,7 @@ import {
   Building,
   HardDrive,
   FileText,
-  Image as ImageIcon,
+  ImageIcon,
   Edit,
 } from 'lucide-react';
 import { format } from 'date-fns';

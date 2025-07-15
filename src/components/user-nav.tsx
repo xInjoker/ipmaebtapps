@@ -24,6 +24,7 @@ type UserNavProps = {
 
 export function UserNav({ isSidebarFooter = false }: UserNavProps) {
   const { user, logout, roles } = useAuth();
+  const Image = NextImage.default;
 
   if (!user) {
     return null;
@@ -31,7 +32,6 @@ export function UserNav({ isSidebarFooter = false }: UserNavProps) {
 
   const userRole = roles.find((r: Role) => r.id === user.roleId);
   const avatarColor = getAvatarColor(user.name);
-  const Image = NextImage.default;
 
   if (isSidebarFooter) {
     return (

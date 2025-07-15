@@ -26,6 +26,7 @@ import { getCalibrationStatus, type CalibrationStatus } from '@/lib/utils';
 export function EquipmentCard({ item, branchMap }: { item: EquipmentItem; branchMap: Record<string, string> }) {
   const [calibration, setCalibration] = useState<CalibrationStatus | null>(null);
   const { userHasPermission } = useAuth();
+  const Image = NextImage.default;
 
   useEffect(() => {
     // This runs only on the client, after hydration
@@ -33,8 +34,6 @@ export function EquipmentCard({ item, branchMap }: { item: EquipmentItem; branch
       setCalibration(getCalibrationStatus(new Date(item.calibrationDueDate)));
     }
   }, [item.calibrationDueDate]);
-
-  const Image = NextImage.default;
 
   return (
     <Card key={item.id} className="flex flex-col">
