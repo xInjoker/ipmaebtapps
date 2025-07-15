@@ -169,6 +169,7 @@ export default function NewProjectPage() {
             title: 'Project Added',
             description: `Project "${newProject.name}" has been successfully created.`,
         });
+        setSubmissionStatus('success');
         setTimeout(() => router.push('/projects'), 500);
     } catch (error) {
         console.error("Failed to add project", error);
@@ -177,7 +178,7 @@ export default function NewProjectPage() {
             title: 'Save Failed',
             description: 'Could not save the project to the database.',
         });
-        setSubmissionStatus('idle');
+        setSubmissionStatus('error');
     }
   };
 
