@@ -35,10 +35,8 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import {
   type Project,
-  portfolios,
-  subPortfolios,
-  servicesBySubPortfolio,
-} from '@/lib/data';
+} from '@/lib/projects';
+import { portfolios, subPortfolios, servicesBySubPortfolio } from '@/lib/projects';
 import { useProjects } from '@/context/ProjectContext';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';

@@ -45,7 +45,7 @@ import { ProjectBudgetExpenditureChart } from '@/components/project-budget-expen
 import { ProjectServiceOrderChart } from '@/components/project-service-order-chart';
 import { ApprovalWorkflowManager } from '@/components/project-approval-workflow';
 import { useAuth } from '@/context/AuthContext';
-import type { ApprovalStage } from '@/lib/data';
+import type { ApprovalStage } from '@/lib/projects';
 
 export default function ProjectDetailsPage() {
   const params = useParams();
@@ -394,13 +394,13 @@ export default function ProjectDetailsPage() {
           </TabsTrigger>
         </TabsList>
         <TabsContent value="service-orders">
-          <ProjectServiceOrderTab project={project} setProjects={() => {}} />
+          <ProjectServiceOrderTab project={project} setProjects={updateProject as any} />
         </TabsContent>
         <TabsContent value="invoices">
-          <ProjectInvoicingTab project={project} setProjects={() => {}} />
+          <ProjectInvoicingTab project={project} setProjects={updateProject as any} />
         </TabsContent>
         <TabsContent value="expenditure">
-           <ProjectExpenditureTab project={project} setProjects={() => {}} />
+           <ProjectExpenditureTab project={project} setProjects={updateProject as any} />
         </TabsContent>
          <TabsContent value="approval-settings" className="space-y-6">
            <ApprovalWorkflowManager

@@ -1,5 +1,4 @@
 
-
 export type ServiceOrderItem = {
   id: number;
   soNumber: string;
@@ -59,7 +58,7 @@ export type ApprovalStage = {
 };
 
 export type Project = {
-  id: number;
+  id: string; // Firestore IDs are strings
   contractNumber: string;
   rabNumber: string;
   name: string;
@@ -82,9 +81,10 @@ export type Project = {
   reportApprovalWorkflow: ApprovalStage[];
 };
 
-export const initialProjects: Project[] = [
+// This data is now primarily for seeding the database for the first time.
+// Note: 'id' is now a string to match Firestore document IDs.
+export const initialProjects: Omit<Project, 'id'>[] = [
   {
-    id: 1,
     contractNumber: 'CN-001',
     rabNumber: 'RAB-24-001',
     name: 'Corporate Website Revamp',
@@ -169,7 +169,6 @@ export const initialProjects: Project[] = [
     ]
   },
   {
-    id: 2,
     contractNumber: 'CN-002',
     rabNumber: 'RAB-24-002',
     name: 'Mobile App Development',
@@ -248,7 +247,6 @@ export const initialProjects: Project[] = [
     reportApprovalWorkflow: []
   },
   {
-    id: 3,
     contractNumber: 'CN-003',
     rabNumber: 'RAB-23-015',
     name: 'Data Analytics Platform',

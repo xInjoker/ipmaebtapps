@@ -2,7 +2,7 @@
 'use client';
 
 import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useMemo, useCallback, useEffect } from 'react';
-import { initialProjects, type Project } from '@/lib/data';
+import { type Project } from '@/lib/data';
 import * as projectService from '@/services/projectService';
 import { useAuth } from './AuthContext';
 
@@ -33,13 +33,21 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (isInitializing) return;
 
+    // Load from local storage first for a fast initial load
+    const localProjects = projectService.loadProjectsFromLocalStorage();
+    if (localProjects.length > 0) {
+        setProjects(localProjects);
+    }
+    
+    // Then, set up the real-time listener from Firestore
     const unsubscribe = projectService.streamProjects((fetchedProjects) => {
         // One-time data seeding for new users
-        if (fetchedProjects.length === 0) {
+        if (fetchedProjects.length === 0 && localProjects.length === 0) {
             projectService.seedInitialProjects();
             // The stream will automatically provide the seeded projects, so no need to set state here.
         } else {
             setProjects(fetchedProjects);
+            projectService.saveProjectsToLocalStorage(fetchedProjects);
         }
     });
 

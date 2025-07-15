@@ -5,6 +5,28 @@ import type { Project } from '@/lib/data';
 import { initialProjects } from '@/lib/projects';
 
 const PROJECTS_COLLECTION = 'projects';
+const LOCAL_STORAGE_KEY = 'projects';
+
+// --- Local Storage Functions ---
+export const saveProjectsToLocalStorage = (projects: Project[]) => {
+    try {
+        const data = JSON.stringify(projects);
+        localStorage.setItem(LOCAL_STORAGE_KEY, data);
+    } catch (error) {
+        console.error("Error saving projects to localStorage", error);
+    }
+};
+
+export const loadProjectsFromLocalStorage = (): Project[] => {
+    try {
+        const data = localStorage.getItem(LOCAL_STORAGE_KEY);
+        return data ? JSON.parse(data) : [];
+    } catch (error) {
+        console.error("Error loading projects from localStorage", error);
+        return [];
+    }
+};
+
 
 // --- Real-time listener ---
 export const streamProjects = (callback: (projects: Project[]) => void) => {
@@ -13,7 +35,7 @@ export const streamProjects = (callback: (projects: Project[]) => void) => {
         const projects: Project[] = snapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
-        } as Project));
+        } as unknown as Project)); // Cast needed because firestore returns its own types
         callback(projects);
     });
 };
