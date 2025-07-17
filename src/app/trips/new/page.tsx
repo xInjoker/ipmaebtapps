@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
@@ -65,16 +65,16 @@ export default function NewTripPage() {
     return projects.filter(p => p.branchId === user.branchId);
   }, [projects, user, isHqUser]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
     setFormData(prev => ({...prev, [id]: value }));
-  }
+  }, []);
 
-  const handleSelectChange = (field: 'project', value: string) => {
+  const handleSelectChange = useCallback((field: 'project', value: string) => {
     setFormData(prev => ({...prev, [field]: value }));
-  }
+  }, []);
   
-  const handleCreateRequest = () => {
+  const handleCreateRequest = useCallback(() => {
     if (!user) {
         toast({ variant: 'destructive', title: 'Error', description: 'You must be logged in to create a trip request.' });
         return;
@@ -112,7 +112,7 @@ export default function NewTripPage() {
     toast({ title: 'Trip Request Created', description: 'Redirecting to document setup...' });
     
     router.push(`/trips/${newTrip.id}/setup`);
-  };
+  }, [user, formData, date, addTrip, toast, router]);
 
   return (
     <div className="space-y-6">

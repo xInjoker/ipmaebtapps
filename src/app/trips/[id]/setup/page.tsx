@@ -1,7 +1,8 @@
 
+
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useTrips } from '@/context/TripContext';
@@ -114,7 +115,7 @@ export default function TripAllowanceSetupPage() {
   
   const grandTotal = useMemo(() => mealsSubtotal + transportSubtotal, [mealsSubtotal, transportSubtotal]);
   
-  const handleSaveAndProceed = () => {
+  const handleSaveAndProceed = useCallback(() => {
     if (!trip) return;
 
     const updatedTrip = {
@@ -127,7 +128,7 @@ export default function TripAllowanceSetupPage() {
 
     toast({ title: 'Allowance Saved', description: 'Proceeding to summary page.' });
     router.push(`/trips/${trip.id}/summary`);
-  };
+  }, [trip, allowance, grandTotal, updateTrip, toast, router]);
 
   if (!trip) {
     return <div>Loading trip details...</div>;

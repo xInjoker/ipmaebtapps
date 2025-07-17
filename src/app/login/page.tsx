@@ -1,5 +1,6 @@
+
 'use client';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import {
@@ -19,10 +20,10 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const { login } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     login(email, password);
-  };
+  }, [email, password, login]);
 
   return (
     <Card className="mx-auto max-w-sm">

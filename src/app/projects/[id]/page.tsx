@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import {
   Card,
@@ -158,7 +158,7 @@ export default function ProjectDetailsPage() {
 
   }, [project]);
 
-  const handleWorkflowChange = (type: 'trip' | 'report', newWorkflow: ApprovalStage[]) => {
+  const handleWorkflowChange = useCallback((type: 'trip' | 'report', newWorkflow: ApprovalStage[]) => {
     if (project) {
         if (type === 'trip') {
           updateProject(project.id, { tripApprovalWorkflow: newWorkflow });
@@ -166,7 +166,7 @@ export default function ProjectDetailsPage() {
           updateProject(project.id, { reportApprovalWorkflow: newWorkflow });
         }
     }
-  };
+  }, [project, updateProject]);
 
 
   if (!project) {

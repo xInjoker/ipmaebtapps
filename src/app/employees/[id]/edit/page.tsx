@@ -6,7 +6,7 @@ import { useEmployees } from '@/context/EmployeeContext';
 import { useToast } from '@/hooks/use-toast';
 import { type Employee } from '@/lib/employees';
 import { EmployeeForm } from '@/components/employee-form';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 
 export default function EditEmployeePage() {
   const router = useRouter();
@@ -33,13 +33,13 @@ export default function EditEmployeePage() {
     }
   }, [employeeId, getEmployeeById, router, toast]);
 
-  const handleSave = async (data: Employee) => {
+  const handleSave = useCallback(async (data: Employee) => {
     if (employee) {
       await updateEmployee(employee.id, data);
       toast({ title: 'Employee Updated', description: `${data.name}'s details have been updated.` });
       router.push('/employees');
     }
-  };
+  }, [employee, router, toast, updateEmployee]);
 
   if (!employee) {
     return <div>Loading...</div>;

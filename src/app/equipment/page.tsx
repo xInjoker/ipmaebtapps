@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import {
@@ -135,7 +135,7 @@ export default function EquipmentPage() {
     },
   ];
 
-  const handleClearFilters = () => {
+  const handleClearFilters = useCallback(() => {
     setSearchTerm('');
     setStatusFilter('all');
     setTypeFilter('all');
@@ -144,7 +144,7 @@ export default function EquipmentPage() {
     } else if (user) {
         setBranchFilter(user.branchId);
     }
-  };
+  }, [isHqUser, user]);
 
   return (
     <div className="space-y-6">

@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import * as NextImage from 'next/image';
@@ -106,7 +106,7 @@ export default function TripSummaryPage() {
         return { mealItems: meals, transportItems: transport, mealsSubtotal: mealTotal, transportSubtotal: transportTotal, totalAllowance: mealTotal + transportTotal };
     }, [trip]);
     
-    const handleSubmitForApproval = () => {
+    const handleSubmitForApproval = useCallback(() => {
         if (!trip || !user) return;
 
         if (!tripProject) {
@@ -145,9 +145,9 @@ export default function TripSummaryPage() {
         updateTrip(trip.id, updatedTrip);
         toast({ title: 'Trip Submitted', description: 'Your business trip request has been submitted for approval.' });
         router.push('/trips');
-    };
+    }, [trip, user, tripProject, updateTrip, toast, router]);
 
-    const handlePrint = async () => {
+    const handlePrint = useCallback(async () => {
         if (!trip) return;
         const doc = new jsPDF() as jsPDFWithAutoTable;
         const pageWidth = doc.internal.pageSize.getWidth();
@@ -237,7 +237,7 @@ export default function TripSummaryPage() {
 
 
         doc.save(`TripRequest-${trip.id}.pdf`);
-    };
+    }, [trip, logoUrl, mealItems, transportItems, totalAllowance, users]);
 
     if (!trip) {
         return (

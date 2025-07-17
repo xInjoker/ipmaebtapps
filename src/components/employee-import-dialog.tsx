@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useCallback } from 'react';
@@ -69,11 +70,11 @@ function excelDateToYMD(serial: number) {
 export function EmployeeImportDialog({ isOpen, onOpenChange, onImport }: EmployeeImportDialogProps) {
   const [file, setFile] = useState<File | null>(null);
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
       setFile(event.target.files[0]);
     }
-  };
+  }, []);
 
   const handleImport = useCallback(() => {
     if (!file) return;

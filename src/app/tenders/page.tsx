@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import {
@@ -149,25 +149,25 @@ export default function TendersPage() {
       return filteredTenders.filter(tender => isSameDay(new Date(tender.submissionDate), selectedDate));
   }, [filteredTenders, selectedDate]);
 
-  const handleDateSelect = (date: Date | undefined) => {
+  const handleDateSelect = useCallback((date: Date | undefined) => {
     setSelectedDate(date);
-  };
+  }, []);
 
-  const handleStatusUpdate = (tenderId: string, status: TenderStatus) => {
+  const handleStatusUpdate = useCallback((tenderId: string, status: TenderStatus) => {
     const tenderToUpdate = tenders.find((t) => t.id === tenderId);
     if (tenderToUpdate) {
       updateTender(tenderId, { ...tenderToUpdate, status });
     }
-  };
+  }, [tenders, updateTender]);
   
-  const handleClearFilters = () => {
+  const handleClearFilters = useCallback(() => {
     setSearchTerm('');
     setStatusFilter('all');
     if (isHqUser) {
         setRegionFilter('all');
         setBranchFilter('all');
     }
-  };
+  }, [isHqUser]);
 
   return (
     <div className="space-y-6">

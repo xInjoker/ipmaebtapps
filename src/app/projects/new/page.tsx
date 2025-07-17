@@ -1,7 +1,8 @@
 
+
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -101,7 +102,7 @@ export default function NewProjectPage() {
     return { period: '', duration: '' };
   }, [date]);
 
-  const handleAddProject = async () => {
+  const handleAddProject = useCallback(async () => {
     setSubmissionStatus('loading');
     const assignedBranchId = isHqUser ? newProject.contractExecutor : user?.branchId;
 
@@ -180,7 +181,7 @@ export default function NewProjectPage() {
         });
         setSubmissionStatus('error');
     }
-  };
+  }, [addProject, branches, date, duration, isHqUser, newProject, period, router, toast, user]);
 
   return (
     <Card>

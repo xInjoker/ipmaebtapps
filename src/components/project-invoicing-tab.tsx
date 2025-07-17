@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
@@ -69,7 +70,7 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
     }, [project.serviceOrders]);
 
 
-    const handleAddInvoice = () => {
+    const handleAddInvoice = useCallback(() => {
         if (newInvoice.soNumber && newInvoice.serviceCategory && newInvoice.description && newInvoice.periodMonth && newInvoice.periodYear && newInvoice.value > 0) {
             const newId = `INV-${project.id}-${Date.now()}`;
             const { periodMonth, periodYear, ...restOfInvoice } = newInvoice;
@@ -89,9 +90,9 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
                 description: 'Please fill out all fields for the invoice, including a value greater than zero.',
             });
         }
-    };
+    }, [newInvoice, project, setProjects, toast]);
 
-    const handleUpdateInvoice = () => {
+    const handleUpdateInvoice = useCallback(() => {
         if (!editedInvoice) return;
         const { periodMonth, periodYear, ...restOfInvoice } = editedInvoice;
         const period = `${periodMonth} ${periodYear}`;
@@ -104,25 +105,25 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
         ));
         setIsEditInvoiceDialogOpen(false);
         setInvoiceToEdit(null);
-    };
+    }, [editedInvoice, project.id, setProjects]);
 
-    const handleEditClick = (invoice: InvoiceItem) => {
+    const handleEditClick = useCallback((invoice: InvoiceItem) => {
         const [periodMonth, periodYear] = invoice.period.split(' ');
         setEditedInvoice({ ...invoice, periodMonth, periodYear });
         setInvoiceToEdit(invoice);
         setIsEditInvoiceDialogOpen(true);
-    };
+    }, []);
 
-    const handleCancelInvoice = (invoiceId: string) => {
+    const handleCancelInvoice = useCallback((invoiceId: string) => {
         setProjects(projects => projects.map(p =>
             p.id === project.id
                 ? { ...p, invoices: p.invoices.map(inv => inv.id === invoiceId ? { ...inv, status: 'Cancel' } : inv) }
                 : p
         ));
         toast({ title: 'Invoice Cancelled', description: 'The invoice status has been updated to "Cancel".' });
-    };
+    }, [project.id, setProjects, toast]);
 
-    const handleExportInvoices = () => {
+    const handleExportInvoices = useCallback(() => {
         if (!project || !project.invoices) return;
 
         const headers = ['ID', 'SO Number', 'Service Category', 'Description', 'Status', 'Period', 'Value (IDR)'];
@@ -147,7 +148,7 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
-    };
+    }, [project]);
 
     const getSoDetails = useCallback((soNumber: string, value: number) => {
         const so = serviceOrderMap.get(soNumber);
@@ -242,7 +243,7 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
                                     </div>
                                     <div className="grid grid-cols-4 items-center gap-4">
                                         <Label htmlFor="value" className="text-right">Value (IDR)</Label>
-                                        <CurrencyInput id="value" value={newInvoice.value} onValueChange={(value) => setNewInvoice({ ...newInvoice, value })} className="col-span-3" />
+                                         <CurrencyInput id="value" value={newInvoice.value} onValueChange={(value) => setNewInvoice({ ...newInvoice, value })} className="col-span-3" />
                                     </div>
                                     {addSoDetails.warning && (
                                         <div className="grid grid-cols-4 items-center gap-4">

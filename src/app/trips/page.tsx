@@ -34,7 +34,6 @@ import {
   CheckCircle,
   Clock,
   XCircle,
-  FilePen,
   FileCog,
 } from 'lucide-react';
 import { useTrips } from '@/context/TripContext';

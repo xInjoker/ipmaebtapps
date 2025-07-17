@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import * as NextImage from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -50,7 +50,7 @@ export default function ProfilePage() {
     }
   }, [user]);
   
-  const handleSignatureUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSignatureUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
@@ -59,17 +59,17 @@ export default function ProfilePage() {
       };
       reader.readAsDataURL(file);
     }
-  };
+  }, []);
   
-  const removeSignature = () => {
+  const removeSignature = useCallback(() => {
       setSignature(null);
-  }
+  }, []);
 
   if (!user) {
     return null; // Or a loading state
   }
 
-  const handleSaveChanges = () => {
+  const handleSaveChanges = useCallback(() => {
     if (user) {
       updateUser(user.id, { name: fullName, branchId: selectedBranch, signatureUrl: signature || '' });
       // Note: 'bio' is not part of the User model in AuthContext, so changes to it are not persisted.
@@ -78,7 +78,7 @@ export default function ProfilePage() {
         description: 'Your personal information has been saved.',
       });
     }
-  };
+  }, [user, fullName, selectedBranch, signature, updateUser, toast]);
 
   const userRole = roles.find((r) => r.id === user.roleId);
   const avatarColor = getAvatarColor(user.name);

@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -70,12 +70,12 @@ export default function InspectorsPage() {
     });
   }, [inspectors, searchTerm, qualificationFilter, branchFilter, statusFilter]);
   
-  const handleClearFilters = () => {
+  const handleClearFilters = useCallback(() => {
     setSearchTerm('');
     setQualificationFilter('all');
     setBranchFilter('all');
     setStatusFilter('all');
-  };
+  }, []);
 
   return (
     <div className="space-y-6">

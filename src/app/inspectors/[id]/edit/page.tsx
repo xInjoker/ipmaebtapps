@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useInspectors } from '@/context/InspectorContext';
@@ -55,46 +55,46 @@ export default function EditInspectorPage() {
     }
   }, [inspectorId, getInspectorById, router, toast, inspectorList]);
 
-  const removeExistingFile = (field: 'qualifications' | 'otherDocuments', url: string) => {
+  const removeExistingFile = useCallback((field: 'qualifications' | 'otherDocuments', url: string) => {
     if (!inspector) return;
     setInspector({
         ...inspector,
         [field]: (inspector[field] as InspectorDocument[]).filter(d => d.url !== url),
     });
-  };
+  }, [inspector]);
   
-  const removeExistingCv = () => {
+  const removeExistingCv = useCallback(() => {
     if (!inspector) return;
     setInspector({ ...inspector, cvUrl: '' });
-  };
+  }, [inspector]);
 
-  const removeNewFile = (setter: React.Dispatch<React.SetStateAction<NewUploadableDocument[]>>, index: number) => {
+  const removeNewFile = useCallback((setter: React.Dispatch<React.SetStateAction<NewUploadableDocument[]>>, index: number) => {
     setter(prev => prev.filter((_, i) => i !== index));
-  };
+  }, []);
   
-  const handleExistingDocDateChange = (field: 'qualifications' | 'otherDocuments', index: number, date?: Date) => {
+  const handleExistingDocDateChange = useCallback((field: 'qualifications' | 'otherDocuments', index: number, date?: Date) => {
     if (!inspector) return;
     const updatedDocs = [...inspector[field]];
     updatedDocs[index].expirationDate = date ? format(date, 'yyyy-MM-dd') : undefined;
     setInspector({ ...inspector, [field]: updatedDocs });
-  };
+  }, [inspector]);
   
-  const handleNewDocDateChange = (setter: React.Dispatch<React.SetStateAction<NewUploadableDocument[]>>, index: number, date?: Date) => {
+  const handleNewDocDateChange = useCallback((setter: React.Dispatch<React.SetStateAction<NewUploadableDocument[]>>, index: number, date?: Date) => {
     setter(prev => {
         const newDocs = [...prev];
         newDocs[index].expirationDate = date ? format(date, 'yyyy-MM-dd') : undefined;
         return newDocs;
     });
-  };
+  }, []);
 
-  const handleFileChange = (setter: React.Dispatch<React.SetStateAction<NewUploadableDocument[]>>, e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = useCallback((setter: React.Dispatch<React.SetStateAction<NewUploadableDocument[]>>, e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const newFiles = Array.from(e.target.files).map(file => ({ file, expirationDate: undefined }));
       setter(prev => [...prev, ...newFiles]);
     }
-  };
+  }, []);
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     if (!inspector) return;
     if (!inspector.name || !inspector.email || !inspector.position || !inspector.branchId) {
       toast({
@@ -105,26 +105,11 @@ export default function EditInspectorPage() {
       return;
     }
 
-    const newQualsToSave: InspectorDocument[] = newQualifications.map(doc => ({
-      name: doc.file.name,
-      url: doc.file.name,
-      expirationDate: doc.expirationDate,
-    }));
-    
-    const newOthersToSave: InspectorDocument[] = newOtherDocs.map(doc => ({
-      name: doc.file.name,
-      url: doc.file.name,
-      expirationDate: doc.expirationDate,
-    }));
-
-    const updatedInspectorData: Inspector = {
-        ...inspector,
-        cvUrl: newCvFile ? newCvFile.name : inspector.cvUrl,
-        qualifications: [...inspector.qualifications, ...newQualsToSave],
-        otherDocuments: [...inspector.otherDocuments, ...newOthersToSave],
-    };
-
-    await updateInspector(inspector.id, updatedInspectorData);
+    await updateInspector(inspector.id, inspector, {
+      newCvFile: newCvFile,
+      newQualifications: newQualifications,
+      newOtherDocs: newOtherDocs,
+    });
     
     toast({
         title: 'Inspector Updated',
@@ -132,7 +117,7 @@ export default function EditInspectorPage() {
     });
 
     router.push(`/inspectors/${inspector.id}`);
-  };
+  }, [inspector, newCvFile, newQualifications, newOtherDocs, router, toast, updateInspector]);
 
   if (!inspector) {
     return (

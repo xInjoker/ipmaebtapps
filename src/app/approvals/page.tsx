@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { useTrips } from '@/context/TripContext';
@@ -80,13 +80,13 @@ export default function ApprovalsPage() {
         return { total, accepted, rejected };
     }, [selectedItem]);
 
-    const handleActionClick = (item: ApprovalItem) => {
+    const handleActionClick = useCallback((item: ApprovalItem) => {
         setSelectedItem(item);
         setComments('');
         setIsDialogOpen(true);
-    };
+    }, []);
 
-    const handleConfirmAction = (action: 'approve' | 'reject') => {
+    const handleConfirmAction = useCallback((action: 'approve' | 'reject') => {
         if (!selectedItem || !user) return;
     
         if (selectedItem.type === 'trip') {
@@ -122,7 +122,7 @@ export default function ApprovalsPage() {
         toast({ title: `Request ${action === 'approve' ? 'Approved' : 'Rejected'}`, description: 'The status has been updated successfully.' });
         setIsDialogOpen(false);
         setSelectedItem(null);
-    };
+    }, [selectedItem, user, projects, comments, updateTrip, updateReport, toast]);
 
     return (
         <div className="space-y-6">

@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
@@ -148,12 +148,12 @@ export default function EmployeesPage() {
     }
   }, [projectsForFilter, projectFilter]);
 
-  const handleDeleteRequest = (employee: Employee) => {
+  const handleDeleteRequest = useCallback((employee: Employee) => {
     setEmployeeToDelete(employee);
     setIsDeleteDialogOpen(true);
-  };
+  }, []);
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = useCallback(() => {
     if (!employeeToDelete) return;
     deleteEmployee(employeeToDelete.id);
     toast({
@@ -162,9 +162,9 @@ export default function EmployeesPage() {
     });
     setIsDeleteDialogOpen(false);
     setEmployeeToDelete(null);
-  };
+  }, [employeeToDelete, deleteEmployee, toast]);
 
-  const handleImport = (importedEmployees: Omit<Employee, 'id'>[]) => {
+  const handleImport = useCallback((importedEmployees: Omit<Employee, 'id'>[]) => {
     importedEmployees.forEach((emp) => {
       const newId = `EMP-${Date.now()}-${Math.random()
         .toString(36)
@@ -175,9 +175,9 @@ export default function EmployeesPage() {
       title: 'Import Successful',
       description: `${importedEmployees.length} employees have been added.`,
     });
-  };
+  }, [addEmployee, toast]);
 
-  const handleExport = (format: 'excel' | 'pdf') => {
+  const handleExport = useCallback((format: 'excel' | 'pdf') => {
     const dataToExport = filteredEmployees.map((emp) => {
       const selectedData: Partial<Employee> = {};
       exportFields.forEach((field) => {
@@ -209,16 +209,16 @@ export default function EmployeesPage() {
       });
       doc.save('employees.pdf');
     }
-  };
+  }, [filteredEmployees, exportFields]);
 
-  const handleClearFilters = () => {
+  const handleClearFilters = useCallback(() => {
     setSearchTerm('');
     setStatusFilter('all');
     setProjectFilter('all');
     if (isHqUser) {
         setBranchFilter('all');
     }
-  };
+  }, [isHqUser]);
 
   return (
     <>

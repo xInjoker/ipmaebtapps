@@ -1,7 +1,8 @@
 
+
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import {
@@ -82,7 +83,7 @@ function RoleFormDialog({
     }
   }, [role, isOpen]);
 
-  const handlePermissionChange = (permission: Permission, checked: boolean) => {
+  const handlePermissionChange = useCallback((permission: Permission, checked: boolean) => {
     const newPermissions = new Set(selectedPermissions);
     if (checked) {
       newPermissions.add(permission);
@@ -90,9 +91,9 @@ function RoleFormDialog({
       newPermissions.delete(permission);
     }
     setSelectedPermissions(newPermissions);
-  };
+  }, [selectedPermissions]);
 
-  const handleSubmit = () => {
+  const handleSubmit = useCallback(() => {
     if (!name) {
       toast({ variant: 'destructive', title: 'Role name cannot be empty.' });
       return;
@@ -112,7 +113,7 @@ function RoleFormDialog({
       });
     }
     onOpenChange(false);
-  };
+  }, [name, selectedPermissions, role, addRole, updateRole, onOpenChange, toast]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -184,7 +185,7 @@ function ProjectAssignmentDialog({
         }
     }, [userToAssign]);
 
-    const handleProjectToggle = (projectId: number) => {
+    const handleProjectToggle = useCallback((projectId: number) => {
         setAssignedProjects(prev => {
             const newSet = new Set(prev);
             if (newSet.has(projectId)) {
@@ -194,14 +195,14 @@ function ProjectAssignmentDialog({
             }
             return newSet;
         });
-    };
+    }, []);
 
-    const handleSave = () => {
+    const handleSave = useCallback(() => {
         if (userToAssign) {
             onSave(userToAssign.id, Array.from(assignedProjects));
             onOpenChange(false);
         }
-    };
+    }, [userToAssign, onSave, onOpenChange, assignedProjects]);
     
     if (!userToAssign) return null;
 
@@ -266,7 +267,7 @@ export default function UserManagementPage() {
     return JSON.stringify(users) !== JSON.stringify(managedUsers);
   }, [users, managedUsers]);
 
-  const handleUserChange = (
+  const handleUserChange = useCallback((
     userId: number,
     field: keyof User,
     value: any
@@ -274,9 +275,9 @@ export default function UserManagementPage() {
     setManagedUsers((currentUsers) =>
       currentUsers.map((u) => (u.id === userId ? { ...u, [field]: value } : u))
     );
-  };
+  }, []);
 
-  const handleSaveChanges = () => {
+  const handleSaveChanges = useCallback(() => {
     managedUsers.forEach((mu) => {
       const originalUser = users.find((u) => u.id === mu.id);
       if (
@@ -290,21 +291,21 @@ export default function UserManagementPage() {
       title: 'Changes Saved',
       description: 'User assignments have been successfully updated.',
     });
-  };
+  }, [managedUsers, users, updateUser, toast]);
 
-  const handleDiscardChanges = () => {
+  const handleDiscardChanges = useCallback(() => {
     setManagedUsers(users);
-  };
+  }, [users]);
 
-  const handleEditRole = (role: Role) => {
+  const handleEditRole = useCallback((role: Role) => {
     setRoleToEdit(role);
     setIsRoleDialogOpen(true);
-  };
+  }, []);
 
-  const handleAddNewRole = () => {
+  const handleAddNewRole = useCallback(() => {
     setRoleToEdit(null);
     setIsRoleDialogOpen(true);
-  };
+  }, []);
 
   useEffect(() => {
     if (!userHasPermission('manage-users')) {

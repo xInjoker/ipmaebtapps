@@ -1,5 +1,6 @@
+
 'use client';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import {
@@ -28,10 +29,10 @@ export default function RegisterPage() {
   const [branchId, setBranchId] = useState('');
   const { register, branches } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     register(name, email, password, branchId);
-  };
+  }, [name, email, password, branchId, register]);
 
   return (
     <Card className="mx-auto max-w-sm">

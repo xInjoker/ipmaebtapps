@@ -1,7 +1,8 @@
 
+
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useInspectors } from '@/context/InspectorContext';
@@ -50,32 +51,32 @@ export default function NewInspectorPage() {
     setGeneratedId(newId);
   }, []);
 
-  const handleFileChange = (setter: React.Dispatch<React.SetStateAction<UploadableDocument[]>>, e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = useCallback((setter: React.Dispatch<React.SetStateAction<UploadableDocument[]>>, e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const newFiles = Array.from(e.target.files).map(file => ({ file, expirationDate: undefined }));
       setter(prev => [...prev, ...newFiles]);
     }
-  };
+  }, []);
   
-  const handleSingleFileChange = (setter: React.Dispatch<React.SetStateAction<File | null>>, e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSingleFileChange = useCallback((setter: React.Dispatch<React.SetStateAction<File | null>>, e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       setter(e.target.files[0] || null);
     }
-  }
+  }, []);
 
-  const removeFile = (setter: React.Dispatch<React.SetStateAction<UploadableDocument[]>>, index: number) => {
+  const removeFile = useCallback((setter: React.Dispatch<React.SetStateAction<UploadableDocument[]>>, index: number) => {
     setter(prev => prev.filter((_, i) => i !== index));
-  };
+  }, []);
   
-  const handleDateChange = (setter: React.Dispatch<React.SetStateAction<UploadableDocument[]>>, index: number, date?: Date) => {
+  const handleDateChange = useCallback((setter: React.Dispatch<React.SetStateAction<UploadableDocument[]>>, index: number, date?: Date) => {
     setter(prev => {
         const updated = [...prev];
         updated[index].expirationDate = date ? format(date, 'yyyy-MM-dd') : undefined;
         return updated;
     });
-  };
+  }, []);
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     if (!newInspector.name || !newInspector.email || !newInspector.position || !newInspector.branchId || !newInspector.employmentStatus) {
       toast({
         variant: 'destructive',
@@ -91,17 +92,9 @@ export default function NewInspectorPage() {
       position: newInspector.position as Inspector['position'],
       employmentStatus: newInspector.employmentStatus as Inspector['employmentStatus'],
       avatarUrl: '', // Placeholder
-      cvUrl: cvFile ? cvFile.name : '', // In real app, upload and get URL
-      qualifications: qualifications.map(doc => ({
-        name: doc.file.name,
-        url: doc.file.name,
-        expirationDate: doc.expirationDate,
-      })),
-      otherDocuments: otherDocs.map(doc => ({
-        name: doc.file.name,
-        url: doc.file.name,
-        expirationDate: doc.expirationDate,
-      })),
+      cvFile: cvFile,
+      qualifications: qualifications,
+      otherDocuments: otherDocs,
     });
 
     toast({
@@ -110,7 +103,7 @@ export default function NewInspectorPage() {
     });
 
     setTimeout(() => router.push('/inspectors'), 500);
-  };
+  }, [newInspector, cvFile, qualifications, otherDocs, generatedId, addInspector, toast, router]);
 
   return (
     <div className="space-y-6">

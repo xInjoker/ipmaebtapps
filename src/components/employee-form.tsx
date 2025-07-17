@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useForm, Controller } from 'react-hook-form';
@@ -25,7 +26,7 @@ import {
   portfolios,
   subPortfolios
 } from '@/lib/employees';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { ScrollArea } from './ui/scroll-area';
 import { useAuth } from '@/context/AuthContext';
@@ -154,7 +155,7 @@ export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
     setCurrentStep(0);
   }, [employee, form]);
   
-  const onSubmit = (data: EmployeeFormData) => {
+  const onSubmit = useCallback((data: EmployeeFormData) => {
     const finalData: Employee = {
       ...employee,
       ...data,
@@ -164,17 +165,17 @@ export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
       contractEndDate: data.contractEndDate ? format(data.contractEndDate, 'yyyy-MM-dd') : undefined,
     };
     onSave(finalData);
-  };
+  }, [employee, generatedId, onSave]);
 
-  const handleReview = async () => {
+  const handleReview = useCallback(async () => {
     const isValid = await form.trigger();
     if (isValid) {
       setIsConfirmOpen(true);
     }
-  };
+  }, [form]);
 
-  const nextStep = () => setCurrentStep((prev) => (prev < steps.length - 1 ? prev + 1 : prev));
-  const prevStep = () => setCurrentStep((prev) => (prev > 0 ? prev - 1 : prev));
+  const nextStep = useCallback(() => setCurrentStep((prev) => (prev < steps.length - 1 ? prev + 1 : prev)), []);
+  const prevStep = useCallback(() => setCurrentStep((prev) => (prev > 0 ? prev - 1 : prev)), []);
   
   const pageTitle = employee ? 'Edit Employee' : 'Add New Employee';
   const pageDescription = employee ? `Update details for ${employee.name}` : 'Fill in the details for the new employee.';

@@ -1,7 +1,8 @@
 
+
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal, PlusCircle } from 'lucide-react';
@@ -79,16 +80,16 @@ export function ProjectExpenditureTab({ project, setProjects }: ProjectExpenditu
     const [isEditExpenditureDialogOpen, setIsEditExpenditureDialogOpen] = useState(false);
     const [expenditureToEdit, setExpenditureToEdit] = useState<(ExpenditureItem & { month?: string, year?: string }) | null>(null);
 
-    const handleBudgetChange = (category: string, value: number) => {
+    const handleBudgetChange = useCallback((category: string, value: number) => {
         setProjects(projects => projects.map(p => {
             if (p.id === project.id) {
                 return { ...p, budgets: { ...p.budgets, [category]: value } };
             }
             return p;
         }));
-    };
+    }, [project.id, setProjects]);
 
-    const handleAddExpenditure = () => {
+    const handleAddExpenditure = useCallback(() => {
         const period = newExpenditure.month && newExpenditure.year ? `${newExpenditure.month} ${newExpenditure.year}` : '';
 
         if (newExpenditure.category && period && newExpenditure.coa && newExpenditure.amount > 0) {
@@ -109,14 +110,14 @@ export function ProjectExpenditureTab({ project, setProjects }: ProjectExpenditu
             setNewExpenditure({ category: '', coa: '', description: '', month: '', year: '', amount: 0, status: 'Approved' });
             setIsAddExpenditureDialogOpen(false);
         }
-    };
+    }, [newExpenditure, project, setProjects]);
 
-    const handleCategorySelect = (value: string) => {
+    const handleCategorySelect = useCallback((value: string) => {
         const coa = categoryToCoaMap[value] || '';
         setNewExpenditure(prev => ({ ...prev, category: value, coa }));
-    };
+    }, []);
 
-    const handleCoaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleCoaChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const coaValue = e.target.value;
         const coaNumber = parseInt(coaValue, 10);
         let categoryToSet = '';
@@ -134,15 +135,15 @@ export function ProjectExpenditureTab({ project, setProjects }: ProjectExpenditu
             categoryToSet = 'Other';
         }
         setNewExpenditure(prev => ({ ...prev, coa: coaValue, category: categoryToSet }));
-    };
+    }, [project.budgets]);
 
-    const handleEditExpenditureClick = (expenditure: ExpenditureItem) => {
+    const handleEditExpenditureClick = useCallback((expenditure: ExpenditureItem) => {
         const [month, year] = expenditure.period.split(' ');
         setExpenditureToEdit({ ...expenditure, month, year });
         setIsEditExpenditureDialogOpen(true);
-    };
+    }, []);
 
-    const handleUpdateExpenditure = () => {
+    const handleUpdateExpenditure = useCallback(() => {
         if (!expenditureToEdit) return;
         const { month, year, ...rest } = expenditureToEdit;
         const period = `${month} ${year}`;
@@ -155,7 +156,7 @@ export function ProjectExpenditureTab({ project, setProjects }: ProjectExpenditu
         ));
         setIsEditExpenditureDialogOpen(false);
         setExpenditureToEdit(null);
-    };
+    }, [expenditureToEdit, project.id, setProjects]);
 
     const budgetedCategories = useMemo(() => {
         return expenditureCategories.filter(category => (project.budgets[category] ?? 0) > 0 || category === 'Other');

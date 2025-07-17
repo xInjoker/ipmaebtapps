@@ -1,7 +1,8 @@
 
+
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useTenders, type Tender } from '@/context/TenderContext';
@@ -59,7 +60,7 @@ export default function EditTenderPage() {
         return branches.filter(b => b.region === tender!.regional);
     }, [tender?.regional, branches]);
 
-    const handleRegionalChange = (value: Regional) => {
+    const handleRegionalChange = useCallback((value: Regional) => {
         setTender(prev => {
             if (!prev) return null;
             // Check if the current branch is valid for the new region
@@ -73,9 +74,9 @@ export default function EditTenderPage() {
                 branchId: isBranchInvalid ? '' : prev.branchId,
             };
         });
-    };
+    }, [branches]);
 
-    const handleSave = async () => {
+    const handleSave = useCallback(async () => {
         if (!tender) return;
         if (!tender.tenderNumber || !tender.title || !tender.client || !tender.status || !tender.submissionDate) {
             toast({ variant: 'destructive', title: 'Missing Information', description: 'Please fill out all required fields.' });
@@ -90,7 +91,7 @@ export default function EditTenderPage() {
         await updateTender(tender.id, updatedTenderData);
         toast({ title: 'Tender Updated', description: `Successfully updated tender ${tender.tenderNumber}.` });
         router.push('/tenders');
-    };
+    }, [tender, router, toast, updateTender]);
     
     if (!tender) {
         return <div>Loading...</div>;

@@ -1,7 +1,8 @@
 
+
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal, PlusCircle, Calendar as CalendarIcon, FileDown } from 'lucide-react';
@@ -55,7 +56,7 @@ export function ProjectServiceOrderTab({ project, setProjects }: ProjectServiceO
             }, {} as Record<string, number>);
     }, [project.invoices]);
 
-    const handleAddItem = () => {
+    const handleAddItem = useCallback(() => {
         if (newItem.soNumber && newItem.description && newItem.date && newItem.value > 0) {
             const newId = `SO-${project.id}-${Date.now()}`;
             const newItemData: ServiceOrderItem = {
@@ -79,17 +80,17 @@ export function ProjectServiceOrderTab({ project, setProjects }: ProjectServiceO
                 description: 'Please fill out all fields, including a date and a value greater than zero.',
             });
         }
-    };
+    }, [newItem, project.id, project.serviceOrders, setProjects, toast]);
 
-    const handleEditClick = (item: ServiceOrderItem) => {
+    const handleEditClick = useCallback((item: ServiceOrderItem) => {
         setItemToEdit({
             ...item,
             date: item.date ? new Date(item.date) : undefined
         });
         setIsEditDialogOpen(true);
-    };
+    }, []);
 
-    const handleUpdateItem = () => {
+    const handleUpdateItem = useCallback(() => {
         if (!itemToEdit || !itemToEdit.date) return;
         
         const { date, ...restOfItem } = itemToEdit;
@@ -105,9 +106,9 @@ export function ProjectServiceOrderTab({ project, setProjects }: ProjectServiceO
         ));
         setIsEditDialogOpen(false);
         setItemToEdit(null);
-    };
+    }, [itemToEdit, project.id, setProjects]);
 
-    const handleExport = () => {
+    const handleExport = useCallback(() => {
         if (!project || !project.serviceOrders) return;
 
         const headers = ['ID', 'SO Number', 'Description', 'Date', 'Value (IDR)', 'Status'];
@@ -143,9 +144,9 @@ export function ProjectServiceOrderTab({ project, setProjects }: ProjectServiceO
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
-    };
+    }, [project, invoicedAmountsBySO]);
 
-    const dialogForm = (
+    const dialogForm = useCallback((
         isEdit: boolean, 
         state: any, 
         setter: (value: any) => void
@@ -190,7 +191,7 @@ export function ProjectServiceOrderTab({ project, setProjects }: ProjectServiceO
                 <CurrencyInput id="value" value={state.value || 0} onValueChange={(value) => setter({ ...state, value })} className="col-span-3" />
             </div>
         </div>
-    );
+    ), []);
 
     return (
         <>

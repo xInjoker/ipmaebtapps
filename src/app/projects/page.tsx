@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import {
@@ -106,12 +106,12 @@ export default function ProjectsPage() {
     },
   ];
 
-  const handleClearFilters = () => {
+  const handleClearFilters = useCallback(() => {
     setSearchTerm('');
     if (isHqUser) {
         setBranchFilter('all');
     }
-  };
+  }, [isHqUser]);
 
 
   return (

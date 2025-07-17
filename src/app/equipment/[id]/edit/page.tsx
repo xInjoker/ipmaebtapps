@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import * as NextImage from 'next/image';
@@ -85,7 +85,7 @@ export default function EditEquipmentPage() {
       return inspectors.filter(inspector => !equipment.assignedPersonnelIds.includes(inspector.id));
   }, [equipment, inspectors]);
   
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, setter: React.Dispatch<React.SetStateAction<{file: File, url: string}[]>>) => {
+  const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>, setter: React.Dispatch<React.SetStateAction<{file: File, url: string}[]>>) => {
     if (e.target.files) {
         const files = Array.from(e.target.files);
         const filePromises = files.map(async file => ({
@@ -95,48 +95,48 @@ export default function EditEquipmentPage() {
         const newFiles = await Promise.all(filePromises);
         setter(prev => [...prev, ...newFiles]);
     }
-  };
+  }, []);
 
-  const removeNewImage = (index: number) => {
+  const removeNewImage = useCallback((index: number) => {
     setNewImages(prev => prev.filter((_, i) => i !== index));
-  };
+  }, []);
   
-  const removeExistingImage = (url: string) => {
+  const removeExistingImage = useCallback((url: string) => {
     if (equipment) {
       setEquipment({
         ...equipment,
         imageUrls: equipment.imageUrls.filter(u => u !== url),
       });
     }
-  };
+  }, [equipment]);
 
-  const removeNewDocument = (index: number) => {
+  const removeNewDocument = useCallback((index: number) => {
     setNewDocuments(prev => prev.filter((_, i) => i !== index));
-  };
+  }, []);
   
-  const removeExistingDocument = (url: string) => {
+  const removeExistingDocument = useCallback((url: string) => {
     if (equipment) {
       setEquipment({
         ...equipment,
         documentUrls: equipment.documentUrls.filter(u => u !== url),
       });
     }
-  };
+  }, [equipment]);
   
-  const removeNewPersonnelCert = (index: number) => {
+  const removeNewPersonnelCert = useCallback((index: number) => {
     setNewPersonnelCerts(prev => prev.filter((_, i) => i !== index));
-  };
+  }, []);
 
-  const removeExistingPersonnelCert = (url: string) => {
+  const removeExistingPersonnelCert = useCallback((url: string) => {
     if (equipment) {
       setEquipment({
         ...equipment,
         personnelCertificationUrls: equipment.personnelCertificationUrls.filter(u => u !== url),
       });
     }
-  };
+  }, [equipment]);
 
-  const handlePersonnelChange = (inspectorId: string) => {
+  const handlePersonnelChange = useCallback((inspectorId: string) => {
     if (!equipment) return;
     const newAssigned = [...equipment.assignedPersonnelIds];
     const index = newAssigned.indexOf(inspectorId);
@@ -146,9 +146,9 @@ export default function EditEquipmentPage() {
         newAssigned.push(inspectorId);
     }
     setEquipment({...equipment, assignedPersonnelIds: newAssigned});
-  };
+  }, [equipment]);
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     if (!equipment) return;
     if (!equipment.name || !equipment.serialNumber || !equipment.type || !equipment.owningBranchId || !equipment.calibrationDueDate) {
       toast({
@@ -159,14 +159,11 @@ export default function EditEquipmentPage() {
       return;
     }
 
-    const updatedEquipmentData: EquipmentItem = {
-        ...equipment,
-        imageUrls: [...equipment.imageUrls, ...newImages.map(img => img.url)],
-        documentUrls: [...equipment.documentUrls, ...newDocuments.map(doc => doc.url)],
-        personnelCertificationUrls: [...equipment.personnelCertificationUrls, ...newPersonnelCerts.map(cert => cert.url)],
-    };
-
-    await updateEquipment(equipment.id, updatedEquipmentData);
+    await updateEquipment(equipment.id, equipment, {
+        newImages: newImages,
+        newDocuments: newDocuments,
+        newPersonnelCerts: newPersonnelCerts,
+    });
     
     toast({
         title: 'Equipment Updated',
@@ -174,7 +171,7 @@ export default function EditEquipmentPage() {
     });
 
     router.push('/equipment');
-  };
+  }, [equipment, newImages, newDocuments, newPersonnelCerts, router, toast, updateEquipment]);
 
   if (!equipment) {
     return (

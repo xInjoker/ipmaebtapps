@@ -1,11 +1,12 @@
 
+
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTenders, type Tender } from '@/context/TenderContext';
-import { tenderStatuses, regionalOptions, subPortfolioOptions, serviceOptions, type TenderStatus, type Regional } from '@/lib/tenders';
+import { tenderStatuses, regionalOptions, serviceOptions, type TenderStatus, type Regional } from '@/lib/tenders';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -61,11 +62,11 @@ export default function NewTenderPage() {
         return branches.filter(b => b.region === newTender.regional);
     }, [newTender.regional, branches]);
 
-    const handleRegionalChange = (value: Regional) => {
+    const handleRegionalChange = useCallback((value: Regional) => {
         setNewTender(prev => ({ ...prev, regional: value, branchId: '' }));
-    };
+    }, []);
 
-    const handleSave = async () => {
+    const handleSave = useCallback(async () => {
         if (!newTender.tenderNumber || !newTender.title || !newTender.client || !newTender.status || !newTender.submissionDate) {
             toast({
                 variant: 'destructive',
@@ -99,7 +100,7 @@ export default function NewTenderPage() {
         await addTender(newTenderData);
         toast({ title: 'Tender Added', description: `Successfully added tender ${newTender.tenderNumber}.` });
         setTimeout(() => router.push('/tenders'), 500);
-    };
+    }, [newTender, addTender, toast, router]);
 
     return (
         <div className="space-y-6">

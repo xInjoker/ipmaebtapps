@@ -1,7 +1,8 @@
 
+
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -31,15 +32,15 @@ export function EmployeeExportDialog({ isOpen, onOpenChange, onSave, allFields, 
     setSelectedFields(new Set(defaultSelectedFields));
   }, [defaultSelectedFields, isOpen]);
 
-  const handleSelectAll = (checked: boolean) => {
+  const handleSelectAll = useCallback((checked: boolean) => {
     if (checked) {
       setSelectedFields(new Set(allFields));
     } else {
       setSelectedFields(new Set());
     }
-  };
+  }, [allFields]);
 
-  const handleFieldChange = (field: keyof Employee, checked: boolean) => {
+  const handleFieldChange = useCallback((field: keyof Employee, checked: boolean) => {
     const newSelection = new Set(selectedFields);
     if (checked) {
       newSelection.add(field);
@@ -47,12 +48,12 @@ export function EmployeeExportDialog({ isOpen, onOpenChange, onSave, allFields, 
       newSelection.delete(field);
     }
     setSelectedFields(newSelection);
-  };
+  }, [selectedFields]);
 
-  const handleSave = () => {
+  const handleSave = useCallback(() => {
     onSave(Array.from(selectedFields));
     onOpenChange(false);
-  };
+  }, [onSave, selectedFields, onOpenChange]);
 
   const isAllSelected = selectedFields.size === allFields.length;
 

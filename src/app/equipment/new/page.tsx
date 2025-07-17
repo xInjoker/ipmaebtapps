@@ -1,7 +1,8 @@
 
+
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import * as NextImage from 'next/image';
@@ -77,7 +78,7 @@ export default function NewEquipmentPage() {
       return inspectors.filter(inspector => !newEquipment.assignedPersonnelIds.includes(inspector.id));
   }, [newEquipment, inspectors]);
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, setter: React.Dispatch<React.SetStateAction<{file: File, url: string}[]>>) => {
+  const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>, setter: React.Dispatch<React.SetStateAction<{file: File, url: string}[]>>) => {
     if (e.target.files) {
         const files = Array.from(e.target.files);
         const filePromises = files.map(async file => ({
@@ -87,22 +88,22 @@ export default function NewEquipmentPage() {
         const newFiles = await Promise.all(filePromises);
         setter(prev => [...prev, ...newFiles]);
     }
-  };
+  }, []);
 
 
-  const removeImage = (index: number) => {
+  const removeImage = useCallback((index: number) => {
     setImages(prev => prev.filter((_, i) => i !== index));
-  };
+  }, []);
 
-  const removeDocument = (index: number) => {
+  const removeDocument = useCallback((index: number) => {
     setDocuments(prev => prev.filter((_, i) => i !== index));
-  };
+  }, []);
 
-  const removePersonnelCert = (index: number) => {
+  const removePersonnelCert = useCallback((index: number) => {
     setPersonnelCertifications(prev => prev.filter((_, i) => i !== index));
-  };
+  }, []);
   
-  const handlePersonnelChange = (inspectorId: string) => {
+  const handlePersonnelChange = useCallback((inspectorId: string) => {
     setNewEquipment(prev => {
         const newAssigned = [...prev.assignedPersonnelIds];
         const index = newAssigned.indexOf(inspectorId);
@@ -113,9 +114,9 @@ export default function NewEquipmentPage() {
         }
         return {...prev, assignedPersonnelIds: newAssigned};
     });
-  };
+  }, []);
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     if (!newEquipment.name || !newEquipment.serialNumber || !newEquipment.type || !newEquipment.owningBranchId || !newEquipment.calibrationDueDate) {
       toast({
         variant: 'destructive',
@@ -133,10 +134,10 @@ export default function NewEquipmentPage() {
       currentLocation: newEquipment.currentLocation,
       calibrationDueDate: newEquipment.calibrationDueDate,
       status: newEquipment.status,
-      imageUrls: images.map(img => img.url),
-      documentUrls: documents.map(doc => doc.url),
       assignedPersonnelIds: newEquipment.assignedPersonnelIds,
-      personnelCertificationUrls: personnelCertifications.map(cert => cert.url),
+      images: images.map(img => img.file),
+      documents: documents.map(doc => doc.file),
+      personnelCerts: personnelCertifications.map(cert => cert.file),
     });
     
     toast({
@@ -145,7 +146,7 @@ export default function NewEquipmentPage() {
     });
 
     setTimeout(() => router.push('/equipment'), 500);
-  };
+  }, [newEquipment, images, documents, personnelCertifications, addEquipment, toast, router]);
 
   const calibrationDate = newEquipment.calibrationDueDate ? new Date(newEquipment.calibrationDueDate) : undefined;
   const Image = NextImage.default;
