@@ -1,4 +1,5 @@
 
+
 import type { ApprovalStage } from './data';
 
 export type TripStatus = 'Draft' | 'Pending' | 'Approved' | 'Rejected' | 'Booked' | 'Completed' | 'Closed';
@@ -55,9 +56,9 @@ export type TripRequest = {
     }
 };
 
-export const initialTrips: TripRequest[] = [
+// This data is now only used for one-time database seeding.
+export const initialTrips: Omit<TripRequest, 'id'>[] = [
     {
-        id: 'TRIP-001',
         employeeId: 2,
         employeeName: 'Project Manager',
         position: 'Project Manager',
@@ -76,7 +77,6 @@ export const initialTrips: TripRequest[] = [
         ]
     },
     {
-        id: 'TRIP-002',
         employeeId: 3,
         employeeName: 'Jane Doe',
         position: 'Project Manager',
@@ -94,7 +94,6 @@ export const initialTrips: TripRequest[] = [
         ]
     },
     {
-        id: 'TRIP-003',
         employeeId: 4,
         employeeName: 'John Smith',
         position: 'Project Manager',

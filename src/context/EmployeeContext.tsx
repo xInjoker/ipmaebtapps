@@ -1,8 +1,10 @@
 
 'use client';
 
-import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction } from 'react';
-import { initialEmployees, type Employee } from '@/lib/employees';
+import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useEffect } from 'react';
+import { type Employee } from '@/lib/employees';
+import * as employeeService from '@/services/employeeService';
+import { useAuth } from './AuthContext';
 
 type EmployeeContextType = {
   employees: Employee[];
@@ -16,23 +18,35 @@ type EmployeeContextType = {
 const EmployeeContext = createContext<EmployeeContextType | undefined>(undefined);
 
 export function EmployeeProvider({ children }: { children: ReactNode }) {
-  const [employees, setEmployees] = useState<Employee[]>(initialEmployees);
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const { isInitializing } = useAuth();
+
+  useEffect(() => {
+    if (isInitializing) return;
+
+    const unsubscribe = employeeService.streamEmployees((fetchedItems) => {
+        if (fetchedItems.length === 0 && employeeService.loadFromLocalStorage().length === 0) {
+            employeeService.seedInitialData();
+        } else {
+            setEmployees(fetchedItems);
+            employeeService.saveToLocalStorage(fetchedItems);
+        }
+    });
+
+    return () => unsubscribe();
+  }, [isInitializing]);
+
 
   const addEmployee = async (item: Employee) => {
-    // In a real app, this would be an API call to a Firestore service.
-    // For now, we simulate async behavior.
-    await new Promise(resolve => setTimeout(resolve, 500));
-    setEmployees(prev => [...prev, item]);
+    await employeeService.addItem(item);
   };
   
   const updateEmployee = async (id: string, updatedItem: Employee) => {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    setEmployees(prev => prev.map(item => item.id === id ? updatedItem : item));
+    await employeeService.updateItem(id, updatedItem);
   };
   
   const deleteEmployee = async (id: string) => {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    setEmployees(prev => prev.filter(item => item.id !== id));
+    await employeeService.deleteItem(id);
   };
   
   const getEmployeeById = (id: string) => {

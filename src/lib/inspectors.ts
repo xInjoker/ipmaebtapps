@@ -25,9 +25,9 @@ export const inspectorPositions: Inspector['position'][] = ['Lead Inspector', 'I
 export const employmentStatuses: Exclude<Inspector['employmentStatus'], undefined>[] = ['Organik', 'Freelance'];
 
 
-export const initialInspectors: Inspector[] = [
+// This data is now only used for one-time database seeding.
+export const initialInspectors: Omit<Inspector, 'id'>[] = [
   {
-    id: 'INSP-001',
     name: 'Budi Santoso',
     email: 'budi.s@example.com',
     phone: '0812-3456-7890',
@@ -46,7 +46,6 @@ export const initialInspectors: Inspector[] = [
     branchId: 'jakarta',
   },
   {
-    id: 'INSP-002',
     name: 'Citra Dewi',
     email: 'citra.d@example.com',
     phone: '0823-4567-8901',
@@ -63,7 +62,6 @@ export const initialInspectors: Inspector[] = [
     branchId: 'surabaya',
   },
   {
-    id: 'INSP-003',
     name: 'Eko Wahyudi',
     email: 'eko.w@example.com',
     phone: '0834-5678-9012',

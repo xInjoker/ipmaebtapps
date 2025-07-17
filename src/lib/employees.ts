@@ -40,67 +40,6 @@ export type Employee = {
     competency?: string;
 };
 
-export const initialEmployees: Employee[] = [
-    {
-        id: 'EMP-001',
-        reportingManagerId: 'EMP-002', // John reports to Jane
-        name: 'John Doe',
-        position: 'Senior Engineer',
-        projectName: 'Corporate Website Revamp',
-        workUnit: 'jakarta',
-        workUnitName: 'Cabang Jakarta',
-        salary: 15000000,
-        contractEndDate: '2025-12-31',
-        employmentStatus: 'Active',
-    },
-    {
-        id: 'EMP-002',
-        name: 'Jane Smith',
-        position: 'Project Manager',
-        projectName: 'Mobile App Development',
-        workUnit: 'surabaya',
-        workUnitName: 'Cabang Surabaya',
-        salary: 25000000,
-        contractEndDate: '2024-08-31',
-        employmentStatus: 'On Leave',
-    },
-    {
-        id: 'EMP-003',
-        reportingManagerId: 'EMP-002', // Michael also reports to Jane
-        name: 'Michael Johnson',
-        position: 'Junior Developer',
-        projectName: 'Data Analytics Platform',
-        workUnit: 'jakarta',
-        workUnitName: 'Cabang Jakarta',
-        salary: 8000000,
-        contractEndDate: '2024-10-31',
-        employmentStatus: 'Inactive',
-    },
-    {
-        id: 'EMP-004',
-        name: 'Emily Davis',
-        position: 'UI/UX Designer',
-        projectName: 'Corporate Website Revamp',
-        workUnit: 'jakarta',
-        workUnitName: 'Cabang Jakarta',
-        salary: 12000000,
-        contractEndDate: '2026-06-30',
-        employmentStatus: 'Active',
-    },
-    {
-        id: 'EMP-005',
-        reportingManagerId: 'EMP-001', // Employee user reports to John Doe
-        name: 'Employee User',
-        position: 'Field Technician',
-        projectName: 'Corporate Website Revamp',
-        workUnit: 'jakarta',
-        workUnitName: 'Cabang Jakarta',
-        salary: 9500000,
-        contractEndDate: '2025-07-31',
-        employmentStatus: 'Active',
-    },
-];
-
 export const employeeFieldLabels: Record<keyof Employee | 'id', string> = {
     id: 'Employee ID',
     reportingManagerId: 'Reporting Manager',
@@ -134,3 +73,60 @@ export const employeeFieldLabels: Record<keyof Employee | 'id', string> = {
     bpjsEmployment: 'BPJS Employment',
     competency: 'Competency',
 };
+
+// This data is now only used for one-time database seeding.
+export const initialEmployees: Omit<Employee, 'id'>[] = [
+    {
+        reportingManagerId: 'EMP-002', // John reports to Jane
+        name: 'John Doe',
+        position: 'Senior Engineer',
+        projectName: 'Corporate Website Revamp',
+        workUnit: 'jakarta',
+        workUnitName: 'Cabang Jakarta',
+        salary: 15000000,
+        contractEndDate: '2025-12-31',
+        employmentStatus: 'Active',
+    },
+    {
+        name: 'Jane Smith',
+        position: 'Project Manager',
+        projectName: 'Mobile App Development',
+        workUnit: 'surabaya',
+        workUnitName: 'Cabang Surabaya',
+        salary: 25000000,
+        contractEndDate: '2024-08-31',
+        employmentStatus: 'On Leave',
+    },
+    {
+        reportingManagerId: 'EMP-002', // Michael also reports to Jane
+        name: 'Michael Johnson',
+        position: 'Junior Developer',
+        projectName: 'Data Analytics Platform',
+        workUnit: 'jakarta',
+        workUnitName: 'Cabang Jakarta',
+        salary: 8000000,
+        contractEndDate: '2024-10-31',
+        employmentStatus: 'Inactive',
+    },
+    {
+        name: 'Emily Davis',
+        position: 'UI/UX Designer',
+        projectName: 'Corporate Website Revamp',
+        workUnit: 'jakarta',
+        workUnitName: 'Cabang Jakarta',
+        salary: 12000000,
+        contractEndDate: '2026-06-30',
+        employmentStatus: 'Active',
+    },
+    {
+        reportingManagerId: 'EMP-001', // Employee user reports to John Doe
+        name: 'Employee User',
+        position: 'Field Technician',
+        projectName: 'Corporate Website Revamp',
+        workUnit: 'jakarta',
+        workUnitName: 'Cabang Jakarta',
+        salary: 9500000,
+        contractEndDate: '2025-07-31',
+        employmentStatus: 'Active',
+    },
+];

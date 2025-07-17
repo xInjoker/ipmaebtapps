@@ -1,10 +1,12 @@
 
 'use client';
 
-import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useMemo } from 'react';
-import { initialInspectors, type Inspector } from '@/lib/inspectors';
+import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useMemo, useEffect } from 'react';
+import { type Inspector } from '@/lib/inspectors';
+import * as inspectorService from '@/services/inspectorService';
 import { getDocumentStatus } from '@/lib/utils';
 import { Users2, BadgeCheck, Clock, XCircle } from 'lucide-react';
+import { useAuth } from './AuthContext';
 
 type InspectorStats = {
     total: number;
@@ -26,16 +28,31 @@ type InspectorContextType = {
 const InspectorContext = createContext<InspectorContextType | undefined>(undefined);
 
 export function InspectorProvider({ children }: { children: ReactNode }) {
-  const [inspectors, setInspectors] = useState<Inspector[]>(initialInspectors);
+  const [inspectors, setInspectors] = useState<Inspector[]>([]);
+  const { isInitializing } = useAuth();
+
+  useEffect(() => {
+    if (isInitializing) return;
+
+    const unsubscribe = inspectorService.streamItems((fetchedItems) => {
+        if (fetchedItems.length === 0 && inspectorService.loadFromLocalStorage().length === 0) {
+            inspectorService.seedInitialData();
+        } else {
+            setInspectors(fetchedItems);
+            inspectorService.saveToLocalStorage(fetchedItems);
+        }
+    });
+
+    return () => unsubscribe();
+  }, [isInitializing]);
+
 
   const addInspector = async (item: Inspector) => {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    setInspectors(prev => [...prev, item]);
+    await inspectorService.addItem(item);
   };
   
   const updateInspector = async (id: string, updatedItem: Inspector) => {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    setInspectors(prev => prev.map(item => item.id === id ? updatedItem : item));
+    await inspectorService.updateItem(id, updatedItem);
   };
   
   const getInspectorById = (id:string) => {

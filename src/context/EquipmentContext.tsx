@@ -1,8 +1,10 @@
 
 'use client';
 
-import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction } from 'react';
-import { initialEquipment, type EquipmentItem } from '@/lib/equipment';
+import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useEffect } from 'react';
+import { type EquipmentItem } from '@/lib/equipment';
+import * as equipmentService from '@/services/equipmentService';
+import { useAuth } from './AuthContext';
 
 type EquipmentContextType = {
   equipmentList: EquipmentItem[];
@@ -15,23 +17,38 @@ type EquipmentContextType = {
 const EquipmentContext = createContext<EquipmentContextType | undefined>(undefined);
 
 export function EquipmentProvider({ children }: { children: ReactNode }) {
-  const [equipmentList, setEquipmentList] = useState<EquipmentItem[]>(initialEquipment);
+  const [equipmentList, setEquipmentList] = useState<EquipmentItem[]>([]);
+  const { isInitializing } = useAuth();
+
+  useEffect(() => {
+    if (isInitializing) return;
+
+    const unsubscribe = equipmentService.streamItems((fetchedItems) => {
+        if (fetchedItems.length === 0 && equipmentService.loadFromLocalStorage().length === 0) {
+            equipmentService.seedInitialData();
+        } else {
+            setEquipmentList(fetchedItems);
+            equipmentService.saveToLocalStorage(fetchedItems);
+        }
+    });
+
+    return () => unsubscribe();
+  }, [isInitializing]);
+
 
   const addEquipment = async (item: Omit<EquipmentItem, 'id'>) => {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    const newId = `EQ-${String(equipmentList.length + 1).padStart(3, '0')}`;
+    const newId = `EQ-${Date.now()}`;
     const newItem = { 
       ...item, 
       id: newId,
       assignedPersonnelIds: item.assignedPersonnelIds || [],
       personnelCertificationUrls: item.personnelCertificationUrls || [],
     };
-    setEquipmentList(prev => [...prev, newItem]);
+    await equipmentService.addItem(newItem);
   };
   
   const updateEquipment = async (id: string, updatedItem: EquipmentItem) => {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    setEquipmentList(prev => prev.map(item => item.id === id ? updatedItem : item));
+    await equipmentService.updateItem(id, updatedItem);
   };
   
   const getEquipmentById = (id: string) => {

@@ -1,10 +1,12 @@
 
 'use client';
 
-import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useMemo } from 'react';
-import { initialTenders, type Tender, type TenderStatus } from '@/lib/tenders';
+import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useMemo, useEffect } from 'react';
+import { type Tender, type TenderStatus } from '@/lib/tenders';
 import { formatCurrencyMillions } from '@/lib/utils';
 import { Users, Clock, CheckCircle, XCircle } from 'lucide-react';
+import * as tenderService from '@/services/tenderService';
+import { useAuth } from './AuthContext';
 
 type TenderStats = {
   totalTenders: { count: number; value: number };
@@ -26,16 +28,31 @@ type TenderContextType = {
 const TenderContext = createContext<TenderContextType | undefined>(undefined);
 
 export function TenderProvider({ children }: { children: ReactNode }) {
-  const [tenders, setTenders] = useState<Tender[]>(initialTenders);
+  const [tenders, setTenders] = useState<Tender[]>([]);
+  const { isInitializing } = useAuth();
+
+  useEffect(() => {
+    if (isInitializing) return;
+
+    const unsubscribe = tenderService.streamItems((fetchedItems) => {
+        if (fetchedItems.length === 0 && tenderService.loadFromLocalStorage().length === 0) {
+            tenderService.seedInitialData();
+        } else {
+            setTenders(fetchedItems);
+            tenderService.saveToLocalStorage(fetchedItems);
+        }
+    });
+
+    return () => unsubscribe();
+  }, [isInitializing]);
+
 
   const addTender = async (item: Tender) => {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    setTenders(prev => [...prev, item]);
+    await tenderService.addItem(item);
   };
 
   const updateTender = async (id: string, updatedItem: Tender) => {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    setTenders(prev => prev.map(item => item.id === id ? updatedItem : item));
+    await tenderService.updateItem(id, updatedItem);
   };
 
   const getTenderById = (id: string) => {
