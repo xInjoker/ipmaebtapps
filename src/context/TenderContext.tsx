@@ -1,12 +1,10 @@
 
 'use client';
 
-import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useMemo, useEffect } from 'react';
-import { type Tender, type TenderStatus } from '@/lib/tenders';
+import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useMemo } from 'react';
+import { type Tender, type TenderStatus, initialTenders } from '@/lib/tenders';
 import { formatCurrencyMillions } from '@/lib/utils';
 import { Users, Clock, CheckCircle, XCircle } from 'lucide-react';
-import * as tenderService from '@/services/tenderService';
-import { useAuth } from './AuthContext';
 
 type TenderStats = {
   totalTenders: { count: number; value: number };
@@ -19,8 +17,8 @@ type TenderContextType = {
   tenders: Tender[];
   setTenders: Dispatch<SetStateAction<Tender[]>>;
   isLoading: boolean;
-  addTender: (item: Tender) => Promise<void>;
-  updateTender: (id: string, item: Tender) => Promise<void>;
+  addTender: (item: Tender) => void;
+  updateTender: (id: string, item: Tender) => void;
   getTenderById: (id: string) => Tender | undefined;
   tenderStats: TenderStats;
   widgetData: { title: string; value: string; description: string; icon: React.ElementType; iconColor: string; shapeColor: string; }[];
@@ -29,39 +27,17 @@ type TenderContextType = {
 const TenderContext = createContext<TenderContextType | undefined>(undefined);
 
 export function TenderProvider({ children }: { children: ReactNode }) {
-  const [tenders, setTenders] = useState<Tender[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const { isInitializing: isAuthInitializing } = useAuth();
+  const [tenders, setTenders] = useState<Tender[]>(
+    initialTenders.map((t, index) => ({...t, id: `TND-${String(index + 1).padStart(3, '0')}`}))
+  );
+  const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    if (isAuthInitializing) return;
-
-    const localData = tenderService.loadFromLocalStorage();
-    if (localData.length > 0) {
-      setTenders(localData);
-      setIsLoading(false);
-    }
-    
-    const unsubscribe = tenderService.streamItems((fetchedItems) => {
-        if (fetchedItems.length === 0 && localData.length === 0) {
-            tenderService.seedInitialData();
-        } else {
-            setTenders(fetchedItems);
-            tenderService.saveToLocalStorage(fetchedItems);
-        }
-        setIsLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, [isAuthInitializing]);
-
-
-  const addTender = async (item: Tender) => {
-    await tenderService.addItem(item);
+  const addTender = (item: Tender) => {
+    setTenders(prev => [...prev, item]);
   };
 
-  const updateTender = async (id: string, updatedItem: Tender) => {
-    await tenderService.updateItem(id, updatedItem);
+  const updateTender = (id: string, updatedItem: Tender) => {
+    setTenders(prev => prev.map(t => t.id === id ? updatedItem : t));
   };
 
   const getTenderById = (id: string) => {

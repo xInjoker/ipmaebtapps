@@ -1,12 +1,10 @@
 
 'use client';
 
-import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useMemo, useEffect } from 'react';
-import { type Inspector } from '@/lib/inspectors';
-import * as inspectorService from '@/services/inspectorService';
+import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useMemo } from 'react';
+import { type Inspector, initialInspectors } from '@/lib/inspectors';
 import { getDocumentStatus } from '@/lib/utils';
 import { Users2, BadgeCheck, Clock, XCircle } from 'lucide-react';
-import { useAuth } from './AuthContext';
 
 type InspectorStats = {
     total: number;
@@ -19,8 +17,8 @@ type InspectorContextType = {
   inspectors: Inspector[];
   setInspectors: Dispatch<SetStateAction<Inspector[]>>;
   isLoading: boolean;
-  addInspector: (item: Inspector) => Promise<void>;
-  updateInspector: (id: string, item: Inspector) => Promise<void>;
+  addInspector: (item: Inspector) => void;
+  updateInspector: (id: string, item: Inspector) => void;
   getInspectorById: (id: string) => Inspector | undefined;
   inspectorStats: InspectorStats;
   widgetData: { title: string; value: string; description: string; icon: React.ElementType; iconColor: string; shapeColor: string; }[];
@@ -29,39 +27,17 @@ type InspectorContextType = {
 const InspectorContext = createContext<InspectorContextType | undefined>(undefined);
 
 export function InspectorProvider({ children }: { children: ReactNode }) {
-  const [inspectors, setInspectors] = useState<Inspector[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const { isInitializing: isAuthInitializing } = useAuth();
-
-  useEffect(() => {
-    if (isAuthInitializing) return;
-
-    const localData = inspectorService.loadFromLocalStorage();
-    if (localData.length > 0) {
-      setInspectors(localData);
-      setIsLoading(false);
-    }
-    
-    const unsubscribe = inspectorService.streamItems((fetchedItems) => {
-        if (fetchedItems.length === 0 && localData.length === 0) {
-            inspectorService.seedInitialData();
-        } else {
-            setInspectors(fetchedItems);
-            inspectorService.saveToLocalStorage(fetchedItems);
-        }
-        setIsLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, [isAuthInitializing]);
-
+  const [inspectors, setInspectors] = useState<Inspector[]>(
+    initialInspectors.map((i, index) => ({ ...i, id: `INSP-${String(index + 1).padStart(3, '0')}`}))
+  );
+  const [isLoading, setIsLoading] = useState(false);
 
   const addInspector = async (item: Inspector) => {
-    await inspectorService.addItem(item);
+    setInspectors(prev => [...prev, item]);
   };
   
   const updateInspector = async (id: string, updatedItem: Inspector) => {
-    await inspectorService.updateItem(id, updatedItem);
+    setInspectors(prev => prev.map(i => i.id === id ? updatedItem : i));
   };
   
   const getInspectorById = (id:string) => {

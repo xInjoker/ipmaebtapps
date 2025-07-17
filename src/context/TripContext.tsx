@@ -1,18 +1,16 @@
 
 'use client';
 
-import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useCallback, useEffect } from 'react';
-import { type TripRequest } from '@/lib/trips';
+import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useCallback } from 'react';
+import { type TripRequest, initialTrips } from '@/lib/trips';
 import { useProjects } from './ProjectContext';
-import * as tripService from '@/services/tripService';
-import { useAuth } from './AuthContext';
 
 type TripContextType = {
   trips: TripRequest[];
   setTrips: Dispatch<SetStateAction<TripRequest[]>>;
   isLoading: boolean;
-  addTrip: (item: TripRequest) => Promise<void>;
-  updateTrip: (id: string, item: TripRequest) => Promise<void>;
+  addTrip: (item: TripRequest) => void;
+  updateTrip: (id: string, item: TripRequest) => void;
   getTripById: (id: string) => TripRequest | undefined;
   getPendingTripApprovalsForUser: (userId: number) => TripRequest[];
 };
@@ -20,40 +18,18 @@ type TripContextType = {
 const TripContext = createContext<TripContextType | undefined>(undefined);
 
 export function TripProvider({ children }: { children: ReactNode }) {
-  const [trips, setTrips] = useState<TripRequest[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [trips, setTrips] = useState<TripRequest[]>(
+    initialTrips.map((t, index) => ({ ...t, id: `TRIP-${String(index + 1).padStart(3, '0')}`}))
+  );
+  const [isLoading, setIsLoading] = useState(false);
   const { projects } = useProjects();
-  const { isInitializing: isAuthInitializing } = useAuth();
 
-  useEffect(() => {
-    if (isAuthInitializing) return;
-
-    const localData = tripService.loadFromLocalStorage();
-    if (localData.length > 0) {
-        setTrips(localData);
-        setIsLoading(false);
-    }
-    
-    const unsubscribe = tripService.streamItems((fetchedItems) => {
-        if (fetchedItems.length === 0 && localData.length === 0) {
-            tripService.seedInitialData();
-        } else {
-            setTrips(fetchedItems);
-            tripService.saveToLocalStorage(fetchedItems);
-        }
-        setIsLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, [isAuthInitializing]);
-
-
-  const addTrip = async (item: TripRequest) => {
-    await tripService.addItem(item);
+  const addTrip = (item: TripRequest) => {
+    setTrips(prev => [...prev, item]);
   };
   
-  const updateTrip = async (id: string, updatedItem: TripRequest) => {
-    await tripService.updateItem(id, updatedItem);
+  const updateTrip = (id: string, updatedItem: TripRequest) => {
+    setTrips(prev => prev.map(t => t.id === id ? updatedItem : t));
   };
   
   const getTripById = (id: string) => {

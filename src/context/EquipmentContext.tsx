@@ -1,51 +1,28 @@
 
 'use client';
 
-import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useEffect } from 'react';
-import { type EquipmentItem } from '@/lib/equipment';
-import * as equipmentService from '@/services/equipmentService';
-import { useAuth } from './AuthContext';
+import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction } from 'react';
+import { type EquipmentItem, initialEquipment } from '@/lib/equipment';
 
 type EquipmentContextType = {
   equipmentList: EquipmentItem[];
   setEquipmentList: Dispatch<SetStateAction<EquipmentItem[]>>;
   isLoading: boolean;
-  addEquipment: (item: Omit<EquipmentItem, 'id'>) => Promise<void>;
-  updateEquipment: (id: string, item: EquipmentItem) => Promise<void>;
+  addEquipment: (item: Omit<EquipmentItem, 'id'>) => void;
+  updateEquipment: (id: string, item: EquipmentItem) => void;
   getEquipmentById: (id: string) => EquipmentItem | undefined;
 };
 
 const EquipmentContext = createContext<EquipmentContextType | undefined>(undefined);
 
 export function EquipmentProvider({ children }: { children: ReactNode }) {
-  const [equipmentList, setEquipmentList] = useState<EquipmentItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const { isInitializing: isAuthInitializing } = useAuth();
-
-  useEffect(() => {
-    if (isAuthInitializing) return;
-
-    const localData = equipmentService.loadFromLocalStorage();
-    if (localData.length > 0) {
-      setEquipmentList(localData);
-      setIsLoading(false);
-    }
-
-    const unsubscribe = equipmentService.streamItems((fetchedItems) => {
-        if (fetchedItems.length === 0 && localData.length === 0) {
-            equipmentService.seedInitialData();
-        } else {
-            setEquipmentList(fetchedItems);
-            equipmentService.saveToLocalStorage(fetchedItems);
-        }
-        setIsLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, [isAuthInitializing]);
+  const [equipmentList, setEquipmentList] = useState<EquipmentItem[]>(
+      initialEquipment.map((e, index) => ({ ...e, id: `EQ-${String(index + 1).padStart(3, '0')}`}))
+  );
+  const [isLoading, setIsLoading] = useState(false);
 
 
-  const addEquipment = async (item: Omit<EquipmentItem, 'id'>) => {
+  const addEquipment = (item: Omit<EquipmentItem, 'id'>) => {
     const newId = `EQ-${Date.now()}`;
     const newItem = { 
       ...item, 
@@ -53,11 +30,11 @@ export function EquipmentProvider({ children }: { children: ReactNode }) {
       assignedPersonnelIds: item.assignedPersonnelIds || [],
       personnelCertificationUrls: item.personnelCertificationUrls || [],
     };
-    await equipmentService.addItem(newItem);
+    setEquipmentList(prev => [...prev, newItem]);
   };
   
-  const updateEquipment = async (id: string, updatedItem: EquipmentItem) => {
-    await equipmentService.updateItem(id, updatedItem);
+  const updateEquipment = (id: string, updatedItem: EquipmentItem) => {
+    setEquipmentList(prev => prev.map(item => item.id === id ? updatedItem : item));
   };
   
   const getEquipmentById = (id: string) => {

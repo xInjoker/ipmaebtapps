@@ -2,9 +2,7 @@
 'use client';
 
 import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useMemo, useCallback, useEffect } from 'react';
-import { type Project } from '@/lib/data';
-import * as projectService from '@/services/projectService';
-import { useAuth } from './AuthContext';
+import { type Project, initialProjects } from '@/lib/projects';
 
 type ProjectStats = {
   totalProjectValue: number;
@@ -16,9 +14,9 @@ type ProjectStats = {
 
 type ProjectContextType = {
   projects: Project[];
-  setProjects: Dispatch<SetStateAction<Project[]>>; // Note: Direct setting might be limited with Firestore backend
-  addProject: (project: Omit<Project, 'id'>) => Promise<void>;
-  updateProject: (id: string, project: Partial<Project>) => Promise<void>;
+  setProjects: Dispatch<SetStateAction<Project[]>>; 
+  addProject: (project: Omit<Project, 'id'>) => void;
+  updateProject: (id: string, project: Partial<Project>) => void;
   getProjectById: (id: string) => Project | undefined;
   getProjectStats: (projectList: Project[]) => ProjectStats;
   projectStats: ProjectStats;
@@ -27,48 +25,23 @@ type ProjectContextType = {
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
 
 export function ProjectProvider({ children }: { children: ReactNode }) {
-  const [projects, setProjects] = useState<Project[]>([]);
-  const { isInitializing } = useAuth(); // Use auth loading state to delay firestore fetch
+  const [projects, setProjects] = useState<Project[]>(initialProjects);
 
-  useEffect(() => {
-    if (isInitializing) return;
-
-    // Load from local storage first for a fast initial load
-    const localProjects = projectService.loadProjectsFromLocalStorage();
-    if (localProjects.length > 0) {
-        setProjects(localProjects);
-    }
-    
-    // Then, set up the real-time listener from Firestore
-    const unsubscribe = projectService.streamProjects((fetchedProjects) => {
-        // One-time data seeding for new users
-        if (fetchedProjects.length === 0 && localProjects.length === 0) {
-            projectService.seedInitialProjects();
-            // The stream will automatically provide the seeded projects, so no need to set state here.
-        } else {
-            setProjects(fetchedProjects);
-            projectService.saveProjectsToLocalStorage(fetchedProjects);
-        }
-    });
-
-    return () => unsubscribe();
-  }, [isInitializing]);
-
-
-  const addProject = async (projectData: Omit<Project, 'id'>) => {
-      await projectService.addProject(projectData);
-      // State will be updated by the real-time listener
+  const addProject = (projectData: Omit<Project, 'id'>) => {
+      const newProject: Project = {
+          id: `PROJ-${Date.now()}`,
+          ...projectData
+      };
+      setProjects(prev => [...prev, newProject]);
   };
 
-  const updateProject = async (id: string, projectData: Partial<Project>) => {
-      await projectService.updateProject(id, projectData);
-      // State will be updated by the real-time listener
+  const updateProject = (id: string, projectData: Partial<Project>) => {
+      setProjects(prev => prev.map(p => p.id === id ? {...p, ...projectData} : p));
   };
   
   const getProjectById = (id: string) => {
     return projects.find(project => project.id.toString() === id);
   };
-
 
   const getProjectStats = useCallback((projectList: Project[]): ProjectStats => {
     return projectList.reduce((acc, project) => {

@@ -1,61 +1,37 @@
 
 'use client';
 
-import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useEffect } from 'react';
-import { type Employee } from '@/lib/employees';
-import * as employeeService from '@/services/employeeService';
-import { useAuth } from './AuthContext';
+import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction } from 'react';
+import { type Employee, initialEmployees } from '@/lib/employees';
 
 type EmployeeContextType = {
   employees: Employee[];
   setEmployees: Dispatch<SetStateAction<Employee[]>>;
   isLoading: boolean;
-  addEmployee: (item: Employee) => Promise<void>;
-  updateEmployee: (id: string, item: Employee) => Promise<void>;
-  deleteEmployee: (id: string) => Promise<void>;
+  addEmployee: (item: Employee) => void;
+  updateEmployee: (id: string, item: Employee) => void;
+  deleteEmployee: (id: string) => void;
   getEmployeeById: (id: string) => Employee | undefined;
 };
 
 const EmployeeContext = createContext<EmployeeContextType | undefined>(undefined);
 
 export function EmployeeProvider({ children }: { children: ReactNode }) {
-  const [employees, setEmployees] = useState<Employee[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const { isInitializing: isAuthInitializing } = useAuth();
+  const [employees, setEmployees] = useState<Employee[]>(
+    initialEmployees.map((e, index) => ({ ...e, id: `EMP-${String(index + 1).padStart(3, '0')}` }))
+  );
+  const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    if (isAuthInitializing) return;
-
-    const localData = employeeService.loadFromLocalStorage();
-    if (localData.length > 0) {
-        setEmployees(localData);
-        setIsLoading(false);
-    }
-
-    const unsubscribe = employeeService.streamEmployees((fetchedItems) => {
-        if (fetchedItems.length === 0 && localData.length === 0) {
-            employeeService.seedInitialData();
-        } else {
-            setEmployees(fetchedItems);
-            employeeService.saveToLocalStorage(fetchedItems);
-        }
-        setIsLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, [isAuthInitializing]);
-
-
-  const addEmployee = async (item: Employee) => {
-    await employeeService.addItem(item);
+  const addEmployee = (item: Employee) => {
+    setEmployees(prev => [...prev, item]);
   };
   
-  const updateEmployee = async (id: string, updatedItem: Employee) => {
-    await employeeService.updateItem(id, updatedItem);
+  const updateEmployee = (id: string, updatedItem: Employee) => {
+    setEmployees(prev => prev.map(e => e.id === id ? updatedItem : e));
   };
   
-  const deleteEmployee = async (id: string) => {
-    await employeeService.deleteItem(id);
+  const deleteEmployee = (id: string) => {
+    setEmployees(prev => prev.filter(e => e.id !== id));
   };
   
   const getEmployeeById = (id: string) => {
