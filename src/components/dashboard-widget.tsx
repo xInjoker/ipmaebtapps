@@ -39,9 +39,9 @@ export function DashboardWidget({
       </CardHeader>
       <CardContent>
         {value && <div className="text-xl font-bold font-headline sm:text-lg md:text-xl lg:text-2xl mt-1">{value}</div>}
-        <div className={`text-sm font-bold mt-2 ${iconColor}`}>
+        <p className={`text-sm font-bold mt-2 ${iconColor}`}>
             {description}
-        </div>
+        </p>
       </CardContent>
     </Card>
   );

@@ -379,9 +379,9 @@ export default function TendersPage() {
                             ))}
                             </ul>
                         ) : (
-                            <p className="text-sm text-muted-foreground text-center py-4">
-                            No upcoming submissions in the next 7 days.
-                            </p>
+                            <div className="text-sm text-muted-foreground text-center py-4">
+                                No upcoming submissions in the next 7 days.
+                            </div>
                         )}
                         </CardContent>
                     </Card>
