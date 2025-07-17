@@ -50,7 +50,7 @@ import type { ApprovalStage } from '@/lib/projects';
 export default function ProjectDetailsPage() {
   const params = useParams();
   const projectId = params.id as string;
-  const { getProjectById, updateProject } = useProjects();
+  const { getProjectById, updateProject, setProjects } = useProjects();
   const { users } = useAuth();
   
   const project = getProjectById(projectId);
@@ -394,13 +394,13 @@ export default function ProjectDetailsPage() {
           </TabsTrigger>
         </TabsList>
         <TabsContent value="service-orders">
-          <ProjectServiceOrderTab project={project} setProjects={updateProject as any} />
+          <ProjectServiceOrderTab project={project} setProjects={setProjects} />
         </TabsContent>
         <TabsContent value="invoices">
-          <ProjectInvoicingTab project={project} setProjects={updateProject as any} />
+          <ProjectInvoicingTab project={project} setProjects={setProjects} />
         </TabsContent>
         <TabsContent value="expenditure">
-           <ProjectExpenditureTab project={project} setProjects={updateProject as any} />
+           <ProjectExpenditureTab project={project} setProjects={setProjects} />
         </TabsContent>
          <TabsContent value="approval-settings" className="space-y-6">
            <ApprovalWorkflowManager

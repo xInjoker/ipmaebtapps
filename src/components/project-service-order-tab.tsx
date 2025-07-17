@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -123,7 +122,7 @@ export function ProjectServiceOrderTab({ project, setProjects }: ProjectServiceO
             let status: 'Open' | 'In Progress' | 'Closed';
             if (remainingValue <= 0) {
                 status = 'Closed';
-            } else if (remainingValue === item.value) {
+            } else if (invoicedAmount === 0) {
                 status = 'Open';
             } else {
                 status = 'In Progress';
