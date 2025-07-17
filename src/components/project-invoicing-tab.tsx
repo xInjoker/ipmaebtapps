@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
@@ -71,10 +72,10 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
 
     const handleAddInvoice = () => {
         if (newInvoice.soNumber && newInvoice.serviceCategory && newInvoice.description && newInvoice.periodMonth && newInvoice.periodYear && newInvoice.value > 0) {
-            const newId = project.invoices.length > 0 ? Math.max(...project.invoices.map((i) => i.id)) + 1 : 1;
+            const newId = `INV-${project.id}-${Date.now()}`;
             const { periodMonth, periodYear, ...restOfInvoice } = newInvoice;
             const period = `${periodMonth} ${periodYear}`;
-            const newInvoiceItem = { ...restOfInvoice, id: newId, period };
+            const newInvoiceItem: InvoiceItem = { ...restOfInvoice, id: newId, period };
 
             setProjects(projects => projects.map(p =>
                 p.id === project.id ? { ...p, invoices: [...p.invoices, newInvoiceItem] } : p
@@ -113,7 +114,7 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
         setIsEditInvoiceDialogOpen(true);
     };
 
-    const handleCancelInvoice = (invoiceId: number) => {
+    const handleCancelInvoice = (invoiceId: string) => {
         setProjects(projects => projects.map(p =>
             p.id === project.id
                 ? { ...p, invoices: p.invoices.map(inv => inv.id === invoiceId ? { ...inv, status: 'Cancel' } : inv) }

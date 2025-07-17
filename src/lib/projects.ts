@@ -1,6 +1,7 @@
 
+
 export type ServiceOrderItem = {
-  id: number;
+  id: string;
   soNumber: string;
   description: string;
   date: string;
@@ -8,7 +9,7 @@ export type ServiceOrderItem = {
 };
 
 export type InvoiceItem = {
-  id: number;
+  id: string;
   soNumber: string;
   serviceCategory: string;
   description: string;
@@ -95,13 +96,13 @@ export const initialProjects: Omit<Project, 'id'>[] = [
     period: '2024-2025',
     duration: '12 Months',
     serviceOrders: [
-      { id: 1, soNumber: 'SO-001-A', description: 'Initial design consultation and mockups', date: '2024-01-10', value: 500000000 },
-      { id: 2, soNumber: 'SO-001-B', description: 'Development and deployment sprints', date: '2024-03-15', value: 1500000000 },
-      { id: 3, soNumber: 'SO-001-C', description: 'Final deployment and server setup', date: '2024-10-01', value: 500000000 },
+      { id: 'SO-1', soNumber: 'SO-001-A', description: 'Initial design consultation and mockups', date: '2024-01-10', value: 500000000 },
+      { id: 'SO-2', soNumber: 'SO-001-B', description: 'Development and deployment sprints', date: '2024-03-15', value: 1500000000 },
+      { id: 'SO-3', soNumber: 'SO-001-C', description: 'Final deployment and server setup', date: '2024-10-01', value: 500000000 },
     ],
     invoices: [
       {
-        id: 1,
+        id: 'INV-1',
         soNumber: 'SO-001-A',
         serviceCategory: 'Design Phase',
         description: 'Initial design mockups and wireframes.',
@@ -110,7 +111,7 @@ export const initialProjects: Omit<Project, 'id'>[] = [
         value: 500000000,
       },
       {
-        id: 2,
+        id: 'INV-2',
         soNumber: 'SO-001-B',
         serviceCategory: 'Development - Sprint 1',
         description: 'Development work for the first sprint.',
@@ -119,7 +120,7 @@ export const initialProjects: Omit<Project, 'id'>[] = [
         value: 750000000,
       },
       {
-        id: 3,
+        id: 'INV-3',
         soNumber: 'SO-001-B',
         serviceCategory: 'Development - Sprint 2',
         description: 'Development work for the second sprint.',
@@ -128,7 +129,7 @@ export const initialProjects: Omit<Project, 'id'>[] = [
         value: 750000000,
       },
       {
-        id: 4,
+        id: 'INV-4',
         soNumber: 'SO-001-C',
         serviceCategory: 'Final Deployment',
         description: 'Final deployment and server setup.',
@@ -179,13 +180,13 @@ export const initialProjects: Omit<Project, 'id'>[] = [
     period: '2024-2026',
     duration: '24 Months',
     serviceOrders: [
-      { id: 1, soNumber: 'SO-002-A', description: 'Discovery & Planning', date: '2024-02-01', value: 1000000000 },
-      { id: 2, soNumber: 'SO-002-B', description: 'UI/UX Design and Backend', date: '2024-04-15', value: 3000000000 },
-      { id: 3, soNumber: 'SO-002-C', description: 'Frontend Development', date: '2024-10-01', value: 1000000000 },
+      { id: 'SO-4', soNumber: 'SO-002-A', description: 'Discovery & Planning', date: '2024-02-01', value: 1000000000 },
+      { id: 'SO-5', soNumber: 'SO-002-B', description: 'UI/UX Design and Backend', date: '2024-04-15', value: 3000000000 },
+      { id: 'SO-6', soNumber: 'SO-002-C', description: 'Frontend Development', date: '2024-10-01', value: 1000000000 },
     ],
     invoices: [
       {
-        id: 1,
+        id: 'INV-5',
         soNumber: 'SO-002-A',
         serviceCategory: 'Discovery & Planning',
         description: 'Discovery and project planning phase.',
@@ -194,7 +195,7 @@ export const initialProjects: Omit<Project, 'id'>[] = [
         value: 1000000000,
       },
       {
-        id: 2,
+        id: 'INV-6',
         soNumber: 'SO-002-B',
         serviceCategory: 'UI/UX Design',
         description: 'UI/UX design for the mobile application.',
@@ -203,7 +204,7 @@ export const initialProjects: Omit<Project, 'id'>[] = [
         value: 1500000000,
       },
        {
-        id: 3,
+        id: 'INV-7',
         soNumber: 'SO-002-B',
         serviceCategory: 'Backend Development',
         description: 'Backend development for core features.',
@@ -212,7 +213,7 @@ export const initialProjects: Omit<Project, 'id'>[] = [
         value: 1500000000,
       },
       {
-        id: 4,
+        id: 'INV-8',
         soNumber: 'SO-002-C',
         serviceCategory: 'Frontend Development',
         description: 'Frontend development for the user interface.',
@@ -257,12 +258,12 @@ export const initialProjects: Omit<Project, 'id'>[] = [
     period: '2023-2024',
     duration: '18 Months',
     serviceOrders: [
-      { id: 1, soNumber: 'SO-003-A', description: 'Cloud infrastructure setup and data pipeline implementation', date: '2023-11-20', value: 2500000000 },
-      { id: 2, soNumber: 'SO-003-B', description: 'Dashboard development and user training', date: '2024-05-10', value: 700000000 },
+      { id: 'SO-7', soNumber: 'SO-003-A', description: 'Cloud infrastructure setup and data pipeline implementation', date: '2023-11-20', value: 2500000000 },
+      { id: 'SO-8', soNumber: 'SO-003-B', description: 'Dashboard development and user training', date: '2024-05-10', value: 700000000 },
     ],
     invoices: [
       {
-        id: 1,
+        id: 'INV-9',
         soNumber: 'SO-003-A',
         serviceCategory: 'Infrastructure Setup',
         description: 'Setup of cloud infrastructure.',
@@ -271,7 +272,7 @@ export const initialProjects: Omit<Project, 'id'>[] = [
         value: 1000000000,
       },
       {
-        id: 2,
+        id: 'INV-10',
         soNumber: 'SO-003-A',
         serviceCategory: 'Data Pipeline',
         description: 'Implementation of data ingestion pipelines.',
@@ -280,7 +281,7 @@ export const initialProjects: Omit<Project, 'id'>[] = [
         value: 1500000000,
       },
       {
-        id: 3,
+        id: 'INV-11',
         soNumber: 'SO-003-B',
         serviceCategory: 'Dashboard Development',
         description: 'Development of user-facing dashboards.',
@@ -289,7 +290,7 @@ export const initialProjects: Omit<Project, 'id'>[] = [
         value: 500000000,
       },
       {
-        id: 4,
+        id: 'INV-12',
         soNumber: 'SO-003-B',
         serviceCategory: 'User Training',
         description: 'Training sessions for end-users.',

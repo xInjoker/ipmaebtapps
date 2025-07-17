@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -57,7 +58,7 @@ export function ProjectServiceOrderTab({ project, setProjects }: ProjectServiceO
 
     const handleAddItem = () => {
         if (newItem.soNumber && newItem.description && newItem.date && newItem.value > 0) {
-            const newId = project.serviceOrders?.length > 0 ? Math.max(...project.serviceOrders.map((i) => i.id)) + 1 : 1;
+            const newId = `SO-${project.id}-${Date.now()}`;
             const newItemData: ServiceOrderItem = {
                 id: newId,
                 soNumber: newItem.soNumber,
