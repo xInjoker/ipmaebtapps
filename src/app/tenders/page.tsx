@@ -247,33 +247,9 @@ export default function TendersPage() {
         </TabsList>
         <TabsContent value="summary">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card className="lg:col-span-2">
-                    <CardHeader>
-                        <CardTitle>Tender Value by Branch</CardTitle>
-                        <CardDescription>A summary of total tender bid value for each branch.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <TenderBranchChart tenders={filteredTenders} branches={branches} />
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Tender Value Summary by Status</CardTitle>
-                        <CardDescription>A summary of total tender value for each status.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <TenderSummaryChart tenders={filteredTenders} />
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Tender Count Summary by Status</CardTitle>
-                        <CardDescription>A summary of tender counts for each status.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <TenderCountChart tenders={filteredTenders} />
-                    </CardContent>
-                </Card>
+                <TenderBranchChart tenders={filteredTenders} branches={branches} />
+                <TenderSummaryChart tenders={filteredTenders} />
+                <TenderCountChart tenders={filteredTenders} />
             </div>
         </TabsContent>
         <TabsContent value="data-table">

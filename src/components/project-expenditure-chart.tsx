@@ -10,8 +10,10 @@ import {
   ChartLegend,
   ChartLegendContent,
 } from '@/components/ui/chart';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import type { Project } from '@/lib/data';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 
 type ProjectExpenditureChartProps = {
   projects: Project[];
@@ -37,19 +39,30 @@ function formatCurrencyCompact(value: number) {
 }
 
 export function ProjectExpenditureChart({ projects }: ProjectExpenditureChartProps) {
+  const [selectedYear, setSelectedYear] = useState('all');
+
+  const availableYears = useMemo(() => {
+    const years = new Set(projects.flatMap(p => p.expenditures.map(i => i.period.split(' ')[1])).filter(Boolean));
+    return ['all', ...Array.from(years).sort((a, b) => Number(b) - Number(a))];
+  }, [projects]);
+
   const chartData = useMemo(() => {
     if (!projects || projects.length === 0) return [];
+    
+    const filteredProjects = selectedYear === 'all' 
+        ? projects 
+        : projects.filter(p => p.expenditures.some(exp => exp.period.endsWith(selectedYear)));
 
-    const aggregatedData = projects.reduce((acc, project) => {
+    const aggregatedData = filteredProjects.reduce((acc, project) => {
         // Aggregate budgets
         for (const category in project.budgets) {
             acc[category] = acc[category] || { name: category, budget: 0, expenditure: 0 };
             acc[category].budget += project.budgets[category];
         }
 
-        // Aggregate expenditures
+        // Aggregate expenditures for the selected year
         project.expenditures.forEach(exp => {
-             if (exp.status === 'Approved') {
+             if (exp.status === 'Approved' && (selectedYear === 'all' || exp.period.endsWith(selectedYear))) {
                 acc[exp.category] = acc[exp.category] || { name: exp.category, budget: 0, expenditure: 0 };
                 acc[exp.category].expenditure += exp.amount;
              }
@@ -61,34 +74,50 @@ export function ProjectExpenditureChart({ projects }: ProjectExpenditureChartPro
     return Object.values(aggregatedData)
         .filter(item => item.budget > 0 || item.expenditure > 0);
 
-  }, [projects]);
+  }, [projects, selectedYear]);
 
   return (
-    <ChartContainer config={chartConfig} className="h-[400px] w-full">
-      <BarChart data={chartData} accessibilityLayer>
-        <CartesianGrid vertical={false} />
-        <XAxis
-          dataKey="name"
-          tickLine={false}
-          tickMargin={10}
-          axisLine={false}
-          tickFormatter={(value) => value.split(' ').map((w: string) => w[0]).join('')}
-        />
-        <YAxis
-            tickFormatter={(value) => formatCurrencyCompact(Number(value))}
-        />
-        <ChartTooltip
-          cursor={false}
-          content={<ChartTooltipContent
-            labelFormatter={(label) => label}
-            formatter={(value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(Number(value))}
-            indicator="dot"
-           />}
-        />
-        <ChartLegend content={<ChartLegendContent />} />
-        <Bar dataKey="budget" fill="var(--color-budget)" radius={4} />
-        <Bar dataKey="expenditure" fill="var(--color-expenditure)" radius={4} />
-      </BarChart>
-    </ChartContainer>
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+            <CardTitle>Expenditure vs Budget</CardTitle>
+            <CardDescription>An aggregated view of expenditures vs. budgets across all projects.</CardDescription>
+        </div>
+        <Select value={selectedYear} onValueChange={setSelectedYear}>
+            <SelectTrigger className="w-[120px]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+                {availableYears.map(year => <SelectItem key={year} value={year}>{year}</SelectItem>)}
+            </SelectContent>
+        </Select>
+      </CardHeader>
+      <CardContent>
+        <ChartContainer config={chartConfig} className="h-[400px] w-full">
+          <BarChart data={chartData} accessibilityLayer>
+            <CartesianGrid vertical={false} />
+            <XAxis
+              dataKey="name"
+              tickLine={false}
+              tickMargin={10}
+              axisLine={false}
+              tickFormatter={(value) => value.split(' ').map((w: string) => w[0]).join('')}
+            />
+            <YAxis
+                tickFormatter={(value) => formatCurrencyCompact(Number(value))}
+            />
+            <ChartTooltip
+              cursor={false}
+              content={<ChartTooltipContent
+                labelFormatter={(label) => label}
+                formatter={(value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(Number(value))}
+                indicator="dot"
+              />}
+            />
+            <ChartLegend content={<ChartLegendContent />} />
+            <Bar dataKey="budget" fill="var(--color-budget)" radius={4} />
+            <Bar dataKey="expenditure" fill="var(--color-expenditure)" radius={4} />
+          </BarChart>
+        </ChartContainer>
+      </CardContent>
+    </Card>
   );
 }

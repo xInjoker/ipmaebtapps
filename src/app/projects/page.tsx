@@ -173,42 +173,10 @@ export default function ProjectsPage() {
         </TabsList>
         <TabsContent value="summary">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Project Value by Branch</CardTitle>
-                        <CardDescription>A summary of total project value for each branch.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <ProjectBranchChart projects={visibleProjects} branches={branches} />
-                    </CardContent>
-                </Card>
-                 <Card>
-                    <CardHeader>
-                        <CardTitle>Income vs Expenditure</CardTitle>
-                        <CardDescription>A comparison of total income, expenditure, and contract value.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <ProjectIncomeExpenditureChart projects={visibleProjects} />
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Invoicing Status by Value</CardTitle>
-                        <CardDescription>A summary of total invoice value for each status.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <ProjectStatusChart projects={visibleProjects} />
-                    </CardContent>
-                </Card>
-                 <Card>
-                    <CardHeader>
-                        <CardTitle>Expenditure vs Budget</CardTitle>
-                        <CardDescription>An aggregated view of expenditures vs. budgets across all projects.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <ProjectExpenditureChart projects={visibleProjects} />
-                    </CardContent>
-                </Card>
+                <ProjectBranchChart projects={visibleProjects} branches={branches} />
+                <ProjectIncomeExpenditureChart projects={visibleProjects} />
+                <ProjectStatusChart projects={visibleProjects} />
+                <ProjectExpenditureChart projects={visibleProjects} />
             </div>
         </TabsContent>
         <TabsContent value="list">
