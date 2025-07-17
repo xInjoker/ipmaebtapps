@@ -35,15 +35,6 @@ import { DashboardWidget } from '@/components/dashboard-widget';
 import Link from 'next/link';
 
 
-const chartData = [
-  { month: 'January', invoiced: 186000000, paid: 80000000 },
-  { month: 'February', invoiced: 305000000, paid: 200000000 },
-  { month: 'March', invoiced: 237000000, paid: 120000000 },
-  { month: 'April', invoiced: 73000000, paid: 190000000 },
-  { month: 'May', invoiced: 209000000, paid: 130000000 },
-  { month: 'June', invoiced: 214000000, paid: 140000000 },
-];
-
 const chartConfig: ChartConfig = {
   invoiced: {
     label: 'Invoiced',
@@ -77,6 +68,43 @@ export default function DashboardPage() {
   }, [projects, user, isHqUser]);
 
   const projectStats = useMemo(() => getProjectStats(visibleProjects), [visibleProjects, getProjectStats]);
+
+  const monthlyInvoicingData = useMemo(() => {
+    if (!visibleProjects) return [];
+
+    const dataByMonth: { [key: string]: { month: string; invoiced: number; paid: number } } = {};
+    const monthOrder: { [key:string]: number } = {
+      'January': 1, 'February': 2, 'March': 3, 'April': 4, 'May': 5, 'June': 6,
+      'July': 7, 'August': 8, 'September': 9, 'October': 10, 'November': 11, 'December': 12
+    };
+
+    visibleProjects.forEach(project => {
+        project.invoices.forEach(invoice => {
+            const [month, year] = invoice.period.split(' ');
+            if (!month || !year || !monthOrder[month]) return;
+
+            const sortKey = `${year}-${String(monthOrder[month]).padStart(2, '0')}`;
+
+            if (!dataByMonth[sortKey]) {
+                dataByMonth[sortKey] = { month: `${month.slice(0, 3)} '${year.slice(2)}`, invoiced: 0, paid: 0 };
+            }
+
+            if (invoice.status === 'Invoiced' || invoice.status === 'Paid') {
+                dataByMonth[sortKey].invoiced += invoice.value;
+            }
+
+            if (invoice.status === 'Paid') {
+                dataByMonth[sortKey].paid += invoice.value;
+            }
+        });
+    });
+
+    return Object.keys(dataByMonth)
+        .sort()
+        .map(key => dataByMonth[key]);
+
+  }, [visibleProjects]);
+
 
   const { welcomeDescription, projectWidgets, otherUserWidgets } = useMemo(() => {
     let desc = `Here's an overview of the company's performance.`;
@@ -195,7 +223,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent className="pl-2">
             <ChartContainer config={chartConfig} className="h-[300px] w-full">
-              <BarChart data={chartData} accessibilityLayer>
+              <BarChart data={monthlyInvoicingData} accessibilityLayer>
                 <CartesianGrid vertical={false} />
                 <XAxis
                   dataKey="month"
