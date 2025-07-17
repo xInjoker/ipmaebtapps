@@ -91,6 +91,15 @@ export default function EquipmentDetailsPage() {
   let colorIndex = 0;
   const Image = NextImage.default;
 
+  const downloadFile = (url: string, fileName: string) => {
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName || 'download';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -267,9 +276,9 @@ export default function EquipmentDetailsPage() {
                             <div key={index} className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
                                 <div className="flex items-center gap-2 truncate">
                                     <FileText className="h-4 w-4 flex-shrink-0" />
-                                    <span className="text-sm truncate">{url.split('/').pop()}</span>
+                                    <span className="text-sm truncate">Document {index + 1}</span>
                                 </div>
-                                <Button variant="ghost" size="sm">Download</Button>
+                                <Button variant="ghost" size="sm" onClick={() => downloadFile(url, `doc_${equipment.serialNumber}_${index+1}`)}>Download</Button>
                             </div>
                         ))}
                     </div>
@@ -291,9 +300,9 @@ export default function EquipmentDetailsPage() {
                             <div key={index} className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
                                 <div className="flex items-center gap-2 truncate">
                                     <FileText className="h-4 w-4 flex-shrink-0" />
-                                    <span className="text-sm truncate">{url.split('/').pop()}</span>
+                                    <span className="text-sm truncate">Certification {index + 1}</span>
                                 </div>
-                                <Button variant="ghost" size="sm">Download</Button>
+                                <Button variant="ghost" size="sm" onClick={() => downloadFile(url, `cert_${equipment.serialNumber}_${index+1}`)}>Download</Button>
                             </div>
                         ))}
                     </div>

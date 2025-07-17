@@ -22,6 +22,8 @@ import { equipmentTypes, equipmentStatuses } from '@/lib/equipment';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EquipmentCard } from '@/components/equipment-card';
 import { getCalibrationStatus } from '@/lib/utils';
+import { HeaderCard } from '@/components/header-card';
+import { DashboardWidget } from '@/components/dashboard-widget';
 
 type DashboardStats = {
     total: number;
@@ -63,10 +65,12 @@ export default function EquipmentPage() {
   }, [branches]);
 
   const filteredEquipment = useMemo(() => {
+    const lowercasedTerm = searchTerm.toLowerCase();
+    
     return equipmentList.filter(item => {
-        const searchMatch = searchTerm.toLowerCase() === '' ||
-                            item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            item.serialNumber.toLowerCase().includes(searchTerm.toLowerCase());
+        const searchMatch = lowercasedTerm === '' ||
+                            item.name.toLowerCase().includes(lowercasedTerm) ||
+                            item.serialNumber.toLowerCase().includes(lowercasedTerm);
 
         const statusMatch = statusFilter === 'all' || item.status === statusFilter;
         const typeMatch = typeFilter === 'all' || item.type === typeFilter;
@@ -144,41 +148,11 @@ export default function EquipmentPage() {
 
   return (
     <div className="space-y-6">
-      <Card className="relative overflow-hidden bg-gradient-to-br from-primary to-primary/80 text-primary-foreground">
-        <svg
-            className="absolute -right-16 -top-24 text-amber-500"
-            fill="currentColor"
-            width="400"
-            height="400"
-            viewBox="0 0 200 200"
-            xmlns="http://www.w3.org/2000/svg"
-        >
-            <path
-            d="M51.9,-54.9C64.6,-45.5,71.2,-28.9,72,-12.3C72.8,4.2,67.7,20.8,58.3,34.5C48.9,48.2,35.1,59.1,20,64.2C4.9,69.3,-11.5,68.6,-26.4,62.8C-41.2,57,-54.6,46,-61.7,31.7C-68.9,17.4,-70,-0.1,-64.7,-14.8C-59.4,-29.4,-47.8,-41.3,-35,-50.7C-22.3,-60,-8.4,-67,5.5,-69.6C19.4,-72.2,39.1,-70.4,51.9,-54.9Z"
-            transform="translate(100 100)"
-            />
-        </svg>
-        <svg
-            className="absolute -left-20 -bottom-24 text-primary-foreground/10"
-            fill="currentColor"
-            width="400"
-            height="400"
-            viewBox="0 0 200 200"
-            xmlns="http://www.w3.org/2000/svg"
-        >
-            <path
-            d="M51.9,-54.9C64.6,-45.5,71.2,-28.9,72,-12.3C72.8,4.2,67.7,20.8,58.3,34.5C48.9,48.2,35.1,59.1,20,64.2C4.9,69.3,-11.5,68.6,-26.4,62.8C-41.2,57,-54.6,46,-61.7,31.7C-68.9,17.4,-70,-0.1,-64.7,-14.8C-59.4,-29.4,-47.8,-41.3,-35,-50.7C-22.3,-60,-8.4,-67,5.5,-69.6C19.4,-72.2,39.1,-70.4,51.9,-54.9Z"
-            transform="translate(100 100)"
-            />
-        </svg>
-        <CardHeader className="flex flex-row items-start justify-between z-10 relative">
-          <div className="space-y-1.5">
-            <CardTitle className="font-headline">Equipment Management</CardTitle>
-            <CardDescription className="text-primary-foreground/90">
-              Monitor and manage all operational equipment.
-            </CardDescription>
-          </div>
-          {userHasPermission('manage-equipment') && (
+      <HeaderCard
+        title="Equipment Management"
+        description="Monitor and manage all operational equipment."
+      >
+        {userHasPermission('manage-equipment') && (
             <Button asChild>
               <Link href="/equipment/new">
                   <PlusCircle className="mr-2 h-4 w-4" />
@@ -186,8 +160,16 @@ export default function EquipmentPage() {
               </Link>
             </Button>
           )}
-        </CardHeader>
-        <CardContent>
+      </HeaderCard>
+      
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {widgetData.map((widget, index) => (
+            <DashboardWidget key={index} {...widget} />
+        ))}
+      </div>
+
+       <Card>
+        <CardContent className="p-4">
            <div className="flex flex-col gap-4 sm:flex-row sm:items-center z-10 relative">
             <div className="relative flex-1">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -234,36 +216,6 @@ export default function EquipmentPage() {
         </CardContent>
       </Card>
       
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {widgetData.map((widget, index) => (
-            <Card key={index} className="relative overflow-hidden">
-                <svg
-                    className={`absolute -top-1 -right-1 h-24 w-24 ${widget.shapeColor}`}
-                    fill="currentColor"
-                    viewBox="0 0 200 200"
-                    xmlns="http://www.w3.org/2000/svg"
-                >
-                    <path
-                    d="M62.3,-53.5C78.2,-41.5,86.8,-20.8,86.4,-0.4C86,20,76.6,40,61.9,54.1C47.2,68.2,27.1,76.4,5.4,75.3C-16.3,74.2,-32.7,63.7,-47.5,51.3C-62.3,38.8,-75.6,24.5,-80.5,6.7C-85.4,-11.1,-82,-32.5,-69.3,-45.5C-56.6,-58.5,-34.7,-63.1,-15.6,-64.3C3.5,-65.5,26.4,-65.5,43.2,-61.7C59.9,-57.9,59.9,-57.9,62.3,-53.5Z"
-                    transform="translate(100 100)"
-                    />
-                </svg>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">
-                        {widget.title}
-                    </CardTitle>
-                    <widget.icon className={`h-8 w-8 ${widget.iconColor}`} />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-xl font-bold font-headline sm:text-lg md:text-xl lg:text-2xl mt-1">{widget.value}</div>
-                    <p className={`text-sm font-bold mt-2 ${widget.iconColor}`}>
-                        {widget.description}
-                    </p>
-                </CardContent>
-            </Card>
-        ))}
-      </div>
-
        {isLoading && equipmentList.length === 0 ? (
          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
            {[...Array(6)].map((_, i) => (

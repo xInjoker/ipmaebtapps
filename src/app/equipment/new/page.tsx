@@ -27,6 +27,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useInspectors } from '@/context/InspectorContext';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { fileToBase64 } from '@/lib/utils';
 
 
 export default function NewEquipmentPage() {
@@ -36,9 +37,9 @@ export default function NewEquipmentPage() {
   const { addEquipment } = useEquipment();
   const { toast } = useToast();
 
-  const [images, setImages] = useState<File[]>([]);
-  const [documents, setDocuments] = useState<File[]>([]);
-  const [personnelCertifications, setPersonnelCertifications] = useState<File[]>([]);
+  const [images, setImages] = useState<{file: File, url: string}[]>([]);
+  const [documents, setDocuments] = useState<{file: File, url: string}[]>([]);
+  const [personnelCertifications, setPersonnelCertifications] = useState<{file: File, url: string}[]>([]);
   const [isPersonnelPopoverOpen, setIsPersonnelPopoverOpen] = useState(false);
 
   const [newEquipment, setNewEquipment] = useState<{
@@ -76,23 +77,18 @@ export default function NewEquipmentPage() {
       return inspectors.filter(inspector => !newEquipment.assignedPersonnelIds.includes(inspector.id));
   }, [newEquipment, inspectors]);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, setter: React.Dispatch<React.SetStateAction<{file: File, url: string}[]>>) => {
     if (e.target.files) {
-      setImages(prev => [...prev, ...Array.from(e.target.files!)]);
+        const files = Array.from(e.target.files);
+        const filePromises = files.map(async file => ({
+            file,
+            url: await fileToBase64(file) as string,
+        }));
+        const newFiles = await Promise.all(filePromises);
+        setter(prev => [...prev, ...newFiles]);
     }
   };
 
-  const handleDocumentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setDocuments(prev => [...prev, ...Array.from(e.target.files!)]);
-    }
-  };
-  
-  const handlePersonnelCertChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-        setPersonnelCertifications(prev => [...prev, ...Array.from(e.target.files!)]);
-    }
-  };
 
   const removeImage = (index: number) => {
     setImages(prev => prev.filter((_, i) => i !== index));
@@ -137,10 +133,10 @@ export default function NewEquipmentPage() {
       currentLocation: newEquipment.currentLocation,
       calibrationDueDate: newEquipment.calibrationDueDate,
       status: newEquipment.status,
-      imageUrls: images.map(file => URL.createObjectURL(file)), // In a real app, you'd upload and get URLs
-      documentUrls: documents.map(file => file.name),
+      imageUrls: images.map(img => img.url),
+      documentUrls: documents.map(doc => doc.url),
       assignedPersonnelIds: newEquipment.assignedPersonnelIds,
-      personnelCertificationUrls: personnelCertifications.map(file => file.name),
+      personnelCertificationUrls: personnelCertifications.map(cert => cert.url),
     });
     
     toast({
@@ -328,15 +324,15 @@ export default function NewEquipmentPage() {
                             <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> or drag and drop</p>
                             <p className="text-xs text-muted-foreground">PNG, JPG, GIF</p>
                         </div>
-                        <Input id="image-upload" type="file" className="hidden" multiple onChange={handleImageChange} accept="image/*" />
+                        <Input id="image-upload" type="file" className="hidden" multiple onChange={(e) => handleFileChange(e, setImages)} accept="image/*" />
                     </label>
                 </div>
                  {images.length > 0 && (
                   <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                    {images.map((file, index) => (
+                    {images.map(({ file, url }, index) => (
                       <div key={index} className="relative group">
                         <div className="aspect-square w-full overflow-hidden rounded-md border flex items-center justify-center bg-muted">
-                           <ImageIcon className="h-10 w-10 text-muted-foreground" />
+                           <Image src={url} alt={file.name} width={100} height={100} className="h-full w-full object-cover"/>
                         </div>
                         <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                             <Button variant="destructive" size="icon" className="h-8 w-8" onClick={() => removeImage(index)}>
@@ -358,12 +354,12 @@ export default function NewEquipmentPage() {
                             <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> or drag and drop</p>
                             <p className="text-xs text-muted-foreground">PDF, DOCX, XLSX</p>
                         </div>
-                        <Input id="document-upload" type="file" className="hidden" multiple onChange={handleDocumentChange} />
+                        <Input id="document-upload" type="file" className="hidden" multiple onChange={(e) => handleFileChange(e, setDocuments)} />
                     </label>
                 </div>
                  {documents.length > 0 && (
                     <div className="mt-4 space-y-2">
-                        {documents.map((file, index) => (
+                        {documents.map(({ file }, index) => (
                         <div key={index} className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
                             <div className="flex items-center gap-2 truncate">
                                 <FileIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
@@ -386,12 +382,12 @@ export default function NewEquipmentPage() {
                             <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> or drag and drop</p>
                             <p className="text-xs text-muted-foreground">PDF, JPG, PNG</p>
                         </div>
-                        <Input id="cert-upload" type="file" className="hidden" multiple onChange={handlePersonnelCertChange} />
+                        <Input id="cert-upload" type="file" className="hidden" multiple onChange={(e) => handleFileChange(e, setPersonnelCertifications)} />
                     </label>
                 </div>
                  {personnelCertifications.length > 0 && (
                     <div className="mt-4 space-y-2">
-                        {personnelCertifications.map((file, index) => (
+                        {personnelCertifications.map(({ file }, index) => (
                         <div key={index} className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
                             <div className="flex items-center gap-2 truncate">
                                 <FileIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />

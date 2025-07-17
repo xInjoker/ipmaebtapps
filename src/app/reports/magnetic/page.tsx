@@ -14,10 +14,14 @@ import { useReports } from '@/context/ReportContext';
 import { useAuth } from '@/context/AuthContext';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
+import { HeaderCard } from '@/components/header-card';
+import { DashboardWidget } from '@/components/dashboard-widget';
+
 
 const getStatusVariant = (status: ReportStatus) => {
     switch (status) {
         case 'Approved': return 'success';
+        case 'Reviewed': return 'blue';
         case 'Submitted': return 'info';
         case 'Draft': return 'warning';
         case 'Rejected': return 'destructive';
@@ -27,7 +31,7 @@ const getStatusVariant = (status: ReportStatus) => {
 
 export default function MagneticTestListPage() {
   const { reports, deleteReport } = useReports();
-  const { user, roles } = useAuth();
+  const { user, roles, userHasPermission } = useAuth();
   const { toast } = useToast();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [reportToDelete, setReportToDelete] = useState<ReportItem | null>(null);
@@ -56,7 +60,7 @@ export default function MagneticTestListPage() {
       totalReports: magneticReports.length,
       totalJoints,
       approved: statusCounts['Approved'] || 0,
-      submitted: statusCounts['Submitted'] || 0,
+      submitted: (statusCounts['Submitted'] || 0) + (statusCounts['Reviewed'] || 0),
     };
   }, [magneticReports]);
   
@@ -110,62 +114,27 @@ export default function MagneticTestListPage() {
   return (
     <>
       <div className="space-y-6">
-        <Card>
-            <CardHeader>
-                <div className="flex items-center gap-4">
-                    <Button asChild variant="outline" size="icon">
-                        <Link href="/reports">
-                            <ArrowLeft className="h-4 w-4" />
-                            <span className="sr-only">Back to Reports</span>
-                        </Link>
-                    </Button>
-                    <div>
-                        <CardTitle>Magnetic Particle Test Reports</CardTitle>
-                        <CardDescription>View and manage all magnetic particle test reports.</CardDescription>
-                    </div>
-                </div>
-            </CardHeader>
-        </Card>
-
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {widgetData.map((widget, index) => (
-            <Card key={index} className="relative overflow-hidden">
-                <svg
-                    className={`absolute -top-1 -right-1 h-24 w-24 ${widget.shapeColor}`}
-                    fill="currentColor"
-                    viewBox="0 0 200 200"
-                    xmlns="http://www.w3.org/2000/svg"
-                >
-                    <path
-                    d="M62.3,-53.5C78.2,-41.5,86.8,-20.8,86.4,-0.4C86,20,76.6,40,61.9,54.1C47.2,68.2,27.1,76.4,5.4,75.3C-16.3,74.2,-32.7,63.7,-47.5,51.3C-62.3,38.8,-75.6,24.5,-80.5,6.7C-85.4,-11.1,-82,-32.5,-69.3,-45.5C-56.6,-58.5,-34.7,-63.1,-15.6,-64.3C3.5,-65.5,26.4,-65.5,43.2,-61.7C59.9,-57.9,59.9,-57.9,62.3,-53.5Z"
-                    transform="translate(100 100)"
-                    />
-                </svg>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">
-                        {widget.title}
-                    </CardTitle>
-                    <widget.icon className={`h-8 w-8 ${widget.iconColor}`} />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-xl font-bold font-headline sm:text-lg md:text-xl lg:text-2xl">{widget.value}</div>
-                    <p className="text-xs text-muted-foreground">
-                        {widget.description}
-                    </p>
-                </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        <Card>
-          <CardHeader className="flex-row items-center justify-between">
-            <CardTitle>Generated Reports</CardTitle>
-            <Button asChild>
+        <HeaderCard
+          title="Magnetic Particle Test Reports"
+          description="View and manage all magnetic particle test reports."
+        >
+           <Button asChild>
               <Link href="/reports/magnetic/new">
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Add New Report
               </Link>
             </Button>
+        </HeaderCard>
+        
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {widgetData.map((widget, index) => (
+            <DashboardWidget key={index} {...widget} />
+          ))}
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Generated Reports</CardTitle>
           </CardHeader>
           <CardContent>
              <div className="rounded-md border">
@@ -205,17 +174,18 @@ export default function MagneticTestListPage() {
                                               <DropdownMenuItem asChild>
                                                 <Link href={`/reports/${report.id}`}>View</Link>
                                               </DropdownMenuItem>
-                                              <DropdownMenuItem disabled>Edit</DropdownMenuItem>
-                                              <DropdownMenuItem
-                                                  className="text-destructive"
-                                                  onSelect={(e) => {
-                                                      e.preventDefault();
-                                                      setReportToDelete(report);
-                                                      setIsDeleteDialogOpen(true);
-                                                  }}
-                                              >
-                                                  Delete
-                                              </DropdownMenuItem>
+                                              {userHasPermission('manage-reports') && (
+                                                <DropdownMenuItem
+                                                    className="text-destructive"
+                                                    onSelect={(e) => {
+                                                        e.preventDefault();
+                                                        setReportToDelete(report);
+                                                        setIsDeleteDialogOpen(true);
+                                                    }}
+                                                >
+                                                    Delete
+                                                </DropdownMenuItem>
+                                              )}
                                           </DropdownMenuContent>
                                       </DropdownMenu>
                                   </TableCell>

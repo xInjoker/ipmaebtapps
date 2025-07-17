@@ -36,23 +36,16 @@ export function HeaderCard({ title, description, children }: HeaderCardProps) {
                     transform="translate(100 100)"
                 />
             </svg>
-            <div className="z-10 relative">
-                {children ? (
-                    <div className="flex flex-row items-start justify-between">
-                         <CardHeader className="flex-grow">
-                             <CardTitle className="font-headline">{title}</CardTitle>
-                             <CardDescription className="text-primary-foreground/90">{description}</CardDescription>
-                         </CardHeader>
-                         <CardContent className="pt-6 pr-6">
-                            {children}
-                         </CardContent>
-                    </div>
-                ) : (
-                    <CardHeader>
-                        <CardTitle className="font-headline">{title}</CardTitle>
-                        <CardDescription className="text-primary-foreground/90">{description}</CardDescription>
-                    </CardHeader>
-                )}
+            <div className="z-10 relative flex flex-row items-start justify-between">
+                 <CardHeader className="flex-grow">
+                     <CardTitle className="font-headline">{title}</CardTitle>
+                     <CardDescription className="text-primary-foreground/90">{description}</CardDescription>
+                 </CardHeader>
+                 {children && (
+                     <CardContent className="pt-6 pr-6">
+                        {children}
+                     </CardContent>
+                 )}
             </div>
         </Card>
     );

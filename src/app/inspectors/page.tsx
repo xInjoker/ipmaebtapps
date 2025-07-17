@@ -12,13 +12,13 @@ import { useInspectors } from '@/context/InspectorContext';
 import { InspectorCard } from '@/components/inspector-card';
 import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
-import { formatQualificationName } from '@/lib/utils';
+import { formatQualificationName, getDocumentStatus } from '@/lib/utils';
 import { HeaderCard } from '@/components/header-card';
 import { DashboardWidget } from '@/components/dashboard-widget';
 
 
 export default function InspectorsPage() {
-  const { inspectors, widgetData } = useInspectors();
+  const { inspectors, widgetData, isLoading } = useInspectors();
   const { branches, userHasPermission } = useAuth();
   const [isClient, setIsClient] = useState(false);
 
@@ -58,6 +58,7 @@ export default function InspectorsPage() {
       const branchMatch = branchFilter === 'all' || inspector.branchId === branchFilter;
 
       const statusMatch = statusFilter === 'all' || inspector.qualifications.some(q => {
+          if (!q.expirationDate) return false;
           const status = getDocumentStatus(q.expirationDate);
           if (statusFilter === 'valid') return status.variant === 'green';
           if (statusFilter === 'expiring') return status.variant === 'yellow';
@@ -148,7 +149,7 @@ export default function InspectorsPage() {
         </CardContent>
       </Card>
 
-      {!isClient ? (
+      {isLoading && inspectors.length === 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {[...Array(4)].map((_, i) => (
              <Card key={i}>

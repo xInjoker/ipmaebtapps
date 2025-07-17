@@ -24,7 +24,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { ArrowLeft, Calendar as CalendarIcon, Save, Upload, File as FileIcon, X, PlusCircle } from 'lucide-react';
 import { format } from 'date-fns';
-import { cn, getAvatarColor, getInitials } from '@/lib/utils';
+import { cn, getAvatarColor, getInitials, fileToBase64 } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { useInspectors } from '@/context/InspectorContext';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
@@ -41,10 +41,9 @@ export default function EditEquipmentPage() {
   const { toast } = useToast();
   
   const [equipment, setEquipment] = useState<EquipmentItem | null>(null);
-  const [newImages, setNewImages] = useState<File[]>([]);
-  const [newImagePreviews, setNewImagePreviews] = useState<string[]>([]);
-  const [newDocuments, setNewDocuments] = useState<File[]>([]);
-  const [newPersonnelCerts, setNewPersonnelCerts] = useState<File[]>([]);
+  const [newImages, setNewImages] = useState<{file: File, url: string}[]>([]);
+  const [newDocuments, setNewDocuments] = useState<{file: File, url: string}[]>([]);
+  const [newPersonnelCerts, setNewPersonnelCerts] = useState<{file: File, url: string}[]>([]);
   const [isPersonnelPopoverOpen, setIsPersonnelPopoverOpen] = useState(false);
 
   useEffect(() => {
@@ -69,19 +68,6 @@ export default function EditEquipmentPage() {
     }
   }, [equipmentId, getEquipmentById, router, toast, equipmentList]);
 
-  useEffect(() => {
-    if (newImages.length === 0) {
-      setNewImagePreviews([]);
-      return;
-    }
-    const objectUrls = newImages.map(file => URL.createObjectURL(file));
-    setNewImagePreviews(objectUrls);
-
-    return () => {
-      objectUrls.forEach(url => URL.revokeObjectURL(url));
-    };
-  }, [newImages]);
-
   const branchMap = useMemo(() => {
     return branches.reduce((acc, branch) => {
         acc[branch.id] = branch.name;
@@ -99,21 +85,15 @@ export default function EditEquipmentPage() {
       return inspectors.filter(inspector => !equipment.assignedPersonnelIds.includes(inspector.id));
   }, [equipment, inspectors]);
   
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, setter: React.Dispatch<React.SetStateAction<{file: File, url: string}[]>>) => {
     if (e.target.files) {
-      setNewImages(prev => [...prev, ...Array.from(e.target.files!)]);
-    }
-  };
-
-  const handleDocumentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setNewDocuments(prev => [...prev, ...Array.from(e.target.files!)]);
-    }
-  };
-  
-  const handlePersonnelCertChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-        setNewPersonnelCerts(prev => [...prev, ...Array.from(e.target.files!)]);
+        const files = Array.from(e.target.files);
+        const filePromises = files.map(async file => ({
+            file,
+            url: await fileToBase64(file) as string,
+        }));
+        const newFiles = await Promise.all(filePromises);
+        setter(prev => [...prev, ...newFiles]);
     }
   };
 
@@ -181,9 +161,9 @@ export default function EditEquipmentPage() {
 
     const updatedEquipmentData: EquipmentItem = {
         ...equipment,
-        imageUrls: [...equipment.imageUrls, ...newImages.map(file => URL.createObjectURL(file))], // In a real app, you'd upload and get URLs
-        documentUrls: [...equipment.documentUrls, ...newDocuments.map(file => file.name)],
-        personnelCertificationUrls: [...equipment.personnelCertificationUrls, ...newPersonnelCerts.map(file => file.name)],
+        imageUrls: [...equipment.imageUrls, ...newImages.map(img => img.url)],
+        documentUrls: [...equipment.documentUrls, ...newDocuments.map(doc => doc.url)],
+        personnelCertificationUrls: [...equipment.personnelCertificationUrls, ...newPersonnelCerts.map(cert => cert.url)],
     };
 
     await updateEquipment(equipment.id, updatedEquipmentData);
@@ -392,10 +372,9 @@ export default function EditEquipmentPage() {
                                 <X className="h-4 w-4" />
                             </Button>
                         </div>
-                        <p className="text-xs text-muted-foreground truncate mt-1">{url.split('/').pop()}</p>
                       </div>
                     ))}
-                    {newImagePreviews.map((url, index) => (
+                    {newImages.map(({ file, url }, index) => (
                       <div key={`new-${index}`} className="relative group">
                         <div className="aspect-square w-full overflow-hidden rounded-md border bg-muted">
                            <Image
@@ -412,7 +391,7 @@ export default function EditEquipmentPage() {
                                 <X className="h-4 w-4" />
                             </Button>
                         </div>
-                        <p className="text-xs text-muted-foreground truncate mt-1">{newImages[index]?.name || 'New Image'}</p>
+                        <p className="text-xs text-muted-foreground truncate mt-1">{file.name}</p>
                       </div>
                     ))}
                   </div>
@@ -423,7 +402,7 @@ export default function EditEquipmentPage() {
                             <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> or drag and drop</p>
                             <p className="text-xs text-muted-foreground">PNG, JPG, GIF</p>
                         </div>
-                        <Input id="image-upload" type="file" className="hidden" multiple onChange={handleImageChange} accept="image/*" />
+                        <Input id="image-upload" type="file" className="hidden" multiple onChange={(e) => handleFileChange(e, setNewImages)} accept="image/*" />
                     </label>
                 </div>
             </div>
@@ -441,7 +420,7 @@ export default function EditEquipmentPage() {
                         </Button>
                     </div>
                     ))}
-                    {newDocuments.map((file, index) => (
+                    {newDocuments.map(({ file }, index) => (
                     <div key={`new-doc-${index}`} className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
                         <div className="flex items-center gap-2 truncate">
                             <FileIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
@@ -460,7 +439,7 @@ export default function EditEquipmentPage() {
                             <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> or drag and drop</p>
                             <p className="text-xs text-muted-foreground">PDF, DOCX, XLSX</p>
                         </div>
-                        <Input id="document-upload" type="file" className="hidden" multiple onChange={handleDocumentChange} />
+                        <Input id="document-upload" type="file" className="hidden" multiple onChange={(e) => handleFileChange(e, setNewDocuments)} />
                     </label>
                 </div>
             </div>
@@ -478,7 +457,7 @@ export default function EditEquipmentPage() {
                         </Button>
                     </div>
                     ))}
-                    {newPersonnelCerts.map((file, index) => (
+                    {newPersonnelCerts.map(({ file }, index) => (
                     <div key={`new-cert-${index}`} className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
                         <div className="flex items-center gap-2 truncate">
                             <FileIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
@@ -497,7 +476,7 @@ export default function EditEquipmentPage() {
                             <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> or drag and drop</p>
                             <p className="text-xs text-muted-foreground">PDF, JPG, PNG</p>
                         </div>
-                        <Input id="cert-upload" type="file" className="hidden" multiple onChange={handlePersonnelCertChange} />
+                        <Input id="cert-upload" type="file" className="hidden" multiple onChange={(e) => handleFileChange(e, setNewPersonnelCerts)} />
                     </label>
                 </div>
             </div>

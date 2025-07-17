@@ -58,7 +58,7 @@ export function formatCurrencyMillions(value: number): string {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(millions);
-    return `Rp ${formattedMillions} millions`;
+    return `Rp ${formattedMillions} jt`;
   }
   return formatCurrency(value);
 }
@@ -147,3 +147,12 @@ export function getTenderStatusVariant(status: TenderStatus) {
             return 'secondary' as const;
     }
 };
+
+export function fileToBase64(file: File): Promise<string | ArrayBuffer | null> {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+    });
+}
