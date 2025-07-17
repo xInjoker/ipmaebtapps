@@ -10,6 +10,7 @@ import { useAuth } from './AuthContext';
 type TripContextType = {
   trips: TripRequest[];
   setTrips: Dispatch<SetStateAction<TripRequest[]>>;
+  isLoading: boolean;
   addTrip: (item: TripRequest) => Promise<void>;
   updateTrip: (id: string, item: TripRequest) => Promise<void>;
   getTripById: (id: string) => TripRequest | undefined;
@@ -20,23 +21,31 @@ const TripContext = createContext<TripContextType | undefined>(undefined);
 
 export function TripProvider({ children }: { children: ReactNode }) {
   const [trips, setTrips] = useState<TripRequest[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const { projects } = useProjects();
-  const { isInitializing } = useAuth();
+  const { isInitializing: isAuthInitializing } = useAuth();
 
   useEffect(() => {
-    if (isInitializing) return;
+    if (isAuthInitializing) return;
 
+    const localData = tripService.loadFromLocalStorage();
+    if (localData.length > 0) {
+        setTrips(localData);
+        setIsLoading(false);
+    }
+    
     const unsubscribe = tripService.streamItems((fetchedItems) => {
-        if (fetchedItems.length === 0 && tripService.loadFromLocalStorage().length === 0) {
+        if (fetchedItems.length === 0 && localData.length === 0) {
             tripService.seedInitialData();
         } else {
             setTrips(fetchedItems);
             tripService.saveToLocalStorage(fetchedItems);
         }
+        setIsLoading(false);
     });
 
     return () => unsubscribe();
-  }, [isInitializing]);
+  }, [isAuthInitializing]);
 
 
   const addTrip = async (item: TripRequest) => {
@@ -71,7 +80,7 @@ export function TripProvider({ children }: { children: ReactNode }) {
   }, [trips, projects]);
 
   return (
-    <TripContext.Provider value={{ trips, setTrips, addTrip, updateTrip, getTripById, getPendingTripApprovalsForUser }}>
+    <TripContext.Provider value={{ trips, setTrips, isLoading, addTrip, updateTrip, getTripById, getPendingTripApprovalsForUser }}>
       {children}
     </TripContext.Provider>
   );

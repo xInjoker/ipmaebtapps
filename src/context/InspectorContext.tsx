@@ -18,6 +18,7 @@ type InspectorStats = {
 type InspectorContextType = {
   inspectors: Inspector[];
   setInspectors: Dispatch<SetStateAction<Inspector[]>>;
+  isLoading: boolean;
   addInspector: (item: Inspector) => Promise<void>;
   updateInspector: (id: string, item: Inspector) => Promise<void>;
   getInspectorById: (id: string) => Inspector | undefined;
@@ -29,22 +30,30 @@ const InspectorContext = createContext<InspectorContextType | undefined>(undefin
 
 export function InspectorProvider({ children }: { children: ReactNode }) {
   const [inspectors, setInspectors] = useState<Inspector[]>([]);
-  const { isInitializing } = useAuth();
+  const [isLoading, setIsLoading] = useState(true);
+  const { isInitializing: isAuthInitializing } = useAuth();
 
   useEffect(() => {
-    if (isInitializing) return;
+    if (isAuthInitializing) return;
 
+    const localData = inspectorService.loadFromLocalStorage();
+    if (localData.length > 0) {
+      setInspectors(localData);
+      setIsLoading(false);
+    }
+    
     const unsubscribe = inspectorService.streamItems((fetchedItems) => {
-        if (fetchedItems.length === 0 && inspectorService.loadFromLocalStorage().length === 0) {
+        if (fetchedItems.length === 0 && localData.length === 0) {
             inspectorService.seedInitialData();
         } else {
             setInspectors(fetchedItems);
             inspectorService.saveToLocalStorage(fetchedItems);
         }
+        setIsLoading(false);
     });
 
     return () => unsubscribe();
-  }, [isInitializing]);
+  }, [isAuthInitializing]);
 
 
   const addInspector = async (item: Inspector) => {
@@ -135,7 +144,7 @@ export function InspectorProvider({ children }: { children: ReactNode }) {
 
 
   return (
-    <InspectorContext.Provider value={{ inspectors, setInspectors, addInspector, updateInspector, getInspectorById, inspectorStats, widgetData }}>
+    <InspectorContext.Provider value={{ inspectors, setInspectors, isLoading, addInspector, updateInspector, getInspectorById, inspectorStats, widgetData }}>
       {children}
     </InspectorContext.Provider>
   );

@@ -9,6 +9,7 @@ import { useAuth } from './AuthContext';
 type EquipmentContextType = {
   equipmentList: EquipmentItem[];
   setEquipmentList: Dispatch<SetStateAction<EquipmentItem[]>>;
+  isLoading: boolean;
   addEquipment: (item: Omit<EquipmentItem, 'id'>) => Promise<void>;
   updateEquipment: (id: string, item: EquipmentItem) => Promise<void>;
   getEquipmentById: (id: string) => EquipmentItem | undefined;
@@ -18,22 +19,30 @@ const EquipmentContext = createContext<EquipmentContextType | undefined>(undefin
 
 export function EquipmentProvider({ children }: { children: ReactNode }) {
   const [equipmentList, setEquipmentList] = useState<EquipmentItem[]>([]);
-  const { isInitializing } = useAuth();
+  const [isLoading, setIsLoading] = useState(true);
+  const { isInitializing: isAuthInitializing } = useAuth();
 
   useEffect(() => {
-    if (isInitializing) return;
+    if (isAuthInitializing) return;
+
+    const localData = equipmentService.loadFromLocalStorage();
+    if (localData.length > 0) {
+      setEquipmentList(localData);
+      setIsLoading(false);
+    }
 
     const unsubscribe = equipmentService.streamItems((fetchedItems) => {
-        if (fetchedItems.length === 0 && equipmentService.loadFromLocalStorage().length === 0) {
+        if (fetchedItems.length === 0 && localData.length === 0) {
             equipmentService.seedInitialData();
         } else {
             setEquipmentList(fetchedItems);
             equipmentService.saveToLocalStorage(fetchedItems);
         }
+        setIsLoading(false);
     });
 
     return () => unsubscribe();
-  }, [isInitializing]);
+  }, [isAuthInitializing]);
 
 
   const addEquipment = async (item: Omit<EquipmentItem, 'id'>) => {
@@ -56,7 +65,7 @@ export function EquipmentProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <EquipmentContext.Provider value={{ equipmentList, setEquipmentList, addEquipment, updateEquipment, getEquipmentById }}>
+    <EquipmentContext.Provider value={{ equipmentList, setEquipmentList, isLoading, addEquipment, updateEquipment, getEquipmentById }}>
       {children}
     </EquipmentContext.Provider>
   );

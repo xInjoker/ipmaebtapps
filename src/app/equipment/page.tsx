@@ -33,13 +33,8 @@ type DashboardStats = {
 export default function EquipmentPage() {
   useSearchParams();
   const { user, isHqUser, branches, userHasPermission } = useAuth();
-  const { equipmentList } = useEquipment();
-  const [isClient, setIsClient] = useState(false);
+  const { equipmentList, isLoading } = useEquipment();
   const initialFilterSet = useRef(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -82,26 +77,24 @@ export default function EquipmentPage() {
   }, [equipmentList, searchTerm, statusFilter, typeFilter, branchFilter]);
 
   useEffect(() => {
-    if (isClient) {
-        const total = filteredEquipment.length;
-        const normal = filteredEquipment.filter(e => e.status === 'Normal').length;
-        
-        let validCerts = 0;
-        let expiredCerts = 0;
+    const total = filteredEquipment.length;
+    const normal = filteredEquipment.filter(e => e.status === 'Normal').length;
+    
+    let validCerts = 0;
+    let expiredCerts = 0;
 
-        filteredEquipment.forEach(e => {
-            if (e.calibrationDueDate) {
-                const status = getCalibrationStatus(new Date(e.calibrationDueDate));
-                if (status.variant === 'destructive') {
-                    expiredCerts++;
-                } else {
-                    validCerts++;
-                }
+    filteredEquipment.forEach(e => {
+        if (e.calibrationDueDate) {
+            const status = getCalibrationStatus(new Date(e.calibrationDueDate));
+            if (status.variant === 'destructive') {
+                expiredCerts++;
+            } else {
+                validCerts++;
             }
-        });
-        setDashboardStats({ total, normal, validCerts, expiredCerts });
-    }
-  }, [filteredEquipment, isClient]);
+        }
+    });
+    setDashboardStats({ total, normal, validCerts, expiredCerts });
+  }, [filteredEquipment]);
   
   const widgetData = [
     {
@@ -271,7 +264,7 @@ export default function EquipmentPage() {
         ))}
       </div>
 
-       {!isClient ? (
+       {isLoading && equipmentList.length === 0 ? (
          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
            {[...Array(6)].map((_, i) => (
              <Card key={i}>

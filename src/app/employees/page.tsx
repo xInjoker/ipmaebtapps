@@ -76,16 +76,12 @@ const allEmployeeFields = Object.keys(employeeFieldLabels) as (keyof Employee)[]
 export default function EmployeesPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { employees, addEmployee, deleteEmployee } = useEmployees();
+  const { employees, addEmployee, deleteEmployee, isLoading } = useEmployees();
   const { user, isHqUser, userHasPermission, branches } = useAuth();
   const { projects } = useProjects();
   const { toast } = useToast();
-  const [isClient, setIsClient] = useState(false);
   const initialFilterSet = useRef(false);
 
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
 
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [isCustomizeExportOpen, setIsCustomizeExportOpen] = useState(false);
@@ -381,7 +377,7 @@ export default function EmployeesPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {!isClient ? (
+                  {isLoading && employees.length === 0 ? (
                     [...Array(5)].map((_, i) => (
                       <TableRow key={i}>
                         <TableCell>

@@ -18,6 +18,7 @@ type TenderStats = {
 type TenderContextType = {
   tenders: Tender[];
   setTenders: Dispatch<SetStateAction<Tender[]>>;
+  isLoading: boolean;
   addTender: (item: Tender) => Promise<void>;
   updateTender: (id: string, item: Tender) => Promise<void>;
   getTenderById: (id: string) => Tender | undefined;
@@ -29,22 +30,30 @@ const TenderContext = createContext<TenderContextType | undefined>(undefined);
 
 export function TenderProvider({ children }: { children: ReactNode }) {
   const [tenders, setTenders] = useState<Tender[]>([]);
-  const { isInitializing } = useAuth();
+  const [isLoading, setIsLoading] = useState(true);
+  const { isInitializing: isAuthInitializing } = useAuth();
 
   useEffect(() => {
-    if (isInitializing) return;
+    if (isAuthInitializing) return;
 
+    const localData = tenderService.loadFromLocalStorage();
+    if (localData.length > 0) {
+      setTenders(localData);
+      setIsLoading(false);
+    }
+    
     const unsubscribe = tenderService.streamItems((fetchedItems) => {
-        if (fetchedItems.length === 0 && tenderService.loadFromLocalStorage().length === 0) {
+        if (fetchedItems.length === 0 && localData.length === 0) {
             tenderService.seedInitialData();
         } else {
             setTenders(fetchedItems);
             tenderService.saveToLocalStorage(fetchedItems);
         }
+        setIsLoading(false);
     });
 
     return () => unsubscribe();
-  }, [isInitializing]);
+  }, [isAuthInitializing]);
 
 
   const addTender = async (item: Tender) => {
@@ -134,7 +143,7 @@ export function TenderProvider({ children }: { children: ReactNode }) {
   ], [tenderStats]);
 
   return (
-    <TenderContext.Provider value={{ tenders, setTenders, addTender, updateTender, getTenderById, tenderStats, widgetData }}>
+    <TenderContext.Provider value={{ tenders, setTenders, isLoading, addTender, updateTender, getTenderById, tenderStats, widgetData }}>
       {children}
     </TenderContext.Provider>
   );
