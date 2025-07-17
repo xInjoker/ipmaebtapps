@@ -1,9 +1,9 @@
 
 'use client';
 
-import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useMemo } from 'react';
-import { type Inspector, initialInspectors } from '@/lib/inspectors';
-import { getDocumentStatus } from '@/lib/utils';
+import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useMemo, useCallback } from 'react';
+import { type Inspector, initialInspectors, type InspectorDocument } from '@/lib/inspectors';
+import { getDocumentStatus, fileToBase64 } from '@/lib/utils';
 import { Users2, BadgeCheck, Clock, XCircle } from 'lucide-react';
 
 type InspectorStats = {
@@ -17,8 +17,8 @@ type InspectorContextType = {
   inspectors: Inspector[];
   setInspectors: Dispatch<SetStateAction<Inspector[]>>;
   isLoading: boolean;
-  addInspector: (item: Inspector) => void;
-  updateInspector: (id: string, item: Inspector) => void;
+  addInspector: (item: Omit<Inspector, 'id'|'cvUrl'|'qualifications'|'otherDocuments'> & { cvFile: File | null; qualifications: {file: File, expirationDate?: string}[]; otherDocuments: {file: File, expirationDate?: string}[]}) => Promise<void>;
+  updateInspector: (id: string, item: Inspector, newFiles: { newCvFile?: File | null, newQualifications?: {file: File, expirationDate?: string}[], newOtherDocs?: {file: File, expirationDate?: string}[] }) => Promise<void>;
   getInspectorById: (id: string) => Inspector | undefined;
   inspectorStats: InspectorStats;
   widgetData: { title: string; value: string; description: string; icon: React.ElementType; iconColor: string; shapeColor: string; }[];
@@ -32,17 +32,66 @@ export function InspectorProvider({ children }: { children: ReactNode }) {
   );
   const [isLoading, setIsLoading] = useState(false);
 
-  const addInspector = async (item: Inspector) => {
-    setInspectors(prev => [...prev, item]);
-  };
+  const addInspector = useCallback(async (item: Omit<Inspector, 'id'|'cvUrl'|'qualifications'|'otherDocuments'> & { cvFile: File | null; qualifications: {file: File, expirationDate?: string}[]; otherDocuments: {file: File, expirationDate?: string}[]}) => {
+    const { cvFile, qualifications: newQuals, otherDocuments: newOthers, ...rest } = item;
+    
+    const cvUrl = cvFile ? await fileToBase64(cvFile) as string : '';
+    
+    const qualifications: InspectorDocument[] = await Promise.all(
+        newQuals.map(async doc => ({
+            name: doc.file.name,
+            url: await fileToBase64(doc.file) as string,
+            expirationDate: doc.expirationDate,
+        }))
+    );
+
+    const otherDocuments: InspectorDocument[] = await Promise.all(
+        newOthers.map(async doc => ({
+            name: doc.file.name,
+            url: await fileToBase64(doc.file) as string,
+            expirationDate: doc.expirationDate,
+        }))
+    );
+
+    const newItem = { ...rest, id: `INSP-${Date.now()}`, cvUrl, qualifications, otherDocuments };
+    setInspectors(prev => [...prev, newItem]);
+  }, []);
   
-  const updateInspector = async (id: string, updatedItem: Inspector) => {
-    setInspectors(prev => prev.map(i => i.id === id ? updatedItem : i));
-  };
+  const updateInspector = useCallback(async (id: string, updatedItem: Inspector, newFiles: { newCvFile?: File | null, newQualifications?: {file: File, expirationDate?: string}[], newOtherDocs?: {file: File, expirationDate?: string}[] }) => {
+    let newCvUrl = updatedItem.cvUrl;
+    if (newFiles.newCvFile) {
+        newCvUrl = await fileToBase64(newFiles.newCvFile) as string;
+    }
+
+    const newQualifications: InspectorDocument[] = await Promise.all(
+        (newFiles.newQualifications || []).map(async doc => ({
+            name: doc.file.name,
+            url: await fileToBase64(doc.file) as string,
+            expirationDate: doc.expirationDate,
+        }))
+    );
+
+    const newOtherDocuments: InspectorDocument[] = await Promise.all(
+        (newFiles.newOtherDocs || []).map(async doc => ({
+            name: doc.file.name,
+            url: await fileToBase64(doc.file) as string,
+            expirationDate: doc.expirationDate,
+        }))
+    );
+
+    const finalItem = {
+        ...updatedItem,
+        cvUrl: newCvUrl,
+        qualifications: [...updatedItem.qualifications, ...newQualifications],
+        otherDocuments: [...updatedItem.otherDocuments, ...newOtherDocuments],
+    };
+
+    setInspectors(prev => prev.map(i => i.id === id ? finalItem : i));
+  }, []);
   
-  const getInspectorById = (id:string) => {
+  const getInspectorById = useCallback((id:string) => {
     return inspectors.find(item => item.id === id);
-  };
+  }, [inspectors]);
   
   const inspectorStats = useMemo(() => {
     const total = inspectors.length;
@@ -118,9 +167,19 @@ export function InspectorProvider({ children }: { children: ReactNode }) {
     },
   ], [inspectorStats]);
 
+  const contextValue = useMemo(() => ({
+    inspectors,
+    setInspectors,
+    isLoading,
+    addInspector,
+    updateInspector,
+    getInspectorById,
+    inspectorStats,
+    widgetData,
+  }), [inspectors, isLoading, addInspector, updateInspector, getInspectorById, inspectorStats, widgetData]);
 
   return (
-    <InspectorContext.Provider value={{ inspectors, setInspectors, isLoading, addInspector, updateInspector, getInspectorById, inspectorStats, widgetData }}>
+    <InspectorContext.Provider value={contextValue}>
       {children}
     </InspectorContext.Provider>
   );

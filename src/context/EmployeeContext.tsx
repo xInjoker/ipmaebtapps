@@ -1,7 +1,7 @@
 
 'use client';
 
-import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction } from 'react';
+import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useCallback, useMemo } from 'react';
 import { type Employee, initialEmployees } from '@/lib/employees';
 
 type EmployeeContextType = {
@@ -22,24 +22,34 @@ export function EmployeeProvider({ children }: { children: ReactNode }) {
   );
   const [isLoading, setIsLoading] = useState(false);
 
-  const addEmployee = (item: Employee) => {
+  const addEmployee = useCallback((item: Employee) => {
     setEmployees(prev => [...prev, item]);
-  };
+  }, []);
   
-  const updateEmployee = (id: string, updatedItem: Employee) => {
+  const updateEmployee = useCallback((id: string, updatedItem: Employee) => {
     setEmployees(prev => prev.map(e => e.id === id ? updatedItem : e));
-  };
+  }, []);
   
-  const deleteEmployee = (id: string) => {
+  const deleteEmployee = useCallback((id: string) => {
     setEmployees(prev => prev.filter(e => e.id !== id));
-  };
+  }, []);
   
-  const getEmployeeById = (id: string) => {
+  const getEmployeeById = useCallback((id: string) => {
     return employees.find(item => item.id === id);
-  };
+  }, [employees]);
+
+  const contextValue = useMemo(() => ({
+    employees,
+    setEmployees,
+    isLoading,
+    addEmployee,
+    updateEmployee,
+    deleteEmployee,
+    getEmployeeById,
+  }), [employees, isLoading, addEmployee, updateEmployee, deleteEmployee, getEmployeeById]);
 
   return (
-    <EmployeeContext.Provider value={{ employees, setEmployees, isLoading, addEmployee, updateEmployee, deleteEmployee, getEmployeeById }}>
+    <EmployeeContext.Provider value={contextValue}>
       {children}
     </EmployeeContext.Provider>
   );

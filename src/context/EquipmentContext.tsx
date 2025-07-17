@@ -1,15 +1,16 @@
 
 'use client';
 
-import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction } from 'react';
+import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useCallback, useMemo } from 'react';
 import { type EquipmentItem, initialEquipment } from '@/lib/equipment';
+import { fileToBase64 } from '@/lib/utils';
 
 type EquipmentContextType = {
   equipmentList: EquipmentItem[];
   setEquipmentList: Dispatch<SetStateAction<EquipmentItem[]>>;
   isLoading: boolean;
-  addEquipment: (item: Omit<EquipmentItem, 'id'>) => void;
-  updateEquipment: (id: string, item: EquipmentItem) => void;
+  addEquipment: (item: Omit<EquipmentItem, 'id' | 'imageUrls' | 'documentUrls' | 'personnelCertificationUrls'> & { images: File[], documents: File[], personnelCerts: File[] }) => Promise<void>;
+  updateEquipment: (id: string, item: EquipmentItem, newFiles: {newImages?: File[], newDocuments?: File[], newPersonnelCerts?: File[]}) => Promise<void>;
   getEquipmentById: (id: string) => EquipmentItem | undefined;
 };
 
@@ -22,27 +23,58 @@ export function EquipmentProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
 
 
-  const addEquipment = (item: Omit<EquipmentItem, 'id'>) => {
+  const addEquipment = useCallback(async (item: Omit<EquipmentItem, 'id' | 'imageUrls' | 'documentUrls' | 'personnelCertificationUrls'> & { images: File[], documents: File[], personnelCerts: File[] }) => {
     const newId = `EQ-${Date.now()}`;
-    const newItem = { 
-      ...item, 
+    const { images, documents, personnelCerts, ...rest } = item;
+
+    const [imageUrls, documentUrls, personnelCertificationUrls] = await Promise.all([
+        Promise.all(images.map(file => fileToBase64(file) as Promise<string>)),
+        Promise.all(documents.map(file => fileToBase64(file) as Promise<string>)),
+        Promise.all(personnelCerts.map(file => fileToBase64(file) as Promise<string>)),
+    ]);
+    
+    const newItem: EquipmentItem = { 
+      ...rest, 
       id: newId,
-      assignedPersonnelIds: item.assignedPersonnelIds || [],
-      personnelCertificationUrls: item.personnelCertificationUrls || [],
+      imageUrls,
+      documentUrls,
+      personnelCertificationUrls,
     };
     setEquipmentList(prev => [...prev, newItem]);
-  };
+  }, []);
   
-  const updateEquipment = (id: string, updatedItem: EquipmentItem) => {
-    setEquipmentList(prev => prev.map(item => item.id === id ? updatedItem : item));
-  };
+  const updateEquipment = useCallback(async (id: string, updatedItem: EquipmentItem, newFiles: {newImages?: File[], newDocuments?: File[], newPersonnelCerts?: File[]}) => {
+    const [newImageUrls, newDocumentUrls, newCertUrls] = await Promise.all([
+        Promise.all((newFiles.newImages || []).map(file => fileToBase64(file) as Promise<string>)),
+        Promise.all((newFiles.newDocuments || []).map(file => fileToBase64(file) as Promise<string>)),
+        Promise.all((newFiles.newPersonnelCerts || []).map(file => fileToBase64(file) as Promise<string>)),
+    ]);
+
+    const finalItem = {
+        ...updatedItem,
+        imageUrls: [...updatedItem.imageUrls, ...newImageUrls],
+        documentUrls: [...updatedItem.documentUrls, ...newDocumentUrls],
+        personnelCertificationUrls: [...updatedItem.personnelCertificationUrls, ...newCertUrls],
+    };
+
+    setEquipmentList(prev => prev.map(item => item.id === id ? finalItem : item));
+  }, []);
   
-  const getEquipmentById = (id: string) => {
+  const getEquipmentById = useCallback((id: string) => {
     return equipmentList.find(item => item.id === id);
-  };
+  }, [equipmentList]);
+
+  const contextValue = useMemo(() => ({
+    equipmentList,
+    setEquipmentList,
+    isLoading,
+    addEquipment,
+    updateEquipment,
+    getEquipmentById,
+  }), [equipmentList, isLoading, addEquipment, updateEquipment, getEquipmentById]);
 
   return (
-    <EquipmentContext.Provider value={{ equipmentList, setEquipmentList, isLoading, addEquipment, updateEquipment, getEquipmentById }}>
+    <EquipmentContext.Provider value={contextValue}>
       {children}
     </EquipmentContext.Provider>
   );

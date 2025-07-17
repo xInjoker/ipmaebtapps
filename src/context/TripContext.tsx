@@ -1,7 +1,7 @@
 
 'use client';
 
-import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useCallback } from 'react';
+import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useCallback, useMemo } from 'react';
 import { type TripRequest, initialTrips } from '@/lib/trips';
 import { useProjects } from './ProjectContext';
 
@@ -24,17 +24,17 @@ export function TripProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
   const { projects } = useProjects();
 
-  const addTrip = (item: TripRequest) => {
+  const addTrip = useCallback((item: TripRequest) => {
     setTrips(prev => [...prev, item]);
-  };
+  }, []);
   
-  const updateTrip = (id: string, updatedItem: TripRequest) => {
+  const updateTrip = useCallback((id: string, updatedItem: TripRequest) => {
     setTrips(prev => prev.map(t => t.id === id ? updatedItem : t));
-  };
+  }, []);
   
-  const getTripById = (id: string) => {
+  const getTripById = useCallback((id: string) => {
     return trips.find(item => item.id === id);
-  };
+  }, [trips]);
   
   const getPendingTripApprovalsForUser = useCallback((userId: number) => {
     return trips.filter(trip => {
@@ -55,8 +55,18 @@ export function TripProvider({ children }: { children: ReactNode }) {
     });
   }, [trips, projects]);
 
+  const contextValue = useMemo(() => ({
+    trips,
+    setTrips,
+    isLoading,
+    addTrip,
+    updateTrip,
+    getTripById,
+    getPendingTripApprovalsForUser,
+  }), [trips, isLoading, addTrip, updateTrip, getTripById, getPendingTripApprovalsForUser]);
+
   return (
-    <TripContext.Provider value={{ trips, setTrips, isLoading, addTrip, updateTrip, getTripById, getPendingTripApprovalsForUser }}>
+    <TripContext.Provider value={contextValue}>
       {children}
     </TripContext.Provider>
   );

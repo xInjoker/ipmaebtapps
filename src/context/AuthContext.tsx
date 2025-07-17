@@ -8,6 +8,7 @@ import {
   ReactNode,
   useEffect,
   useCallback,
+  useMemo,
 } from 'react';
 import { useRouter } from 'next/navigation';
 import {
@@ -62,8 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const storedUserString = localStorage.getItem('user');
       if (storedUserString) {
         const storedUser = JSON.parse(storedUserString);
-        // Basic validation: Check if user from storage exists in our "DB"
-        if(users.some(u => u.id === storedUser.id)) {
+        if(initialUsers.some(u => u.id === storedUser.id)) {
             setUser(storedUser);
         } else {
             localStorage.removeItem('user');
@@ -74,13 +74,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.removeItem('user');
     }
     setIsInitializing(false);
-  }, [users]);
+  }, []);
 
-
-  const login = (email: string, pass: string) => {
+  const login = useCallback((email: string, pass: string) => {
     const userToLogin = users.find((u) => u.email === email);
 
-    if (userToLogin && pass) { // Dummy password check
+    if (userToLogin && pass) { 
       const userRoleExists = roles.some(r => r.id === userToLogin.roleId);
       if (!userRoleExists) {
         userToLogin.roleId = 'staff';
@@ -96,9 +95,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         description: 'Invalid email or password.',
       });
     }
-  };
+  }, [users, roles, router, toast]);
 
-  const register = (name: string, email: string, pass: string, branchId: string) => {
+  const register = useCallback((name: string, email: string, pass: string, branchId: string) => {
      if (!branchId) {
       toast({
         variant: 'destructive',
@@ -131,32 +130,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('user', JSON.stringify(newUser));
     setUser(newUser);
     router.push('/');
-  };
+  }, [users, router, toast]);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     localStorage.removeItem('user');
     setUser(null);
     router.push('/login');
-  };
+  }, [router]);
 
-  const updateUser = (userId: number, data: Partial<User>) => {
+  const updateUser = useCallback((userId: number, data: Partial<User>) => {
     setUsers((currentUsers) =>
       currentUsers.map((u) =>
         u.id === userId ? { ...u, ...data } : u
       )
     );
-    if (user && user.id === userId) {
-      const updatedCurrentUser = { ...user, ...data };
-      setUser(updatedCurrentUser);
-      localStorage.setItem('user', JSON.stringify(updatedCurrentUser));
-    }
-  };
+    setUser((currentUser) => {
+        if (currentUser && currentUser.id === userId) {
+            const updatedCurrentUser = { ...currentUser, ...data };
+            localStorage.setItem('user', JSON.stringify(updatedCurrentUser));
+            return updatedCurrentUser;
+        }
+        return currentUser;
+    });
+  }, []);
 
-  const updateUserRole = (userId: number, newRoleId: string) => {
+  const updateUserRole = useCallback((userId: number, newRoleId: string) => {
     updateUser(userId, { roleId: newRoleId });
-  };
+  }, [updateUser]);
 
-  const addRole = (roleData: { name: string; permissions: Permission[] }) => {
+  const addRole = useCallback((roleData: { name: string; permissions: Permission[] }) => {
     const newRole: Role = {
       id: `custom-role-${Date.now()}`,
       name: roleData.name,
@@ -164,18 +166,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isEditable: true,
     };
     setRoles(prev => [...prev, newRole]);
-  };
+  }, []);
 
-  const updateRole = (
-    roleId: string,
-    roleData: { name: string; permissions: Permission[] }
-  ) => {
+  const updateRole = useCallback((roleId: string, roleData: { name: string; permissions: Permission[] }) => {
     setRoles(prev => prev.map((r) =>
       r.id === roleId ? { ...r, ...roleData } : r
     ));
-  };
+  }, []);
 
-  const deleteRole = (roleId: string) => {
+  const deleteRole = useCallback((roleId: string) => {
     const roleToDelete = roles.find((r) => r.id === roleId);
     if (!roleToDelete || !roleToDelete.isEditable) {
       toast({ variant: 'destructive', title: 'Cannot delete this role.' });
@@ -192,7 +191,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
     setRoles(prev => prev.filter((r) => r.id !== roleId));
-  };
+  }, [roles, users, toast]);
 
   const userHasPermission = useCallback(
     (permission: Permission): boolean => {
@@ -214,28 +213,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isAuthenticated = !isInitializing && !!user;
   const isHqUser = user?.branchId === 'kantor-pusat';
 
+  const contextValue = useMemo(() => ({
+    isAuthenticated,
+    user,
+    users,
+    roles,
+    branches,
+    permissions,
+    updateUser,
+    updateUserRole,
+    addRole,
+    updateRole,
+    deleteRole,
+    userHasPermission,
+    isHqUser,
+    isInitializing,
+    login,
+    register,
+    logout,
+  }), [
+    isAuthenticated, user, users, roles, branches, 
+    updateUser, updateUserRole, addRole, updateRole, deleteRole, 
+    userHasPermission, isHqUser, isInitializing, login, register, logout
+  ]);
+
   return (
-    <AuthContext.Provider
-      value={{
-        isAuthenticated,
-        user,
-        users,
-        roles,
-        branches,
-        permissions,
-        updateUser,
-        updateUserRole,
-        addRole,
-        updateRole,
-        deleteRole,
-        userHasPermission,
-        isHqUser,
-        isInitializing,
-        login,
-        register,
-        logout,
-      }}
-    >
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );

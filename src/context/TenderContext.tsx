@@ -1,7 +1,7 @@
 
 'use client';
 
-import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useMemo } from 'react';
+import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useMemo, useCallback } from 'react';
 import { type Tender, type TenderStatus, initialTenders } from '@/lib/tenders';
 import { formatCurrencyMillions } from '@/lib/utils';
 import { Users, Clock, CheckCircle, XCircle } from 'lucide-react';
@@ -32,17 +32,17 @@ export function TenderProvider({ children }: { children: ReactNode }) {
   );
   const [isLoading, setIsLoading] = useState(false);
 
-  const addTender = (item: Tender) => {
+  const addTender = useCallback((item: Tender) => {
     setTenders(prev => [...prev, item]);
-  };
+  }, []);
 
-  const updateTender = (id: string, updatedItem: Tender) => {
+  const updateTender = useCallback((id: string, updatedItem: Tender) => {
     setTenders(prev => prev.map(t => t.id === id ? updatedItem : t));
-  };
+  }, []);
 
-  const getTenderById = (id: string) => {
+  const getTenderById = useCallback((id: string) => {
     return tenders.find(item => item.id === id);
-  };
+  }, [tenders]);
   
   const tenderStats = useMemo(() => {
     const initialStats = {
@@ -118,8 +118,19 @@ export function TenderProvider({ children }: { children: ReactNode }) {
     },
   ], [tenderStats]);
 
+  const contextValue = useMemo(() => ({
+    tenders,
+    setTenders,
+    isLoading,
+    addTender,
+    updateTender,
+    getTenderById,
+    tenderStats,
+    widgetData,
+  }), [tenders, isLoading, addTender, updateTender, getTenderById, tenderStats, widgetData]);
+
   return (
-    <TenderContext.Provider value={{ tenders, setTenders, isLoading, addTender, updateTender, getTenderById, tenderStats, widgetData }}>
+    <TenderContext.Provider value={contextValue}>
       {children}
     </TenderContext.Provider>
   );

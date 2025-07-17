@@ -16,7 +16,6 @@ type ProjectContextType = {
   projects: Project[];
   setProjects: Dispatch<SetStateAction<Project[]>>; 
   addProject: (project: Omit<Project, 'id'>) => void;
-  updateProject: (id: string, project: Partial<Project>) => void;
   getProjectById: (id: string) => Project | undefined;
   getProjectStats: (projectList: Project[]) => ProjectStats;
   projectStats: ProjectStats;
@@ -27,21 +26,17 @@ const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
 export function ProjectProvider({ children }: { children: ReactNode }) {
   const [projects, setProjects] = useState<Project[]>(initialProjects);
 
-  const addProject = (projectData: Omit<Project, 'id'>) => {
+  const addProject = useCallback((projectData: Omit<Project, 'id'>) => {
       const newProject: Project = {
           id: `PROJ-${Date.now()}`,
           ...projectData
       };
       setProjects(prev => [...prev, newProject]);
-  };
-
-  const updateProject = (id: string, projectData: Partial<Project>) => {
-      setProjects(prev => prev.map(p => p.id === id ? {...p, ...projectData} : p));
-  };
+  }, []);
   
-  const getProjectById = (id: string) => {
+  const getProjectById = useCallback((id: string) => {
     return projects.find(project => project.id.toString() === id);
-  };
+  }, [projects]);
 
   const getProjectStats = useCallback((projectList: Project[]): ProjectStats => {
     return projectList.reduce((acc, project) => {
@@ -52,7 +47,6 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
             .reduce((sum, exp) => sum + exp.amount, 0);
         acc.totalCost += totalCost;
 
-        // --- Standard Invoice Calculations ---
         const totalInvoicedValue = project.invoices
             .filter(inv => ['Invoiced', 'Paid'].includes(inv.status))
             .reduce((sum, inv) => sum + inv.value, 0);
@@ -63,7 +57,6 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
             .reduce((sum, inv) => sum + inv.value, 0);
         acc.totalPaid += totalPaidValue;
 
-        // --- Advanced Income Calculation (Handling PAD) ---
         const padInvoices = project.invoices.filter(inv => inv.status === 'PAD');
         const invoicedOrPaidValuesBySO: Record<string, number> = {};
 
@@ -92,8 +85,17 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
   
   const projectStats = useMemo(() => getProjectStats(projects), [projects, getProjectStats]);
 
+  const contextValue = useMemo(() => ({
+    projects,
+    setProjects,
+    addProject,
+    getProjectById,
+    getProjectStats,
+    projectStats,
+  }), [projects, addProject, getProjectById, getProjectStats, projectStats]);
+
   return (
-    <ProjectContext.Provider value={{ projects, setProjects, addProject, updateProject, getProjectById, getProjectStats, projectStats }}>
+    <ProjectContext.Provider value={contextValue}>
       {children}
     </ProjectContext.Provider>
   );
