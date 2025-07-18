@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import {
   Card,
@@ -45,15 +45,41 @@ import { ProjectBudgetExpenditureChart } from '@/components/project-budget-expen
 import { ProjectServiceOrderChart } from '@/components/project-service-order-chart';
 import { ApprovalWorkflowManager } from '@/components/project-approval-workflow';
 import { useAuth } from '@/context/AuthContext';
-import type { ApprovalStage } from '@/lib/projects';
+import type { ApprovalStage, Project } from '@/lib/projects';
 
 export default function ProjectDetailsPage() {
   const params = useParams();
   const projectId = params.id as string;
-  const { getProjectById, updateProject, setProjects } = useProjects();
+  const { getProjectById, setProjects } = useProjects();
   const { users } = useAuth();
   
-  const project = getProjectById(projectId);
+  const [project, setProject] = useState<Project | null>(null);
+
+  useEffect(() => {
+    const fetchedProject = getProjectById(projectId);
+    if (fetchedProject) {
+        setProject(fetchedProject);
+    }
+  }, [projectId, getProjectById]);
+
+  // This effect will sync the local project state back to the global context.
+  // It runs whenever the local 'project' state changes.
+  useEffect(() => {
+    if (project) {
+      setProjects(currentProjects => 
+        currentProjects.map(p => p.id === project.id ? project : p)
+      );
+    }
+  }, [project, setProjects]);
+
+  const handleProjectUpdate = useCallback((updateFn: (project: Project) => Project) => {
+    setProject(currentProject => {
+        if (currentProject) {
+            return updateFn(currentProject);
+        }
+        return null;
+    });
+  }, []);
 
   const {
     totalCost,
@@ -160,13 +186,13 @@ export default function ProjectDetailsPage() {
 
   const handleWorkflowChange = useCallback((type: 'trip' | 'report', newWorkflow: ApprovalStage[]) => {
     if (project) {
-        if (type === 'trip') {
-          updateProject(project.id, { tripApprovalWorkflow: newWorkflow });
-        } else {
-          updateProject(project.id, { reportApprovalWorkflow: newWorkflow });
-        }
+        const fieldToUpdate = type === 'trip' ? 'tripApprovalWorkflow' : 'reportApprovalWorkflow';
+        handleProjectUpdate(currentProject => ({
+            ...currentProject,
+            [fieldToUpdate]: newWorkflow
+        }));
     }
-  }, [project, updateProject]);
+  }, [project, handleProjectUpdate]);
 
 
   if (!project) {
@@ -394,13 +420,13 @@ export default function ProjectDetailsPage() {
           </TabsTrigger>
         </TabsList>
         <TabsContent value="service-orders">
-          <ProjectServiceOrderTab project={project} setProjects={setProjects} />
+          <ProjectServiceOrderTab project={project} setProjects={handleProjectUpdate} />
         </TabsContent>
         <TabsContent value="invoices">
-          <ProjectInvoicingTab project={project} setProjects={setProjects} />
+          <ProjectInvoicingTab project={project} setProjects={handleProjectUpdate} />
         </TabsContent>
         <TabsContent value="expenditure">
-           <ProjectExpenditureTab project={project} setProjects={setProjects} />
+           <ProjectExpenditureTab project={project} setProjects={handleProjectUpdate} />
         </TabsContent>
          <TabsContent value="approval-settings" className="space-y-6">
            <ApprovalWorkflowManager

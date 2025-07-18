@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
@@ -22,7 +21,7 @@ import { CurrencyInput } from './ui/currency-input';
 
 type ProjectInvoicingTabProps = {
     project: Project;
-    setProjects: (updateFn: (projects: Project[]) => Project[]) => void;
+    setProjects: (updateFn: (project: Project) => Project) => void;
 };
 
 export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTabProps) {
@@ -77,9 +76,7 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
             const period = `${periodMonth} ${periodYear}`;
             const newInvoiceItem: InvoiceItem = { ...restOfInvoice, id: newId, period };
 
-            setProjects(projects => projects.map(p =>
-                p.id === project.id ? { ...p, invoices: [...p.invoices, newInvoiceItem] } : p
-            ));
+            setProjects(p => ({ ...p, invoices: [...p.invoices, newInvoiceItem] }));
 
             setNewInvoice({ soNumber: '', serviceCategory: '', description: '', status: 'Invoiced', periodMonth: '', periodYear: '', value: 0 });
             setIsAddInvoiceDialogOpen(false);
@@ -98,14 +95,10 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
         const period = `${periodMonth} ${periodYear}`;
         const updatedInvoiceData = { ...restOfInvoice, period };
 
-        setProjects(projects => projects.map(p =>
-            p.id === project.id
-                ? { ...p, invoices: p.invoices.map(inv => inv.id === editedInvoice.id ? updatedInvoiceData : inv) }
-                : p
-        ));
+        setProjects(p => ({ ...p, invoices: p.invoices.map(inv => inv.id === editedInvoice.id ? updatedInvoiceData : inv) }));
         setIsEditInvoiceDialogOpen(false);
         setInvoiceToEdit(null);
-    }, [editedInvoice, project.id, setProjects]);
+    }, [editedInvoice, setProjects]);
 
     const handleEditClick = useCallback((invoice: InvoiceItem) => {
         const [periodMonth, periodYear] = invoice.period.split(' ');
@@ -115,13 +108,9 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
     }, []);
 
     const handleCancelInvoice = useCallback((invoiceId: string) => {
-        setProjects(projects => projects.map(p =>
-            p.id === project.id
-                ? { ...p, invoices: p.invoices.map(inv => inv.id === invoiceId ? { ...inv, status: 'Cancel' } : inv) }
-                : p
-        ));
+        setProjects(p => ({ ...p, invoices: p.invoices.map(inv => inv.id === invoiceId ? { ...inv, status: 'Cancel' } : inv) }));
         toast({ title: 'Invoice Cancelled', description: 'The invoice status has been updated to "Cancel".' });
-    }, [project.id, setProjects, toast]);
+    }, [setProjects, toast]);
 
     const handleExportInvoices = useCallback(() => {
         if (!project || !project.invoices) return;

@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
@@ -23,7 +22,7 @@ import { CurrencyInput } from './ui/currency-input';
 
 type ProjectServiceOrderTabProps = {
     project: Project;
-    setProjects: (updateFn: (projects: Project[]) => Project[]) => void;
+    setProjects: (updateFn: (project: Project) => Project) => void;
 };
 
 export function ProjectServiceOrderTab({ project, setProjects }: ProjectServiceOrderTabProps) {
@@ -67,9 +66,7 @@ export function ProjectServiceOrderTab({ project, setProjects }: ProjectServiceO
                 value: newItem.value,
             };
 
-            setProjects(projects => projects.map(p =>
-                p.id === project.id ? { ...p, serviceOrders: [...(p.serviceOrders || []), newItemData] } : p
-            ));
+            setProjects(p => ({ ...p, serviceOrders: [...(p.serviceOrders || []), newItemData] }));
 
             setNewItem({ soNumber: '', description: '', date: undefined, value: 0 });
             setIsAddDialogOpen(false);
@@ -80,7 +77,7 @@ export function ProjectServiceOrderTab({ project, setProjects }: ProjectServiceO
                 description: 'Please fill out all fields, including a date and a value greater than zero.',
             });
         }
-    }, [newItem, project.id, project.serviceOrders, setProjects, toast]);
+    }, [newItem, project.id, setProjects, toast]);
 
     const handleEditClick = useCallback((item: ServiceOrderItem) => {
         setItemToEdit({
@@ -99,14 +96,10 @@ export function ProjectServiceOrderTab({ project, setProjects }: ProjectServiceO
             date: format(date, 'yyyy-MM-dd')
         };
 
-        setProjects(projects => projects.map(p =>
-            p.id === project.id
-                ? { ...p, serviceOrders: p.serviceOrders.map(item => item.id === updatedItemData.id ? updatedItemData : item) }
-                : p
-        ));
+        setProjects(p => ({ ...p, serviceOrders: p.serviceOrders.map(item => item.id === updatedItemData.id ? updatedItemData : item) }));
         setIsEditDialogOpen(false);
         setItemToEdit(null);
-    }, [itemToEdit, project.id, setProjects]);
+    }, [itemToEdit, setProjects]);
 
     const handleExport = useCallback(() => {
         if (!project || !project.serviceOrders) return;

@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
@@ -61,7 +60,7 @@ const categoryToCoaMap: { [key: string]: string } = {
 
 type ProjectExpenditureTabProps = {
     project: Project;
-    setProjects: (updateFn: (projects: Project[]) => Project[]) => void;
+    setProjects: (updateFn: (project: Project) => Project) => void;
 };
 
 export function ProjectExpenditureTab({ project, setProjects }: ProjectExpenditureTabProps) {
@@ -81,13 +80,8 @@ export function ProjectExpenditureTab({ project, setProjects }: ProjectExpenditu
     const [expenditureToEdit, setExpenditureToEdit] = useState<(ExpenditureItem & { month?: string, year?: string }) | null>(null);
 
     const handleBudgetChange = useCallback((category: string, value: number) => {
-        setProjects(projects => projects.map(p => {
-            if (p.id === project.id) {
-                return { ...p, budgets: { ...p.budgets, [category]: value } };
-            }
-            return p;
-        }));
-    }, [project.id, setProjects]);
+        setProjects(p => ({ ...p, budgets: { ...p.budgets, [category]: value } }));
+    }, [setProjects]);
 
     const handleAddExpenditure = useCallback(() => {
         const period = newExpenditure.month && newExpenditure.year ? `${newExpenditure.month} ${newExpenditure.year}` : '';
@@ -104,9 +98,7 @@ export function ProjectExpenditureTab({ project, setProjects }: ProjectExpenditu
                 status: 'Approved',
             };
 
-            setProjects(projects => projects.map(p =>
-                p.id === project.id ? { ...p, expenditures: [...p.expenditures, newExpenditureItem] } : p
-            ));
+            setProjects(p => ({ ...p, expenditures: [...p.expenditures, newExpenditureItem] }));
             setNewExpenditure({ category: '', coa: '', description: '', month: '', year: '', amount: 0, status: 'Approved' });
             setIsAddExpenditureDialogOpen(false);
         }
@@ -149,14 +141,10 @@ export function ProjectExpenditureTab({ project, setProjects }: ProjectExpenditu
         const period = `${month} ${year}`;
         const updatedExpenditureData = { ...rest, period };
 
-        setProjects(projects => projects.map(p =>
-            p.id === project.id
-                ? { ...p, expenditures: p.expenditures.map(exp => exp.id === expenditureToEdit.id ? updatedExpenditureData : exp) }
-                : p
-        ));
+        setProjects(p => ({ ...p, expenditures: p.expenditures.map(exp => exp.id === expenditureToEdit.id ? updatedExpenditureData : exp) }));
         setIsEditExpenditureDialogOpen(false);
         setExpenditureToEdit(null);
-    }, [expenditureToEdit, project.id, setProjects]);
+    }, [expenditureToEdit, setProjects]);
 
     const budgetedCategories = useMemo(() => {
         return expenditureCategories.filter(category => (project.budgets[category] ?? 0) > 0 || category === 'Other');
