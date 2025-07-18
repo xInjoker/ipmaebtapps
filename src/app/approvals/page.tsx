@@ -21,6 +21,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { HeaderCard } from '@/components/header-card';
 import { useProjects } from '@/context/ProjectContext';
+import { useNotifications } from '@/context/NotificationContext';
 
 type ApprovalItem = (TripRequest | ReportItem) & { type: 'trip' | 'report' };
 
@@ -30,6 +31,7 @@ export default function ApprovalsPage() {
     const { reports, updateReport, getPendingReportApprovalsForUser } = useReports();
     const { projects } = useProjects();
     const { toast } = useToast();
+    const { addNotification } = useNotifications();
 
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [selectedItem, setSelectedItem] = useState<ApprovalItem | null>(null);
@@ -101,6 +103,17 @@ export default function ApprovalsPage() {
             const updatedTrip = { ...selectedItem, status: newStatus, approvalHistory: [...selectedItem.approvalHistory, newHistory] };
             updateTrip(selectedItem.id, updatedTrip as TripRequest);
 
+            // Notify requester
+            const requester = users.find(u => u.id === selectedItem.employeeId);
+            if(requester) {
+                addNotification({
+                    userId: requester.id,
+                    title: `Trip Request ${newStatus}`,
+                    description: `Your trip to ${selectedItem.destination} has been ${newStatus}.`,
+                    link: `/trips/${selectedItem.id}/summary`,
+                });
+            }
+
         } else if (selectedItem.type === 'report') {
             const project = projects.find(p => p.name === selectedItem.details?.project);
             const workflow = project?.reportApprovalWorkflow || [];
@@ -117,12 +130,24 @@ export default function ApprovalsPage() {
             const newHistory: ApprovalAction = { actorName: user.name, actorRole: 'Approver', status: newStatus, comments: comments, timestamp: new Date().toISOString() };
             const updatedReport = { ...selectedItem, status: newStatus, approvalHistory: [...selectedItem.approvalHistory, newHistory] };
             updateReport(selectedItem.id, updatedReport);
+
+            // Notify requester
+            const creatorName = selectedItem.approvalHistory[0]?.actorName;
+            const requester = users.find(u => u.name === creatorName);
+            if(requester) {
+                addNotification({
+                    userId: requester.id,
+                    title: `Report ${newStatus}`,
+                    description: `Your report ${selectedItem.reportNumber} has been ${newStatus}.`,
+                    link: `/reports/${selectedItem.id}`,
+                });
+            }
         }
 
         toast({ title: `Request ${action === 'approve' ? 'Approved' : 'Rejected'}`, description: 'The status has been updated successfully.' });
         setIsDialogOpen(false);
         setSelectedItem(null);
-    }, [selectedItem, user, projects, comments, updateTrip, updateReport, toast]);
+    }, [selectedItem, user, projects, comments, updateTrip, updateReport, toast, users, addNotification]);
 
     return (
         <div className="space-y-6">

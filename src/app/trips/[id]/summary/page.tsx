@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -22,6 +21,7 @@ import { cn } from '@/lib/utils';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import type { UserOptions, CellHookData } from 'jspdf-autotable';
+import { useNotifications } from '@/context/NotificationContext';
 
 // Extend jsPDF with autoTable
 interface jsPDFWithAutoTable extends jsPDF {
@@ -37,6 +37,7 @@ export default function TripSummaryPage() {
     const { toast } = useToast();
     const { user, users } = useAuth();
     const { projects } = useProjects();
+    const { addNotification } = useNotifications();
     const logoUrl = 'https://placehold.co/120x60.png';
     const Image = NextImage.default;
     
@@ -143,9 +144,21 @@ export default function TripSummaryPage() {
         };
 
         updateTrip(trip.id, updatedTrip);
+
+        // Notify the first approver
+        const firstApprover = users.find(u => u.id.toString() === tripProject.tripApprovalWorkflow[0].approverId);
+        if (firstApprover) {
+            addNotification({
+                userId: firstApprover.id,
+                title: 'New Trip Request',
+                description: `${user.name} has requested a business trip to ${trip.destination}.`,
+                link: `/approvals`
+            });
+        }
+
         toast({ title: 'Trip Submitted', description: 'Your business trip request has been submitted for approval.' });
         router.push('/trips');
-    }, [trip, user, tripProject, updateTrip, toast, router]);
+    }, [trip, user, tripProject, users, updateTrip, toast, router, addNotification]);
 
     const handlePrint = useCallback(async () => {
         if (!trip) return;
