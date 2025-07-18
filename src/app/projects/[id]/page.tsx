@@ -26,6 +26,7 @@ import {
   Receipt,
   Wallet,
   UserCog,
+  BarChartHorizontal,
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
@@ -70,7 +71,7 @@ export default function ProjectDetailsPage() {
       );
     }
   }, [project, setProjects]);
-
+  
   const handleProjectUpdate = useCallback((updateFn: (project: Project) => Project) => {
     setProject(currentProject => {
         if (currentProject) {
@@ -345,7 +346,11 @@ export default function ProjectDetailsPage() {
         </Card>
       
       <Tabs defaultValue="service-orders" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="summary-charts">
+            <BarChartHorizontal className="mr-2 h-4 w-4" />
+            Summary Charts
+          </TabsTrigger>
           <TabsTrigger value="service-orders">
             <ClipboardList className="mr-2 h-4 w-4" />
             Service Order
@@ -363,6 +368,34 @@ export default function ProjectDetailsPage() {
             Approval Settings
           </TabsTrigger>
         </TabsList>
+        <TabsContent value="summary-charts">
+           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 mt-4">
+                <ProjectTargetRealizationChart projects={[project]} />
+                <ProjectMonthlyRecapChart data={monthlyRecapData} />
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Expenditure vs Budget</CardTitle>
+                        <CardDescription>
+                            Comparison of budgeted amounts vs actual expenditures by category.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <ProjectBudgetExpenditureChart project={project} />
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Service Order Progress</CardTitle>
+                        <CardDescription>
+                            Comparison of SO value vs invoiced amount.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <ProjectServiceOrderChart project={project} />
+                    </CardContent>
+                </Card>
+            </div>
+        </TabsContent>
         <TabsContent value="service-orders">
           <ProjectServiceOrderTab project={project} setProjects={handleProjectUpdate} />
         </TabsContent>
@@ -390,32 +423,8 @@ export default function ProjectDetailsPage() {
         </TabsContent>
       </Tabs>
       
-       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <ProjectMonthlyRecapChart data={monthlyRecapData} />
-        <Card>
-            <CardHeader>
-                <CardTitle>Expenditure vs Budget</CardTitle>
-                <CardDescription>
-                    Comparison of budgeted amounts vs actual expenditures by category.
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <ProjectBudgetExpenditureChart project={project} />
-            </CardContent>
-        </Card>
-        <Card>
-            <CardHeader>
-                <CardTitle>Service Order Progress</CardTitle>
-                <CardDescription>
-                    Comparison of SO value vs invoiced amount.
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <ProjectServiceOrderChart project={project} />
-            </CardContent>
-        </Card>
-        <ProjectTargetRealizationChart projects={[project]} />
-      </div>
     </div>
   );
 }
+
+    
