@@ -46,6 +46,7 @@ import { ProjectServiceOrderChart } from '@/components/project-service-order-cha
 import { ApprovalWorkflowManager } from '@/components/project-approval-workflow';
 import { useAuth } from '@/context/AuthContext';
 import type { ApprovalStage, Project } from '@/lib/projects';
+import { ProjectTargetRealizationChart } from '@/components/project-target-realization-chart';
 
 export default function ProjectDetailsPage() {
   const params = useParams();
@@ -62,8 +63,6 @@ export default function ProjectDetailsPage() {
     }
   }, [projectId, getProjectById]);
 
-  // This effect will sync the local project state back to the global context.
-  // It runs whenever the local 'project' state changes.
   useEffect(() => {
     if (project) {
       setProjects(currentProjects => 
@@ -171,7 +170,6 @@ export default function ProjectDetailsPage() {
       dataMap[sortKey].expenditure += exp.amount;
     });
 
-    // Apply the Remaining PAD formula
     for (const key in dataMap) {
         const monthData = dataMap[key];
         const remainingPad = monthData.pad - monthData.invoicedAndPaid;
@@ -240,126 +238,100 @@ export default function ProjectDetailsPage() {
           </Button>
         </CardHeader>
       </Card>
-      
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <Card>
+
+      <Card>
           <CardHeader>
             <CardTitle>Project Details</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-1 flex-col">
-            <div className="grid gap-6 md:grid-cols-2">
-              <div className="space-y-6">
-                <div className="flex items-center gap-4">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
-                    <User className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Client</p>
-                    <p className="font-medium">{project.client}</p>
-                  </div>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                <div className="space-y-6">
+                    <div className="flex items-center gap-4">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
+                        <User className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
+                    </div>
+                    <div>
+                        <p className="text-sm text-muted-foreground">Client</p>
+                        <p className="font-medium">{project.client}</p>
+                    </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
+                        <Building className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
+                    </div>
+                    <div>
+                        <p className="text-sm text-muted-foreground">Contract Executor</p>
+                        <p className="font-medium">{project.contractExecutor}</p>
+                    </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
+                        <Briefcase className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
+                    </div>
+                    <div>
+                        <p className="text-sm text-muted-foreground">Contract No.</p>
+                        <p className="font-medium">{project.contractNumber}</p>
+                    </div>
+                    </div>
                 </div>
-                <div className="flex items-center gap-4">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
-                    <Building className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Contract Executor</p>
-                    <p className="font-medium">{project.contractExecutor}</p>
-                  </div>
+                <div className="space-y-6">
+                    <div className="flex items-center gap-4">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
+                            <FileSpreadsheet className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
+                        </div>
+                        <div>
+                            <p className="text-sm text-muted-foreground">RAB No.</p>
+                            <p className="font-medium">{project.rabNumber}</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
+                            <Calendar className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
+                        </div>
+                        <div>
+                            <p className="text-sm text-muted-foreground">Period</p>
+                            <p className="font-medium">{project.period}</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
+                            <Clock className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
+                        </div>
+                        <div>
+                            <p className="text-sm text-muted-foreground">Duration</p>
+                            <p className="font-medium">{project.duration}</p>
+                        </div>
+                    </div>
                 </div>
-                <div className="flex items-center gap-4">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
-                    <Briefcase className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Contract No.</p>
-                    <p className="font-medium">{project.contractNumber}</p>
-                  </div>
+                <div className="space-y-6">
+                    <div className="flex items-center gap-4">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
+                            <CircleDollarSign className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
+                        </div>
+                        <div>
+                            <p className="text-sm text-muted-foreground">Contract Value</p>
+                            <p className="font-medium">{formatCurrency(project.value)}</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
+                            <FileSpreadsheet className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
+                        </div>
+                        <div>
+                            <p className="text-sm text-muted-foreground">Total Service Order</p>
+                            <p className="font-medium">{formatCurrency(totalServiceOrderValue)}</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
+                            <CircleDollarSign className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
+                        </div>
+                        <div>
+                            <p className="text-sm text-muted-foreground">Total Invoiced</p>
+                            <p className="font-medium">{formatCurrency(totalInvoiced)}</p>
+                        </div>
+                    </div>
                 </div>
-                <div className="flex items-center gap-4">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
-                    <FileSpreadsheet className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">RAB No.</p>
-                    <p className="font-medium">{project.rabNumber}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
-                    <Calendar className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Period</p>
-                    <p className="font-medium">{project.period}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
-                    <Clock className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Duration</p>
-                    <p className="font-medium">{project.duration}</p>
-                  </div>
-                </div>
-              </div>
-              <div className="space-y-6">
-                <div className="flex items-center gap-4">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
-                    <CircleDollarSign className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Contract Value</p>
-                    <p className="font-medium">{formatCurrency(project.value)}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
-                    <FileSpreadsheet className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Total Service Order</p>
-                    <p className="font-medium">{formatCurrency(totalServiceOrderValue)}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
-                    <CircleDollarSign className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Total Invoiced</p>
-                    <p className="font-medium">{formatCurrency(totalInvoiced)}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
-                    <CircleDollarSign className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Total PAD</p>
-                    <p className="font-medium">{formatCurrency(totalPad)}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
-                    <FilePen className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Total Document Preparation</p>
-                    <p className="font-medium">{formatCurrency(totalDocumentPreparation)}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
-                    <CircleDollarSign className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Total Cost</p>
-                    <p className="font-medium">{formatCurrency(totalCost)}</p>
-                  </div>
-                </div>
-              </div>
             </div>
             <Separator className="my-6" />
             <div className="mt-auto">
@@ -371,35 +343,7 @@ export default function ProjectDetailsPage() {
             </div>
           </CardContent>
         </Card>
-        
-        <ProjectMonthlyRecapChart data={monthlyRecapData} />
-      </div>
-
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-         <Card>
-            <CardHeader>
-                <CardTitle>Expenditure vs Budget</CardTitle>
-                <CardDescription>
-                    Comparison of budgeted amounts vs actual expenditures by category.
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <ProjectBudgetExpenditureChart project={project} />
-            </CardContent>
-        </Card>
-        <Card>
-            <CardHeader>
-                <CardTitle>Service Order Progress</CardTitle>
-                <CardDescription>
-                    Comparison of SO value vs invoiced amount.
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <ProjectServiceOrderChart project={project} />
-            </CardContent>
-        </Card>
-      </div>
-
+      
       <Tabs defaultValue="service-orders" className="w-full">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="service-orders">
@@ -445,6 +389,33 @@ export default function ProjectDetailsPage() {
            />
         </TabsContent>
       </Tabs>
+      
+       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <ProjectMonthlyRecapChart data={monthlyRecapData} />
+        <Card>
+            <CardHeader>
+                <CardTitle>Expenditure vs Budget</CardTitle>
+                <CardDescription>
+                    Comparison of budgeted amounts vs actual expenditures by category.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <ProjectBudgetExpenditureChart project={project} />
+            </CardContent>
+        </Card>
+        <Card>
+            <CardHeader>
+                <CardTitle>Service Order Progress</CardTitle>
+                <CardDescription>
+                    Comparison of SO value vs invoiced amount.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <ProjectServiceOrderChart project={project} />
+            </CardContent>
+        </Card>
+        <ProjectTargetRealizationChart projects={[project]} />
+      </div>
     </div>
   );
 }
