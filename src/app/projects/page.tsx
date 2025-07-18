@@ -32,6 +32,7 @@ import { ProjectExpenditureChart } from '@/components/project-expenditure-chart'
 import { ProjectIncomeExpenditureChart } from '@/components/project-income-expenditure-chart';
 import { HeaderCard } from '@/components/header-card';
 import { DashboardWidget } from '@/components/dashboard-widget';
+import { ProjectTargetRealizationChart } from '@/components/project-target-realization-chart';
 
 export default function ProjectsPage() {
   const { projects, getProjectStats } = useProjects();
@@ -177,6 +178,7 @@ export default function ProjectsPage() {
                 <ProjectIncomeExpenditureChart projects={visibleProjects} />
                 <ProjectStatusChart projects={visibleProjects} />
                 <ProjectExpenditureChart projects={visibleProjects} />
+                <ProjectTargetRealizationChart projects={visibleProjects} />
             </div>
         </TabsContent>
         <TabsContent value="list">
