@@ -23,7 +23,7 @@ export function NotificationNav() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-9 w-9 rounded-full">
-            <Bell className="h-6 w-6" />
+            <Bell className="h-[1.6rem] w-[1.6rem]" />
             {unreadCount > 0 && (
                 <span className="absolute top-1 right-1 flex h-2.5 w-2.5">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
