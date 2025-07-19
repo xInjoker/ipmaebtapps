@@ -226,17 +226,19 @@ export default function ProjectDetailsPage() {
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between gap-4">
-          <div className="space-y-1.5">
-            <CardTitle>{project.name}</CardTitle>
-            <CardDescription>{project.description}</CardDescription>
+        <CardHeader>
+          <div className="flex items-center gap-4">
+            <Button asChild variant="outline" size="icon">
+              <Link href="/projects">
+                <ArrowLeft className="h-4 w-4" />
+                <span className="sr-only">Back</span>
+              </Link>
+            </Button>
+            <div className="space-y-1.5">
+                <CardTitle>{project.name}</CardTitle>
+                <CardDescription>{project.description}</CardDescription>
+            </div>
           </div>
-          <Button asChild variant="outline" size="icon">
-            <Link href="/projects">
-              <ArrowLeft className="h-4 w-4" />
-              <span className="sr-only">Back</span>
-            </Link>
-          </Button>
         </CardHeader>
       </Card>
 
@@ -426,5 +428,3 @@ export default function ProjectDetailsPage() {
     </div>
   );
 }
-
-    
