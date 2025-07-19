@@ -234,7 +234,10 @@ export default function DashboardPage() {
                 />
                 <ChartTooltip
                   cursor={false}
-                  content={<ChartTooltipContent indicator="dot" />}
+                  content={<ChartTooltipContent 
+                    indicator="dot"
+                    formatter={(value) => formatCurrency(Number(value))}
+                  />}
                 />
                 <Bar dataKey="invoiced" fill="var(--color-invoiced)" radius={4} />
                 <Bar dataKey="paid" fill="var(--color-paid)" radius={4} />

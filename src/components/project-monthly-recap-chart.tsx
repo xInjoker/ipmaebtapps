@@ -33,6 +33,7 @@ import {
 } from '@/components/ui/dialog';
 import { useState, useMemo, useEffect } from 'react';
 import { Expand } from 'lucide-react';
+import { formatCurrency } from '@/lib/utils';
 
 type ProjectMonthlyRecapChartProps = {
   data: {
@@ -84,13 +85,7 @@ function Chart({ data }: { data: ProjectMonthlyRecapChartProps['data'] }) {
           cursor={false}
           content={
             <ChartTooltipContent
-              formatter={(value) =>
-                new Intl.NumberFormat('id-ID', {
-                  style: 'currency',
-                  currency: 'IDR',
-                  minimumFractionDigits: 0,
-                }).format(Number(value))
-              }
+              formatter={(value) => formatCurrency(Number(value))}
               indicator="dot"
             />
           }

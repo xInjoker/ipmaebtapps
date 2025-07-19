@@ -113,7 +113,7 @@ export function TenderSummaryChart({ tenders }: TenderSummaryChartProps) {
             <ChartTooltip
               cursor={false}
               content={<ChartTooltipContent 
-                formatter={(value) => formatCurrency(Number(value))}
+                formatter={(value, name) => formatCurrency(Number(value))}
                 indicator="dot" 
               />}
             />

@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/chart';
 import { useMemo } from 'react';
 import type { Project } from '@/lib/data';
+import { formatCurrency } from '@/lib/utils';
 
 type ProjectBudgetExpenditureChartProps = {
   project: Project;
@@ -74,7 +75,7 @@ export function ProjectBudgetExpenditureChart({ project }: ProjectBudgetExpendit
           cursor={false}
           content={<ChartTooltipContent
             labelFormatter={(label) => label}
-            formatter={(value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(Number(value))}
+            formatter={(value) => formatCurrency(Number(value))}
             indicator="dot"
            />}
         />

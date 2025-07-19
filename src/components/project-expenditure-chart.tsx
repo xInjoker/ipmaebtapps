@@ -14,6 +14,7 @@ import { useMemo, useState } from 'react';
 import type { Project } from '@/lib/data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { formatCurrency } from '@/lib/utils';
 
 type ProjectExpenditureChartProps = {
   projects: Project[];
@@ -108,7 +109,7 @@ export function ProjectExpenditureChart({ projects }: ProjectExpenditureChartPro
               cursor={false}
               content={<ChartTooltipContent
                 labelFormatter={(label) => label}
-                formatter={(value) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(Number(value))}
+                formatter={(value) => formatCurrency(Number(value))}
                 indicator="dot"
               />}
             />

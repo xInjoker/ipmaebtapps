@@ -98,7 +98,10 @@ export function ProjectServiceOrderChart({ project }: ProjectServiceOrderChartPr
             axisLine={false}
             domain={[0, 1]}
         />
-        <Tooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted))' }} />
+        <ChartTooltip
+          cursor={false}
+          content={<CustomTooltip />}
+        />
         <ChartLegend content={<ChartLegendContent />} />
         <Bar dataKey="invoiced" fill="var(--color-invoiced)" stackId="a" radius={[4, 0, 0, 4]} />
         <Bar dataKey="remaining" fill="var(--color-remaining)" stackId="a" radius={[0, 4, 4, 0]} />
