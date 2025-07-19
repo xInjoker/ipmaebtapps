@@ -37,6 +37,30 @@ function AllowanceItem({
   onQuantityChange: (value: number) => void;
 }) {
   const total = checked ? rate * quantity : 0;
+  const [displayValue, setDisplayValue] = useState(quantity.toString());
+
+  useEffect(() => {
+    setDisplayValue(quantity.toString());
+  }, [quantity]);
+
+  const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    if (e.target.value === '0') {
+        setDisplayValue('');
+    }
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    if (e.target.value === '') {
+        setDisplayValue('0');
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setDisplayValue(value);
+    onQuantityChange(parseInt(value) || 0);
+  };
+
   return (
     <div className="flex items-center justify-between space-x-2 rounded-lg border p-3">
         <div className="flex items-center space-x-3">
@@ -53,8 +77,10 @@ function AllowanceItem({
         <div className="flex items-center gap-4">
              <Input
                 type="number"
-                value={quantity}
-                onChange={(e) => onQuantityChange(parseInt(e.target.value) || 0)}
+                value={displayValue}
+                onChange={handleChange}
+                onFocus={handleFocus}
+                onBlur={handleBlur}
                 className="w-20 text-right"
                 disabled={!checked}
             />
