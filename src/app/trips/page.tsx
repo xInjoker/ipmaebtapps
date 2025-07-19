@@ -73,6 +73,7 @@ export default function TripsPage() {
   }, [trips, user]);
 
   const dashboardStats = useMemo(() => {
+    if (!user) return { totalTrips: 0, approved: 0, pending: 0, rejected: 0 };
     const statusCounts = filteredTrips.reduce((acc, trip) => {
       acc[trip.status] = (acc[trip.status] || 0) + 1;
       return acc;
@@ -84,7 +85,7 @@ export default function TripsPage() {
       pending: statusCounts['Pending'] || 0,
       rejected: statusCounts['Rejected'] || 0,
     };
-  }, [filteredTrips]);
+  }, [filteredTrips, user]);
   
    const widgetData = [
     {
