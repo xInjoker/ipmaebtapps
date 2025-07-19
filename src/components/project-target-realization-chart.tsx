@@ -133,12 +133,6 @@ export function ProjectTargetRealizationChart({ projects }: ProjectTargetRealiza
             />
             <ChartTooltip
               content={<ChartTooltipContent
-                formatter={(value, name) => (
-                  <div className="flex flex-col">
-                    <span className="font-bold">{chartConfig[name as keyof typeof chartConfig]?.label}</span>
-                    <span>{formatCurrency(Number(value))}</span>
-                  </div>
-                )}
                 indicator="dot"
               />}
             />
