@@ -39,14 +39,18 @@ import {
   Search,
   BarChartBig,
   List,
+  Users,
+  Clock,
+  CheckCircle,
+  XCircle,
 } from 'lucide-react';
 import { useTenders } from '@/context/TenderContext';
 import { type TenderStatus, tenderStatuses, regionalOptions } from '@/lib/tenders';
-import { format } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 import { useAuth } from '@/context/AuthContext';
 import { Calendar } from '@/components/ui/calendar';
 import { isSameDay, isWithinInterval, startOfDay, addDays } from 'date-fns';
-import { getTenderStatusVariant } from '@/lib/utils';
+import { getTenderStatusVariant, formatCurrencyMillions } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -65,7 +69,7 @@ import { DashboardWidget } from '@/components/dashboard-widget';
 
 export default function TendersPage() {
   useSearchParams();
-  const { tenders, updateTender, widgetData } = useTenders();
+  const { tenders, updateTender } = useTenders();
   const { user, isHqUser, branches, userHasPermission } = useAuth();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const initialFilterSet = useRef(false);
@@ -121,6 +125,81 @@ export default function TendersPage() {
         return searchMatch && regionMatch && branchMatch && statusMatch;
     });
   }, [tenders, searchTerm, branchFilter, statusFilter, regionFilter, user, isHqUser, branches]);
+
+  const tenderStats = useMemo(() => {
+    const initialStats = {
+      count: 0,
+      value: 0,
+    };
+  
+    const statusMetrics = filteredTenders.reduce((acc, tender) => {
+      const status = tender.status;
+      if (!acc[status]) {
+        acc[status] = { count: 0, value: 0 };
+      }
+      acc[status].count += 1;
+      acc[status].value += tender.bidPrice;
+      return acc;
+    }, {} as Record<TenderStatus, { count: number; value: number }>);
+  
+    const inProgressStatuses: TenderStatus[] = ['Aanwijzing', 'Bidding', 'Evaluation', 'Prequalification'];
+    const lostCancelledStatuses: TenderStatus[] = ['Lost', 'Cancelled'];
+  
+    const getAggregatedStats = (statuses: TenderStatus[]) => {
+      return statuses.reduce((acc, status) => {
+        const metric = statusMetrics[status] || initialStats;
+        acc.count += metric.count;
+        acc.value += metric.value;
+        return acc;
+      }, { count: 0, value: 0 });
+    };
+  
+    return {
+      totalTenders: {
+        count: filteredTenders.length,
+        value: filteredTenders.reduce((sum, t) => sum + t.bidPrice, 0),
+      },
+      inProgress: getAggregatedStats(inProgressStatuses),
+      awarded: statusMetrics['Awarded'] || initialStats,
+      lostOrCancelled: getAggregatedStats(lostCancelledStatuses),
+    };
+  }, [filteredTenders]);
+
+  const widgetData = useMemo(() => [
+    {
+      title: 'Total Tenders',
+      value: `${formatCurrencyMillions(tenderStats.totalTenders.value)}`,
+      description: `${tenderStats.totalTenders.count} total tenders`,
+      icon: Users,
+      iconColor: 'text-blue-500',
+      shapeColor: 'text-blue-500/10',
+    },
+    {
+      title: 'In Progress',
+      value: `${formatCurrencyMillions(tenderStats.inProgress.value)}`,
+      description: `${tenderStats.inProgress.count} active tenders`,
+      icon: Clock,
+      iconColor: 'text-amber-500',
+      shapeColor: 'text-amber-500/10',
+    },
+    {
+      title: 'Awarded',
+      value: `${formatCurrencyMillions(tenderStats.awarded.value)}`,
+      description: `${tenderStats.awarded.count} won tenders`,
+      icon: CheckCircle,
+      iconColor: 'text-green-500',
+      shapeColor: 'text-green-500/10',
+    },
+    {
+      title: 'Lost / Cancelled',
+      value: `${formatCurrencyMillions(tenderStats.lostOrCancelled.value)}`,
+      description: `${tenderStats.lostOrCancelled.count} lost or cancelled`,
+      icon: XCircle,
+      iconColor: 'text-rose-500',
+      shapeColor: 'text-rose-500/10',
+    },
+  ], [tenderStats]);
+
 
   const branchMap = useMemo(() => {
     return branches.reduce((acc, branch) => {
@@ -200,12 +279,12 @@ export default function TendersPage() {
                     placeholder="Search by title, client, or number..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-8 w-full"
+                    className="w-full pl-8 bg-background/90 text-foreground focus:bg-background"
                 />
             </div>
             <div className="flex flex-wrap items-center gap-2">
                  <Select value={regionFilter} onValueChange={setRegionFilter} disabled={!isHqUser}>
-                    <SelectTrigger className="w-full sm:w-[180px]">
+                    <SelectTrigger className="w-full sm:w-[180px] bg-background/90 text-foreground focus:bg-background">
                         <SelectValue placeholder="Filter by region" />
                     </SelectTrigger>
                     <SelectContent>
@@ -214,7 +293,7 @@ export default function TendersPage() {
                     </SelectContent>
                 </Select>
                 <Select value={branchFilter} onValueChange={setBranchFilter} disabled={!isHqUser && !!user?.branchId}>
-                    <SelectTrigger className="w-full sm:w-[180px]">
+                    <SelectTrigger className="w-full sm:w-[180px] bg-background/90 text-foreground focus:bg-background">
                         <SelectValue placeholder="Filter by branch" />
                     </SelectTrigger>
                     <SelectContent>
@@ -223,7 +302,7 @@ export default function TendersPage() {
                     </SelectContent>
                 </Select>
                 <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
-                    <SelectTrigger className="w-full sm:w-[180px]">
+                    <SelectTrigger className="w-full sm:w-[180px] bg-background/90 text-foreground focus:bg-background">
                         <SelectValue placeholder="Filter by status" />
                     </SelectTrigger>
                     <SelectContent>
@@ -231,7 +310,7 @@ export default function TendersPage() {
                         {tenderStatuses.map(status => <SelectItem key={status} value={status}>{status}</SelectItem>)}
                     </SelectContent>
                 </Select>
-                <Button variant="ghost" onClick={handleClearFilters} className="w-full sm:w-auto">
+                <Button variant="ghost" onClick={handleClearFilters} className="w-full sm:w-auto text-primary-foreground hover:text-primary-foreground hover:bg-white/20">
                     <X className="mr-2 h-4 w-4" /> Clear
                 </Button>
             </div>
