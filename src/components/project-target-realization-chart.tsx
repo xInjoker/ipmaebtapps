@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Line, LineChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend } from 'recharts';
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend } from 'recharts';
 import {
   ChartContainer,
   ChartTooltip,
@@ -76,7 +76,9 @@ export function ProjectTargetRealizationChart({ projects }: ProjectTargetRealiza
             const date = parse(`${month} 1, ${year}`, 'MMMM d, yyyy', new Date());
             const monthKey = formatDate(date, 'MMM yy');
              if (monthlyData[monthKey]) {
-                monthlyData[monthKey].incomeRealization += invoice.value;
+                if (['Paid', 'Invoiced'].includes(invoice.status)) {
+                    monthlyData[monthKey].incomeRealization += invoice.value;
+                }
              }
         } catch (e) {
             console.warn(`Could not parse date for invoice period: ${invoice.period}`);
@@ -90,7 +92,9 @@ export function ProjectTargetRealizationChart({ projects }: ProjectTargetRealiza
             const date = parse(`${month} 1, ${year}`, 'MMMM d, yyyy', new Date());
             const monthKey = formatDate(date, 'MMM yy');
              if (monthlyData[monthKey]) {
-                monthlyData[monthKey].costRealization += exp.amount;
+                if (exp.status === 'Approved') {
+                    monthlyData[monthKey].costRealization += exp.amount;
+                }
              }
          } catch (e) {
             console.warn(`Could not parse date for expenditure period: ${exp.period}`);
@@ -113,7 +117,7 @@ export function ProjectTargetRealizationChart({ projects }: ProjectTargetRealiza
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="h-[400px] w-full">
-          <LineChart
+          <BarChart
             data={chartData}
             margin={{
               top: 5,
@@ -130,15 +134,15 @@ export function ProjectTargetRealizationChart({ projects }: ProjectTargetRealiza
             <Tooltip
               content={<ChartTooltipContent
                 formatter={(value) => formatCurrency(Number(value))}
-                indicator="line"
+                indicator="dot"
               />}
             />
             <ChartLegend content={<ChartLegendContent />} />
-            <Line type="monotone" dataKey="incomeTarget" stroke="var(--color-incomeTarget)" strokeDasharray="5 5" />
-            <Line type="monotone" dataKey="costTarget" stroke="var(--color-costTarget)" strokeDasharray="5 5" />
-            <Line type="monotone" dataKey="incomeRealization" stroke="var(--color-incomeRealization)" strokeWidth={2} />
-            <Line type="monotone" dataKey="costRealization" stroke="var(--color-costRealization)" strokeWidth={2} />
-          </LineChart>
+            <Bar dataKey="incomeTarget" fill="var(--color-incomeTarget)" radius={4} />
+            <Bar dataKey="costTarget" fill="var(--color-costTarget)" radius={4} />
+            <Bar dataKey="incomeRealization" fill="var(--color-incomeRealization)" radius={4} />
+            <Bar dataKey="costRealization" fill="var(--color-costRealization)" radius={4} />
+          </BarChart>
         </ChartContainer>
       </CardContent>
     </Card>
