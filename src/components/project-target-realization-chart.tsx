@@ -10,11 +10,12 @@ import {
   ChartLegend,
   ChartLegendContent,
 } from '@/components/ui/chart';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import type { Project } from '@/lib/data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { formatCurrency, formatCurrencyMillions } from '@/lib/utils';
 import { addMonths, format as formatDate, parse } from 'date-fns';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './ui/select';
 
 
 type ProjectTargetRealizationChartProps = {
@@ -41,6 +42,24 @@ const chartConfig: ChartConfig = {
 };
 
 export function ProjectTargetRealizationChart({ projects }: ProjectTargetRealizationChartProps) {
+  const [selectedYear, setSelectedYear] = useState('all');
+
+  const availableYears = useMemo(() => {
+    if (!projects || projects.length === 0) return ['all'];
+    const years = new Set<string>();
+    projects.forEach(project => {
+        const projectStartDateMatch = project.period.match(/(\d{4})/);
+        const projectStartYear = projectStartDateMatch ? parseInt(projectStartDateMatch[1], 10) : new Date().getFullYear();
+        const durationInMonths = parseInt(project.duration.split(' ')[0], 10) || 1;
+        let currentMonthDate = new Date(projectStartYear, 0, 1);
+        for (let i = 0; i < durationInMonths; i++) {
+            years.add(formatDate(currentMonthDate, 'yyyy'));
+            currentMonthDate = addMonths(currentMonthDate, 1);
+        }
+    });
+    return ['all', ...Array.from(years).sort((a,b) => Number(b) - Number(a))];
+  }, [projects]);
+  
   const chartData = useMemo(() => {
     if (!projects || projects.length === 0) return [];
     
@@ -59,19 +78,21 @@ export function ProjectTargetRealizationChart({ projects }: ProjectTargetRealiza
       let currentMonthDate = new Date(projectStartYear, 0, 1);
       
       for (let i = 0; i < durationInMonths; i++) {
-        const monthKey = formatDate(currentMonthDate, 'MMM yy');
-        if (!monthlyData[monthKey]) {
-            monthlyData[monthKey] = { month: monthKey, incomeTarget: 0, costTarget: 0, incomeRealization: 0, costRealization: 0 };
+        const currentYear = formatDate(currentMonthDate, 'yyyy');
+        if (selectedYear === 'all' || selectedYear === currentYear) {
+            const monthKey = formatDate(currentMonthDate, 'MMM yy');
+            if (!monthlyData[monthKey]) {
+                monthlyData[monthKey] = { month: monthKey, incomeTarget: 0, costTarget: 0, incomeRealization: 0, costRealization: 0 };
+            }
+            monthlyData[monthKey].incomeTarget += monthlyIncomeTarget;
+            monthlyData[monthKey].costTarget += monthlyCostTarget;
         }
-        monthlyData[monthKey].incomeTarget += monthlyIncomeTarget;
-        monthlyData[monthKey].costTarget += monthlyCostTarget;
-        
         currentMonthDate = addMonths(currentMonthDate, 1);
       }
 
       project.invoices.forEach(invoice => {
         const [month, year] = invoice.period.split(' ');
-        if(!month || !year) return;
+        if(!month || !year || (selectedYear !== 'all' && selectedYear !== year)) return;
         try {
             const date = parse(`${month} 1, ${year}`, 'MMMM d, yyyy', new Date());
             const monthKey = formatDate(date, 'MMM yy');
@@ -87,7 +108,7 @@ export function ProjectTargetRealizationChart({ projects }: ProjectTargetRealiza
       
       project.expenditures.forEach(exp => {
         const [month, year] = exp.period.split(' ');
-        if(!month || !year) return;
+        if(!month || !year || (selectedYear !== 'all' && selectedYear !== year)) return;
          try {
             const date = parse(`${month} 1, ${year}`, 'MMMM d, yyyy', new Date());
             const monthKey = formatDate(date, 'MMM yy');
@@ -107,13 +128,21 @@ export function ProjectTargetRealizationChart({ projects }: ProjectTargetRealiza
         const dateB = parse(b.month, 'MMM yy', new Date());
         return dateA.getTime() - dateB.getTime();
     });
-  }, [projects]);
+  }, [projects, selectedYear]);
 
   return (
     <Card className="lg:col-span-2">
-      <CardHeader>
-        <CardTitle>Target vs Realization</CardTitle>
-        <CardDescription>Monthly income and cost targets vs. actual realization.</CardDescription>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+            <CardTitle>Target vs Realization</CardTitle>
+            <CardDescription>Monthly income and cost targets vs. actual realization.</CardDescription>
+        </div>
+        <Select value={selectedYear} onValueChange={setSelectedYear}>
+            <SelectTrigger className="w-[120px]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+                {availableYears.map(year => <SelectItem key={year} value={year}>{year}</SelectItem>)}
+            </SelectContent>
+        </Select>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="h-[400px] w-full">
