@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend } from 'recharts';
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 import {
   ChartContainer,
   ChartTooltip,
@@ -131,9 +131,14 @@ export function ProjectTargetRealizationChart({ projects }: ProjectTargetRealiza
             <YAxis
                 tickFormatter={(value) => formatCurrencyMillions(Number(value))}
             />
-            <Tooltip
+            <ChartTooltip
               content={<ChartTooltipContent
-                formatter={(value) => formatCurrency(Number(value))}
+                formatter={(value, name) => (
+                  <div className="flex flex-col">
+                    <span className="font-bold">{chartConfig[name as keyof typeof chartConfig]?.label}</span>
+                    <span>{formatCurrency(Number(value))}</span>
+                  </div>
+                )}
                 indicator="dot"
               />}
             />
