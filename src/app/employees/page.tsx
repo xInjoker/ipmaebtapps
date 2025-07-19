@@ -302,12 +302,12 @@ export default function EmployeesPage() {
                   placeholder="Search by name or email..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-8"
+                  className="w-full pl-8 bg-background/90 text-foreground focus:bg-background"
                 />
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-full sm:w-[160px]">
+                  <SelectTrigger className="w-full sm:w-[160px] bg-background/90 text-foreground focus:bg-background">
                     <SelectValue placeholder="Filter by status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -323,7 +323,7 @@ export default function EmployeesPage() {
                   </SelectContent>
                 </Select>
                 <Select value={branchFilter} onValueChange={setBranchFilter} disabled={!isHqUser}>
-                  <SelectTrigger className="w-full sm:w-[160px]">
+                  <SelectTrigger className="w-full sm:w-[160px] bg-background/90 text-foreground focus:bg-background">
                     <SelectValue placeholder="Filter by branch" />
                   </SelectTrigger>
                   <SelectContent>
@@ -336,7 +336,7 @@ export default function EmployeesPage() {
                   </SelectContent>
                 </Select>
                 <Select value={projectFilter} onValueChange={setProjectFilter}>
-                  <SelectTrigger className="w-full sm:w-[160px]">
+                  <SelectTrigger className="w-full sm:w-[160px] bg-background/90 text-foreground focus:bg-background">
                     <SelectValue placeholder="Filter by project" />
                   </SelectTrigger>
                   <SelectContent>
@@ -351,7 +351,7 @@ export default function EmployeesPage() {
                 <Button
                   variant="ghost"
                   onClick={handleClearFilters}
-                  className="w-full sm:w-auto"
+                  className="w-full sm:w-auto text-primary-foreground hover:text-primary-foreground hover:bg-white/20"
                 >
                   <X className="mr-2 h-4 w-4" /> Clear
                 </Button>
