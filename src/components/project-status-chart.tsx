@@ -70,7 +70,7 @@ const renderActiveShape = (props: any, totalValue: number) => {
                 {formatFinancialValue(totalValue)}
             </text>
             <text x={cx} y={cy + 10} dy={8} textAnchor="middle" fill="hsl(var(--muted-foreground))" className="text-sm">
-                Total Invoiced
+                Total
             </text>
             <Sector
                 cx={cx}
@@ -94,10 +94,10 @@ const renderActiveShape = (props: any, totalValue: number) => {
     );
 };
 
-const CustomTooltip = ({ active, payload }: any) => {
+const CustomTooltip = ({ active, payload, totalValue }: any) => {
   if (active && payload && payload.length) {
     const data = payload[0];
-    const percentage = (data.percent * 100).toFixed(1);
+    const percentage = totalValue > 0 ? (data.value / totalValue) * 100 : 0;
     const fill = data.payload.fill; 
     const status = data.name; 
     const value = data.value;
@@ -108,7 +108,7 @@ const CustomTooltip = ({ active, payload }: any) => {
           <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: fill }} />
           <span className="font-medium text-muted-foreground">{status}:</span>
           <span className="ml-auto font-mono font-semibold">{formatCurrency(value)}</span>
-          <span className="font-mono text-muted-foreground">({percentage}%)</span>
+          <span className="font-mono text-muted-foreground">({percentage.toFixed(1)}%)</span>
         </div>
       </div>
     );
@@ -180,7 +180,7 @@ export function ProjectStatusChart({ projects }: ProjectStatusChartProps) {
           <PieChart>
             <ChartTooltip
               cursor={false}
-              content={<CustomTooltip />}
+              content={<CustomTooltip totalValue={totalValue} />}
             />
             <Pie
               activeIndex={activeIndex}
