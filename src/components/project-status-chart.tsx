@@ -51,12 +51,23 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
+const formatFinancialValue = (value: number) => {
+    if (Math.abs(value) >= 1_000_000_000) {
+        return `${(value / 1_000_000_000).toFixed(2)} M`;
+    }
+    if (Math.abs(value) >= 1_000_000) {
+        return `${(value / 1_000_000).toFixed(1)} Jt`;
+    }
+    return formatCurrency(value);
+};
+
+
 const renderActiveShape = (props: any, totalValue: number) => {
     const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
     return (
         <g>
             <text x={cx} y={cy - 10} dy={8} textAnchor="middle" fill="hsl(var(--foreground))" className="text-xl font-bold">
-                {formatCurrency(totalValue)}
+                {formatFinancialValue(totalValue)}
             </text>
             <text x={cx} y={cy + 10} dy={8} textAnchor="middle" fill="hsl(var(--muted-foreground))" className="text-sm">
                 Total Invoiced
