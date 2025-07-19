@@ -345,7 +345,7 @@ export default function ProjectDetailsPage() {
           </CardContent>
         </Card>
       
-      <Tabs defaultValue="service-orders" className="w-full">
+      <Tabs defaultValue="summary-charts" className="w-full">
         <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="summary-charts">
             <BarChartHorizontal className="mr-2 h-4 w-4" />
