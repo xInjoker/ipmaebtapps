@@ -13,7 +13,7 @@ import {
 import { useMemo, useState } from 'react';
 import type { Project } from '@/lib/data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { formatCurrency, formatCurrencyMillions } from '@/lib/utils';
+import { formatCurrencyMillions } from '@/lib/utils';
 import { addMonths, format as formatDate, parse } from 'date-fns';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './ui/select';
 
