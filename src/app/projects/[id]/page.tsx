@@ -254,10 +254,10 @@ export default function ProjectDetailsPage() {
         </svg>
         <CardHeader className="flex flex-row items-center justify-between gap-4 z-10 relative">
           <div className="flex items-center gap-4">
-            <Button asChild variant="secondary">
+            <Button asChild variant="secondary" size="icon">
               <Link href="/projects">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Projects
+                <ArrowLeft />
+                <span className="sr-only">Back</span>
               </Link>
             </Button>
             <div className="space-y-1.5">
