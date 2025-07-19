@@ -94,6 +94,29 @@ const renderActiveShape = (props: any, totalValue: number) => {
     );
 };
 
+const CustomTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length) {
+    const data = payload[0];
+    const percentage = (data.percent * 100).toFixed(1);
+    const fill = data.payload.fill; 
+    const status = data.name; 
+    const value = data.value;
+
+    return (
+      <div className="rounded-lg border bg-background p-2 shadow-sm text-sm">
+        <div className="flex items-center gap-2">
+          <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: fill }} />
+          <span className="font-medium text-muted-foreground">{status}:</span>
+          <span className="ml-auto font-mono font-semibold">{formatCurrency(value)}</span>
+          <span className="font-mono text-muted-foreground">({percentage}%)</span>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+};
+
 
 export function ProjectStatusChart({ projects }: ProjectStatusChartProps) {
   const [selectedYear, setSelectedYear] = useState('all');
@@ -157,10 +180,7 @@ export function ProjectStatusChart({ projects }: ProjectStatusChartProps) {
           <PieChart>
             <ChartTooltip
               cursor={false}
-              content={<ChartTooltipContent 
-                formatter={(value) => formatCurrency(Number(value))}
-                hideLabel 
-              />}
+              content={<CustomTooltip />}
             />
             <Pie
               activeIndex={activeIndex}
