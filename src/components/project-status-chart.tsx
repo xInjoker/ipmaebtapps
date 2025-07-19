@@ -2,7 +2,7 @@
 "use client"
 
 import * as React from "react"
-import { Pie, PieChart, Cell } from 'recharts';
+import { Pie, PieChart, Cell, Sector } from 'recharts';
 import {
   ChartContainer,
   ChartTooltip,
@@ -51,17 +51,57 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
+const renderActiveShape = (props: any, totalValue: number) => {
+    const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
+    return (
+        <g>
+            <text x={cx} y={cy - 10} dy={8} textAnchor="middle" fill="hsl(var(--foreground))" className="text-xl font-bold">
+                {formatCurrency(totalValue)}
+            </text>
+            <text x={cx} y={cy + 10} dy={8} textAnchor="middle" fill="hsl(var(--muted-foreground))" className="text-sm">
+                Total Invoiced
+            </text>
+            <Sector
+                cx={cx}
+                cy={cy}
+                innerRadius={innerRadius}
+                outerRadius={outerRadius}
+                startAngle={startAngle}
+                endAngle={endAngle}
+                fill={fill}
+            />
+            <Sector
+                cx={cx}
+                cy={cy}
+                startAngle={startAngle}
+                endAngle={endAngle}
+                innerRadius={outerRadius + 6}
+                outerRadius={outerRadius + 10}
+                fill={fill}
+            />
+        </g>
+    );
+};
+
 
 export function ProjectStatusChart({ projects }: ProjectStatusChartProps) {
   const [selectedYear, setSelectedYear] = useState('all');
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const onPieEnter = React.useCallback(
+    (_: any, index: number) => {
+      setActiveIndex(index);
+    },
+    [setActiveIndex]
+  );
 
   const availableYears = useMemo(() => {
     const years = new Set(projects.flatMap(p => p.invoices.map(i => i.period.split(' ')[1])).filter(Boolean));
     return ['all', ...Array.from(years).sort((a, b) => Number(b) - Number(a))];
   }, [projects]);
 
-  const chartData = useMemo(() => {
-    if (!projects) return [];
+  const { chartData, totalValue } = useMemo(() => {
+    if (!projects) return { chartData: [], totalValue: 0 };
     
     const filteredInvoices = projects.flatMap(p => p.invoices)
         .filter(invoice => selectedYear === 'all' || invoice.period.endsWith(selectedYear));
@@ -72,14 +112,18 @@ export function ProjectStatusChart({ projects }: ProjectStatusChartProps) {
         acc[status] = (acc[status] || 0) + invoice.value;
         return acc;
     }, {} as Record<InvoiceItem['status'], number>);
-
-    return Object.entries(chartConfig)
+    
+    const data = Object.entries(chartConfig)
         .filter(([key]) => key !== 'value')
         .map(([status, config]) => ({
             status,
             value: valueByStatus[status as InvoiceItem['status']] || 0,
             fill: `var(--color-${status.replace(/ /g, '')})`,
         })).filter(d => d.value > 0);
+
+    const total = data.reduce((acc, curr) => acc + curr.value, 0);
+    
+    return { chartData: data, totalValue: total };
   }, [projects, selectedYear]);
 
 
@@ -108,6 +152,9 @@ export function ProjectStatusChart({ projects }: ProjectStatusChartProps) {
               />}
             />
             <Pie
+              activeIndex={activeIndex}
+              activeShape={(props) => renderActiveShape(props, totalValue)}
+              onMouseEnter={onPieEnter}
               data={chartData}
               dataKey="value"
               nameKey="status"
