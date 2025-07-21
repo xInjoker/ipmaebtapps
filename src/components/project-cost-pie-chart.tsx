@@ -15,16 +15,13 @@ import { useMemo, useState } from 'react';
 import type { Project } from '@/lib/data';
 import { formatCurrency, formatCurrencyCompact } from "@/lib/utils";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
-import { cn } from "@/lib/utils";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 
 type ProjectCostPieChartProps = {
   project: Project;
 };
 
 const chartConfig = {
-  cost: {
-    label: 'Cost',
-  },
   'PT dan PTT': { label: 'PT dan PTT', color: 'hsl(var(--chart-1))' },
   'PTT Project': { label: 'PTT Project', color: 'hsl(var(--chart-2))' },
   'Tenaga Ahli dan Labour Supply': { label: 'Tenaga Ahli & LS', color: 'hsl(var(--chart-3))' },
@@ -73,6 +70,7 @@ const renderActiveShape = (props: any, totalValue: number) => {
 
 export function ProjectCostPieChart({ project }: ProjectCostPieChartProps) {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [selectedYear, setSelectedYear] = useState('all');
 
   const onPieEnter = React.useCallback(
     (_: any, index: number) => {
@@ -81,10 +79,20 @@ export function ProjectCostPieChart({ project }: ProjectCostPieChartProps) {
     [setActiveIndex]
   );
   
+  const availableYears = useMemo(() => {
+    if (!project) return ['all'];
+    const years = new Set(project.costs.map(i => i.period.split(' ')[1]).filter(Boolean));
+    return ['all', ...Array.from(years).sort((a, b) => Number(b) - Number(a))];
+  }, [project]);
+
   const { chartData, totalCost } = useMemo(() => {
     if (!project) return { chartData: [], totalCost: 0 };
     
-    const costByCategory = project.costs
+    const filteredCosts = selectedYear === 'all'
+        ? project.costs
+        : project.costs.filter(exp => exp.period.endsWith(selectedYear));
+
+    const costByCategory = filteredCosts
       .filter(exp => exp.status === 'Approved')
       .reduce((acc, exp) => {
         acc[exp.category] = (acc[exp.category] || 0) + exp.amount;
@@ -100,14 +108,22 @@ export function ProjectCostPieChart({ project }: ProjectCostPieChartProps) {
     }));
     
     return { chartData: data, totalCost: total };
-  }, [project]);
+  }, [project, selectedYear]);
 
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Cost Realization</CardTitle>
-        <CardDescription>A pie chart breakdown of all project costs by category.</CardDescription>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+            <CardTitle>Cost Realization</CardTitle>
+            <CardDescription>A pie chart breakdown of all project costs by category.</CardDescription>
+        </div>
+         <Select value={selectedYear} onValueChange={setSelectedYear}>
+          <SelectTrigger className="w-[120px]"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            {availableYears.map(year => <SelectItem key={year} value={year}>{year}</SelectItem>)}
+          </SelectContent>
+        </Select>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="h-[400px] w-full">
@@ -145,7 +161,7 @@ export function ProjectCostPieChart({ project }: ProjectCostPieChartProps) {
                 </PieChart>
             ) : (
                 <div className="flex h-full w-full items-center justify-center text-muted-foreground">
-                    No cost data available.
+                    No cost data available for the selected period.
                 </div>
             )}
         </ChartContainer>

@@ -12,28 +12,25 @@ import {
   ChartConfig,
 } from '@/components/ui/chart';
 import { useMemo, useState } from 'react';
-import type { Project, InvoiceItem } from '@/lib/data';
+import type { Project } from '@/lib/data';
 import { formatCurrency, formatCurrencyCompact } from "@/lib/utils";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
-import { cn } from "@/lib/utils";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 
 type ProjectIncomePieChartProps = {
   project: Project;
 };
 
 const chartConfig = {
-  value: {
-    label: 'Invoice Value',
-  },
-  'Paid': {
+  Paid: {
     label: 'Paid',
     color: 'hsl(var(--chart-1))',
   },
-  'Invoiced': {
+  'Invoiced (Unpaid)': {
     label: 'Invoiced (Unpaid)',
     color: 'hsl(var(--chart-2))',
   },
-  'PAD': {
+  'Remaining PAD': {
     label: 'Remaining PAD',
     color: 'hsl(var(--chart-3))'
   },
@@ -74,6 +71,7 @@ const renderActiveShape = (props: any, totalValue: number) => {
 
 export function ProjectIncomePieChart({ project }: ProjectIncomePieChartProps) {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [selectedYear, setSelectedYear] = useState('all');
 
   const onPieEnter = React.useCallback(
     (_: any, index: number) => {
@@ -82,32 +80,42 @@ export function ProjectIncomePieChart({ project }: ProjectIncomePieChartProps) {
     [setActiveIndex]
   );
   
+  const availableYears = useMemo(() => {
+    if (!project) return ['all'];
+    const years = new Set(project.invoices.map(i => i.period.split(' ')[1]).filter(Boolean));
+    return ['all', ...Array.from(years).sort((a, b) => Number(b) - Number(a))];
+  }, [project]);
+  
   const { chartData, totalValue } = useMemo(() => {
     if (!project) return { chartData: [], totalValue: 0 };
     
+    const filteredInvoices = selectedYear === 'all' 
+        ? project.invoices 
+        : project.invoices.filter(inv => inv.period.endsWith(selectedYear));
+
     const valueByStatus: Record<string, number> = {
         'Paid': 0,
-        'Invoiced': 0,
-        'PAD': 0,
+        'Invoiced (Unpaid)': 0,
+        'Remaining PAD': 0,
     };
 
     const invoicedOrPaidValuesBySO: Record<string, number> = {};
 
-    project.invoices.forEach(invoice => {
+    filteredInvoices.forEach(invoice => {
         if (invoice.status === 'Paid') {
             valueByStatus['Paid'] += invoice.value;
             invoicedOrPaidValuesBySO[invoice.soNumber] = (invoicedOrPaidValuesBySO[invoice.soNumber] || 0) + invoice.value;
         } else if (invoice.status === 'Invoiced') {
-            valueByStatus['Invoiced'] += invoice.value;
+            valueByStatus['Invoiced (Unpaid)'] += invoice.value;
             invoicedOrPaidValuesBySO[invoice.soNumber] = (invoicedOrPaidValuesBySO[invoice.soNumber] || 0) + invoice.value;
         }
     });
 
-    project.invoices.forEach(invoice => {
+    filteredInvoices.forEach(invoice => {
         if (invoice.status === 'PAD') {
             const invoicedAmountForSO = invoicedOrPaidValuesBySO[invoice.soNumber] || 0;
             const remainingPad = Math.max(0, invoice.value - invoicedAmountForSO);
-            valueByStatus['PAD'] += remainingPad;
+            valueByStatus['Remaining PAD'] += remainingPad;
         }
     });
     
@@ -122,13 +130,21 @@ export function ProjectIncomePieChart({ project }: ProjectIncomePieChartProps) {
     const total = data.reduce((sum, item) => sum + item.value, 0);
     
     return { chartData: data, totalValue: total };
-  }, [project]);
+  }, [project, selectedYear]);
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Income Realization</CardTitle>
-        <CardDescription>A breakdown of realized income including remaining PAD.</CardDescription>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+            <CardTitle>Income Realization (Paid vs. Invoiced)</CardTitle>
+            <CardDescription>A breakdown of realized income including remaining PAD.</CardDescription>
+        </div>
+        <Select value={selectedYear} onValueChange={setSelectedYear}>
+          <SelectTrigger className="w-[120px]"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            {availableYears.map(year => <SelectItem key={year} value={year}>{year}</SelectItem>)}
+          </SelectContent>
+        </Select>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="h-[400px] w-full">
@@ -166,7 +182,7 @@ export function ProjectIncomePieChart({ project }: ProjectIncomePieChartProps) {
                 </PieChart>
             ) : (
                 <div className="flex h-full w-full items-center justify-center text-muted-foreground">
-                    No income data available.
+                    No income data available for the selected period.
                 </div>
             )}
         </ChartContainer>
