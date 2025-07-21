@@ -49,6 +49,7 @@ import type { ApprovalStage, Project } from '@/lib/projects';
 import { ProjectTargetRealizationChart } from '@/components/project-target-realization-chart';
 import { ProjectCostPieChart } from '@/components/project-cost-pie-chart';
 import { ProjectIncomePieChart } from '@/components/project-income-pie-chart';
+import { ProjectServiceOrderTab } from '@/components/project-service-order-tab';
 
 export default function ProjectDetailsPage() {
   const params = useParams();
