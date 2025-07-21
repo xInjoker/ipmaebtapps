@@ -63,6 +63,19 @@ export function formatCurrencyMillions(value: number): string {
   return formatCurrency(value);
 }
 
+export function formatCurrencyCompact(value: number) {
+    if (Math.abs(value) >= 1_000_000_000) {
+        return `Rp ${(value / 1_000_000_000).toFixed(1).replace(/\.0$/, '')} M`;
+    }
+    if (Math.abs(value) >= 1_000_000) {
+        return `Rp ${(value / 1_000_000).toFixed(1).replace(/\.0$/, '')} Jt`;
+    }
+    if (Math.abs(value) >= 1_000) {
+        return `Rp ${(value / 1_000).toFixed(1).replace(/\.0$/, '')} rb`;
+    }
+    return `Rp ${value}`;
+}
+
 
 export function getEmployeeStatusVariant(status?: 'Active' | 'Inactive' | 'On Leave') {
   switch (status) {

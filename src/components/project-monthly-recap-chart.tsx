@@ -34,7 +34,7 @@ import {
 } from '@/components/ui/dialog';
 import { useState, useMemo, useEffect } from 'react';
 import { Expand } from 'lucide-react';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, formatCurrencyCompact } from '@/lib/utils';
 
 type ProjectMonthlyRecapChartProps = {
   data: {
@@ -60,14 +60,6 @@ const chartConfig: ChartConfig = {
   },
 };
 
-function formatCurrencyCompact(value: number) {
-  return new Intl.NumberFormat('id-ID', {
-    notation: 'compact',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 1,
-  }).format(value);
-}
-
 function Chart({ data }: { data: ProjectMonthlyRecapChartProps['data'] }) {
   return (
     <ChartContainer config={chartConfig} className="h-[400px] w-full">
@@ -86,7 +78,8 @@ function Chart({ data }: { data: ProjectMonthlyRecapChartProps['data'] }) {
           cursor={false}
           content={
             <ChartTooltipContent
-              indicator="dot"
+              hideLabel
+              formatter={(value) => formatCurrencyCompact(Number(value))}
             />
           }
         />

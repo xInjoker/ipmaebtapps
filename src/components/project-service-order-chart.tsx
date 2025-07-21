@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/chart';
 import { useMemo } from 'react';
 import type { Project } from '@/lib/data';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, formatCurrencyCompact } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 
 type ProjectServiceOrderChartProps = {
@@ -42,7 +42,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
             <div key={item.dataKey} className="flex items-center gap-2">
                  <div className={cn("h-2.5 w-2.5 shrink-0 rounded-[2px]")} style={{ backgroundColor: item.color }}/>
                  <span className="font-medium text-muted-foreground">{chartConfig[item.dataKey as keyof typeof chartConfig]?.label || item.dataKey}:</span>
-                 <span className="ml-auto font-mono font-semibold">{formatCurrency(item.value)}</span>
+                 <span className="ml-auto font-mono font-semibold">{formatCurrencyCompact(item.value)}</span>
                  <span className="font-mono text-muted-foreground">({((item.value / data.total) * 100).toFixed(1)}%)</span>
             </div>
           ))}

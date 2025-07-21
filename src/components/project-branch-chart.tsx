@@ -11,7 +11,7 @@ import {
 import { useMemo, useState } from 'react';
 import type { Project } from '@/lib/data';
 import type { Branch } from '@/lib/users';
-import { formatCurrency, formatCurrencyMillions } from '@/lib/utils';
+import { formatCurrency, formatCurrencyCompact, formatCurrencyMillions } from '@/lib/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './ui/select';
 
@@ -112,7 +112,8 @@ export function ProjectBranchChart({ projects, branches }: ProjectBranchChartPro
             <ChartTooltip
               cursor={false}
               content={<ChartTooltipContent 
-                indicator="dot"
+                formatter={(value) => formatCurrencyCompact(Number(value))}
+                hideLabel
               />}
             />
             <Bar dataKey="value" radius={4}>

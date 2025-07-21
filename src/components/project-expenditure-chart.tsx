@@ -14,7 +14,7 @@ import { useMemo, useState } from 'react';
 import type { Project } from '@/lib/data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, formatCurrencyCompact } from '@/lib/utils';
 
 type ProjectExpenditureChartProps = {
   projects: Project[];
@@ -30,14 +30,6 @@ const chartConfig: ChartConfig = {
     color: 'hsl(var(--chart-2))',
   },
 };
-
-function formatCurrencyCompact(value: number) {
-    return new Intl.NumberFormat('id-ID', {
-        notation: 'compact',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 1
-    }).format(value);
-}
 
 export function ProjectExpenditureChart({ projects }: ProjectExpenditureChartProps) {
   const [selectedYear, setSelectedYear] = useState('all');
@@ -108,9 +100,8 @@ export function ProjectExpenditureChart({ projects }: ProjectExpenditureChartPro
             <ChartTooltip
               cursor={false}
               content={<ChartTooltipContent
-                labelFormatter={(label) => label}
-                formatter={(value) => formatCurrency(Number(value))}
-                indicator="dot"
+                hideLabel
+                formatter={(value) => formatCurrencyCompact(Number(value))}
               />}
             />
             <ChartLegend content={<ChartLegendContent />} />

@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/chart';
 import { useMemo, useState } from 'react';
 import type { Tender, TenderStatus } from '@/lib/tenders';
-import { formatCurrency, formatCurrencyMillions } from '@/lib/utils';
+import { formatCurrency, formatCurrencyCompact, formatCurrencyMillions } from '@/lib/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './ui/select';
 
@@ -113,8 +113,8 @@ export function TenderSummaryChart({ tenders }: TenderSummaryChartProps) {
             <ChartTooltip
               cursor={false}
               content={<ChartTooltipContent 
-                formatter={(value, name) => formatCurrency(Number(value))}
-                indicator="dot" 
+                hideLabel
+                formatter={(value) => formatCurrencyCompact(Number(value))}
               />}
             />
             <Bar dataKey="value" radius={4}>

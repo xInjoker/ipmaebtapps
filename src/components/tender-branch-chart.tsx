@@ -13,7 +13,7 @@ import {
 import { useMemo, useState } from 'react';
 import type { Tender, TenderStatus } from '@/lib/tenders';
 import type { Branch } from '@/lib/users';
-import { formatCurrency, formatCurrencyMillions } from '@/lib/utils';
+import { formatCurrency, formatCurrencyCompact, formatCurrencyMillions } from '@/lib/utils';
 import { tenderStatuses } from '@/lib/tenders';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
@@ -24,7 +24,7 @@ type TenderBranchChartProps = {
   branches: Branch[];
 };
 
-const chartConfig = {
+const chartConfig: ChartConfig = {
   value: {
     label: 'Tender Value',
   },
@@ -140,8 +140,8 @@ export function TenderBranchChart({ tenders, branches }: TenderBranchChartProps)
                 <ChartTooltip
                 cursor={false}
                 content={<ChartTooltipContent 
-                    formatter={(value) => formatCurrency(Number(value))}
-                    indicator="dot" 
+                    hideLabel
+                    formatter={(value) => formatCurrencyCompact(Number(value))}
                 />}
                 />
                 <ChartLegend content={<ChartLegendContent />} />

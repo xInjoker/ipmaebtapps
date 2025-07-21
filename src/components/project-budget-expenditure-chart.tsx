@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/chart';
 import { useMemo } from 'react';
 import type { Project } from '@/lib/data';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, formatCurrencyCompact } from '@/lib/utils';
 
 type ProjectBudgetExpenditureChartProps = {
   project: Project;
@@ -28,14 +28,6 @@ const chartConfig: ChartConfig = {
     color: 'hsl(var(--chart-2))',
   },
 };
-
-function formatCurrencyCompact(value: number) {
-    return new Intl.NumberFormat('id-ID', {
-        notation: 'compact',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 1
-    }).format(value);
-}
 
 export function ProjectBudgetExpenditureChart({ project }: ProjectBudgetExpenditureChartProps) {
   const chartData = useMemo(() => {
@@ -74,7 +66,8 @@ export function ProjectBudgetExpenditureChart({ project }: ProjectBudgetExpendit
         <ChartTooltip
           cursor={false}
           content={<ChartTooltipContent
-            indicator="dot"
+            formatter={(value) => formatCurrencyCompact(Number(value))}
+            hideLabel
            />}
         />
         <ChartLegend content={<ChartLegendContent />} />

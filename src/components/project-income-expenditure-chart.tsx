@@ -11,7 +11,7 @@ import {
 import { useMemo, useState } from 'react';
 import type { Project } from '@/lib/data';
 import { useProjects } from '@/context/ProjectContext';
-import { formatCurrency, formatCurrencyMillions } from '@/lib/utils';
+import { formatCurrency, formatCurrencyCompact, formatCurrencyMillions } from '@/lib/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 
@@ -108,7 +108,8 @@ export function ProjectIncomeExpenditureChart({ projects }: ProjectIncomeExpendi
                 <ChartTooltip
                   cursor={false}
                   content={<ChartTooltipContent 
-                    indicator="dot" 
+                    hideLabel
+                    formatter={(value) => formatCurrencyCompact(Number(value))}
                   />}
                 />
                 <Bar dataKey="value" radius={4} />
