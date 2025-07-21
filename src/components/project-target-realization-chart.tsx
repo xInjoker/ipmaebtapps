@@ -16,6 +16,7 @@ import { useProjects } from '@/context/ProjectContext';
 import { formatCurrency, formatCurrencyCompact, formatCurrencyMillions } from '@/lib/utils';
 import { addMonths, format as formatDate, parse } from 'date-fns';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './ui/select';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 
 
 type ProjectTargetRealizationChartProps = {
