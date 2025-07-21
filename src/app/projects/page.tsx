@@ -230,7 +230,7 @@ export default function ProjectsPage() {
                                 <p className="text-sm text-muted-foreground">Progress</p>
                                 <p className="text-sm font-semibold">{progress}%</p>
                             </div>
-                            <Progress value={progress} className="h-2" />
+                            <Progress value={progress} className="h-3" />
                             </div>
                         </div>
                         </CardContent>
