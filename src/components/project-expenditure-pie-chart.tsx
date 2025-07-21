@@ -25,22 +25,21 @@ const chartConfig = {
   expenditure: {
     label: 'Expenditure',
   },
-  'PT dan PTT': { color: 'hsl(var(--chart-1))' },
-  'PTT Project': { color: 'hsl(var(--chart-2))' },
-  'Tenaga Ahli dan Labour Supply': { color: 'hsl(var(--chart-3))' },
-  'Perjalanan Dinas': { color: 'hsl(var(--chart-4))' },
-  'Operasional': { color: 'hsl(var(--chart-5))' },
-  'Fasilitas dan Interen': { color: 'hsl(var(--chart-1))' },
-  'Amortisasi': { color: 'hsl(var(--chart-2))' },
-  'Kantor dan Diklat': { color: 'hsl(var(--chart-3))' },
-  'Promosi': { color: 'hsl(var(--chart-4))' },
-  'Umum': { color: 'hsl(var(--chart-5))' },
-  'Other': { color: 'hsl(var(--muted-foreground))' },
+  'PT dan PTT': { label: 'PT dan PTT', color: 'hsl(var(--chart-1))' },
+  'PTT Project': { label: 'PTT Project', color: 'hsl(var(--chart-2))' },
+  'Tenaga Ahli dan Labour Supply': { label: 'Tenaga Ahli & LS', color: 'hsl(var(--chart-3))' },
+  'Perjalanan Dinas': { label: 'Perjalanan Dinas', color: 'hsl(var(--chart-4))' },
+  'Operasional': { label: 'Operasional', color: 'hsl(var(--chart-5))' },
+  'Fasilitas dan Interen': { label: 'Fasilitas & Interen', color: 'hsl(var(--chart-1))' },
+  'Amortisasi': { label: 'Amortisasi', color: 'hsl(var(--chart-2))' },
+  'Kantor dan Diklat': { label: 'Kantor & Diklat', color: 'hsl(var(--chart-3))' },
+  'Promosi': { label: 'Promosi', color: 'hsl(var(--chart-4))' },
+  'Umum': { label: 'Umum', color: 'hsl(var(--chart-5))' },
+  'Other': { label: 'Other', color: 'hsl(var(--muted-foreground))' },
 } satisfies ChartConfig;
 
 const renderActiveShape = (props: any) => {
     const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, payload, percent, value } = props;
-    const totalExpenditure = payload.totalExpenditure;
   
     return (
       <g>
@@ -95,7 +94,7 @@ export function ProjectExpenditurePieChart({ project }: ProjectExpenditurePieCha
     const total = Object.values(expenditureByCategory).reduce((sum, val) => sum + val, 0);
 
     const data = Object.entries(expenditureByCategory).map(([category, value]) => ({
-      name: category,
+      category,
       value,
       fill: chartConfig[category as keyof typeof chartConfig]?.color || 'hsl(var(--muted-foreground))',
     }));
@@ -127,17 +126,17 @@ export function ProjectExpenditurePieChart({ project }: ProjectExpenditurePieCha
                       onMouseEnter={onPieEnter}
                       data={chartData}
                       dataKey="value"
-                      nameKey="name"
+                      nameKey="category"
                       innerRadius={80}
                       outerRadius={120}
                       strokeWidth={2}
                     >
                       {chartData.map((entry) => (
-                        <Cell key={`cell-${entry.name}`} fill={entry.fill} />
+                        <Cell key={`cell-${entry.category}`} fill={entry.fill} />
                       ))}
                     </Pie>
                     <ChartLegend
-                      content={<ChartLegendContent nameKey="name" />}
+                      content={<ChartLegendContent nameKey="category" />}
                       verticalAlign="bottom"
                       align="center"
                       iconType="circle"
