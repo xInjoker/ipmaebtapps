@@ -171,7 +171,7 @@ export function ProjectTargetRealizationChart({ projects }: ProjectTargetRealiza
             <ChartTooltip
               content={<ChartTooltipContent
                 indicator="dot"
-                formatter={(value, name) => formatCurrency(Number(value))}
+                formatter={(value) => formatCurrency(Number(value))}
               />}
             />
             <ChartLegend content={<ChartLegendContent />} />
