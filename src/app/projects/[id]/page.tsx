@@ -49,6 +49,7 @@ import { useAuth } from '@/context/AuthContext';
 import type { ApprovalStage, Project } from '@/lib/projects';
 import { ProjectTargetRealizationChart } from '@/components/project-target-realization-chart';
 import { ProjectExpenditurePieChart } from '@/components/project-expenditure-pie-chart';
+import { ProjectIncomePieChart } from '@/components/project-income-pie-chart';
 
 export default function ProjectDetailsPage() {
   const params = useParams();
@@ -401,6 +402,8 @@ export default function ProjectDetailsPage() {
            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
                 <ProjectTargetRealizationChart projects={[project]} />
                 <ProjectMonthlyRecapChart data={monthlyRecapData} />
+                <ProjectIncomePieChart project={project} />
+                <ProjectExpenditurePieChart project={project} />
                 <Card>
                     <CardHeader>
                         <CardTitle>Expenditure vs Budget</CardTitle>
@@ -412,7 +415,6 @@ export default function ProjectDetailsPage() {
                         <ProjectBudgetExpenditureChart project={project} />
                     </CardContent>
                 </Card>
-                 <ProjectExpenditurePieChart project={project} />
                 <Card>
                     <CardHeader>
                         <CardTitle>Service Order Progress</CardTitle>
