@@ -50,6 +50,7 @@ import { ProjectTargetRealizationChart } from '@/components/project-target-reali
 import { ProjectCostPieChart } from '@/components/project-cost-pie-chart';
 import { ProjectIncomePieChart } from '@/components/project-income-pie-chart';
 import { ProjectServiceOrderTab } from '@/components/project-service-order-tab';
+import { ProjectProfitChart } from '@/components/project-profit-chart';
 
 export default function ProjectDetailsPage() {
   const params = useParams();
@@ -402,6 +403,7 @@ export default function ProjectDetailsPage() {
            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
                 <ProjectIncomePieChart project={project} />
                 <ProjectCostPieChart project={project} />
+                <ProjectProfitChart project={project} />
                 <ProjectTargetRealizationChart projects={[project]} />
                 <ProjectMonthlyRecapChart data={monthlyRecapData} />
                 <ProjectBudgetExpenditureChart project={project} />
