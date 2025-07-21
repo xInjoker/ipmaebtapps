@@ -112,8 +112,6 @@ export function ProjectBranchChart({ projects, branches }: ProjectBranchChartPro
             <ChartTooltip
               cursor={false}
               content={<ChartTooltipContent 
-                formatter={(value) => formatCurrency(Number(value))}
-                labelFormatter={(label) => `Total Value for ${label}`}
                 indicator="dot"
               />}
             />

@@ -106,11 +106,10 @@ export function ProjectIncomeExpenditureChart({ projects }: ProjectIncomeExpendi
                 <Label value="Value (IDR)" offset={-5} position="insideBottom" />
                 </XAxis>
                 <ChartTooltip
-                cursor={false}
-                content={<ChartTooltipContent 
-                    formatter={(value) => formatCurrency(Number(value))}
+                  cursor={false}
+                  content={<ChartTooltipContent 
                     indicator="dot" 
-                />}
+                  />}
                 />
                 <Bar dataKey="value" radius={4} />
             </BarChart>

@@ -74,8 +74,6 @@ export function ProjectBudgetExpenditureChart({ project }: ProjectBudgetExpendit
         <ChartTooltip
           cursor={false}
           content={<ChartTooltipContent
-            labelFormatter={(label) => label}
-            formatter={(value) => formatCurrency(Number(value))}
             indicator="dot"
            />}
         />

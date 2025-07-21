@@ -13,6 +13,7 @@ import {
 import { useMemo } from 'react';
 import type { Project } from '@/lib/data';
 import { formatCurrency } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 
 type ProjectServiceOrderChartProps = {
   project: Project;
@@ -33,16 +34,18 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
-      <div className="rounded-lg border bg-background p-2 shadow-sm">
+      <div className="rounded-lg border bg-background p-2 shadow-sm text-sm">
         <p className="font-bold">{label}</p>
-        <p className="text-sm text-muted-foreground">Total SO Value: {formatCurrency(data.total)}</p>
+        <p className="text-muted-foreground">Total SO Value: {formatCurrency(data.total)}</p>
         <div className="mt-2 space-y-1">
-          <p className="text-sm" style={{ color: 'hsl(var(--chart-1))' }}>
-            Invoiced: {formatCurrency(data.invoiced)} ({((data.invoiced / data.total) * 100).toFixed(1)}%)
-          </p>
-          <p className="text-sm" style={{ color: 'hsl(var(--chart-2))' }}>
-            Remaining: {formatCurrency(data.remaining)} ({((data.remaining / data.total) * 100).toFixed(1)}%)
-          </p>
+          {payload.map((item: any) => (
+            <div key={item.dataKey} className="flex items-center gap-2">
+                 <div className={cn("h-2.5 w-2.5 shrink-0 rounded-[2px]")} style={{ backgroundColor: item.color }}/>
+                 <span className="font-medium text-muted-foreground">{chartConfig[item.dataKey as keyof typeof chartConfig]?.label || item.dataKey}:</span>
+                 <span className="ml-auto font-mono font-semibold">{formatCurrency(item.value)}</span>
+                 <span className="font-mono text-muted-foreground">({((item.value / data.total) * 100).toFixed(1)}%)</span>
+            </div>
+          ))}
         </div>
       </div>
     );

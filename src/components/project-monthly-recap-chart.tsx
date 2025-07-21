@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
@@ -85,7 +86,6 @@ function Chart({ data }: { data: ProjectMonthlyRecapChartProps['data'] }) {
           cursor={false}
           content={
             <ChartTooltipContent
-              formatter={(value) => formatCurrency(Number(value))}
               indicator="dot"
             />
           }
