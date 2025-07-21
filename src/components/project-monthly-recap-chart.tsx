@@ -79,7 +79,7 @@ function Chart({ data }: { data: ProjectMonthlyRecapChartProps['data'] }) {
           content={
             <ChartTooltipContent
               hideLabel
-              formatter={(value) => formatCurrencyCompact(Number(value))}
+              valueFormatter={formatCurrencyCompact}
             />
           }
         />

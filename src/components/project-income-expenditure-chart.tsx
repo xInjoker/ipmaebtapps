@@ -108,8 +108,8 @@ export function ProjectIncomeExpenditureChart({ projects }: ProjectIncomeExpendi
                 <ChartTooltip
                   cursor={false}
                   content={<ChartTooltipContent 
+                    valueFormatter={formatCurrencyCompact}
                     hideLabel
-                    formatter={(value) => formatCurrencyCompact(Number(value))}
                   />}
                 />
                 <Bar dataKey="value" radius={4} />

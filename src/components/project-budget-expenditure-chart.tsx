@@ -66,7 +66,7 @@ export function ProjectBudgetExpenditureChart({ project }: ProjectBudgetExpendit
         <ChartTooltip
           cursor={false}
           content={<ChartTooltipContent
-            formatter={(value) => formatCurrencyCompact(Number(value))}
+            valueFormatter={formatCurrencyCompact}
             hideLabel
            />}
         />

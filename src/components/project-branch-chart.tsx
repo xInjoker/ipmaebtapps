@@ -112,7 +112,7 @@ export function ProjectBranchChart({ projects, branches }: ProjectBranchChartPro
             <ChartTooltip
               cursor={false}
               content={<ChartTooltipContent 
-                formatter={(value) => formatCurrencyCompact(Number(value))}
+                valueFormatter={formatCurrencyCompact}
                 hideLabel
               />}
             />

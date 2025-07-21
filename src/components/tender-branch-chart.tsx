@@ -141,7 +141,7 @@ export function TenderBranchChart({ tenders, branches }: TenderBranchChartProps)
                 cursor={false}
                 content={<ChartTooltipContent 
                     hideLabel
-                    formatter={(value) => formatCurrencyCompact(Number(value))}
+                    valueFormatter={formatCurrencyCompact}
                 />}
                 />
                 <ChartLegend content={<ChartLegendContent />} />

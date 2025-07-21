@@ -114,7 +114,7 @@ export function TenderSummaryChart({ tenders }: TenderSummaryChartProps) {
               cursor={false}
               content={<ChartTooltipContent 
                 hideLabel
-                formatter={(value) => formatCurrencyCompact(Number(value))}
+                valueFormatter={formatCurrencyCompact}
               />}
             />
             <Bar dataKey="value" radius={4}>
