@@ -400,10 +400,10 @@ export default function ProjectDetailsPage() {
         </TabsList>
         <TabsContent value="summary-charts">
            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
-                <ProjectTargetRealizationChart projects={[project]} />
-                <ProjectMonthlyRecapChart data={monthlyRecapData} />
                 <ProjectIncomePieChart project={project} />
                 <ProjectExpenditurePieChart project={project} />
+                <ProjectTargetRealizationChart projects={[project]} />
+                <ProjectMonthlyRecapChart data={monthlyRecapData} />
                 <Card>
                     <CardHeader>
                         <CardTitle>Expenditure vs Budget</CardTitle>
