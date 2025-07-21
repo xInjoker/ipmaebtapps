@@ -195,9 +195,9 @@ export default function NewTenderPage() {
                                 <Label htmlFor="tenderNumber">Tender Number</Label>
                                 <Input id="tenderNumber" value={newTender.tenderNumber} onChange={e => setNewTender({ ...newTender, tenderNumber: e.target.value })} />
                             </div>
-                            <div className="space-y-2">
+                             <div className="space-y-2 md:col-span-2">
                                 <Label htmlFor="title">Tender Title</Label>
-                                <Input id="title" value={newTender.title} onChange={e => setNewTender({ ...newTender, title: e.target.value })} />
+                                <Textarea id="title" value={newTender.title} onChange={(e) => setNewTender({ ...newTender, title: e.target.value })} />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="client">Client</Label>
