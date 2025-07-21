@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Label } from 'recharts';
 import {
   ChartContainer,
   ChartTooltip,
@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/chart';
 import { useMemo, useState } from 'react';
 import type { Project } from '@/lib/data';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { useProjects } from '@/context/ProjectContext';
 import { formatCurrency, formatCurrencyCompact, formatCurrencyMillions } from '@/lib/utils';
 import { addMonths, format as formatDate, parse } from 'date-fns';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './ui/select';
@@ -127,7 +127,7 @@ export function ProjectTargetRealizationChart({ projects }: ProjectTargetRealiza
       });
     });
 
-    return Object.values(monthlyData).sort((a,b) => {
+    const sortedData = Object.values(monthlyData).sort((a,b) => {
         try {
             const dateA = parse(a.month, 'MMM yy', new Date());
             const dateB = parse(b.month, 'MMM yy', new Date());
@@ -136,6 +136,8 @@ export function ProjectTargetRealizationChart({ projects }: ProjectTargetRealiza
             return 0;
         }
     });
+
+    return sortedData.slice(-12);
   }, [projects, selectedYear]);
 
   return (
@@ -186,4 +188,3 @@ export function ProjectTargetRealizationChart({ projects }: ProjectTargetRealiza
     </Card>
   );
 }
-
