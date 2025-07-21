@@ -41,7 +41,7 @@ type ProjectMonthlyRecapChartProps = {
     month: string;
     invoicedAndPaid: number;
     pad: number;
-    expenditure: number;
+    cost: number;
   }[];
 };
 
@@ -54,7 +54,7 @@ const chartConfig: ChartConfig = {
     label: 'PAD',
     color: 'hsl(var(--chart-2))',
   },
-  expenditure: {
+  cost: {
     label: 'Cost',
     color: 'hsl(var(--chart-3))',
   },
@@ -91,7 +91,7 @@ function Chart({ data }: { data: ProjectMonthlyRecapChartProps['data'] }) {
           radius={4}
         />
         <Bar dataKey="pad" fill="var(--color-pad)" radius={4} />
-        <Bar dataKey="expenditure" fill="var(--color-expenditure)" radius={4} />
+        <Bar dataKey="cost" fill="var(--color-expenditure)" radius={4} />
       </BarChart>
     </ChartContainer>
   );
@@ -137,7 +137,7 @@ export function ProjectMonthlyRecapChart({
         <CardHeader>
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <CardTitle>Monthly Recap</CardTitle>
+              <CardTitle>Monthly Invoicing Progress</CardTitle>
               <CardDescription>
                 Recapitulation of Invoiced, PAD, and Costs.
               </CardDescription>
@@ -174,7 +174,7 @@ export function ProjectMonthlyRecapChart({
         <DialogContent className="max-w-6xl">
           <DialogHeader>
             <DialogTitle>
-              Monthly Recap: {selectedYear === 'all' ? 'All Years' : selectedYear}
+              Monthly Invoicing Progress: {selectedYear === 'all' ? 'All Years' : selectedYear}
             </DialogTitle>
             <DialogDescription>
               Full view of the project's monthly financial recapitulation.
