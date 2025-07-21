@@ -13,7 +13,7 @@ import {
 import { useMemo, useState } from 'react';
 import type { Project } from '@/lib/data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { formatCurrencyMillions } from '@/lib/utils';
+import { formatCurrency, formatCurrencyMillions } from '@/lib/utils';
 import { addMonths, format as formatDate, parse } from 'date-fns';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './ui/select';
 
@@ -48,6 +48,7 @@ export function ProjectTargetRealizationChart({ projects }: ProjectTargetRealiza
     if (!projects || projects.length === 0) return ['all'];
     const years = new Set<string>();
     projects.forEach(project => {
+        if (!project.period) return;
         const projectStartDateMatch = project.period.match(/(\d{4})/);
         const projectStartYear = projectStartDateMatch ? parseInt(projectStartDateMatch[1], 10) : new Date().getFullYear();
         const durationInMonths = parseInt(project.duration.split(' ')[0], 10) || 1;
@@ -66,6 +67,7 @@ export function ProjectTargetRealizationChart({ projects }: ProjectTargetRealiza
     const monthlyData: Record<string, { month: string, incomeTarget: number, costTarget: number, incomeRealization: number, costRealization: number }> = {};
 
     projects.forEach(project => {
+      if (!project.period || !project.duration) return;
       const durationInMonths = parseInt(project.duration.split(' ')[0], 10) || 1;
       const monthlyIncomeTarget = project.value / durationInMonths;
       
@@ -91,6 +93,7 @@ export function ProjectTargetRealizationChart({ projects }: ProjectTargetRealiza
       }
 
       project.invoices.forEach(invoice => {
+        if (!invoice.period) return;
         const [month, year] = invoice.period.split(' ');
         if(!month || !year || (selectedYear !== 'all' && selectedYear !== year)) return;
         try {
@@ -107,6 +110,7 @@ export function ProjectTargetRealizationChart({ projects }: ProjectTargetRealiza
       });
       
       project.expenditures.forEach(exp => {
+        if(!exp.period) return;
         const [month, year] = exp.period.split(' ');
         if(!month || !year || (selectedYear !== 'all' && selectedYear !== year)) return;
          try {
@@ -124,9 +128,13 @@ export function ProjectTargetRealizationChart({ projects }: ProjectTargetRealiza
     });
 
     return Object.values(monthlyData).sort((a,b) => {
-        const dateA = parse(a.month, 'MMM yy', new Date());
-        const dateB = parse(b.month, 'MMM yy', new Date());
-        return dateA.getTime() - dateB.getTime();
+        try {
+            const dateA = parse(a.month, 'MMM yy', new Date());
+            const dateB = parse(b.month, 'MMM yy', new Date());
+            return dateA.getTime() - dateB.getTime();
+        } catch {
+            return 0;
+        }
     });
   }, [projects, selectedYear]);
 
@@ -163,13 +171,14 @@ export function ProjectTargetRealizationChart({ projects }: ProjectTargetRealiza
             <ChartTooltip
               content={<ChartTooltipContent
                 indicator="dot"
+                formatter={(value, name) => formatCurrency(Number(value))}
               />}
             />
             <ChartLegend content={<ChartLegendContent />} />
-            <Bar dataKey="incomeTarget" fill="var(--color-incomeTarget)" radius={4} />
-            <Bar dataKey="costTarget" fill="var(--color-costTarget)" radius={4} />
-            <Bar dataKey="incomeRealization" fill="var(--color-incomeRealization)" radius={4} />
-            <Bar dataKey="costRealization" fill="var(--color-costRealization)" radius={4} />
+            <Bar dataKey="incomeTarget" fill="var(--color-incomeTarget)" radius={4} barSize={30} />
+            <Bar dataKey="incomeRealization" fill="var(--color-incomeRealization)" radius={4} barSize={15} />
+            <Bar dataKey="costTarget" fill="var(--color-costTarget)" radius={4} barSize={30} />
+            <Bar dataKey="costRealization" fill="var(--color-costRealization)" radius={4} barSize={15} />
           </BarChart>
         </ChartContainer>
       </CardContent>
