@@ -39,7 +39,7 @@ import {
 import { useProjects } from '@/context/ProjectContext';
 import { ProjectMonthlyRecapChart } from '@/components/project-monthly-recap-chart';
 import { ProjectInvoicingTab } from '@/components/project-invoicing-tab';
-import { ProjectExpenditureTab } from '@/components/project-expenditure-tab';
+import { ProjectCostTab } from '@/components/project-cost-tab';
 import { ProjectServiceOrderTab } from '@/components/project-service-order-tab';
 import { formatCurrency } from '@/lib/utils';
 import { ProjectBudgetExpenditureChart } from '@/components/project-budget-expenditure-chart';
@@ -100,7 +100,7 @@ export default function ProjectDetailsPage() {
       };
     }
 
-    const cost = project.expenditures
+    const cost = project.costs
       .filter((exp) => exp.status === 'Approved')
       .reduce((acc, exp) => acc + exp.amount, 0);
 
@@ -160,7 +160,7 @@ export default function ProjectDetailsPage() {
       }
     });
 
-    project.expenditures.forEach(exp => {
+    project.costs.forEach(exp => {
       if (exp.status !== 'Approved') return;
       
       const periodInfo = processPeriod(exp.period);
@@ -389,9 +389,9 @@ export default function ProjectDetailsPage() {
             <Receipt className="mr-2 h-4 w-4" />
             Invoicing Progress
           </TabsTrigger>
-          <TabsTrigger value="expenditure">
+          <TabsTrigger value="cost">
             <Wallet className="mr-2 h-4 w-4" />
-            Expenditure Management
+            Cost Management
           </TabsTrigger>
           <TabsTrigger value="approval-settings">
             <UserCog className="mr-2 h-4 w-4" />
@@ -406,9 +406,9 @@ export default function ProjectDetailsPage() {
                 <ProjectMonthlyRecapChart data={monthlyRecapData} />
                 <Card>
                     <CardHeader>
-                        <CardTitle>Expenditure vs Budget</CardTitle>
+                        <CardTitle>Cost vs Budget</CardTitle>
                         <CardDescription>
-                            Comparison of budgeted amounts vs actual expenditures by category.
+                            Comparison of budgeted amounts vs actual costs by category.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -434,8 +434,8 @@ export default function ProjectDetailsPage() {
         <TabsContent value="invoices">
           <ProjectInvoicingTab project={project} setProjects={handleProjectUpdate} />
         </TabsContent>
-        <TabsContent value="expenditure">
-           <ProjectExpenditureTab project={project} setProjects={handleProjectUpdate} />
+        <TabsContent value="cost">
+           <ProjectCostTab project={project} setProjects={handleProjectUpdate} />
         </TabsContent>
          <TabsContent value="approval-settings" className="space-y-6">
            <ApprovalWorkflowManager

@@ -141,9 +141,9 @@ export default function DashboardPage() {
         shapeColor: 'text-amber-500/10',
       },
       {
-        title: 'Project Expenditure',
+        title: 'Project Cost',
         value: formatCurrencyMillions(projectStats.totalCost),
-        description: 'Total expenditure across all projects',
+        description: 'Total cost across all projects',
         icon: Receipt,
         iconColor: 'text-rose-500',
         shapeColor: 'text-rose-500/10',
@@ -162,9 +162,9 @@ export default function DashboardPage() {
 
 
   const costBreakdownData = useMemo(() => {
-    const allExpenditures = visibleProjects.flatMap(p => p.expenditures.filter(e => e.status === 'Approved'));
+    const allCosts = visibleProjects.flatMap(p => p.costs.filter(e => e.status === 'Approved'));
     
-    const costByCategory = allExpenditures.reduce((acc, item) => {
+    const costByCategory = allCosts.reduce((acc, item) => {
         acc[item.category] = (acc[item.category] || 0) + item.amount;
         return acc;
     }, {} as { [category: string]: number });
@@ -236,7 +236,7 @@ export default function DashboardPage() {
                   cursor={false}
                   content={<ChartTooltipContent 
                     indicator="dot"
-                    formatter={(value) => formatCurrency(Number(value))}
+                    valueFormatter={formatCurrency}
                   />}
                 />
                 <Bar dataKey="invoiced" fill="var(--color-invoiced)" radius={4} />

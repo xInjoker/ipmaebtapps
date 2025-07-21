@@ -17,7 +17,7 @@ import type { Project, ExpenditureItem } from '@/lib/data';
 import { formatCurrency } from '@/lib/utils';
 import { CurrencyInput } from './ui/currency-input';
 
-const expenditureCategories = [
+const costCategories = [
     'PT dan PTT',
     'PTT Project',
     'Tenaga Ahli dan Labour Supply',
@@ -58,15 +58,15 @@ const categoryToCoaMap: { [key: string]: string } = {
     'Other': '',
 };
 
-type ProjectExpenditureTabProps = {
+type ProjectCostTabProps = {
     project: Project;
     setProjects: (updateFn: (project: Project) => Project) => void;
 };
 
-export function ProjectExpenditureTab({ project, setProjects }: ProjectExpenditureTabProps) {
+export function ProjectCostTab({ project, setProjects }: ProjectCostTabProps) {
     const [isBudgetFinalized, setIsBudgetFinalized] = useState(true);
-    const [isAddExpenditureDialogOpen, setIsAddExpenditureDialogOpen] = useState(false);
-    const [newExpenditure, setNewExpenditure] = useState({
+    const [isAddCostDialogOpen, setIsAddCostDialogOpen] = useState(false);
+    const [newCost, setNewCost] = useState({
         category: '',
         coa: '',
         description: '',
@@ -76,37 +76,37 @@ export function ProjectExpenditureTab({ project, setProjects }: ProjectExpenditu
         status: 'Approved' as 'Approved' | 'Pending' | 'Rejected',
     });
 
-    const [isEditExpenditureDialogOpen, setIsEditExpenditureDialogOpen] = useState(false);
-    const [expenditureToEdit, setExpenditureToEdit] = useState<(ExpenditureItem & { month?: string, year?: string }) | null>(null);
+    const [isEditCostDialogOpen, setIsEditCostDialogOpen] = useState(false);
+    const [costToEdit, setCostToEdit] = useState<(ExpenditureItem & { month?: string, year?: string }) | null>(null);
 
     const handleBudgetChange = useCallback((category: string, value: number) => {
         setProjects(p => ({ ...p, budgets: { ...p.budgets, [category]: value } }));
     }, [setProjects]);
 
-    const handleAddExpenditure = useCallback(() => {
-        const period = newExpenditure.month && newExpenditure.year ? `${newExpenditure.month} ${newExpenditure.year}` : '';
+    const handleAddCost = useCallback(() => {
+        const period = newCost.month && newCost.year ? `${newCost.month} ${newCost.year}` : '';
 
-        if (newExpenditure.category && period && newExpenditure.coa && newExpenditure.amount > 0) {
-            const newId = `EXP-${project.id}-${String(project.expenditures.length + 1).padStart(3, '0')}`;
-            const newExpenditureItem: ExpenditureItem = {
+        if (newCost.category && period && newCost.coa && newCost.amount > 0) {
+            const newId = `EXP-${project.id}-${String(project.costs.length + 1).padStart(3, '0')}`;
+            const newCostItem: ExpenditureItem = {
                 id: newId,
-                category: newExpenditure.category,
-                coa: newExpenditure.coa,
-                description: newExpenditure.description,
+                category: newCost.category,
+                coa: newCost.coa,
+                description: newCost.description,
                 period,
-                amount: newExpenditure.amount,
+                amount: newCost.amount,
                 status: 'Approved',
             };
 
-            setProjects(p => ({ ...p, expenditures: [...p.expenditures, newExpenditureItem] }));
-            setNewExpenditure({ category: '', coa: '', description: '', month: '', year: '', amount: 0, status: 'Approved' });
-            setIsAddExpenditureDialogOpen(false);
+            setProjects(p => ({ ...p, costs: [...p.costs, newCostItem] }));
+            setNewCost({ category: '', coa: '', description: '', month: '', year: '', amount: 0, status: 'Approved' });
+            setIsAddCostDialogOpen(false);
         }
-    }, [newExpenditure, project, setProjects]);
+    }, [newCost, project, setProjects]);
 
     const handleCategorySelect = useCallback((value: string) => {
         const coa = categoryToCoaMap[value] || '';
-        setNewExpenditure(prev => ({ ...prev, category: value, coa }));
+        setNewCost(prev => ({ ...prev, category: value, coa }));
     }, []);
 
     const handleCoaChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -126,40 +126,40 @@ export function ProjectExpenditureTab({ project, setProjects }: ProjectExpenditu
         } else {
             categoryToSet = 'Other';
         }
-        setNewExpenditure(prev => ({ ...prev, coa: coaValue, category: categoryToSet }));
+        setNewCost(prev => ({ ...prev, coa: coaValue, category: categoryToSet }));
     }, [project.budgets]);
 
-    const handleEditExpenditureClick = useCallback((expenditure: ExpenditureItem) => {
-        const [month, year] = expenditure.period.split(' ');
-        setExpenditureToEdit({ ...expenditure, month, year });
-        setIsEditExpenditureDialogOpen(true);
+    const handleEditCostClick = useCallback((cost: ExpenditureItem) => {
+        const [month, year] = cost.period.split(' ');
+        setCostToEdit({ ...cost, month, year });
+        setIsEditCostDialogOpen(true);
     }, []);
 
-    const handleUpdateExpenditure = useCallback(() => {
-        if (!expenditureToEdit) return;
-        const { month, year, ...rest } = expenditureToEdit;
+    const handleUpdateCost = useCallback(() => {
+        if (!costToEdit) return;
+        const { month, year, ...rest } = costToEdit;
         const period = `${month} ${year}`;
-        const updatedExpenditureData = { ...rest, period };
+        const updatedCostData = { ...rest, period };
 
-        setProjects(p => ({ ...p, expenditures: p.expenditures.map(exp => exp.id === expenditureToEdit.id ? updatedExpenditureData : exp) }));
-        setIsEditExpenditureDialogOpen(false);
-        setExpenditureToEdit(null);
-    }, [expenditureToEdit, setProjects]);
+        setProjects(p => ({ ...p, costs: p.costs.map(exp => exp.id === costToEdit.id ? updatedCostData : exp) }));
+        setIsEditCostDialogOpen(false);
+        setCostToEdit(null);
+    }, [costToEdit, setProjects]);
 
     const budgetedCategories = useMemo(() => {
-        return expenditureCategories.filter(category => (project.budgets[category] ?? 0) > 0 || category === 'Other');
+        return costCategories.filter(category => (project.budgets[category] ?? 0) > 0 || category === 'Other');
     }, [project.budgets]);
 
     const spentByCategory = useMemo(() => {
-        return project.expenditures.reduce((acc, item) => {
+        return project.costs.reduce((acc, item) => {
             if (item.status === 'Approved') {
                 acc[item.category] = (acc[item.category] || 0) + item.amount;
             }
             return acc;
         }, {} as { [category: string]: number });
-    }, [project.expenditures]);
+    }, [project.costs]);
 
-    const selectedCategory = newExpenditure.category;
+    const selectedCategory = newCost.category;
     const totalBudgetForCategory = project.budgets[selectedCategory] ?? 0;
     const spentAmountForCategory = spentByCategory[selectedCategory] || 0;
     const remainingBudget = totalBudgetForCategory - spentAmountForCategory;
@@ -183,7 +183,7 @@ export function ProjectExpenditureTab({ project, setProjects }: ProjectExpenditu
                     <CardHeader>
                         <CardTitle className="font-headline">Set Category Budgets</CardTitle>
                         <CardDescription>
-                            Before adding expenditures, please set a budget for each category for this project.
+                            Before adding costs, please set a budget for each category for this project.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -195,7 +195,7 @@ export function ProjectExpenditureTab({ project, setProjects }: ProjectExpenditu
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {expenditureCategories.map((category) => (
+                                {costCategories.map((category) => (
                                     <TableRow key={category}>
                                         <TableCell className="font-medium">{category}</TableCell>
                                         <TableCell className="text-right">
@@ -220,27 +220,27 @@ export function ProjectExpenditureTab({ project, setProjects }: ProjectExpenditu
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between">
                         <div className="space-y-1.5">
-                            <CardTitle className="font-headline">Project Expenditure</CardTitle>
+                            <CardTitle className="font-headline">Project Cost</CardTitle>
                             <CardDescription>
-                                Track and manage all expenditures for this project.
+                                Track and manage all costs for this project.
                             </CardDescription>
                         </div>
                         <div className="flex items-center gap-2">
                             <Button variant="outline" onClick={() => setIsBudgetFinalized(false)}>
                                 Edit Budget
                             </Button>
-                            <Dialog open={isAddExpenditureDialogOpen} onOpenChange={setIsAddExpenditureDialogOpen}>
+                            <Dialog open={isAddCostDialogOpen} onOpenChange={setIsAddCostDialogOpen}>
                                 <DialogTrigger asChild>
                                     <Button>
                                         <PlusCircle className="mr-2 h-4 w-4" />
-                                        Add Expenditure
+                                        Add Cost
                                     </Button>
                                 </DialogTrigger>
                                 <DialogContent className="sm:max-w-lg">
                                     <DialogHeader>
-                                        <DialogTitle>Add New Expenditure</DialogTitle>
+                                        <DialogTitle>Add New Cost</DialogTitle>
                                         <DialogDescription>
-                                            Fill in the details for the new expenditure.
+                                            Fill in the details for the new cost.
                                         </DialogDescription>
                                     </DialogHeader>
                                     <div className="grid gap-4 py-4">
@@ -256,7 +256,7 @@ export function ProjectExpenditureTab({ project, setProjects }: ProjectExpenditu
                                             </Label>
                                             <Input
                                                 id="coa"
-                                                value={newExpenditure.coa}
+                                                value={newCost.coa}
                                                 onChange={handleCoaChange}
                                                 className="col-span-3"
                                                 placeholder="Enter COA to auto-fill category"
@@ -267,7 +267,7 @@ export function ProjectExpenditureTab({ project, setProjects }: ProjectExpenditu
                                                 Category
                                             </Label>
                                             <Select
-                                                value={newExpenditure.category}
+                                                value={newCost.category}
                                                 onValueChange={handleCategorySelect}
                                             >
                                                 <SelectTrigger className="col-span-3">
@@ -288,7 +288,7 @@ export function ProjectExpenditureTab({ project, setProjects }: ProjectExpenditu
                                             </Label>
                                             <div className="col-span-3 flex items-center gap-2 text-sm font-medium">
                                                 <span>{formatCurrency(remainingBudget)}</span>
-                                                {newExpenditure.category && (
+                                                {newCost.category && (
                                                     <Badge variant={budgetStatus.variant}>{budgetStatus.text}</Badge>
                                                 )}
                                             </div>
@@ -299,8 +299,8 @@ export function ProjectExpenditureTab({ project, setProjects }: ProjectExpenditu
                                             </Label>
                                             <div className="col-span-3 grid grid-cols-2 gap-2">
                                                 <Select
-                                                    value={newExpenditure.month}
-                                                    onValueChange={(value) => setNewExpenditure({ ...newExpenditure, month: value })}
+                                                    value={newCost.month}
+                                                    onValueChange={(value) => setNewCost({ ...newCost, month: value })}
                                                 >
                                                     <SelectTrigger id="periodMonth"><SelectValue placeholder="Month" /></SelectTrigger>
                                                     <SelectContent>
@@ -311,8 +311,8 @@ export function ProjectExpenditureTab({ project, setProjects }: ProjectExpenditu
                                                     id="periodYear"
                                                     type="number"
                                                     placeholder="Year"
-                                                    value={newExpenditure.year}
-                                                    onChange={(e) => setNewExpenditure({ ...newExpenditure, year: e.target.value })}
+                                                    value={newCost.year}
+                                                    onChange={(e) => setNewCost({ ...newCost, year: e.target.value })}
                                                 />
                                             </div>
                                         </div>
@@ -320,10 +320,10 @@ export function ProjectExpenditureTab({ project, setProjects }: ProjectExpenditu
                                             <Label htmlFor="exp-description" className="text-right pt-2">Description</Label>
                                             <Textarea
                                                 id="exp-description"
-                                                value={newExpenditure.description}
-                                                onChange={(e) => setNewExpenditure({ ...newExpenditure, description: e.target.value })}
+                                                value={newCost.description}
+                                                onChange={(e) => setNewCost({ ...newCost, description: e.target.value })}
                                                 className="col-span-3"
-                                                placeholder="Detailed description of the expenditure."
+                                                placeholder="Detailed description of the cost."
                                                 rows={3}
                                             />
                                         </div>
@@ -331,14 +331,14 @@ export function ProjectExpenditureTab({ project, setProjects }: ProjectExpenditu
                                             <Label htmlFor="amount" className="text-right">Amount (IDR)</Label>
                                              <CurrencyInput
                                                 id="amount"
-                                                value={newExpenditure.amount}
-                                                onValueChange={(value) => setNewExpenditure({ ...newExpenditure, amount: value })}
+                                                value={newCost.amount}
+                                                onValueChange={(value) => setNewCost({ ...newCost, amount: value })}
                                                 className="col-span-3"
                                             />
                                         </div>
                                     </div>
                                     <DialogFooter>
-                                        <Button onClick={handleAddExpenditure}>Add Expenditure</Button>
+                                        <Button onClick={handleAddCost}>Add Cost</Button>
                                     </DialogFooter>
                                 </DialogContent>
                             </Dialog>
@@ -358,7 +358,7 @@ export function ProjectExpenditureTab({ project, setProjects }: ProjectExpenditu
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {project.expenditures.map((item) => (
+                                {project.costs.map((item) => (
                                     <TableRow key={item.id}>
                                         <TableCell className="font-medium">{item.id}</TableCell>
                                         <TableCell>{item.category}</TableCell>
@@ -375,15 +375,15 @@ export function ProjectExpenditureTab({ project, setProjects }: ProjectExpenditu
                                                     </Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem onSelect={() => handleEditExpenditureClick(item)}>Edit</DropdownMenuItem>
+                                                    <DropdownMenuItem onSelect={() => handleEditCostClick(item)}>Edit</DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
                                         </TableCell>
                                     </TableRow>
                                 ))}
-                                {!project.expenditures?.length && (
+                                {!project.costs?.length && (
                                     <TableRow>
-                                        <TableCell colSpan={7} className="text-center">No expenditures found.</TableCell>
+                                        <TableCell colSpan={7} className="text-center">No costs found.</TableCell>
                                     </TableRow>
                                 )}
                             </TableBody>
@@ -392,14 +392,14 @@ export function ProjectExpenditureTab({ project, setProjects }: ProjectExpenditu
                 </Card>
             )}
 
-            {/* Edit Expenditure Dialog */}
-            <Dialog open={isEditExpenditureDialogOpen} onOpenChange={setIsEditExpenditureDialogOpen}>
+            {/* Edit Cost Dialog */}
+            <Dialog open={isEditCostDialogOpen} onOpenChange={setIsEditCostDialogOpen}>
                 <DialogContent className="sm:max-w-lg">
-                    {expenditureToEdit && (
+                    {costToEdit && (
                         <>
                             <DialogHeader>
-                                <DialogTitle>Edit Expenditure</DialogTitle>
-                                <DialogDescription>Update the details for this expenditure.</DialogDescription>
+                                <DialogTitle>Edit Cost</DialogTitle>
+                                <DialogDescription>Update the details for this cost.</DialogDescription>
                             </DialogHeader>
                             <div className="grid gap-4 py-4">
                                 <div className="grid grid-cols-4 items-center gap-4">
@@ -410,8 +410,8 @@ export function ProjectExpenditureTab({ project, setProjects }: ProjectExpenditu
                                     <Label htmlFor="editExpCoa" className="text-right">COA</Label>
                                     <Input
                                         id="editExpCoa"
-                                        value={expenditureToEdit.coa}
-                                        onChange={(e) => setExpenditureToEdit({ ...expenditureToEdit, coa: e.target.value })}
+                                        value={costToEdit.coa}
+                                        onChange={(e) => setCostToEdit({ ...costToEdit, coa: e.target.value })}
                                         className="col-span-3"
                                         placeholder="Enter COA"
                                     />
@@ -419,8 +419,8 @@ export function ProjectExpenditureTab({ project, setProjects }: ProjectExpenditu
                                 <div className="grid grid-cols-4 items-center gap-4">
                                     <Label htmlFor="editExpCategory" className="text-right">Category</Label>
                                     <Select
-                                        value={expenditureToEdit.category}
-                                        onValueChange={(value) => setExpenditureToEdit({ ...expenditureToEdit, category: value })}
+                                        value={costToEdit.category}
+                                        onValueChange={(value) => setCostToEdit({ ...costToEdit, category: value })}
                                     >
                                         <SelectTrigger className="col-span-3">
                                             <SelectValue placeholder="Select a category" />
@@ -436,8 +436,8 @@ export function ProjectExpenditureTab({ project, setProjects }: ProjectExpenditu
                                     <Label htmlFor="editExpPeriodMonth" className="text-right">Period</Label>
                                     <div className="col-span-3 grid grid-cols-2 gap-2">
                                         <Select
-                                            value={expenditureToEdit.month}
-                                            onValueChange={(value) => setExpenditureToEdit({ ...expenditureToEdit, month: value })}
+                                            value={costToEdit.month}
+                                            onValueChange={(value) => setCostToEdit({ ...costToEdit, month: value })}
                                         >
                                             <SelectTrigger id="editExpPeriodMonth"><SelectValue placeholder="Month" /></SelectTrigger>
                                             <SelectContent>
@@ -448,8 +448,8 @@ export function ProjectExpenditureTab({ project, setProjects }: ProjectExpenditu
                                             id="editExpPeriodYear"
                                             type="number"
                                             placeholder="Year"
-                                            value={expenditureToEdit.year}
-                                            onChange={(e) => setExpenditureToEdit({ ...expenditureToEdit, year: e.target.value })}
+                                            value={costToEdit.year}
+                                            onChange={(e) => setCostToEdit({ ...costToEdit, year: e.target.value })}
                                         />
                                     </div>
                                 </div>
@@ -457,8 +457,8 @@ export function ProjectExpenditureTab({ project, setProjects }: ProjectExpenditu
                                     <Label htmlFor="editExpDescription" className="text-right pt-2">Description</Label>
                                     <Textarea
                                         id="editExpDescription"
-                                        value={expenditureToEdit.description}
-                                        onChange={(e) => setExpenditureToEdit({ ...expenditureToEdit, description: e.target.value })}
+                                        value={costToEdit.description}
+                                        onChange={(e) => setCostToEdit({ ...costToEdit, description: e.target.value })}
                                         className="col-span-3"
                                         rows={3}
                                     />
@@ -467,16 +467,16 @@ export function ProjectExpenditureTab({ project, setProjects }: ProjectExpenditu
                                     <Label htmlFor="editExpAmount" className="text-right">Amount (IDR)</Label>
                                     <CurrencyInput
                                         id="editExpAmount"
-                                        value={expenditureToEdit.amount}
-                                        onValueChange={(value) => setExpenditureToEdit({ ...expenditureToEdit, amount: value })}
+                                        value={costToEdit.amount}
+                                        onValueChange={(value) => setCostToEdit({ ...costToEdit, amount: value })}
                                         className="col-span-3"
                                     />
                                 </div>
                                 <div className="grid grid-cols-4 items-center gap-4">
                                     <Label htmlFor="editExpStatus" className="text-right">Status</Label>
                                     <Select
-                                        value={expenditureToEdit.status}
-                                        onValueChange={(value: 'Approved' | 'Pending' | 'Rejected') => setExpenditureToEdit({ ...expenditureToEdit, status: value })}
+                                        value={costToEdit.status}
+                                        onValueChange={(value: 'Approved' | 'Pending' | 'Rejected') => setCostToEdit({ ...costToEdit, status: value })}
                                     >
                                         <SelectTrigger className="col-span-3"><SelectValue placeholder="Select status" /></SelectTrigger>
                                         <SelectContent>
@@ -488,7 +488,7 @@ export function ProjectExpenditureTab({ project, setProjects }: ProjectExpenditu
                                 </div>
                             </div>
                             <DialogFooter>
-                                <Button onClick={handleUpdateExpenditure}>Save Changes</Button>
+                                <Button onClick={handleUpdateCost}>Save Changes</Button>
                             </DialogFooter>
                         </>
                     )}

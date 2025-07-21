@@ -25,8 +25,8 @@ const chartConfig: ChartConfig = {
     label: 'Budget',
     color: 'hsl(var(--chart-1))',
   },
-  expenditure: {
-    label: 'Expenditure',
+  cost: {
+    label: 'Cost',
     color: 'hsl(var(--chart-2))',
   },
 };
@@ -35,7 +35,7 @@ export function ProjectExpenditureChart({ projects }: ProjectExpenditureChartPro
   const [selectedYear, setSelectedYear] = useState('all');
 
   const availableYears = useMemo(() => {
-    const years = new Set(projects.flatMap(p => p.expenditures.map(i => i.period.split(' ')[1])).filter(Boolean));
+    const years = new Set(projects.flatMap(p => p.costs.map(i => i.period.split(' ')[1])).filter(Boolean));
     return ['all', ...Array.from(years).sort((a, b) => Number(b) - Number(a))];
   }, [projects]);
 
@@ -44,28 +44,28 @@ export function ProjectExpenditureChart({ projects }: ProjectExpenditureChartPro
     
     const filteredProjects = selectedYear === 'all' 
         ? projects 
-        : projects.filter(p => p.expenditures.some(exp => exp.period.endsWith(selectedYear)));
+        : projects.filter(p => p.costs.some(exp => exp.period.endsWith(selectedYear)));
 
     const aggregatedData = filteredProjects.reduce((acc, project) => {
         // Aggregate budgets
         for (const category in project.budgets) {
-            acc[category] = acc[category] || { name: category, budget: 0, expenditure: 0 };
+            acc[category] = acc[category] || { name: category, budget: 0, cost: 0 };
             acc[category].budget += project.budgets[category];
         }
 
-        // Aggregate expenditures for the selected year
-        project.expenditures.forEach(exp => {
+        // Aggregate costs for the selected year
+        project.costs.forEach(exp => {
              if (exp.status === 'Approved' && (selectedYear === 'all' || exp.period.endsWith(selectedYear))) {
-                acc[exp.category] = acc[exp.category] || { name: exp.category, budget: 0, expenditure: 0 };
-                acc[exp.category].expenditure += exp.amount;
+                acc[exp.category] = acc[exp.category] || { name: exp.category, budget: 0, cost: 0 };
+                acc[exp.category].cost += exp.amount;
              }
         });
 
         return acc;
-    }, {} as Record<string, { name: string; budget: number; expenditure: number }>);
+    }, {} as Record<string, { name: string; budget: number; cost: number }>);
     
     return Object.values(aggregatedData)
-        .filter(item => item.budget > 0 || item.expenditure > 0);
+        .filter(item => item.budget > 0 || item.cost > 0);
 
   }, [projects, selectedYear]);
 
@@ -73,8 +73,8 @@ export function ProjectExpenditureChart({ projects }: ProjectExpenditureChartPro
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
-            <CardTitle>Expenditure vs Budget</CardTitle>
-            <CardDescription>An aggregated view of expenditures vs. budgets across all projects.</CardDescription>
+            <CardTitle>Cost vs Budget</CardTitle>
+            <CardDescription>An aggregated view of costs vs. budgets across all projects.</CardDescription>
         </div>
         <Select value={selectedYear} onValueChange={setSelectedYear}>
             <SelectTrigger className="w-[120px]"><SelectValue /></SelectTrigger>
@@ -100,13 +100,14 @@ export function ProjectExpenditureChart({ projects }: ProjectExpenditureChartPro
             <ChartTooltip
               cursor={false}
               content={<ChartTooltipContent
+                indicator="dot"
                 hideLabel
                 valueFormatter={formatCurrencyCompact}
               />}
             />
             <ChartLegend content={<ChartLegendContent />} />
             <Bar dataKey="budget" fill="var(--color-budget)" radius={4} />
-            <Bar dataKey="expenditure" fill="var(--color-expenditure)" radius={4} />
+            <Bar dataKey="cost" fill="var(--color-cost)" radius={4} />
           </BarChart>
         </ChartContainer>
       </CardContent>

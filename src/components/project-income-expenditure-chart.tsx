@@ -29,8 +29,8 @@ const chartConfig: ChartConfig = {
     label: 'Income',
     color: 'hsl(var(--chart-2))',
   },
-  expenditure: {
-    label: 'Expenditure',
+  cost: {
+    label: 'Cost',
     color: 'hsl(var(--chart-3))',
   },
 };
@@ -41,7 +41,7 @@ export function ProjectIncomeExpenditureChart({ projects }: ProjectIncomeExpendi
   const [selectedYear, setSelectedYear] = useState('all');
 
   const availableYears = useMemo(() => {
-    const years = new Set(projects.flatMap(p => [...p.invoices, ...p.expenditures].map(i => i.period.split(' ')[1])).filter(Boolean));
+    const years = new Set(projects.flatMap(p => [...p.invoices, ...p.costs].map(i => i.period.split(' ')[1])).filter(Boolean));
     return ['all', ...Array.from(years).sort((a, b) => Number(b) - Number(a))];
   }, [projects]);
   
@@ -53,7 +53,7 @@ export function ProjectIncomeExpenditureChart({ projects }: ProjectIncomeExpendi
         : projects.map(p => ({
             ...p,
             invoices: p.invoices.filter(inv => inv.period.endsWith(selectedYear)),
-            expenditures: p.expenditures.filter(exp => exp.period.endsWith(selectedYear)),
+            costs: p.costs.filter(exp => exp.period.endsWith(selectedYear)),
         }));
 
     const { totalProjectValue, totalCost, totalIncome } = getProjectStats(filteredProjects);
@@ -64,7 +64,7 @@ export function ProjectIncomeExpenditureChart({ projects }: ProjectIncomeExpendi
     return [
       { name: 'Total Value', value: finalTotalProjectValue, fill: 'var(--color-value)' },
       { name: 'Total Income', value: totalIncome, fill: 'var(--color-income)' },
-      { name: 'Total Expenditure', value: totalCost, fill: 'var(--color-expenditure)' },
+      { name: 'Total Cost', value: totalCost, fill: 'var(--color-cost)' },
     ];
   }, [projects, getProjectStats, selectedYear]);
 
@@ -72,8 +72,8 @@ export function ProjectIncomeExpenditureChart({ projects }: ProjectIncomeExpendi
     <Card>
         <CardHeader className="flex flex-row items-center justify-between">
             <div>
-                <CardTitle>Income vs Expenditure</CardTitle>
-                <CardDescription>A comparison of total income, expenditure, and contract value.</CardDescription>
+                <CardTitle>Income vs Cost</CardTitle>
+                <CardDescription>A comparison of total income, cost, and contract value.</CardDescription>
             </div>
             <Select value={selectedYear} onValueChange={setSelectedYear}>
                 <SelectTrigger className="w-[120px]"><SelectValue /></SelectTrigger>
@@ -108,6 +108,7 @@ export function ProjectIncomeExpenditureChart({ projects }: ProjectIncomeExpendi
                 <ChartTooltip
                   cursor={false}
                   content={<ChartTooltipContent 
+                    indicator="dot"
                     valueFormatter={formatCurrencyCompact}
                     hideLabel
                   />}

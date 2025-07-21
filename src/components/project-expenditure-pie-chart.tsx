@@ -22,8 +22,8 @@ type ProjectExpenditurePieChartProps = {
 };
 
 const chartConfig = {
-  expenditure: {
-    label: 'Expenditure',
+  cost: {
+    label: 'Cost',
   },
   'PT dan PTT': { label: 'PT dan PTT', color: 'hsl(var(--chart-1))' },
   'PTT Project': { label: 'PTT Project', color: 'hsl(var(--chart-2))' },
@@ -81,37 +81,37 @@ export function ProjectExpenditurePieChart({ project }: ProjectExpenditurePieCha
     [setActiveIndex]
   );
   
-  const { chartData, totalExpenditure } = useMemo(() => {
-    if (!project) return { chartData: [], totalExpenditure: 0 };
+  const { chartData, totalCost } = useMemo(() => {
+    if (!project) return { chartData: [], totalCost: 0 };
     
-    const expenditureByCategory = project.expenditures
+    const costByCategory = project.costs
       .filter(exp => exp.status === 'Approved')
       .reduce((acc, exp) => {
         acc[exp.category] = (acc[exp.category] || 0) + exp.amount;
         return acc;
     }, {} as Record<string, number>);
 
-    const total = Object.values(expenditureByCategory).reduce((sum, val) => sum + val, 0);
+    const total = Object.values(costByCategory).reduce((sum, val) => sum + val, 0);
 
-    const data = Object.entries(expenditureByCategory).map(([category, value]) => ({
+    const data = Object.entries(costByCategory).map(([category, value]) => ({
       category,
       value,
       fill: chartConfig[category as keyof typeof chartConfig]?.color || 'hsl(var(--muted-foreground))',
     }));
     
-    return { chartData: data, totalExpenditure: total };
+    return { chartData: data, totalCost: total };
   }, [project]);
 
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Expenditure Realization</CardTitle>
-        <CardDescription>A pie chart breakdown of all project expenditures by category.</CardDescription>
+        <CardTitle>Cost Realization</CardTitle>
+        <CardDescription>A pie chart breakdown of all project costs by category.</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="h-[400px] w-full">
-            {totalExpenditure > 0 ? (
+            {totalCost > 0 ? (
                 <PieChart>
                     <ChartTooltip
                       cursor={false}
@@ -145,7 +145,7 @@ export function ProjectExpenditurePieChart({ project }: ProjectExpenditurePieCha
                 </PieChart>
             ) : (
                 <div className="flex h-full w-full items-center justify-center text-muted-foreground">
-                    No expenditure data available.
+                    No cost data available.
                 </div>
             )}
         </ChartContainer>

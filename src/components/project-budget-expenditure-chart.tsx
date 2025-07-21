@@ -23,8 +23,8 @@ const chartConfig: ChartConfig = {
     label: 'Budget',
     color: 'hsl(var(--chart-1))',
   },
-  expenditure: {
-    label: 'Expenditure',
+  cost: {
+    label: 'Cost',
     color: 'hsl(var(--chart-2))',
   },
 };
@@ -33,7 +33,7 @@ export function ProjectBudgetExpenditureChart({ project }: ProjectBudgetExpendit
   const chartData = useMemo(() => {
     if (!project) return [];
     
-    const spentByCategory = project.expenditures.reduce((acc, item) => {
+    const spentByCategory = project.costs.reduce((acc, item) => {
         if (item.status === 'Approved') {
             acc[item.category] = (acc[item.category] || 0) + item.amount;
         }
@@ -45,7 +45,7 @@ export function ProjectBudgetExpenditureChart({ project }: ProjectBudgetExpendit
       .map(([category, budgetValue]) => ({
         name: category,
         budget: budgetValue,
-        expenditure: spentByCategory[category] || 0,
+        cost: spentByCategory[category] || 0,
       }));
   }, [project]);
 
@@ -66,13 +66,14 @@ export function ProjectBudgetExpenditureChart({ project }: ProjectBudgetExpendit
         <ChartTooltip
           cursor={false}
           content={<ChartTooltipContent
+            indicator="dot"
             valueFormatter={formatCurrencyCompact}
             hideLabel
            />}
         />
         <ChartLegend content={<ChartLegendContent />} />
         <Bar dataKey="budget" fill="var(--color-budget)" radius={4} />
-        <Bar dataKey="expenditure" fill="var(--color-expenditure)" radius={4} />
+        <Bar dataKey="cost" fill="var(--color-cost)" radius={4} />
       </BarChart>
     </ChartContainer>
   );

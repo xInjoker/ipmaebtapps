@@ -55,7 +55,7 @@ const chartConfig: ChartConfig = {
     color: 'hsl(var(--chart-2))',
   },
   expenditure: {
-    label: 'Expenditure',
+    label: 'Cost',
     color: 'hsl(var(--chart-3))',
   },
 };
@@ -78,6 +78,7 @@ function Chart({ data }: { data: ProjectMonthlyRecapChartProps['data'] }) {
           cursor={false}
           content={
             <ChartTooltipContent
+              indicator="dot"
               hideLabel
               valueFormatter={formatCurrencyCompact}
             />
@@ -138,7 +139,7 @@ export function ProjectMonthlyRecapChart({
             <div>
               <CardTitle>Monthly Recap</CardTitle>
               <CardDescription>
-                Recapitulation of Invoiced, PAD, and Expenditures.
+                Recapitulation of Invoiced, PAD, and Costs.
               </CardDescription>
             </div>
             <div className="flex items-center gap-2">

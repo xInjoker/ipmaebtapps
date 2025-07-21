@@ -42,7 +42,7 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     return projectList.reduce((acc, project) => {
         acc.totalProjectValue += project.value;
 
-        const totalCost = project.expenditures
+        const totalCost = project.costs
             .filter(exp => exp.status === 'Approved')
             .reduce((sum, exp) => sum + exp.amount, 0);
         acc.totalCost += totalCost;
