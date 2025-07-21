@@ -48,6 +48,7 @@ import { ApprovalWorkflowManager } from '@/components/project-approval-workflow'
 import { useAuth } from '@/context/AuthContext';
 import type { ApprovalStage, Project } from '@/lib/projects';
 import { ProjectTargetRealizationChart } from '@/components/project-target-realization-chart';
+import { ProjectExpenditurePieChart } from '@/components/project-expenditure-pie-chart';
 
 export default function ProjectDetailsPage() {
   const params = useParams();
@@ -397,7 +398,7 @@ export default function ProjectDetailsPage() {
           </TabsTrigger>
         </TabsList>
         <TabsContent value="summary-charts">
-           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 mt-4">
+           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
                 <ProjectTargetRealizationChart projects={[project]} />
                 <ProjectMonthlyRecapChart data={monthlyRecapData} />
                 <Card>
@@ -411,6 +412,7 @@ export default function ProjectDetailsPage() {
                         <ProjectBudgetExpenditureChart project={project} />
                     </CardContent>
                 </Card>
+                 <ProjectExpenditurePieChart project={project} />
                 <Card>
                     <CardHeader>
                         <CardTitle>Service Order Progress</CardTitle>
