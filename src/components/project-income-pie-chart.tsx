@@ -39,16 +39,16 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-const renderActiveShape = (props: any) => {
-    const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, payload, percent, value } = props;
+const renderActiveShape = (props: any, totalValue: number) => {
+    const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
   
     return (
       <g>
         <text x={cx} y={cy - 10} dy={8} textAnchor="middle" fill="hsl(var(--foreground))" className="text-sm font-bold">
-            {formatCurrencyCompact(value)}
+            {formatCurrencyCompact(totalValue)}
         </text>
         <text x={cx} y={cy + 10} dy={8} textAnchor="middle" fill="hsl(var(--muted-foreground))" className="text-xs">
-           ({(percent * 100).toFixed(1)}%)
+           Total Income
         </text>
         <Sector
             cx={cx}
@@ -114,7 +114,7 @@ export function ProjectIncomePieChart({ project }: ProjectIncomePieChartProps) {
     const data = Object.entries(chartConfig)
       .filter(([key]) => ['Paid', 'Invoiced', 'PAD'].includes(key))
       .map(([status, config]) => ({
-        name: status,
+        name: config.label,
         value: valueByStatus[status as "Paid" | "Invoiced" | "PAD"] || 0,
         fill: config.color,
       }))
@@ -144,7 +144,7 @@ export function ProjectIncomePieChart({ project }: ProjectIncomePieChartProps) {
                     />
                     <Pie
                       activeIndex={activeIndex}
-                      activeShape={renderActiveShape}
+                      activeShape={(props) => renderActiveShape(props, totalValue)}
                       onMouseEnter={onPieEnter}
                       data={chartData}
                       dataKey="value"

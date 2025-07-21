@@ -38,16 +38,16 @@ const chartConfig = {
   'Other': { label: 'Other', color: 'hsl(var(--muted-foreground))' },
 } satisfies ChartConfig;
 
-const renderActiveShape = (props: any) => {
-    const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, payload, percent, value } = props;
+const renderActiveShape = (props: any, totalValue: number) => {
+    const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
   
     return (
       <g>
         <text x={cx} y={cy - 10} dy={8} textAnchor="middle" fill="hsl(var(--foreground))" className="text-sm font-bold">
-            {formatCurrencyCompact(value)}
+            {formatCurrencyCompact(totalValue)}
         </text>
         <text x={cx} y={cy + 10} dy={8} textAnchor="middle" fill="hsl(var(--muted-foreground))" className="text-xs">
-           ({(percent * 100).toFixed(2)}%)
+           Total Cost
         </text>
         <Sector
             cx={cx}
@@ -94,7 +94,7 @@ export function ProjectExpenditurePieChart({ project }: ProjectExpenditurePieCha
     const total = Object.values(costByCategory).reduce((sum, val) => sum + val, 0);
 
     const data = Object.entries(costByCategory).map(([category, value]) => ({
-      category,
+      name: chartConfig[category as keyof typeof chartConfig]?.label || category,
       value,
       fill: chartConfig[category as keyof typeof chartConfig]?.color || 'hsl(var(--muted-foreground))',
     }));
@@ -122,21 +122,21 @@ export function ProjectExpenditurePieChart({ project }: ProjectExpenditurePieCha
                     />
                     <Pie
                       activeIndex={activeIndex}
-                      activeShape={renderActiveShape}
+                      activeShape={(props) => renderActiveShape(props, totalCost)}
                       onMouseEnter={onPieEnter}
                       data={chartData}
                       dataKey="value"
-                      nameKey="category"
+                      nameKey="name"
                       innerRadius={80}
                       outerRadius={120}
                       strokeWidth={2}
                     >
                       {chartData.map((entry) => (
-                        <Cell key={`cell-${entry.category}`} fill={entry.fill} />
+                        <Cell key={`cell-${entry.name}`} fill={entry.fill} />
                       ))}
                     </Pie>
                     <ChartLegend
-                      content={<ChartLegendContent nameKey="category" />}
+                      content={<ChartLegendContent nameKey="name" />}
                       verticalAlign="bottom"
                       align="center"
                       iconType="circle"
