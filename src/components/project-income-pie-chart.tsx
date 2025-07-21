@@ -114,7 +114,7 @@ export function ProjectIncomePieChart({ project }: ProjectIncomePieChartProps) {
     const data = Object.entries(chartConfig)
       .filter(([key]) => ['Paid', 'Invoiced', 'PAD'].includes(key))
       .map(([status, config]) => ({
-        name: config.label || status,
+        name: status,
         value: valueByStatus[status as "Paid" | "Invoiced" | "PAD"] || 0,
         fill: config.color,
       }))
