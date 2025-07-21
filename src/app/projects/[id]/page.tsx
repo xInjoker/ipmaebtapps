@@ -40,7 +40,6 @@ import { useProjects } from '@/context/ProjectContext';
 import { ProjectMonthlyRecapChart } from '@/components/project-monthly-recap-chart';
 import { ProjectInvoicingTab } from '@/components/project-invoicing-tab';
 import { ProjectCostTab } from '@/components/project-cost-tab';
-import { ProjectServiceOrderTab } from '@/components/project-service-order-tab';
 import { formatCurrency } from '@/lib/utils';
 import { ProjectBudgetExpenditureChart } from '@/components/project-budget-expenditure-chart';
 import { ProjectServiceOrderChart } from '@/components/project-service-order-chart';
@@ -48,7 +47,7 @@ import { ApprovalWorkflowManager } from '@/components/project-approval-workflow'
 import { useAuth } from '@/context/AuthContext';
 import type { ApprovalStage, Project } from '@/lib/projects';
 import { ProjectTargetRealizationChart } from '@/components/project-target-realization-chart';
-import { ProjectExpenditurePieChart } from '@/components/project-expenditure-pie-chart';
+import { ProjectCostPieChart } from '@/components/project-cost-pie-chart';
 import { ProjectIncomePieChart } from '@/components/project-income-pie-chart';
 
 export default function ProjectDetailsPage() {
@@ -130,7 +129,7 @@ export default function ProjectDetailsPage() {
   const monthlyRecapData = useMemo(() => {
     if (!project) return [];
 
-    const dataMap: { [key: string]: { month: string, invoicedAndPaid: number, pad: number, expenditure: number } } = {};
+    const dataMap: { [key: string]: { month: string, invoicedAndPaid: number, pad: number, cost: number } } = {};
     const monthOrder: { [key:string]: number } = {
       'January': 1, 'February': 2, 'March': 3, 'April': 4, 'May': 5, 'June': 6,
       'July': 7, 'August': 8, 'September': 9, 'October': 10, 'November': 11, 'December': 12
@@ -150,7 +149,7 @@ export default function ProjectDetailsPage() {
       const { sortKey, displayMonth } = periodInfo;
 
       if (!dataMap[sortKey]) {
-        dataMap[sortKey] = { month: displayMonth, invoicedAndPaid: 0, pad: 0, expenditure: 0 };
+        dataMap[sortKey] = { month: displayMonth, invoicedAndPaid: 0, pad: 0, cost: 0 };
       }
 
       if (invoice.status === 'Invoiced' || invoice.status === 'Paid') {
@@ -168,9 +167,9 @@ export default function ProjectDetailsPage() {
       const { sortKey, displayMonth } = periodInfo;
 
       if (!dataMap[sortKey]) {
-        dataMap[sortKey] = { month: displayMonth, invoicedAndPaid: 0, pad: 0, expenditure: 0 };
+        dataMap[sortKey] = { month: displayMonth, invoicedAndPaid: 0, pad: 0, cost: 0 };
       }
-      dataMap[sortKey].expenditure += exp.amount;
+      dataMap[sortKey].cost += exp.amount;
     });
 
     for (const key in dataMap) {
@@ -401,31 +400,11 @@ export default function ProjectDetailsPage() {
         <TabsContent value="summary-charts">
            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
                 <ProjectIncomePieChart project={project} />
-                <ProjectExpenditurePieChart project={project} />
+                <ProjectCostPieChart project={project} />
                 <ProjectTargetRealizationChart projects={[project]} />
                 <ProjectMonthlyRecapChart data={monthlyRecapData} />
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Cost vs Budget</CardTitle>
-                        <CardDescription>
-                            Comparison of budgeted amounts vs actual costs by category.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <ProjectBudgetExpenditureChart project={project} />
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Service Order Progress</CardTitle>
-                        <CardDescription>
-                            Comparison of SO value vs invoiced amount.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <ProjectServiceOrderChart project={project} />
-                    </CardContent>
-                </Card>
+                <ProjectBudgetExpenditureChart project={project} />
+                <ProjectServiceOrderChart project={project} />
             </div>
         </TabsContent>
         <TabsContent value="service-orders">
