@@ -13,6 +13,7 @@ import {
 import { useMemo } from 'react';
 import type { Project } from '@/lib/data';
 import { formatCurrency, formatCurrencyCompact } from '@/lib/utils';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 
 type ProjectBudgetExpenditureChartProps = {
   project: Project;
@@ -50,31 +51,39 @@ export function ProjectBudgetExpenditureChart({ project }: ProjectBudgetExpendit
   }, [project]);
 
   return (
-    <ChartContainer config={chartConfig} className="h-[400px] w-full">
-      <BarChart data={chartData} accessibilityLayer>
-        <CartesianGrid vertical={false} />
-        <XAxis
-          dataKey="name"
-          tickLine={false}
-          tickMargin={10}
-          axisLine={false}
-          tickFormatter={(value) => value.split(' ').map((w: string) => w[0]).join('')}
-        />
-        <YAxis
-            tickFormatter={(value) => formatCurrencyCompact(Number(value))}
-        />
-        <ChartTooltip
-          cursor={false}
-          content={<ChartTooltipContent
-            indicator="dot"
-            valueFormatter={formatCurrencyCompact}
-            hideLabel
-           />}
-        />
-        <ChartLegend content={<ChartLegendContent />} />
-        <Bar dataKey="budget" fill="var(--color-budget)" radius={4} />
-        <Bar dataKey="cost" fill="var(--color-cost)" radius={4} />
-      </BarChart>
-    </ChartContainer>
+    <Card>
+        <CardHeader>
+            <CardTitle>Cost vs Budget</CardTitle>
+            <CardDescription>A comparison of budgeted amounts versus actual costs by category.</CardDescription>
+        </CardHeader>
+        <CardContent>
+            <ChartContainer config={chartConfig} className="h-[400px] w-full">
+              <BarChart data={chartData} accessibilityLayer>
+                <CartesianGrid vertical={false} />
+                <XAxis
+                  dataKey="name"
+                  tickLine={false}
+                  tickMargin={10}
+                  axisLine={false}
+                  tickFormatter={(value) => value.split(' ').map((w: string) => w[0]).join('')}
+                />
+                <YAxis
+                    tickFormatter={(value) => formatCurrencyCompact(Number(value))}
+                />
+                <ChartTooltip
+                  cursor={false}
+                  content={<ChartTooltipContent
+                    indicator="dot"
+                    valueFormatter={formatCurrencyCompact}
+                    hideLabel
+                   />}
+                />
+                <ChartLegend content={<ChartLegendContent />} />
+                <Bar dataKey="budget" fill="var(--color-budget)" radius={4} />
+                <Bar dataKey="cost" fill="var(--color-cost)" radius={4} />
+              </BarChart>
+            </ChartContainer>
+        </CardContent>
+    </Card>
   );
 }

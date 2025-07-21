@@ -14,6 +14,7 @@ import { useMemo } from 'react';
 import type { Project } from '@/lib/data';
 import { formatCurrency, formatCurrencyCompact } from '@/lib/utils';
 import { cn } from '@/lib/utils';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 
 type ProjectServiceOrderChartProps = {
   project: Project;
@@ -77,38 +78,46 @@ export function ProjectServiceOrderChart({ project }: ProjectServiceOrderChartPr
   }, [project]);
 
   return (
-    <ChartContainer config={chartConfig} className="h-[400px] w-full">
-      <BarChart
-        data={chartData}
-        layout="vertical"
-        stackOffset="expand"
-        margin={{ left: 10, right: 10 }}
-        accessibilityLayer
-      >
-        <CartesianGrid horizontal={false} />
-        <YAxis
-          type="category"
-          dataKey="name"
-          tickLine={false}
-          axisLine={false}
-          tickMargin={10}
-          width={80}
-        />
-        <XAxis
-            type="number"
-            tickFormatter={(value) => `${Math.round(value * 100)}%`}
-            tickLine={false}
-            axisLine={false}
-            domain={[0, 1]}
-        />
-        <ChartTooltip
-          cursor={false}
-          content={<CustomTooltip />}
-        />
-        <ChartLegend content={<ChartLegendContent />} />
-        <Bar dataKey="invoiced" fill="var(--color-invoiced)" stackId="a" radius={[4, 0, 0, 4]} />
-        <Bar dataKey="remaining" fill="var(--color-remaining)" stackId="a" radius={[0, 4, 4, 0]} />
-      </BarChart>
-    </ChartContainer>
+    <Card>
+      <CardHeader>
+        <CardTitle>Service Order Progress</CardTitle>
+        <CardDescription>A breakdown of invoiced vs. remaining value for each Service Order.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <ChartContainer config={chartConfig} className="h-[400px] w-full">
+          <BarChart
+            data={chartData}
+            layout="vertical"
+            stackOffset="expand"
+            margin={{ left: 10, right: 10 }}
+            accessibilityLayer
+          >
+            <CartesianGrid horizontal={false} />
+            <YAxis
+              type="category"
+              dataKey="name"
+              tickLine={false}
+              axisLine={false}
+              tickMargin={10}
+              width={80}
+            />
+            <XAxis
+                type="number"
+                tickFormatter={(value) => `${Math.round(value * 100)}%`}
+                tickLine={false}
+                axisLine={false}
+                domain={[0, 1]}
+            />
+            <ChartTooltip
+              cursor={false}
+              content={<CustomTooltip />}
+            />
+            <ChartLegend content={<ChartLegendContent />} />
+            <Bar dataKey="invoiced" fill="var(--color-invoiced)" stackId="a" radius={[4, 0, 0, 4]} />
+            <Bar dataKey="remaining" fill="var(--color-remaining)" stackId="a" radius={[0, 4, 4, 0]} />
+          </BarChart>
+        </ChartContainer>
+      </CardContent>
+    </Card>
   );
 }
