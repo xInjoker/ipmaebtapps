@@ -404,10 +404,10 @@ export default function ProjectDetailsPage() {
                 <ProjectIncomePieChart project={project} />
                 <ProjectCostPieChart project={project} />
                 <ProjectProfitChart project={project} />
+                <ProjectServiceOrderChart project={project} />
                 <ProjectTargetRealizationChart projects={[project]} />
                 <ProjectMonthlyRecapChart data={monthlyRecapData} />
                 <ProjectBudgetExpenditureChart project={project} />
-                <ProjectServiceOrderChart project={project} />
             </div>
         </TabsContent>
         <TabsContent value="service-orders">
