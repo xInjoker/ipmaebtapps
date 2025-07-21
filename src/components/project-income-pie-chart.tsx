@@ -15,6 +15,7 @@ import { useMemo, useState } from 'react';
 import type { Project, InvoiceItem } from '@/lib/data';
 import { formatCurrency, formatCurrencyCompact } from "@/lib/utils";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
+import { cn } from "@/lib/utils";
 
 type ProjectIncomePieChartProps = {
   project: Project;
@@ -29,24 +30,8 @@ const chartConfig = {
     color: 'hsl(var(--chart-1))',
   },
   'Invoiced': {
-    label: 'Invoiced',
+    label: 'Invoiced (Unpaid)',
     color: 'hsl(var(--chart-2))',
-  },
-  'PAD': {
-    label: 'PAD',
-    color: 'hsl(var(--chart-3))',
-  },
-  'Document Preparation': {
-    label: 'Doc Prep',
-    color: 'hsl(var(--chart-4))',
-  },
-  'Re-invoiced': {
-    label: 'Re-invoiced',
-    color: 'hsl(var(--chart-5))',
-  },
-  'Cancel': {
-    label: 'Cancelled',
-    color: 'hsl(var(--destructive))',
   },
 } satisfies ChartConfig;
 
@@ -96,18 +81,24 @@ export function ProjectIncomePieChart({ project }: ProjectIncomePieChartProps) {
   const { chartData, totalValue } = useMemo(() => {
     if (!project) return { chartData: [], totalValue: 0 };
     
-    const valueByStatus = project.invoices.reduce((acc, invoice) => {
-        acc[invoice.status] = (acc[invoice.status] || 0) + invoice.value;
-        return acc;
-    }, {} as Record<InvoiceItem['status'], number>);
+    // Only consider 'Paid' and 'Invoiced' statuses for income realization.
+    const relevantInvoices = project.invoices.filter(
+      (invoice) => invoice.status === 'Paid' || invoice.status === 'Invoiced'
+    );
+    
+    const valueByStatus = relevantInvoices.reduce((acc, invoice) => {
+      acc[invoice.status] = (acc[invoice.status] || 0) + invoice.value;
+      return acc;
+    }, {} as Record<"Paid" | "Invoiced", number>);
     
     const data = Object.entries(chartConfig)
-        .filter(([key]) => key !== 'value')
-        .map(([status, config]) => ({
-            name: config.label || status,
-            value: valueByStatus[status as InvoiceItem['status']] || 0,
-            fill: config.color,
-        })).filter(d => d.value > 0);
+      .filter(([key]) => key === 'Paid' || key === 'Invoiced')
+      .map(([status, config]) => ({
+        name: config.label || status,
+        value: valueByStatus[status as "Paid" | "Invoiced"] || 0,
+        fill: config.color,
+      }))
+      .filter(d => d.value > 0);
 
     const total = data.reduce((sum, item) => sum + item.value, 0);
     
@@ -117,8 +108,8 @@ export function ProjectIncomePieChart({ project }: ProjectIncomePieChartProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Income Realization</CardTitle>
-        <CardDescription>A pie chart breakdown of all project invoices by status.</CardDescription>
+        <CardTitle>Income Realization (Paid vs. Invoiced)</CardTitle>
+        <CardDescription>A breakdown of realized income by status.</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="h-[400px] w-full">
@@ -156,7 +147,7 @@ export function ProjectIncomePieChart({ project }: ProjectIncomePieChartProps) {
                 </PieChart>
             ) : (
                 <div className="flex h-full w-full items-center justify-center text-muted-foreground">
-                    No invoicing data available.
+                    No income data available.
                 </div>
             )}
         </ChartContainer>
