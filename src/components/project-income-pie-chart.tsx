@@ -111,12 +111,11 @@ export function ProjectIncomePieChart({ project }: ProjectIncomePieChartProps) {
         }
     });
     
-    const data = Object.entries(chartConfig)
-      .filter(([key]) => ['Paid', 'Invoiced', 'PAD'].includes(key))
-      .map(([status, config]) => ({
-        name: config.label,
-        value: valueByStatus[status as "Paid" | "Invoiced" | "PAD"] || 0,
-        fill: config.color,
+    const data = Object.entries(valueByStatus)
+      .map(([status, value]) => ({
+        name: status,
+        value,
+        fill: chartConfig[status as keyof typeof chartConfig]?.color || 'hsl(var(--muted-foreground))',
       }))
       .filter(d => d.value > 0);
 

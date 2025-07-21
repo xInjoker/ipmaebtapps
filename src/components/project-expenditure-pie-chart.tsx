@@ -17,7 +17,7 @@ import { formatCurrency, formatCurrencyCompact } from "@/lib/utils";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { cn } from "@/lib/utils";
 
-type ProjectExpenditurePieChartProps = {
+type ProjectCostPieChartProps = {
   project: Project;
 };
 
@@ -71,7 +71,7 @@ const renderActiveShape = (props: any, totalValue: number) => {
     );
 };
 
-export function ProjectExpenditurePieChart({ project }: ProjectExpenditurePieChartProps) {
+export function ProjectCostPieChart({ project }: ProjectCostPieChartProps) {
   const [activeIndex, setActiveIndex] = useState(0);
 
   const onPieEnter = React.useCallback(
@@ -94,7 +94,7 @@ export function ProjectExpenditurePieChart({ project }: ProjectExpenditurePieCha
     const total = Object.values(costByCategory).reduce((sum, val) => sum + val, 0);
 
     const data = Object.entries(costByCategory).map(([category, value]) => ({
-      name: chartConfig[category as keyof typeof chartConfig]?.label || category,
+      name: category,
       value,
       fill: chartConfig[category as keyof typeof chartConfig]?.color || 'hsl(var(--muted-foreground))',
     }));
