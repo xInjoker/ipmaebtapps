@@ -109,7 +109,7 @@ export function ProjectTargetRealizationChart({ projects }: ProjectTargetRealiza
         }
       });
       
-      project.expenditures.forEach(exp => {
+      project.costs.forEach(exp => {
         if(!exp.period) return;
         const [month, year] = exp.period.split(' ');
         if(!month || !year || (selectedYear !== 'all' && selectedYear !== year)) return;
@@ -122,7 +122,7 @@ export function ProjectTargetRealizationChart({ projects }: ProjectTargetRealiza
                 }
              }
          } catch (e) {
-            console.warn(`Could not parse date for expenditure period: ${exp.period}`);
+            console.warn(`Could not parse date for cost period: ${exp.period}`);
          }
       });
     });
@@ -186,3 +186,4 @@ export function ProjectTargetRealizationChart({ projects }: ProjectTargetRealiza
     </Card>
   );
 }
+
