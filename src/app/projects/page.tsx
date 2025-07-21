@@ -33,6 +33,7 @@ import { ProjectIncomeExpenditureChart } from '@/components/project-income-expen
 import { HeaderCard } from '@/components/header-card';
 import { DashboardWidget } from '@/components/dashboard-widget';
 import { ProjectTargetRealizationChart } from '@/components/project-target-realization-chart';
+import { CumulativeProfitChart } from '@/components/cumulative-profit-chart';
 
 export default function ProjectsPage() {
   const { projects, getProjectStats } = useProjects();
@@ -64,7 +65,7 @@ export default function ProjectsPage() {
                           project.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           project.contractNumber.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const branchMatch = branchFilter === 'all' || project.branchId === branchFilter;
+      const branchMatch = branchFilter === 'all' || project.branchId === branchMatch;
 
       return searchMatch && branchMatch;
     });
@@ -169,15 +170,16 @@ export default function ProjectsPage() {
 
       <Tabs defaultValue="summary" className="w-full space-y-4">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="summary"><BarChartBig className="mr-2 h-4 w-4" />Summary Charts</TabsTrigger>
+          <TabsTrigger value="summary"><BarChartBig className="mr-2 h-4 w-4" />Financial Summary</TabsTrigger>
           <TabsTrigger value="list"><List className="mr-2 h-4 w-4" />Project List</TabsTrigger>
         </TabsList>
         <TabsContent value="summary">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <ProjectBranchChart projects={visibleProjects} branches={branches} />
-                <ProjectIncomeExpenditureChart projects={visibleProjects} />
                 <ProjectStatusChart projects={visibleProjects} />
                 <ProjectExpenditureChart projects={visibleProjects} />
+                <CumulativeProfitChart projects={visibleProjects} />
+                <ProjectBranchChart projects={visibleProjects} branches={branches} />
+                <ProjectIncomeExpenditureChart projects={visibleProjects} />
                 <ProjectTargetRealizationChart projects={visibleProjects} />
             </div>
         </TabsContent>
