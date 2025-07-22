@@ -106,17 +106,19 @@ export default function ProjectDetailsPage() {
   const handlePrint = useCallback(async () => {
     if (!project) return;
     const doc = new jsPDF('p', 'mm', 'a4') as jsPDFWithAutoTable;
-    const pageMargin = 14;
+    const pageMargin = 15;
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const pageWidth = doc.internal.pageSize.getWidth();
     let finalY = 0;
 
     const addPageHeader = (title: string) => {
         doc.setFontSize(16);
-        doc.text(title, doc.internal.pageSize.getWidth() / 2, pageMargin, { align: 'center' });
+        doc.text(title, pageWidth / 2, pageMargin, { align: 'center' });
         doc.setFontSize(10);
         doc.text(`Project: ${project.name}`, pageMargin, 25);
-        doc.text(`Report Date: ${new Date().toLocaleDateString()}`, doc.internal.pageSize.getWidth() - pageMargin, 25, { align: 'right' });
+        doc.text(`Report Date: ${new Date().toLocaleDateString()}`, pageWidth - pageMargin, 25, { align: 'right' });
         doc.setLineWidth(0.5);
-        doc.line(pageMargin, 30, doc.internal.pageSize.getWidth() - pageMargin, 30);
+        doc.line(pageMargin, 30, pageWidth - pageMargin, 30);
         finalY = 40;
     };
     
@@ -139,26 +141,45 @@ export default function ProjectDetailsPage() {
     // --- Charts ---
     doc.addPage();
     addPageHeader('Financial Charts');
-    const chartEntries = Object.entries(chartRefs);
-    for (const [key, ref] of chartEntries) {
-        if (ref.current) {
-            try {
-                const canvas = await html2canvas(ref.current, { scale: 2 });
-                const imgData = canvas.toDataURL('image/png');
-                const imgWidth = 180;
-                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    
+    const chartEntries = Object.entries(chartRefs).filter(([, ref]) => ref.current);
+    let maxRowHeight = 0;
 
-                if (finalY + imgHeight > doc.internal.pageSize.getHeight() - 20) {
-                    doc.addPage();
-                    addPageHeader('Financial Charts (Continued)');
-                }
-                
-                doc.addImage(imgData, 'PNG', pageMargin, finalY, imgWidth, imgHeight);
-                finalY += imgHeight + 10;
+    for (let i = 0; i < chartEntries.length; i += 2) {
+      const chartPair = chartEntries.slice(i, i + 2);
+      const canvases = await Promise.all(
+        chartPair.map(async ([key, ref]) => {
+          if (ref.current) {
+            try {
+              return await html2canvas(ref.current, { scale: 2 });
             } catch (error) {
-                console.error(`Failed to capture chart ${key}:`, error);
+              console.error(`Failed to capture chart ${key}:`, error);
+              return null;
             }
-        }
+          }
+          return null;
+        })
+      );
+
+      const validCanvases = canvases.filter(c => c !== null) as HTMLCanvasElement[];
+      if (validCanvases.length === 0) continue;
+
+      const imgWidth = (pageWidth - pageMargin * 2 - 10) / 2; // 2 charts with 10mm spacing
+      const imgHeights = validCanvases.map(canvas => (canvas.height * imgWidth) / canvas.width);
+      maxRowHeight = Math.max(...imgHeights);
+      
+      if (finalY + maxRowHeight > pageHeight - 20) {
+        doc.addPage();
+        addPageHeader('Financial Charts (Continued)');
+      }
+
+      validCanvases.forEach((canvas, index) => {
+        const imgData = canvas.toDataURL('image/png');
+        const xPos = pageMargin + (index * (imgWidth + 10));
+        doc.addImage(imgData, 'PNG', xPos, finalY, imgWidth, imgHeights[index]);
+      });
+
+      finalY += maxRowHeight + 10;
     }
     
     // --- Data Tables ---
@@ -170,21 +191,31 @@ export default function ProjectDetailsPage() {
             head: [['SO Number', 'Description', 'Date', 'Value']],
             body: project.serviceOrders.map(so => [so.soNumber, so.description, so.date, formatCurrency(so.value)]),
         });
+        finalY = (doc as any).lastAutoTable.finalY;
     }
 
     if(project.invoices.length > 0) {
-        doc.addPage();
-        addPageHeader('Invoice Details');
+        if (finalY + 40 > pageHeight - 20) { // Check space for next table
+          doc.addPage();
+          addPageHeader('Invoice Details');
+        } else {
+           finalY += 10;
+        }
         doc.autoTable({
             startY: finalY,
             head: [['SO Number', 'Description', 'Period', 'Status', 'Value']],
             body: project.invoices.map(inv => [inv.soNumber, inv.description, inv.period, inv.status, formatCurrency(inv.value)]),
         });
+        finalY = (doc as any).lastAutoTable.finalY;
     }
     
     if(project.costs.length > 0) {
-        doc.addPage();
-        addPageHeader('Cost Details');
+        if (finalY + 40 > pageHeight - 20) { // Check space for next table
+          doc.addPage();
+          addPageHeader('Cost Details');
+        } else {
+           finalY += 10;
+        }
         doc.autoTable({
             startY: finalY,
             head: [['Category', 'Description', 'Period', 'Amount']],
