@@ -113,7 +113,7 @@ export default function TendersPage() {
                             tender.tenderNumber.toLowerCase().includes(searchTerm.toLowerCase());
         
         const regionMatch = regionFilter === 'all' || tender.regional === regionFilter;
-        const branchMatch = branchFilter === 'all' || tender.branchId === branchFilter;
+        const branchMatch = branchFilter === 'all' || tender.branchId === branchMatch;
         const statusMatch = statusFilter === 'all' || tender.status === statusFilter;
 
         // Non-HQ users should only see tenders from their branch/region
@@ -344,7 +344,7 @@ export default function TendersPage() {
                     <Table>
                         <TableHeader>
                         <TableRow>
-                            <TableHead>Tender Title</TableHead>
+                            <TableHead>Tender</TableHead>
                             <TableHead>Client</TableHead>
                             <TableHead>Branch</TableHead>
                             <TableHead>Submission Date</TableHead>
@@ -356,8 +356,11 @@ export default function TendersPage() {
                         {filteredTenders.length > 0 ? (
                             filteredTenders.map((tender) => (
                             <TableRow key={tender.id}>
-                                <TableCell className="font-medium">
-                                {tender.title}
+                                <TableCell className="font-medium max-w-sm break-words">
+                                    <div className="flex flex-col gap-0.5">
+                                        <span className="text-xs text-muted-foreground font-mono">{tender.tenderNumber}</span>
+                                        <span className="font-semibold">{tender.title}</span>
+                                    </div>
                                 </TableCell>
                                 <TableCell>{tender.client}</TableCell>
                                 <TableCell>
