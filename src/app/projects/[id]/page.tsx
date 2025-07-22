@@ -103,6 +103,55 @@ export default function ProjectDetailsPage() {
     });
   }, []);
   
+  const {
+    totalCost,
+    totalInvoiced,
+    totalPad,
+    totalServiceOrderValue,
+    totalDocumentPreparation,
+    progress
+  } = useMemo(() => {
+    if (!project) {
+      return {
+        totalCost: 0,
+        totalInvoiced: 0,
+        totalPad: 0,
+        totalServiceOrderValue: 0,
+        totalDocumentPreparation: 0,
+        progress: 0,
+      };
+    }
+
+    const cost = project.costs
+      .filter((exp) => exp.status === 'Approved')
+      .reduce((acc, exp) => acc + exp.amount, 0);
+
+    const invoiced = project.invoices
+      .filter((inv) => inv.status === 'Invoiced' || inv.status === 'Paid')
+      .reduce((acc, inv) => acc + inv.value, 0);
+
+    const pad = project.invoices
+      .filter((inv) => inv.status === 'PAD')
+      .reduce((acc, inv) => acc + inv.value, 0);
+    
+    const documentPreparation = project.invoices
+      .filter((inv) => inv.status === 'Document Preparation')
+      .reduce((acc, inv) => acc + inv.value, 0);
+
+    const serviceOrderValue = project.serviceOrders.reduce((acc, so) => acc + so.value, 0);
+    
+    const calculatedProgress = project.value > 0 ? Math.round((invoiced / project.value) * 100) : 0;
+
+    return {
+      totalCost: cost,
+      totalInvoiced: invoiced,
+      totalPad: pad,
+      totalServiceOrderValue: serviceOrderValue,
+      totalDocumentPreparation: documentPreparation,
+      progress: calculatedProgress,
+    };
+  }, [project]);
+
   const handlePrint = useCallback(async () => {
     if (!project) return;
     const doc = new jsPDF('p', 'mm', 'a4') as jsPDFWithAutoTable;
@@ -129,9 +178,14 @@ export default function ProjectDetailsPage() {
         head: [['Project Details', '']],
         body: [
             ['Client', project.client],
+            ['Contract Executor', project.contractExecutor],
             ['Contract No.', project.contractNumber],
+            ['RAB No.', project.rabNumber],
             ['Period', `${project.period} (${project.duration})`],
             ['Contract Value', formatCurrency(project.value)],
+            ['Total Service Order', formatCurrency(totalServiceOrderValue)],
+            ['Total Invoiced', formatCurrency(totalInvoiced)],
+            ['Progress', `${progress}%`],
         ],
         theme: 'striped',
         headStyles: { fillColor: [22, 163, 74] }
@@ -225,52 +279,7 @@ export default function ProjectDetailsPage() {
 
     doc.save(`ProjectReport-${project.contractNumber}.pdf`);
 
-  }, [project, chartRefs]);
-
-
-  const {
-    totalCost,
-    totalInvoiced,
-    totalPad,
-    totalServiceOrderValue,
-    totalDocumentPreparation,
-  } = useMemo(() => {
-    if (!project) {
-      return {
-        totalCost: 0,
-        totalInvoiced: 0,
-        totalPad: 0,
-        totalServiceOrderValue: 0,
-        totalDocumentPreparation: 0,
-      };
-    }
-
-    const cost = project.costs
-      .filter((exp) => exp.status === 'Approved')
-      .reduce((acc, exp) => acc + exp.amount, 0);
-
-    const invoiced = project.invoices
-      .filter((inv) => inv.status === 'Invoiced' || inv.status === 'Paid')
-      .reduce((acc, inv) => acc + inv.value, 0);
-
-    const pad = project.invoices
-      .filter((inv) => inv.status === 'PAD')
-      .reduce((acc, inv) => acc + inv.value, 0);
-    
-    const documentPreparation = project.invoices
-      .filter((inv) => inv.status === 'Document Preparation')
-      .reduce((acc, inv) => acc + inv.value, 0);
-
-    const serviceOrderValue = project.serviceOrders.reduce((acc, so) => acc + so.value, 0);
-
-    return {
-      totalCost: cost,
-      totalInvoiced: invoiced,
-      totalPad: pad,
-      totalServiceOrderValue: serviceOrderValue,
-      totalDocumentPreparation: documentPreparation,
-    };
-  }, [project]);
+  }, [project, chartRefs, progress, totalInvoiced, totalServiceOrderValue]);
 
   const monthlyRecapData = useMemo(() => {
     if (!project) return [];
@@ -361,11 +370,6 @@ export default function ProjectDetailsPage() {
       </Card>
     );
   }
-
-  const progress =
-    project.value > 0
-      ? Math.round((totalInvoiced / project.value) * 100)
-      : 0;
 
   const iconColors = ['#0D5EA6', '#0ABAB5', '#00C897', '#FFA955', '#FFD63A', '#FFBE98'];
   let colorIndex = 0;
