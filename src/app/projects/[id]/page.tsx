@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import {
   Card,
@@ -27,6 +27,7 @@ import {
   Wallet,
   UserCog,
   BarChartHorizontal,
+  Printer,
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
@@ -51,6 +52,15 @@ import { ProjectCostPieChart } from '@/components/project-cost-pie-chart';
 import { ProjectIncomePieChart } from '@/components/project-income-pie-chart';
 import { ProjectServiceOrderTab } from '@/components/project-service-order-tab';
 import { ProjectProfitChart } from '@/components/project-profit-chart';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+import html2canvas from 'html2canvas';
+
+// Extend jsPDF with autoTable
+interface jsPDFWithAutoTable extends jsPDF {
+  autoTable: (options: any) => jsPDF;
+}
+
 
 export default function ProjectDetailsPage() {
   const params = useParams();
@@ -59,6 +69,15 @@ export default function ProjectDetailsPage() {
   const { users } = useAuth();
   
   const [project, setProject] = useState<Project | null>(null);
+  const chartRefs = {
+    incomePie: useRef<HTMLDivElement>(null),
+    costPie: useRef<HTMLDivElement>(null),
+    profit: useRef<HTMLDivElement>(null),
+    so: useRef<HTMLDivElement>(null),
+    target: useRef<HTMLDivElement>(null),
+    recap: useRef<HTMLDivElement>(null),
+    budget: useRef<HTMLDivElement>(null),
+  };
 
   useEffect(() => {
     const fetchedProject = getProjectById(projectId);
@@ -83,6 +102,100 @@ export default function ProjectDetailsPage() {
         return null;
     });
   }, []);
+  
+  const handlePrint = useCallback(async () => {
+    if (!project) return;
+    const doc = new jsPDF('p', 'mm', 'a4') as jsPDFWithAutoTable;
+    const pageMargin = 14;
+    let finalY = 0;
+
+    const addPageHeader = (title: string) => {
+        doc.setFontSize(16);
+        doc.text(title, doc.internal.pageSize.getWidth() / 2, pageMargin, { align: 'center' });
+        doc.setFontSize(10);
+        doc.text(`Project: ${project.name}`, pageMargin, 25);
+        doc.text(`Report Date: ${new Date().toLocaleDateString()}`, doc.internal.pageSize.getWidth() - pageMargin, 25, { align: 'right' });
+        doc.setLineWidth(0.5);
+        doc.line(pageMargin, 30, doc.internal.pageSize.getWidth() - pageMargin, 30);
+        finalY = 40;
+    };
+    
+    addPageHeader('Project Summary Report');
+
+    doc.autoTable({
+        startY: finalY,
+        head: [['Project Details', '']],
+        body: [
+            ['Client', project.client],
+            ['Contract No.', project.contractNumber],
+            ['Period', `${project.period} (${project.duration})`],
+            ['Contract Value', formatCurrency(project.value)],
+        ],
+        theme: 'striped',
+        headStyles: { fillColor: [22, 163, 74] }
+    });
+    finalY = (doc as any).lastAutoTable.finalY;
+
+    // --- Charts ---
+    doc.addPage();
+    addPageHeader('Financial Charts');
+    const chartEntries = Object.entries(chartRefs);
+    for (const [key, ref] of chartEntries) {
+        if (ref.current) {
+            try {
+                const canvas = await html2canvas(ref.current, { scale: 2 });
+                const imgData = canvas.toDataURL('image/png');
+                const imgWidth = 180;
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+                if (finalY + imgHeight > doc.internal.pageSize.getHeight() - 20) {
+                    doc.addPage();
+                    addPageHeader('Financial Charts (Continued)');
+                }
+                
+                doc.addImage(imgData, 'PNG', pageMargin, finalY, imgWidth, imgHeight);
+                finalY += imgHeight + 10;
+            } catch (error) {
+                console.error(`Failed to capture chart ${key}:`, error);
+            }
+        }
+    }
+    
+    // --- Data Tables ---
+    if(project.serviceOrders.length > 0) {
+        doc.addPage();
+        addPageHeader('Service Order Details');
+        doc.autoTable({
+            startY: finalY,
+            head: [['SO Number', 'Description', 'Date', 'Value']],
+            body: project.serviceOrders.map(so => [so.soNumber, so.description, so.date, formatCurrency(so.value)]),
+        });
+    }
+
+    if(project.invoices.length > 0) {
+        doc.addPage();
+        addPageHeader('Invoice Details');
+        doc.autoTable({
+            startY: finalY,
+            head: [['SO Number', 'Description', 'Period', 'Status', 'Value']],
+            body: project.invoices.map(inv => [inv.soNumber, inv.description, inv.period, inv.status, formatCurrency(inv.value)]),
+        });
+    }
+    
+    if(project.costs.length > 0) {
+        doc.addPage();
+        addPageHeader('Cost Details');
+        doc.autoTable({
+            startY: finalY,
+            head: [['Category', 'Description', 'Period', 'Amount']],
+            body: project.costs.map(cost => [cost.category, cost.description, cost.period, formatCurrency(cost.amount)]),
+        });
+    }
+
+    doc.save(`ProjectReport-${project.contractNumber}.pdf`);
+
+  }, [project, chartRefs]);
+
 
   const {
     totalCost,
@@ -268,6 +381,10 @@ export default function ProjectDetailsPage() {
                 <CardDescription className="text-primary-foreground/90">{project.description}</CardDescription>
             </div>
           </div>
+          <Button onClick={handlePrint}>
+            <Printer className="mr-2 h-4 w-4" />
+            Export Report
+          </Button>
         </CardHeader>
       </Card>
 
@@ -401,13 +518,27 @@ export default function ProjectDetailsPage() {
         </TabsList>
         <TabsContent value="summary-charts">
            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
-                <ProjectIncomePieChart project={project} />
-                <ProjectCostPieChart project={project} />
-                <ProjectProfitChart project={project} />
-                <ProjectServiceOrderChart project={project} />
-                <ProjectTargetRealizationChart projects={[project]} />
-                <ProjectMonthlyRecapChart data={monthlyRecapData} />
-                <ProjectBudgetExpenditureChart project={project} />
+                <div ref={chartRefs.incomePie}>
+                  <ProjectIncomePieChart project={project} />
+                </div>
+                <div ref={chartRefs.costPie}>
+                  <ProjectCostPieChart project={project} />
+                </div>
+                <div ref={chartRefs.profit}>
+                  <ProjectProfitChart project={project} />
+                </div>
+                <div ref={chartRefs.so}>
+                  <ProjectServiceOrderChart project={project} />
+                </div>
+                <div ref={chartRefs.target}>
+                  <ProjectTargetRealizationChart projects={[project]} />
+                </div>
+                <div ref={chartRefs.recap}>
+                  <ProjectMonthlyRecapChart data={monthlyRecapData} />
+                </div>
+                <div ref={chartRefs.budget}>
+                  <ProjectBudgetExpenditureChart project={project} />
+                </div>
             </div>
         </TabsContent>
         <TabsContent value="service-orders">
