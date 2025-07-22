@@ -357,7 +357,7 @@ export default function TendersPage() {
                         {filteredTenders.length > 0 ? (
                             filteredTenders.map((tender) => (
                             <TableRow key={tender.id}>
-                                <TableCell className="font-medium font-mono">
+                                <TableCell className="font-medium">
                                     {tender.tenderNumber}
                                 </TableCell>
                                 <TableCell className="max-w-xs break-words">{tender.title}</TableCell>
