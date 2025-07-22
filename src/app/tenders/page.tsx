@@ -344,7 +344,8 @@ export default function TendersPage() {
                     <Table>
                         <TableHeader>
                         <TableRow>
-                            <TableHead>Tender</TableHead>
+                            <TableHead>Tender Number</TableHead>
+                            <TableHead>Title</TableHead>
                             <TableHead>Client</TableHead>
                             <TableHead>Branch</TableHead>
                             <TableHead>Submission Date</TableHead>
@@ -356,12 +357,10 @@ export default function TendersPage() {
                         {filteredTenders.length > 0 ? (
                             filteredTenders.map((tender) => (
                             <TableRow key={tender.id}>
-                                <TableCell className="font-medium max-w-sm break-words">
-                                    <div className="flex flex-col gap-0.5">
-                                        <span className="text-xs text-muted-foreground font-mono">{tender.tenderNumber}</span>
-                                        <span className="font-semibold">{tender.title}</span>
-                                    </div>
+                                <TableCell className="font-medium font-mono">
+                                    {tender.tenderNumber}
                                 </TableCell>
+                                <TableCell className="max-w-xs break-words">{tender.title}</TableCell>
                                 <TableCell>{tender.client}</TableCell>
                                 <TableCell>
                                 {tender.branchId ? branchMap[tender.branchId] : 'N/A'}
@@ -423,7 +422,7 @@ export default function TendersPage() {
                             ))
                         ) : (
                             <TableRow>
-                            <TableCell colSpan={6} className="h-24 text-center">
+                            <TableCell colSpan={7} className="h-24 text-center">
                                 No tenders found.
                             </TableCell>
                             </TableRow>
