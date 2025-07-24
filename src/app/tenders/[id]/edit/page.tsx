@@ -21,7 +21,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { Textarea } from '@/components/ui/textarea';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { portfolios, subPortfolios, servicesBySubPortfolio } from '@/lib/data';
+import { portfolios, subPortfolios, servicesBySubPortfolio } from '@/lib/projects';
 import { CurrencyInput } from '@/components/ui/currency-input';
 
 export default function EditTenderPage() {

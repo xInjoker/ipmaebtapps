@@ -9,7 +9,7 @@ import {
   ChartConfig,
 } from '@/components/ui/chart';
 import { useMemo, useState } from 'react';
-import type { Project } from '@/lib/data';
+import type { Project } from '@/lib/projects';
 import { formatCurrencyCompact, formatCurrencyMillions } from '@/lib/utils';
 import { parse, format as formatDate } from 'date-fns';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './ui/select';

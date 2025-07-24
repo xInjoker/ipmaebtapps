@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { PlusCircle, Trash2, User } from 'lucide-react';
-import type { ApprovalStage } from '@/lib/data';
+import type { ApprovalStage } from '@/lib/projects';
 import type { User as AuthUser } from '@/lib/users';
 import { useToast } from '@/hooks/use-toast';
 

@@ -11,7 +11,7 @@ import {
   ChartLegendContent,
 } from '@/components/ui/chart';
 import { useMemo } from 'react';
-import type { Project } from '@/lib/data';
+import type { Project } from '@/lib/projects';
 import { formatCurrency, formatCurrencyCompact } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';

@@ -12,7 +12,7 @@ import {
   ChartConfig,
 } from '@/components/ui/chart';
 import { useMemo, useState } from 'react';
-import type { Project } from '@/lib/data';
+import type { Project } from '@/lib/projects';
 import { formatCurrency, formatCurrencyCompact } from "@/lib/utils";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";

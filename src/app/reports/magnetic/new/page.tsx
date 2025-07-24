@@ -32,15 +32,11 @@ const steps = [
     { id: '04', name: 'Summary & Submit' },
 ];
 
-type TestResult = {
-    subjectIdentification: string;
-    jointNo: string;
-    weldId: string;
-    indicationDetails: string;
-    result: 'Accept' | 'Reject';
+type TestResult = Omit<MagneticTestResult, 'imageUrls'> & {
     images: File[];
     imageUrls?: string[];
 };
+
 
 export default function MagneticTestPage() {
     const router = useRouter();

@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
@@ -16,47 +17,7 @@ import { Badge } from '@/components/ui/badge';
 import type { Project, ExpenditureItem } from '@/lib/data';
 import { formatCurrency } from '@/lib/utils';
 import { CurrencyInput } from './ui/currency-input';
-
-const costCategories = [
-    'PT dan PTT',
-    'PTT Project',
-    'Tenaga Ahli dan Labour Supply',
-    'Perjalanan Dinas',
-    'Operasional',
-    'Fasilitas dan Interen',
-    'Amortisasi',
-    'Kantor dan Diklat',
-    'Promosi',
-    'Umum',
-    'Other',
-];
-
-const coaToCategoryMap: { [key: number]: string } = {
-    4000: 'PT dan PTT',
-    4100: 'PTT Project',
-    4200: 'Tenaga Ahli dan Labour Supply',
-    4300: 'Perjalanan Dinas',
-    4400: 'Operasional',
-    4500: 'Fasilitas dan Interen',
-    4600: 'Amortisasi',
-    4700: 'Kantor dan Diklat',
-    4800: 'Promosi',
-    4900: 'Umum',
-};
-
-const categoryToCoaMap: { [key: string]: string } = {
-    'PT dan PTT': '4000',
-    'PTT Project': '4100',
-    'Tenaga Ahli dan Labour Supply': '4200',
-    'Perjalanan Dinas': '4300',
-    'Operasional': '4400',
-    'Fasilitas dan Interen': '4500',
-    'Amortisasi': '4600',
-    'Kantor dan Diklat': '4700',
-    'Promosi': '4800',
-    'Umum': '4900',
-    'Other': '',
-};
+import { coaToCategoryMap, categoryToCoaMap, costCategories } from '@/lib/reports';
 
 type ProjectCostTabProps = {
     project: Project;

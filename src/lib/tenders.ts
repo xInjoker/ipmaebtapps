@@ -1,6 +1,6 @@
 
 
-import { type Project, portfolios, subPortfolios, servicesBySubPortfolio, type Service } from '@/lib/data';
+import { type Project, portfolios, subPortfolios, servicesBySubPortfolio, type Service } from '@/lib/projects';
 
 export type TenderStatus = 'Aanwijzing' | 'Bidding' | 'Evaluation' | 'Awarded' | 'Lost' | 'Cancelled' | 'Prequalification';
 export type Regional = 'Kantor Pusat' | 'Regional Barat' | 'Regional Timur';

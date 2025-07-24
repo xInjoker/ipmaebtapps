@@ -7,7 +7,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import * as NextImage from 'next/image';
 import { useReports } from '@/context/ReportContext';
-import { type ReportItem, type ReportDetails, RadiographicFinding } from '@/lib/reports';
+import { type ReportItem, type ReportDetails, RadiographicFinding, PenetrantTestReportDetails, MagneticParticleTestReportDetails, UltrasonicTestReportDetails, RadiographicTestReportDetails } from '@/lib/reports';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';

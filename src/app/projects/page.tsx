@@ -20,15 +20,13 @@ import {
     SelectValue,
   } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { PlusCircle, Calendar as CalendarIcon, CircleDollarSign, Wallet, TrendingUp, Landmark, Search, X, BarChartBig, List } from 'lucide-react';
+import { PlusCircle, CircleDollarSign, Wallet, TrendingUp, Landmark, Search, X, BarChartBig, List } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { cn, formatCurrency, formatCurrencyMillions } from '@/lib/utils';
 import { useProjects } from '@/context/ProjectContext';
 import { useAuth } from '@/context/AuthContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProjectBranchChart } from '@/components/project-branch-chart';
-import { ProjectStatusChart } from '@/components/project-status-chart';
-import { ProjectExpenditureChart } from '@/components/project-expenditure-chart';
 import { HeaderCard } from '@/components/header-card';
 import { DashboardWidget } from '@/components/dashboard-widget';
 import { ProjectTargetRealizationChart } from '@/components/project-target-realization-chart';
