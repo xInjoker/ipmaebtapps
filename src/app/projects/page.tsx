@@ -29,7 +29,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProjectBranchChart } from '@/components/project-branch-chart';
 import { ProjectStatusChart } from '@/components/project-status-chart';
 import { ProjectExpenditureChart } from '@/components/project-expenditure-chart';
-import { ProjectIncomeExpenditureChart } from '@/components/project-income-expenditure-chart';
 import { HeaderCard } from '@/components/header-card';
 import { DashboardWidget } from '@/components/dashboard-widget';
 import { ProjectTargetRealizationChart } from '@/components/project-target-realization-chart';
@@ -179,7 +178,6 @@ export default function ProjectsPage() {
                 <ProjectExpenditureChart projects={visibleProjects} />
                 <CumulativeProfitChart projects={visibleProjects} />
                 <ProjectBranchChart projects={visibleProjects} branches={branches} />
-                <ProjectIncomeExpenditureChart projects={visibleProjects} />
                 <ProjectTargetRealizationChart projects={visibleProjects} />
             </div>
         </TabsContent>
