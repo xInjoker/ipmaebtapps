@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
@@ -565,14 +566,14 @@ export default function ProjectDetailsPage() {
                 <div ref={chartRefs.so}>
                   <ProjectServiceOrderChart project={project} />
                 </div>
-                <div ref={chartRefs.target}>
-                  <ProjectTargetRealizationChart projects={[project]} />
+                <div ref={chartRefs.budget}>
+                  <ProjectBudgetExpenditureChart project={project} />
                 </div>
                 <div ref={chartRefs.recap}>
                   <ProjectMonthlyRecapChart data={monthlyRecapData} />
                 </div>
-                <div ref={chartRefs.budget}>
-                  <ProjectBudgetExpenditureChart project={project} />
+                <div ref={chartRefs.target} className="lg:col-span-2">
+                  <ProjectTargetRealizationChart projects={[project]} />
                 </div>
             </div>
         </TabsContent>
