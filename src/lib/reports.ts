@@ -16,6 +16,47 @@ export const reportStatuses: ReportStatus[] = ['Draft', 'Submitted', 'Approved',
 export const acceptanceCriteriaOptions = ['ASME B31.3', 'API 1104', 'ASME Section V', 'AWS D1.1', 'ASME Sec VIII Div 1'];
 
 
+// --- Cost Categories & COA Mapping ---
+export const costCategories = [
+    'PT dan PTT',
+    'PTT Project',
+    'Tenaga Ahli dan Labour Supply',
+    'Perjalanan Dinas',
+    'Operasional',
+    'Fasilitas dan Interen',
+    'Amortisasi',
+    'Kantor dan Diklat',
+    'Promosi',
+    'Umum',
+    'Other'
+];
+
+export const categoryToCoaMap: Record<string, string> = {
+    'PT dan PTT': '4100',
+    'PTT Project': '4150',
+    'Tenaga Ahli dan Labour Supply': '4200',
+    'Perjalanan Dinas': '4300',
+    'Operasional': '4400',
+    'Fasilitas dan Interen': '4500',
+    'Amortisasi': '4600',
+    'Kantor dan Diklat': '4700',
+    'Promosi': '4800',
+    'Umum': '4900',
+};
+
+export const coaToCategoryMap: Record<number, string> = {
+    4100: 'PT dan PTT',
+    4150: 'PTT Project',
+    4200: 'Tenaga Ahli dan Labour Supply',
+    4300: 'Perjalanan Dinas',
+    4400: 'Operasional',
+    4500: 'Fasilitas dan Interen',
+    4600: 'Amortisasi',
+    4700: 'Kantor dan Diklat',
+    4800: 'Promosi',
+    4900: 'Umum',
+};
+
 // --- Penetrant Test (PT) ---
 export type PenetrantTestResult = {
     subjectIdentification: string;
