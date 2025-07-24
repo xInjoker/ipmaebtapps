@@ -33,6 +33,8 @@ import { HeaderCard } from '@/components/header-card';
 import { DashboardWidget } from '@/components/dashboard-widget';
 import { ProjectTargetRealizationChart } from '@/components/project-target-realization-chart';
 import { CumulativeProfitChart } from '@/components/cumulative-profit-chart';
+import { CumulativeCostPieChart } from '@/components/cumulative-cost-pie-chart';
+import { CumulativeIncomePieChart } from '@/components/cumulative-income-pie-chart';
 
 export default function ProjectsPage() {
   const { projects, getProjectStats } = useProjects();
@@ -174,8 +176,8 @@ export default function ProjectsPage() {
         </TabsList>
         <TabsContent value="summary">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <ProjectStatusChart projects={visibleProjects} />
-                <ProjectExpenditureChart projects={visibleProjects} />
+                <CumulativeIncomePieChart projects={visibleProjects} />
+                <CumulativeCostPieChart projects={visibleProjects} />
                 <CumulativeProfitChart projects={visibleProjects} />
                 <ProjectBranchChart projects={visibleProjects} branches={branches} />
                 <ProjectTargetRealizationChart projects={visibleProjects} />
