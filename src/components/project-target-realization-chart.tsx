@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Label } from 'recharts';
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Label, Line, ComposedChart } from 'recharts';
 import {
   ChartContainer,
   ChartTooltip,
@@ -157,7 +157,7 @@ export function ProjectTargetRealizationChart({ projects }: ProjectTargetRealiza
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="h-[400px] w-full">
-          <BarChart
+          <ComposedChart
             data={chartData}
             margin={{
               top: 5,
@@ -179,11 +179,11 @@ export function ProjectTargetRealizationChart({ projects }: ProjectTargetRealiza
               />}
             />
             <ChartLegend content={<ChartLegendContent />} />
-            <Bar dataKey="incomeTarget" fill="var(--color-incomeTarget)" radius={4} barSize={30} />
-            <Bar dataKey="incomeRealization" fill="var(--color-incomeRealization)" radius={4} barSize={15} />
-            <Bar dataKey="costTarget" fill="var(--color-costTarget)" radius={4} barSize={30} />
-            <Bar dataKey="costRealization" fill="var(--color-costRealization)" radius={4} barSize={15} />
-          </BarChart>
+            <Bar dataKey="incomeRealization" fill="var(--color-incomeRealization)" radius={4} />
+            <Bar dataKey="costRealization" fill="var(--color-costRealization)" radius={4} />
+            <Line type="monotone" dataKey="incomeTarget" stroke="var(--color-incomeTarget)" strokeWidth={2} dot={false} />
+            <Line type="monotone" dataKey="costTarget" stroke="var(--color-costTarget)" strokeWidth={2} dot={false} />
+          </ComposedChart>
         </ChartContainer>
       </CardContent>
     </Card>
