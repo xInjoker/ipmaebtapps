@@ -71,12 +71,12 @@ const incomeChartConfig: ChartConfig = {
 };
 
 const costChartConfig: ChartConfig = {
-    'Tenaga Ahli dan Labour Supply': { label: 'TA & LS', color: 'hsl(var(--chart-1))' },
-    'Perjalanan Dinas': { label: 'Perdin', color: 'hsl(var(--chart-2))' },
-    'Operasional': { label: 'Operasional', color: 'hsl(var(--chart-3))' },
-    'Fasilitas dan Interen': { label: 'Fasilitas', color: 'hsl(var(--chart-4))' },
-    'Promosi': { label: 'Promosi', color: 'hsl(var(--chart-5))' },
-    'Other': { label: 'Other', color: 'hsl(var(--muted-foreground))' },
+    'Tenaga Ahli dan Labour Supply': { label: 'TA & LS', color: 'hsl(var(--chart-5))' },
+    'Perjalanan Dinas': { label: 'Perdin', color: 'hsl(var(--chart-6))' },
+    'Operasional': { label: 'Operasional', color: 'hsl(var(--chart-7))' },
+    'Fasilitas dan Interen': { label: 'Fasilitas', color: 'hsl(var(--chart-8))' },
+    'Promosi': { label: 'Promosi', color: 'hsl(var(--chart-9))' },
+    'Other': { label: 'Other', color: 'hsl(var(--chart-10))' },
 };
 
 const chartConfig: ChartConfig = { ...incomeChartConfig, ...costChartConfig };
