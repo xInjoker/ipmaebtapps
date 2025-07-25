@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ComposedChart } from 'recharts';
@@ -35,6 +36,7 @@ import {
 import { useState, useMemo, useEffect } from 'react';
 import { Expand } from 'lucide-react';
 import { formatCurrency, formatCurrencyCompact } from '@/lib/utils';
+import { costCategories } from '@/lib/reports';
 
 type MonthlyData = {
     month: string;
@@ -42,14 +44,14 @@ type MonthlyData = {
     invoiced: number;
     pad: number;
     documentPreparation: number;
-    cost: number;
+    cost: Record<string, number>;
 };
 
 type ProjectMonthlyRecapChartProps = {
   data: MonthlyData[];
 };
 
-const chartConfig: ChartConfig = {
+const incomeChartConfig: ChartConfig = {
     paid: {
         label: 'Paid',
         color: 'hsl(var(--chart-1))',
@@ -66,11 +68,18 @@ const chartConfig: ChartConfig = {
         label: 'Doc Prep',
         color: 'hsl(var(--chart-4))',
     },
-    cost: {
-        label: 'Cost',
-        color: 'hsl(var(--chart-5))',
-    },
 };
+
+const costChartConfig: ChartConfig = {
+    'Tenaga Ahli dan Labour Supply': { label: 'TA & LS', color: 'hsl(var(--chart-1))' },
+    'Perjalanan Dinas': { label: 'Perdin', color: 'hsl(var(--chart-2))' },
+    'Operasional': { label: 'Operasional', color: 'hsl(var(--chart-3))' },
+    'Fasilitas dan Interen': { label: 'Fasilitas', color: 'hsl(var(--chart-4))' },
+    'Promosi': { label: 'Promosi', color: 'hsl(var(--chart-5))' },
+    'Other': { label: 'Other', color: 'hsl(var(--muted-foreground))' },
+};
+
+const chartConfig: ChartConfig = { ...incomeChartConfig, ...costChartConfig };
 
 function Chart({ data }: { data: ProjectMonthlyRecapChartProps['data'] }) {
   return (
@@ -97,11 +106,15 @@ function Chart({ data }: { data: ProjectMonthlyRecapChartProps['data'] }) {
           }
         />
         <ChartLegend content={<ChartLegendContent />} />
-        <Bar dataKey="paid" stackId="income" fill="var(--color-paid)" radius={[4, 4, 0, 0]} />
-        <Bar dataKey="invoiced" stackId="income" fill="var(--color-invoiced)" />
-        <Bar dataKey="pad" stackId="income" fill="var(--color-pad)" />
-        <Bar dataKey="documentPreparation" stackId="income" fill="var(--color-documentPreparation)" />
-        <Bar dataKey="cost" fill="var(--color-cost)" radius={4} />
+        <Bar dataKey="paid" stackId="income" fill="var(--color-paid)" radius={[4, 4, 0, 0]} barSize={30} />
+        <Bar dataKey="invoiced" stackId="income" fill="var(--color-invoiced)" barSize={30}/>
+        <Bar dataKey="pad" stackId="income" fill="var(--color-pad)" barSize={30}/>
+        <Bar dataKey="documentPreparation" stackId="income" fill="var(--color-documentPreparation)" barSize={30}/>
+        
+        {Object.keys(costChartConfig).map((key) => (
+             <Bar key={key} dataKey={`cost.${key}`} stackId="cost" fill={costChartConfig[key as keyof typeof costChartConfig].color} radius={[4, 4, 0, 0]} barSize={30}/>
+        ))}
+
       </ComposedChart>
     </ChartContainer>
   );

@@ -284,7 +284,7 @@ export default function ProjectDetailsPage() {
 
   const monthlyRecapData = useMemo(() => {
     if (!project) return [];
-
+  
     const dataMap: { 
         [key: string]: { 
             month: string,
@@ -292,15 +292,15 @@ export default function ProjectDetailsPage() {
             invoiced: number,
             pad: number,
             documentPreparation: number,
-            cost: number 
+            cost: Record<string, number> 
         } 
     } = {};
-
+  
     const monthOrder: { [key:string]: number } = {
       'January': 1, 'February': 2, 'March': 3, 'April': 4, 'May': 5, 'June': 6,
       'July': 7, 'August': 8, 'September': 9, 'October': 10, 'November': 11, 'December': 12
     };
-
+  
     const processPeriod = (period: string) => {
       const [month, year] = period.split(' ');
       if (!month || !year || !monthOrder[month]) return null;
@@ -315,16 +315,16 @@ export default function ProjectDetailsPage() {
             invoicedOrPaidValuesBySO[invoice.soNumber] = (invoicedOrPaidValuesBySO[invoice.soNumber] || 0) + invoice.value;
         }
     });
-
+  
     project.invoices.forEach(invoice => {
       const periodInfo = processPeriod(invoice.period);
       if (!periodInfo) return;
       const { sortKey, displayMonth } = periodInfo;
-
+  
       if (!dataMap[sortKey]) {
-        dataMap[sortKey] = { month: displayMonth, paid: 0, invoiced: 0, pad: 0, documentPreparation: 0, cost: 0 };
+        dataMap[sortKey] = { month: displayMonth, paid: 0, invoiced: 0, pad: 0, documentPreparation: 0, cost: {} };
       }
-
+  
       if (invoice.status === 'Paid') {
         dataMap[sortKey].paid += invoice.value;
       } else if (invoice.status === 'Invoiced') {
@@ -337,24 +337,24 @@ export default function ProjectDetailsPage() {
         dataMap[sortKey].pad += remainingPad;
       }
     });
-
+  
     project.costs.forEach(exp => {
       if (exp.status !== 'Approved') return;
       
       const periodInfo = processPeriod(exp.period);
       if (!periodInfo) return;
       const { sortKey, displayMonth } = periodInfo;
-
+  
       if (!dataMap[sortKey]) {
-         dataMap[sortKey] = { month: displayMonth, paid: 0, invoiced: 0, pad: 0, documentPreparation: 0, cost: 0 };
+         dataMap[sortKey] = { month: displayMonth, paid: 0, invoiced: 0, pad: 0, documentPreparation: 0, cost: {} };
       }
-      dataMap[sortKey].cost += exp.amount;
+      dataMap[sortKey].cost[exp.category] = (dataMap[sortKey].cost[exp.category] || 0) + exp.amount;
     });
-
+  
     return Object.keys(dataMap)
       .sort()
       .map(key => dataMap[key]);
-
+  
   }, [project]);
 
   const handleWorkflowChange = useCallback((type: 'trip' | 'report', newWorkflow: ApprovalStage[]) => {
