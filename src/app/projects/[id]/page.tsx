@@ -285,7 +285,17 @@ export default function ProjectDetailsPage() {
   const monthlyRecapData = useMemo(() => {
     if (!project) return [];
 
-    const dataMap: { [key: string]: { month: string, invoicedAndPaid: number, pad: number, cost: number } } = {};
+    const dataMap: { 
+        [key: string]: { 
+            month: string,
+            paid: number,
+            invoiced: number,
+            pad: number,
+            documentPreparation: number,
+            cost: number 
+        } 
+    } = {};
+
     const monthOrder: { [key:string]: number } = {
       'January': 1, 'February': 2, 'March': 3, 'April': 4, 'May': 5, 'June': 6,
       'July': 7, 'August': 8, 'September': 9, 'October': 10, 'November': 11, 'December': 12
@@ -298,6 +308,13 @@ export default function ProjectDetailsPage() {
       const displayMonth = `${month.slice(0, 3)} '${year.slice(2)}`;
       return { sortKey, displayMonth };
     };
+    
+    const invoicedOrPaidValuesBySO: Record<string, number> = {};
+    project.invoices.forEach(invoice => {
+        if (invoice.status === 'Paid' || invoice.status === 'Invoiced') {
+            invoicedOrPaidValuesBySO[invoice.soNumber] = (invoicedOrPaidValuesBySO[invoice.soNumber] || 0) + invoice.value;
+        }
+    });
 
     project.invoices.forEach(invoice => {
       const periodInfo = processPeriod(invoice.period);
@@ -305,13 +322,19 @@ export default function ProjectDetailsPage() {
       const { sortKey, displayMonth } = periodInfo;
 
       if (!dataMap[sortKey]) {
-        dataMap[sortKey] = { month: displayMonth, invoicedAndPaid: 0, pad: 0, cost: 0 };
+        dataMap[sortKey] = { month: displayMonth, paid: 0, invoiced: 0, pad: 0, documentPreparation: 0, cost: 0 };
       }
 
-      if (invoice.status === 'Invoiced' || invoice.status === 'Paid') {
-        dataMap[sortKey].invoicedAndPaid += invoice.value;
+      if (invoice.status === 'Paid') {
+        dataMap[sortKey].paid += invoice.value;
+      } else if (invoice.status === 'Invoiced') {
+        dataMap[sortKey].invoiced += invoice.value;
+      } else if (invoice.status === 'Document Preparation') {
+        dataMap[sortKey].documentPreparation += invoice.value;
       } else if (invoice.status === 'PAD') {
-        dataMap[sortKey].pad += invoice.value;
+        const invoicedAmountForSO = invoicedOrPaidValuesBySO[invoice.soNumber] || 0;
+        const remainingPad = Math.max(0, invoice.value - invoicedAmountForSO);
+        dataMap[sortKey].pad += remainingPad;
       }
     });
 
@@ -323,16 +346,10 @@ export default function ProjectDetailsPage() {
       const { sortKey, displayMonth } = periodInfo;
 
       if (!dataMap[sortKey]) {
-        dataMap[sortKey] = { month: displayMonth, invoicedAndPaid: 0, pad: 0, cost: 0 };
+         dataMap[sortKey] = { month: displayMonth, paid: 0, invoiced: 0, pad: 0, documentPreparation: 0, cost: 0 };
       }
       dataMap[sortKey].cost += exp.amount;
     });
-
-    for (const key in dataMap) {
-        const monthData = dataMap[key];
-        const remainingPad = monthData.pad - monthData.invoicedAndPaid;
-        monthData.pad = Math.max(0, remainingPad);
-    }
 
     return Object.keys(dataMap)
       .sort()

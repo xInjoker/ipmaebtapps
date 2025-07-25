@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ComposedChart } from 'recharts';
 import {
   ChartContainer,
   ChartTooltip,
@@ -36,34 +36,46 @@ import { useState, useMemo, useEffect } from 'react';
 import { Expand } from 'lucide-react';
 import { formatCurrency, formatCurrencyCompact } from '@/lib/utils';
 
-type ProjectMonthlyRecapChartProps = {
-  data: {
+type MonthlyData = {
     month: string;
-    invoicedAndPaid: number;
+    paid: number;
+    invoiced: number;
     pad: number;
+    documentPreparation: number;
     cost: number;
-  }[];
+};
+
+type ProjectMonthlyRecapChartProps = {
+  data: MonthlyData[];
 };
 
 const chartConfig: ChartConfig = {
-  invoicedAndPaid: {
-    label: 'Invoiced & Paid',
-    color: 'hsl(var(--chart-1))',
-  },
-  pad: {
-    label: 'PAD',
-    color: 'hsl(var(--chart-2))',
-  },
-  cost: {
-    label: 'Cost',
-    color: 'hsl(var(--chart-3))',
-  },
+    paid: {
+        label: 'Paid',
+        color: 'hsl(var(--chart-1))',
+    },
+    invoiced: {
+        label: 'Invoiced',
+        color: 'hsl(var(--chart-2))',
+    },
+    pad: {
+        label: 'PAD',
+        color: 'hsl(var(--chart-3))',
+    },
+    documentPreparation: {
+        label: 'Doc Prep',
+        color: 'hsl(var(--chart-4))',
+    },
+    cost: {
+        label: 'Cost',
+        color: 'hsl(var(--chart-5))',
+    },
 };
 
 function Chart({ data }: { data: ProjectMonthlyRecapChartProps['data'] }) {
   return (
     <ChartContainer config={chartConfig} className="h-[400px] w-full">
-      <BarChart data={data} accessibilityLayer>
+      <ComposedChart data={data} accessibilityLayer>
         <CartesianGrid vertical={false} />
         <XAxis
           dataKey="month"
@@ -85,14 +97,12 @@ function Chart({ data }: { data: ProjectMonthlyRecapChartProps['data'] }) {
           }
         />
         <ChartLegend content={<ChartLegendContent />} />
-        <Bar
-          dataKey="invoicedAndPaid"
-          fill="var(--color-invoicedAndPaid)"
-          radius={4}
-        />
-        <Bar dataKey="pad" fill="var(--color-pad)" radius={4} />
-        <Bar dataKey="cost" fill="var(--color-expenditure)" radius={4} />
-      </BarChart>
+        <Bar dataKey="paid" stackId="income" fill="var(--color-paid)" radius={[4, 4, 0, 0]} />
+        <Bar dataKey="invoiced" stackId="income" fill="var(--color-invoiced)" />
+        <Bar dataKey="pad" stackId="income" fill="var(--color-pad)" />
+        <Bar dataKey="documentPreparation" stackId="income" fill="var(--color-documentPreparation)" />
+        <Bar dataKey="cost" fill="var(--color-cost)" radius={4} />
+      </ComposedChart>
     </ChartContainer>
   );
 }
@@ -110,7 +120,6 @@ export function ProjectMonthlyRecapChart({
   }, [data]);
 
   useEffect(() => {
-    // Set default year to the most recent one if available
     if (availableYears.length > 1) {
       setSelectedYear(availableYears[1]);
     } else {
@@ -137,9 +146,9 @@ export function ProjectMonthlyRecapChart({
         <CardHeader>
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <CardTitle>Monthly Invoicing Progress</CardTitle>
+              <CardTitle>Monthly Financial Recap</CardTitle>
               <CardDescription>
-                Recapitulation of Invoiced, PAD, and Costs.
+                Recapitulation of Income Components and Costs.
               </CardDescription>
             </div>
             <div className="flex items-center gap-2">
@@ -174,7 +183,7 @@ export function ProjectMonthlyRecapChart({
         <DialogContent className="max-w-6xl">
           <DialogHeader>
             <DialogTitle>
-              Monthly Invoicing Progress: {selectedYear === 'all' ? 'All Years' : selectedYear}
+              Monthly Financial Recap: {selectedYear === 'all' ? 'All Years' : selectedYear}
             </DialogTitle>
             <DialogDescription>
               Full view of the project's monthly financial recapitulation.
