@@ -569,7 +569,7 @@ export default function ProjectDetailsPage() {
                 <div ref={chartRefs.budget}>
                   <ProjectBudgetExpenditureChart project={project} />
                 </div>
-                <div ref={chartRefs.recap}>
+                <div ref={chartRefs.recap} className="lg:col-span-2">
                   <ProjectMonthlyRecapChart data={monthlyRecapData} />
                 </div>
                 <div ref={chartRefs.target} className="lg:col-span-2">
