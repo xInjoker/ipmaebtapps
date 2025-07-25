@@ -24,6 +24,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuSub,
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
@@ -43,9 +44,10 @@ import {
   Clock,
   CheckCircle,
   XCircle,
+  Download,
 } from 'lucide-react';
 import { useTenders } from '@/context/TenderContext';
-import { type TenderStatus, tenderStatuses, regionalOptions } from '@/lib/tenders';
+import { type Tender, type TenderStatus, tenderStatuses, regionalOptions, tenderFieldLabels } from '@/lib/tenders';
 import { format, formatDistanceToNow } from 'date-fns';
 import { useAuth } from '@/context/AuthContext';
 import { Calendar } from '@/components/ui/calendar';
@@ -65,7 +67,10 @@ import { TenderCountChart } from '@/components/tender-count-chart';
 import { TenderBranchChart } from '@/components/tender-branch-chart';
 import { HeaderCard } from '@/components/header-card';
 import { DashboardWidget } from '@/components/dashboard-widget';
+import * as XLSX from 'xlsx';
+import { TenderExportDialog } from '@/components/tender-export-dialog';
 
+const allTenderFields = Object.keys(tenderFieldLabels) as (keyof Tender)[];
 
 export default function TendersPage() {
   useSearchParams();
@@ -79,6 +84,10 @@ export default function TendersPage() {
   const [branchFilter, setBranchFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState<TenderStatus | 'all'>('all');
   const [regionFilter, setRegionFilter] = useState('all');
+  const [isCustomizeExportOpen, setIsCustomizeExportOpen] = useState(false);
+  const [exportFields, setExportFields] = useState<(keyof Tender)[]>([
+    'tenderNumber', 'title', 'client', 'status', 'submissionDate', 'bidPrice'
+  ]);
   
   useEffect(() => {
     if (user && !isHqUser && !initialFilterSet.current) {
@@ -248,20 +257,69 @@ export default function TendersPage() {
     }
   }, [isHqUser]);
 
+  const handleExport = useCallback(() => {
+    const dataToExport = filteredTenders.map((tender) => {
+      const selectedData: Partial<Tender> = {};
+      exportFields.forEach((field) => {
+        if (field === 'branchId') {
+            (selectedData as any)['Branch'] = branchMap[tender.branchId || ''] || 'N/A';
+        } else {
+            selectedData[field] = tender[field];
+        }
+      });
+      return selectedData;
+    });
+
+    const headers = exportFields.map(
+      (field) => (field === 'branchId' ? 'Branch' : tenderFieldLabels[field]) || field
+    );
+
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport, {
+      header: exportFields.map(f => f === 'branchId' ? 'Branch' : f),
+    });
+    XLSX.utils.sheet_add_aoa(worksheet, [headers], { origin: 'A1' });
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Tenders');
+    XLSX.writeFile(workbook, 'tenders.xlsx');
+  }, [filteredTenders, exportFields, branchMap]);
+
+
   return (
+    <>
     <div className="space-y-6">
       <HeaderCard
         title="Tender Monitoring"
         description="Track and manage all ongoing and past tenders."
       >
-        {userHasPermission('manage-tenders') && (
-            <Button asChild>
-                <Link href="/tenders/new">
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Add New Tender
-                </Link>
-            </Button>
-          )}
+        <div className="flex items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="secondary">
+                  <Download className="mr-2 h-4 w-4" />
+                  Export
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onSelect={handleExport}>
+                  Export as Excel
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onSelect={() => setIsCustomizeExportOpen(true)}
+                >
+                  Customize Export Fields
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            {userHasPermission('manage-tenders') && (
+                <Button asChild>
+                    <Link href="/tenders/new">
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Add New Tender
+                    </Link>
+                </Button>
+            )}
+        </div>
       </HeaderCard>
      
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -360,7 +418,7 @@ export default function TendersPage() {
                                 <TableCell className="font-medium">
                                     {tender.tenderNumber}
                                 </TableCell>
-                                <TableCell className="max-w-xs break-words">{tender.title}</TableCell>
+                                <TableCell>{tender.title}</TableCell>
                                 <TableCell>{tender.client}</TableCell>
                                 <TableCell>
                                 {tender.branchId ? branchMap[tender.branchId] : 'N/A'}
@@ -525,5 +583,13 @@ export default function TendersPage() {
         </TabsContent>
       </Tabs>
     </div>
+    <TenderExportDialog
+        isOpen={isCustomizeExportOpen}
+        onOpenChange={setIsCustomizeExportOpen}
+        onSave={setExportFields}
+        allFields={allTenderFields}
+        defaultSelectedFields={exportFields}
+    />
+    </>
   );
 }
