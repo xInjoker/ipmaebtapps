@@ -36,7 +36,8 @@ import {
 import { useState, useMemo, useEffect } from 'react';
 import { Expand } from 'lucide-react';
 import { formatCurrency, formatCurrencyCompact } from '@/lib/utils';
-import { costCategories } from '@/lib/reports';
+import { cn } from '@/lib/utils';
+
 
 type MonthlyData = {
     month: string;
@@ -72,14 +73,72 @@ const incomeChartConfig: ChartConfig = {
 
 const costChartConfig: ChartConfig = {
     'Tenaga Ahli dan Labour Supply': { label: 'TA & LS', color: 'hsl(var(--chart-5))' },
-    'Perjalanan Dinas': { label: 'Perdin', color: 'hsl(var(--chart-6))' },
-    'Operasional': { label: 'Operasional', color: 'hsl(var(--chart-7))' },
-    'Fasilitas dan Interen': { label: 'Fasilitas', color: 'hsl(var(--chart-8))' },
-    'Promosi': { label: 'Promosi', color: 'hsl(var(--chart-9))' },
-    'Other': { label: 'Other', color: 'hsl(var(--chart-10))' },
+    'Perjalanan Dinas': { label: 'Perdin', color: 'hsl(var(--chart-1))' },
+    'Operasional': { label: 'Operasional', color: 'hsl(var(--chart-2))' },
+    'Fasilitas dan Interen': { label: 'Fasilitas', color: 'hsl(var(--chart-3))' },
+    'Promosi': { label: 'Promosi', color: 'hsl(var(--chart-4))' },
+    'Other': { label: 'Other', color: 'hsl(var(--muted-foreground))' },
 };
 
 const chartConfig: ChartConfig = { ...incomeChartConfig, ...costChartConfig };
+
+const CustomTooltipContent = ({ active, payload, label }: any) => {
+    if (!active || !payload || payload.length === 0) {
+        return null;
+    }
+
+    const hoveredStackId = payload[0].payload.stackId;
+    
+    let relevantPayload = [];
+    if (hoveredStackId === 'income') {
+        relevantPayload = Object.entries(incomeChartConfig)
+            .map(([key, config]) => ({
+                name: config.label,
+                value: payload[0].payload[key],
+                color: config.color,
+            }))
+            .filter(item => item.value > 0);
+    } else if (hoveredStackId === 'cost') {
+        relevantPayload = Object.entries(costChartConfig)
+            .map(([key, config]) => ({
+                name: config.label,
+                value: payload[0].payload.cost[key],
+                color: config.color,
+            }))
+            .filter(item => item.value > 0);
+    } else {
+        // Fallback for single bars or other cases
+        relevantPayload = payload.map((p: any) => ({
+            name: chartConfig[p.dataKey as keyof typeof chartConfig]?.label || p.name,
+            value: p.value,
+            color: p.fill,
+        }));
+    }
+
+    const total = relevantPayload.reduce((sum, item) => sum + item.value, 0);
+
+    return (
+        <div className="min-w-[12rem] rounded-lg border bg-background p-2 text-sm shadow-sm">
+            <div className="font-bold">{label}</div>
+            <div className="mt-2 space-y-1">
+                {relevantPayload.map((item, index) => (
+                     <div key={index} className="flex items-center justify-between">
+                        <div className="flex items-center">
+                            <span className="mr-2 h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: item.color }} />
+                            <span className="text-muted-foreground">{item.name}</span>
+                        </div>
+                        <span className="font-bold">{formatCurrencyCompact(item.value)}</span>
+                    </div>
+                ))}
+                <div className="flex items-center justify-between border-t pt-1 mt-1 font-bold">
+                    <span>Total</span>
+                    <span>{formatCurrencyCompact(total)}</span>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 
 function Chart({ data }: { data: ProjectMonthlyRecapChartProps['data'] }) {
   return (
@@ -96,14 +155,8 @@ function Chart({ data }: { data: ProjectMonthlyRecapChartProps['data'] }) {
           tickFormatter={(value) => formatCurrencyCompact(Number(value))}
         />
         <ChartTooltip
-          cursor={false}
-          content={
-            <ChartTooltipContent
-              indicator="dot"
-              hideLabel
-              valueFormatter={formatCurrencyCompact}
-            />
-          }
+          cursor={{ fill: 'hsl(var(--muted))' }}
+          content={<CustomTooltipContent />}
         />
         <ChartLegend content={<ChartLegendContent />} />
         <Bar dataKey="paid" stackId="income" fill="var(--color-paid)" radius={[4, 4, 0, 0]} barSize={30} />
@@ -112,7 +165,7 @@ function Chart({ data }: { data: ProjectMonthlyRecapChartProps['data'] }) {
         <Bar dataKey="documentPreparation" stackId="income" fill="var(--color-documentPreparation)" barSize={30}/>
         
         {Object.keys(costChartConfig).map((key) => (
-             <Bar key={key} dataKey={`cost.${key}`} stackId="cost" fill={costChartConfig[key as keyof typeof costChartConfig].color} radius={[4, 4, 0, 0]} barSize={30}/>
+             <Bar key={key} dataKey={`cost.${key}`} stackId="cost" fill={(costChartConfig[key as keyof typeof costChartConfig] as any).color} radius={[4, 4, 0, 0]} barSize={30}/>
         ))}
 
       </ComposedChart>
