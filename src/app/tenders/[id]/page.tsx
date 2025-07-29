@@ -206,12 +206,21 @@ export default function TenderDetailsPage() {
                     {(tender.documentUrls || []).length > 0 ? (
                         <div className="space-y-2">
                             {tender.documentUrls!.map((url, index) => {
-                                const fileName = `Document_${tender.tenderNumber}_${index+1}`;
+                                let fileName = `Document ${index + 1}`;
+                                try {
+                                    // Extract filename from data URL metadata if available
+                                    const nameMatch = url.match(/name=([^;]+);/);
+                                    if (nameMatch && nameMatch[1]) {
+                                        fileName = decodeURIComponent(nameMatch[1]);
+                                    }
+                                } catch (e) {
+                                    console.error("Could not parse filename from URL", e);
+                                }
                                 return (
                                 <div key={index} className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
                                     <div className="flex items-center gap-2 truncate">
                                         <FileText className="h-4 w-4 flex-shrink-0" />
-                                        <span className="text-sm truncate">Document {index + 1}</span>
+                                        <span className="text-sm truncate">{fileName}</span>
                                     </div>
                                     <Button variant="ghost" size="sm" onClick={() => downloadFile(url, fileName)}>
                                         <Download className="mr-2 h-4 w-4" />
@@ -234,4 +243,3 @@ export default function TenderDetailsPage() {
     </div>
   );
 }
-
