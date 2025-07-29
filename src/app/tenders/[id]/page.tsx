@@ -42,7 +42,7 @@ function DetailItem({ icon: Icon, label, value, iconColor }: { icon: React.Eleme
     if (!value) return null;
     const bgColor = `${iconColor}1A`; // Adds ~10% opacity
     return (
-        <div className="flex items-center gap-4">
+        <div className="flex items-start gap-4">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: bgColor }}>
                 <Icon className="h-5 w-5" style={{ color: iconColor }} />
             </div>
@@ -168,8 +168,10 @@ export default function TenderDetailsPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
                             <DetailItem icon={Building} label="Client" value={tender.client} iconColor={iconColors[colorIndex++ % iconColors.length]} />
                             <DetailItem icon={User} label="Principal" value={tender.principal} iconColor={iconColors[colorIndex++ % iconColors.length]} />
+                             <DetailItem icon={List} label="Service Name" value={tender.serviceName} iconColor={iconColors[colorIndex++ % iconColors.length]} />
+                            <DetailItem icon={Briefcase} label="Services (Legacy)" value={tender.services} iconColor={iconColors[colorIndex++ % iconColors.length]} />
                             <div className="md:col-span-2">
-                            <DetailItem icon={FileText} label="Description" value={tender.description} iconColor={iconColors[colorIndex++ % iconColors.length]} />
+                                <DetailItem icon={FileText} label="Description" value={tender.description} iconColor={iconColors[colorIndex++ % iconColors.length]} />
                             </div>
                         </div>
                     </div>
@@ -179,8 +181,6 @@ export default function TenderDetailsPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
                             <DetailItem icon={GanttChart} label="Portfolio" value={tender.portfolio} iconColor={iconColors[colorIndex++ % iconColors.length]} />
                             <DetailItem icon={FolderTree} label="Sub-Portfolio" value={tender.subPortfolio} iconColor={iconColors[colorIndex++ % iconColors.length]} />
-                            <DetailItem icon={List} label="Service Name" value={tender.serviceName} iconColor={iconColors[colorIndex++ % iconColors.length]} />
-                            <DetailItem icon={Briefcase} label="Services (Legacy)" value={tender.services} iconColor={iconColors[colorIndex++ % iconColors.length]} />
                             <DetailItem icon={Globe} label="Regional" value={tender.regional} iconColor={iconColors[colorIndex++ % iconColors.length]} />
                             <DetailItem icon={Building} label="Branch" value={tender.branchId ? branchMap[tender.branchId] : 'N/A'} iconColor={iconColors[colorIndex++ % iconColors.length]} />
                         </div>
@@ -234,3 +234,4 @@ export default function TenderDetailsPage() {
     </div>
   );
 }
+
