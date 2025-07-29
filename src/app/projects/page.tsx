@@ -33,6 +33,7 @@ import { ProjectTargetRealizationChart } from '@/components/project-target-reali
 import { CumulativeProfitChart } from '@/components/cumulative-profit-chart';
 import { CumulativeCostPieChart } from '@/components/cumulative-cost-pie-chart';
 import { CumulativeIncomePieChart } from '@/components/cumulative-income-pie-chart';
+import { ProjectMonthlyRecapChart } from '@/components/project-monthly-recap-chart';
 
 export default function ProjectsPage() {
   const { projects, getProjectStats } = useProjects();
@@ -114,6 +115,83 @@ export default function ProjectsPage() {
     }
   }, [isHqUser]);
 
+  const monthlyRecapData = useMemo(() => {
+    if (!visibleProjects) return [];
+  
+    const dataMap: { 
+        [key: string]: { 
+            month: string,
+            paid: number,
+            invoiced: number,
+            pad: number,
+            documentPreparation: number,
+            cost: Record<string, number> 
+        } 
+    } = {};
+  
+    const monthOrder: { [key:string]: number } = {
+      'January': 1, 'February': 2, 'March': 3, 'April': 4, 'May': 5, 'June': 6,
+      'July': 7, 'August': 8, 'September': 9, 'October': 10, 'November': 11, 'December': 12
+    };
+  
+    const processPeriod = (period: string) => {
+      const [month, year] = period.split(' ');
+      if (!month || !year || !monthOrder[month]) return null;
+      const sortKey = `${year}-${String(monthOrder[month]).padStart(2, '0')}`;
+      const displayMonth = `${month.slice(0, 3)} '${year.slice(2)}`;
+      return { sortKey, displayMonth };
+    };
+    
+    visibleProjects.forEach(project => {
+        const invoicedOrPaidValuesBySO: Record<string, number> = {};
+        project.invoices.forEach(invoice => {
+            if (invoice.status === 'Paid' || invoice.status === 'Invoiced') {
+                invoicedOrPaidValuesBySO[invoice.soNumber] = (invoicedOrPaidValuesBySO[invoice.soNumber] || 0) + invoice.value;
+            }
+        });
+    
+        project.invoices.forEach(invoice => {
+        const periodInfo = processPeriod(invoice.period);
+        if (!periodInfo) return;
+        const { sortKey, displayMonth } = periodInfo;
+    
+        if (!dataMap[sortKey]) {
+            dataMap[sortKey] = { month: displayMonth, paid: 0, invoiced: 0, pad: 0, documentPreparation: 0, cost: {} };
+        }
+    
+        if (invoice.status === 'Paid') {
+            dataMap[sortKey].paid += invoice.value;
+        } else if (invoice.status === 'Invoiced') {
+            dataMap[sortKey].invoiced += invoice.value;
+        } else if (invoice.status === 'Document Preparation') {
+            dataMap[sortKey].documentPreparation += invoice.value;
+        } else if (invoice.status === 'PAD') {
+            const invoicedAmountForSO = invoicedOrPaidValuesBySO[invoice.soNumber] || 0;
+            const remainingPad = Math.max(0, invoice.value - invoicedAmountForSO);
+            dataMap[sortKey].pad += remainingPad;
+        }
+        });
+    
+        project.costs.forEach(exp => {
+        if (exp.status !== 'Approved') return;
+        
+        const periodInfo = processPeriod(exp.period);
+        if (!periodInfo) return;
+        const { sortKey, displayMonth } = periodInfo;
+    
+        if (!dataMap[sortKey]) {
+            dataMap[sortKey] = { month: displayMonth, paid: 0, invoiced: 0, pad: 0, documentPreparation: 0, cost: {} };
+        }
+        dataMap[sortKey].cost[exp.category] = (dataMap[sortKey].cost[exp.category] || 0) + exp.amount;
+        });
+    });
+  
+    return Object.keys(dataMap)
+      .sort()
+      .map(key => dataMap[key]);
+  
+  }, [visibleProjects]);
+
 
   return (
     <div className="space-y-6">
@@ -176,6 +254,9 @@ export default function ProjectsPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <CumulativeIncomePieChart projects={visibleProjects} />
                 <CumulativeCostPieChart projects={visibleProjects} />
+                <div className="lg:col-span-2">
+                    <ProjectMonthlyRecapChart data={monthlyRecapData} />
+                </div>
                 <CumulativeProfitChart projects={visibleProjects} />
                 <ProjectBranchChart projects={visibleProjects} branches={branches} />
                 <ProjectTargetRealizationChart projects={visibleProjects} />
