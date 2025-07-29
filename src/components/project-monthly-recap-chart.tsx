@@ -73,11 +73,11 @@ const incomeChartConfig: ChartConfig = {
 
 const costChartConfig: ChartConfig = {
     'Tenaga Ahli dan Labour Supply': { label: 'TA & LS', color: 'hsl(var(--chart-5))' },
-    'Perjalanan Dinas': { label: 'Perdin', color: 'hsl(var(--chart-1))' },
-    'Operasional': { label: 'Operasional', color: 'hsl(var(--chart-2))' },
-    'Fasilitas dan Interen': { label: 'Fasilitas', color: 'hsl(var(--chart-3))' },
-    'Promosi': { label: 'Promosi', color: 'hsl(var(--chart-4))' },
-    'Other': { label: 'Other', color: 'hsl(var(--muted-foreground))' },
+    'Perjalanan Dinas': { label: 'Perdin', color: 'hsl(var(--chart-6))' },
+    'Operasional': { label: 'Operasional', color: 'hsl(var(--chart-7))' },
+    'Fasilitas dan Interen': { label: 'Fasilitas', color: 'hsl(var(--chart-8))' },
+    'Promosi': { label: 'Promosi', color: 'hsl(var(--chart-9))' },
+    'Other': { label: 'Other', color: 'hsl(var(--chart-10))' },
 };
 
 const chartConfig: ChartConfig = { ...incomeChartConfig, ...costChartConfig };
@@ -103,7 +103,7 @@ const CustomTooltipContent = ({ active, payload, label }: any) => {
             value: data.cost[key],
             color: config.color,
         }))
-        .filter(item => item.value > 0);
+        .filter(item => item && item.value > 0);
     
     if (incomeItems.length === 0 && costItems.length === 0) return null;
 
