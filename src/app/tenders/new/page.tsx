@@ -15,14 +15,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
-import { ArrowLeft, Calendar as CalendarIcon, Save, ChevronsUpDown, Check } from 'lucide-react';
+import { cn, fileToBase64 } from '@/lib/utils';
+import { ArrowLeft, Calendar as CalendarIcon, Save, ChevronsUpDown, Check, Upload, File as FileIcon, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { Textarea } from '@/components/ui/textarea';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { portfolios, subPortfolios, servicesBySubPortfolio } from '@/lib/projects';
-import { CurrencyInput } from '@/components/ui/currency-input';
+import { CurrencyInput } from './ui/currency-input';
 import { Separator } from '@/components/ui/separator';
 
 export default function NewTenderPage() {
@@ -32,6 +32,7 @@ export default function NewTenderPage() {
     const { branches } = useAuth();
 
     const [isServicesPopoverOpen, setIsServicesPopoverOpen] = useState(false);
+    const [documents, setDocuments] = useState<File[]>([]);
 
     const [newTender, setNewTender] = useState({
         tenderNumber: '',
@@ -66,6 +67,16 @@ export default function NewTenderPage() {
     const handleRegionalChange = useCallback((value: Regional) => {
         setNewTender(prev => ({ ...prev, regional: value, branchId: '' }));
     }, []);
+    
+    const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) {
+            setDocuments(prev => [...prev, ...Array.from(e.target.files!)]);
+        }
+    }, []);
+
+    const removeDocument = useCallback((index: number) => {
+        setDocuments(prev => prev.filter((_, i) => i !== index));
+    }, []);
 
     const handleSave = useCallback(async () => {
         if (!newTender.tenderNumber || !newTender.title || !newTender.client || !newTender.status || !newTender.submissionDate) {
@@ -77,31 +88,16 @@ export default function NewTenderPage() {
             return;
         }
 
-        const newTenderData: Tender = {
-            id: `TND-${Date.now()}`,
-            tenderNumber: newTender.tenderNumber,
-            title: newTender.title,
-            client: newTender.client,
-            principal: newTender.principal,
-            description: newTender.description,
-            services: newTender.services,
-            status: newTender.status as TenderStatus,
+        const newTenderData = {
+            ...newTender,
             submissionDate: format(newTender.submissionDate, 'yyyy-MM-dd'),
-            bidPrice: newTender.bidPrice,
-            ownerEstimatePrice: newTender.ownerEstimatePrice,
-            personInCharge: newTender.personInCharge,
-            branchId: newTender.branchId,
-            regional: newTender.regional as Regional,
-            subPortfolio: newTender.subPortfolio as (typeof subPortfolios)[number],
-            portfolio: newTender.portfolio as (typeof portfolios)[number],
-            serviceCode: newTender.serviceCode,
-            serviceName: newTender.serviceName,
+            documents,
         };
 
         await addTender(newTenderData);
         toast({ title: 'Tender Added', description: `Successfully added tender ${newTender.tenderNumber}.` });
         setTimeout(() => router.push('/tenders'), 500);
-    }, [newTender, addTender, toast, router]);
+    }, [newTender, documents, addTender, toast, router]);
 
     return (
         <div className="space-y-6">
@@ -321,6 +317,39 @@ export default function NewTenderPage() {
                             </div>
                         </div>
                     </div>
+
+                    <div className="space-y-4">
+                        <h3 className="font-semibold text-lg">Supporting Documents</h3>
+                        <Separator />
+                        <div className="space-y-2">
+                            <div className="flex items-center justify-center w-full">
+                                <label htmlFor="document-upload" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-card hover:bg-muted">
+                                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                        <Upload className="w-8 h-8 mb-3 text-muted-foreground" />
+                                        <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> or drag and drop</p>
+                                        <p className="text-xs text-muted-foreground">Any file type</p>
+                                    </div>
+                                    <Input id="document-upload" type="file" className="hidden" multiple onChange={handleFileChange} />
+                                </label>
+                            </div>
+                            {documents.length > 0 && (
+                                <div className="mt-4 space-y-2">
+                                    {documents.map((file, index) => (
+                                    <div key={index} className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
+                                        <div className="flex items-center gap-2 truncate">
+                                            <FileIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                            <span className="text-sm truncate">{file.name}</span>
+                                        </div>
+                                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeDocument(index)}>
+                                            <X className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
                 </CardContent>
                 <CardFooter className="flex justify-end gap-2">
                     <Button variant="outline" asChild>

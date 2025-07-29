@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -28,11 +29,14 @@ import {
   Edit,
   FolderTree,
   List,
+  Download,
+  Paperclip,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '@/context/AuthContext';
 import { type Tender } from '@/lib/tenders';
 import { formatCurrency, getTenderStatusVariant } from '@/lib/utils';
+import { Separator } from '@/components/ui/separator';
 
 function DetailItem({ icon: Icon, label, value }: { icon: React.ElementType, label: string, value?: React.ReactNode }) {
     if (!value) return null;
@@ -81,6 +85,16 @@ export default function TenderDetailsPage() {
       </div>
     );
   }
+  
+  const downloadFile = (url: string, fileName: string) => {
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName || 'download';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
 
   return (
     <div className="space-y-6">
@@ -132,6 +146,39 @@ export default function TenderDetailsPage() {
                     <DetailItem icon={Calendar} label="Submission Date" value={format(new Date(tender.submissionDate), 'PPP')} />
                     <DetailItem icon={CircleDollarSign} label="Owner Estimate Price" value={formatCurrency(tender.ownerEstimatePrice || 0)} />
                     <DetailItem icon={CircleDollarSign} label="Bid Price" value={formatCurrency(tender.bidPrice)} />
+                </CardContent>
+            </Card>
+            
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2"><Paperclip/> Supporting Documents</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    {(tender.documentUrls || []).length > 0 ? (
+                        <div className="space-y-2">
+                            {tender.documentUrls!.map((url, index) => {
+                                const fileName = `Document_${tender.tenderNumber}_${index+1}`;
+                                return (
+                                <div key={index} className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
+                                    <div className="flex items-center gap-2 truncate">
+                                        <FileText className="h-4 w-4 flex-shrink-0" />
+                                        <span className="text-sm truncate">Document {index + 1}</span>
+                                    </div>
+                                    <Button variant="ghost" size="sm" onClick={() => downloadFile(url, fileName)}>
+                                        <Download className="mr-2 h-4 w-4" />
+                                        Download
+                                    </Button>
+                                </div>
+                            )})}
+                        </div>
+                    ) : (
+                        <div className="flex items-center justify-center h-32 rounded-md border-2 border-dashed bg-muted">
+                            <div className="text-center text-muted-foreground">
+                                <FileText className="mx-auto h-10 w-10" />
+                                <p className="mt-2 text-sm">No documents uploaded</p>
+                            </div>
+                        </div>
+                    )}
                 </CardContent>
             </Card>
         </div>
