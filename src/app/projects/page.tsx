@@ -65,7 +65,7 @@ export default function ProjectsPage() {
                           project.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           project.contractNumber.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const branchMatch = branchFilter === 'all' || project.branchId === branchMatch;
+      const branchMatch = branchFilter === 'all' || project.branchId === branchFilter;
 
       return searchMatch && branchMatch;
     });
