@@ -80,12 +80,12 @@ export function CumulativeCostPieChart({ projects }: CumulativeCostPieChartProps
   );
   
   const availableYears = useMemo(() => {
-    const years = new Set(projects.flatMap(p => p.costs.map(i => i.period.split(' ')[1])).filter(Boolean));
+    const years = new Set(projects.flatMap(p => (p.costs || []).map(i => i.period.split(' ')[1])).filter(Boolean));
     return ['all', ...Array.from(years).sort((a, b) => Number(b) - Number(a))];
   }, [projects]);
 
   const { chartData, totalCost } = useMemo(() => {
-    const allCosts = projects.flatMap(p => p.costs);
+    const allCosts = projects.flatMap(p => p.costs || []);
 
     const filteredCosts = selectedYear === 'all'
         ? allCosts
