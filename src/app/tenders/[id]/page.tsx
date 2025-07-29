@@ -42,7 +42,7 @@ function DetailItem({ icon: Icon, label, value, iconColor }: { icon: React.Eleme
     if (!value) return null;
     const bgColor = `${iconColor}1A`; // Adds ~10% opacity
     return (
-        <div className="flex items-start gap-4">
+        <div className="flex items-center gap-4">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: bgColor }}>
                 <Icon className="h-5 w-5" style={{ color: iconColor }} />
             </div>
@@ -162,22 +162,39 @@ export default function TenderDetailsPage() {
                 <CardHeader>
                     <CardTitle>Tender Details</CardTitle>
                 </CardHeader>
-                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-8">
-                    <DetailItem icon={Building} label="Client" value={tender.client} iconColor={iconColors[colorIndex++ % iconColors.length]} />
-                    <DetailItem icon={User} label="Principal" value={tender.principal} iconColor={iconColors[colorIndex++ % iconColors.length]} />
-                    <DetailItem icon={GanttChart} label="Portfolio" value={tender.portfolio} iconColor={iconColors[colorIndex++ % iconColors.length]} />
-                    <DetailItem icon={FolderTree} label="Sub-Portfolio" value={tender.subPortfolio} iconColor={iconColors[colorIndex++ % iconColors.length]} />
-                    <DetailItem icon={List} label="Service Name" value={tender.serviceName} iconColor={iconColors[colorIndex++ % iconColors.length]} />
-                    <DetailItem icon={Briefcase} label="Services (Legacy)" value={tender.services} iconColor={iconColors[colorIndex++ % iconColors.length]} />
-                    <div className="md:col-span-2">
-                      <DetailItem icon={FileText} label="Description" value={tender.description} iconColor={iconColors[colorIndex++ % iconColors.length]} />
+                <CardContent className="space-y-8">
+                     <div>
+                        <h3 className="font-semibold mb-4 text-base">Tender Identification</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
+                            <DetailItem icon={Building} label="Client" value={tender.client} iconColor={iconColors[colorIndex++ % iconColors.length]} />
+                            <DetailItem icon={User} label="Principal" value={tender.principal} iconColor={iconColors[colorIndex++ % iconColors.length]} />
+                            <div className="md:col-span-2">
+                            <DetailItem icon={FileText} label="Description" value={tender.description} iconColor={iconColors[colorIndex++ % iconColors.length]} />
+                            </div>
+                        </div>
                     </div>
-                    <DetailItem icon={Globe} label="Regional" value={tender.regional} iconColor={iconColors[colorIndex++ % iconColors.length]} />
-                    <DetailItem icon={Building} label="Branch" value={tender.branchId ? branchMap[tender.branchId] : 'N/A'} iconColor={iconColors[colorIndex++ % iconColors.length]} />
-                    <DetailItem icon={UserCheck} label="Person In Charge" value={tender.personInCharge} iconColor={iconColors[colorIndex++ % iconColors.length]} />
-                    <DetailItem icon={Calendar} label="Submission Date" value={format(new Date(tender.submissionDate), 'PPP')} iconColor={iconColors[colorIndex++ % iconColors.length]} />
-                    <DetailItem icon={CircleDollarSign} label="Owner Estimate Price" value={formatCurrency(tender.ownerEstimatePrice || 0)} iconColor={iconColors[colorIndex++ % iconColors.length]} />
-                    <DetailItem icon={CircleDollarSign} label="Bid Price" value={formatCurrency(tender.bidPrice)} iconColor={iconColors[colorIndex++ % iconColors.length]} />
+                    <Separator/>
+                     <div>
+                        <h3 className="font-semibold mb-4 text-base">Classification & Location</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
+                            <DetailItem icon={GanttChart} label="Portfolio" value={tender.portfolio} iconColor={iconColors[colorIndex++ % iconColors.length]} />
+                            <DetailItem icon={FolderTree} label="Sub-Portfolio" value={tender.subPortfolio} iconColor={iconColors[colorIndex++ % iconColors.length]} />
+                            <DetailItem icon={List} label="Service Name" value={tender.serviceName} iconColor={iconColors[colorIndex++ % iconColors.length]} />
+                            <DetailItem icon={Briefcase} label="Services (Legacy)" value={tender.services} iconColor={iconColors[colorIndex++ % iconColors.length]} />
+                            <DetailItem icon={Globe} label="Regional" value={tender.regional} iconColor={iconColors[colorIndex++ % iconColors.length]} />
+                            <DetailItem icon={Building} label="Branch" value={tender.branchId ? branchMap[tender.branchId] : 'N/A'} iconColor={iconColors[colorIndex++ % iconColors.length]} />
+                        </div>
+                    </div>
+                     <Separator/>
+                    <div>
+                        <h3 className="font-semibold mb-4 text-base">Financial & Scheduling</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
+                            <DetailItem icon={UserCheck} label="Person In Charge" value={tender.personInCharge} iconColor={iconColors[colorIndex++ % iconColors.length]} />
+                            <DetailItem icon={Calendar} label="Submission Date" value={format(new Date(tender.submissionDate), 'PPP')} iconColor={iconColors[colorIndex++ % iconColors.length]} />
+                            <DetailItem icon={CircleDollarSign} label="Owner Estimate Price" value={formatCurrency(tender.ownerEstimatePrice || 0)} iconColor={iconColors[colorIndex++ % iconColors.length]} />
+                            <DetailItem icon={CircleDollarSign} label="Bid Price" value={formatCurrency(tender.bidPrice)} iconColor={iconColors[colorIndex++ % iconColors.length]} />
+                        </div>
+                    </div>
                 </CardContent>
             </Card>
             
