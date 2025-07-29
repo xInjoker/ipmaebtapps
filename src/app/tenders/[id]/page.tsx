@@ -168,7 +168,7 @@ export default function TenderDetailsPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
                             <DetailItem icon={Building} label="Client" value={tender.client} iconColor={iconColors[colorIndex++ % iconColors.length]} />
                             <DetailItem icon={User} label="Principal" value={tender.principal} iconColor={iconColors[colorIndex++ % iconColors.length]} />
-                             <DetailItem icon={List} label="Service Name" value={tender.serviceName} iconColor={iconColors[colorIndex++ % iconColors.length]} />
+                            <DetailItem icon={List} label="Service Name" value={tender.serviceName} iconColor={iconColors[colorIndex++ % iconColors.length]} />
                             <DetailItem icon={Briefcase} label="Services (Legacy)" value={tender.services} iconColor={iconColors[colorIndex++ % iconColors.length]} />
                             <div className="md:col-span-2">
                                 <DetailItem icon={FileText} label="Description" value={tender.description} iconColor={iconColors[colorIndex++ % iconColors.length]} />
@@ -208,13 +208,13 @@ export default function TenderDetailsPage() {
                             {tender.documentUrls!.map((url, index) => {
                                 let fileName = `Document ${index + 1}`;
                                 try {
-                                    // Extract filename from data URL metadata if available
-                                    const nameMatch = url.match(/name=([^;]+);/);
-                                    if (nameMatch && nameMatch[1]) {
-                                        fileName = decodeURIComponent(nameMatch[1]);
+                                    // Extract filename from our custom data URI format
+                                    const metadataMatch = url.match(/^data:application\/octet-stream;name=([^;]+);/);
+                                    if (metadataMatch && metadataMatch[1]) {
+                                        fileName = decodeURIComponent(metadataMatch[1]);
                                     }
                                 } catch (e) {
-                                    console.error("Could not parse filename from URL", e);
+                                    console.error("Could not parse filename from data URL", e);
                                 }
                                 return (
                                 <div key={index} className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
