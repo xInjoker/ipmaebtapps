@@ -72,7 +72,7 @@ export function ProjectTargetRealizationChart({ projects }: ProjectTargetRealiza
       const durationInMonths = parseInt(project.duration.split(' ')[0], 10) || 1;
       const monthlyIncomeTarget = project.value / durationInMonths;
       
-      const totalBudget = Object.values(project.budgets).reduce((sum, val) => sum + val, 0);
+      const totalBudget = Object.values(project.budgets || {}).reduce((sum, val) => sum + val, 0);
       const monthlyCostTarget = totalBudget / durationInMonths;
 
       const projectStartDateMatch = project.period.match(/(\d{4})/);
@@ -93,7 +93,7 @@ export function ProjectTargetRealizationChart({ projects }: ProjectTargetRealiza
         currentMonthDate = addMonths(currentMonthDate, 1);
       }
 
-      project.invoices.forEach(invoice => {
+      (project.invoices || []).forEach(invoice => {
         if (!invoice.period) return;
         const [month, year] = invoice.period.split(' ');
         if(!month || !year || (selectedYear !== 'all' && selectedYear !== year)) return;
@@ -110,7 +110,7 @@ export function ProjectTargetRealizationChart({ projects }: ProjectTargetRealiza
         }
       });
       
-      project.costs.forEach(exp => {
+      (project.costs || []).forEach(exp => {
         if(!exp.period) return;
         const [month, year] = exp.period.split(' ');
         if(!month || !year || (selectedYear !== 'all' && selectedYear !== year)) return;

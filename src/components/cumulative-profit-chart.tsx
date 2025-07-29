@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Cell } from 'recharts';
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Label, Cell } from 'recharts';
 import {
   ChartContainer,
   ChartTooltip,
@@ -14,6 +14,7 @@ import { formatCurrencyCompact, formatCurrencyMillions } from '@/lib/utils';
 import { parse, format as formatDate } from 'date-fns';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+
 
 type CumulativeProfitChartProps = {
   projects: Project[];
@@ -29,7 +30,7 @@ export function CumulativeProfitChart({ projects }: CumulativeProfitChartProps) 
   const [selectedYear, setSelectedYear] = useState('all');
 
   const availableYears = useMemo(() => {
-    const years = new Set(projects.flatMap(p => [...p.invoices, ...p.costs].map(i => i.period.split(' ')[1])).filter(Boolean));
+    const years = new Set(projects.flatMap(p => [...(p.invoices || []), ...(p.costs || [])].map(i => i.period.split(' ')[1])).filter(Boolean));
     return ['all', ...Array.from(years).sort((a,b) => Number(b) - Number(a))];
   }, [projects]);
   
@@ -38,7 +39,7 @@ export function CumulativeProfitChart({ projects }: CumulativeProfitChartProps) 
     
     projects.forEach(project => {
         // Process income from paid invoices
-        project.invoices.forEach(invoice => {
+        (project.invoices || []).forEach(invoice => {
             if (invoice.status === 'Paid') {
                 const [month, year] = invoice.period.split(' ');
                 if (!month || !year || (selectedYear !== 'all' && selectedYear !== year)) return;
@@ -56,7 +57,7 @@ export function CumulativeProfitChart({ projects }: CumulativeProfitChartProps) 
         });
         
         // Process costs
-        project.costs.forEach(exp => {
+        (project.costs || []).forEach(exp => {
             if (exp.status === 'Approved') {
                 const [month, year] = exp.period.split(' ');
                 if(!month || !year || (selectedYear !== 'all' && selectedYear !== year)) return;

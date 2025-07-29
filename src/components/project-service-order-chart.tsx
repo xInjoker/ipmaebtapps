@@ -57,16 +57,19 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
 export function ProjectServiceOrderChart({ project }: ProjectServiceOrderChartProps) {
   const chartData = useMemo(() => {
-    if (!project || !project.serviceOrders) return [];
+    if (!project) return [];
     
-    const invoicedBySo = project.invoices.reduce((acc, invoice) => {
+    const serviceOrders = project.serviceOrders || [];
+    const invoices = project.invoices || [];
+
+    const invoicedBySo = invoices.reduce((acc, invoice) => {
         if (invoice.status !== 'Cancel') {
             acc[invoice.soNumber] = (acc[invoice.soNumber] || 0) + invoice.value;
         }
         return acc;
     }, {} as Record<string, number>);
 
-    return project.serviceOrders.map(so => {
+    return serviceOrders.map(so => {
         const invoicedValue = invoicedBySo[so.soNumber] || 0;
         return {
             name: so.soNumber,

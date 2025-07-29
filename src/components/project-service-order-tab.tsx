@@ -45,7 +45,7 @@ export function ProjectServiceOrderTab({ project, setProjects }: ProjectServiceO
     });
 
     const invoicedAmountsBySO = useMemo(() => {
-        return project.invoices
+        return (project.invoices || [])
             .filter(invoice => invoice.status !== 'Cancel')
             .reduce((acc, invoice) => {
                 if (invoice.soNumber) {
@@ -96,7 +96,7 @@ export function ProjectServiceOrderTab({ project, setProjects }: ProjectServiceO
             date: format(date, 'yyyy-MM-dd')
         };
 
-        setProjects(p => ({ ...p, serviceOrders: p.serviceOrders.map(item => item.id === updatedItemData.id ? updatedItemData : item) }));
+        setProjects(p => ({ ...p, serviceOrders: (p.serviceOrders || []).map(item => item.id === updatedItemData.id ? updatedItemData : item) }));
         setIsEditDialogOpen(false);
         setItemToEdit(null);
     }, [itemToEdit, setProjects]);

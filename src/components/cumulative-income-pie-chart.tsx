@@ -81,12 +81,12 @@ export function CumulativeIncomePieChart({ projects }: CumulativeIncomePieChartP
   );
   
   const availableYears = useMemo(() => {
-    const years = new Set(projects.flatMap(p => p.invoices.map(i => i.period.split(' ')[1])).filter(Boolean));
+    const years = new Set(projects.flatMap(p => (p.invoices || []).map(i => i.period.split(' ')[1])).filter(Boolean));
     return ['all', ...Array.from(years).sort((a, b) => Number(b) - Number(a))];
   }, [projects]);
   
   const { chartData, totalValue } = useMemo(() => {
-    const allInvoices = projects.flatMap(p => p.invoices);
+    const allInvoices = projects.flatMap(p => p.invoices || []);
 
     const filteredInvoices = selectedYear === 'all' 
         ? allInvoices

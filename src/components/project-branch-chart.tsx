@@ -20,7 +20,7 @@ type ProjectBranchChartProps = {
   branches: Branch[];
 };
 
-const chartConfig = {
+const chartConfig: ChartConfig = {
   value: {
     label: 'Project Value',
   },
@@ -31,7 +31,7 @@ export function ProjectBranchChart({ projects, branches }: ProjectBranchChartPro
   const [selectedYear, setSelectedYear] = useState<string>('all');
 
   const availableYears = useMemo(() => {
-    const years = new Set(projects.flatMap(p => p.invoices.map(i => i.period.split(' ')[1])).filter(Boolean));
+    const years = new Set(projects.flatMap(p => (p.invoices || []).map(i => i.period.split(' ')[1])).filter(Boolean));
     return ['all', ...Array.from(years).sort((a, b) => Number(b) - Number(a))];
   }, [projects]);
 
@@ -39,7 +39,7 @@ export function ProjectBranchChart({ projects, branches }: ProjectBranchChartPro
     if (!projects) return [];
     
     const filteredProjects = projects.filter(project => 
-        selectedYear === 'all' || project.invoices.some(inv => inv.period.endsWith(selectedYear))
+        selectedYear === 'all' || (project.invoices || []).some(inv => inv.period.endsWith(selectedYear))
     );
 
     const valueByBranch = filteredProjects.reduce((acc, project) => {

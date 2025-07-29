@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
@@ -41,14 +40,14 @@ export function ProjectCostTab({ project, setProjects }: ProjectCostTabProps) {
     const [costToEdit, setCostToEdit] = useState<(ExpenditureItem & { month?: string, year?: string }) | null>(null);
 
     const handleBudgetChange = useCallback((category: string, value: number) => {
-        setProjects(p => ({ ...p, budgets: { ...p.budgets, [category]: value } }));
+        setProjects(p => ({ ...p, budgets: { ...(p.budgets || {}), [category]: value } }));
     }, [setProjects]);
 
     const handleAddCost = useCallback(() => {
         const period = newCost.month && newCost.year ? `${newCost.month} ${newCost.year}` : '';
 
         if (newCost.category && period && newCost.coa && newCost.amount > 0) {
-            const newId = `EXP-${project.id}-${String(project.costs.length + 1).padStart(3, '0')}`;
+            const newId = `EXP-${project.id}-${String((project.costs || []).length + 1).padStart(3, '0')}`;
             const newCostItem: ExpenditureItem = {
                 id: newId,
                 category: newCost.category,
@@ -59,7 +58,7 @@ export function ProjectCostTab({ project, setProjects }: ProjectCostTabProps) {
                 status: 'Approved',
             };
 
-            setProjects(p => ({ ...p, costs: [...p.costs, newCostItem] }));
+            setProjects(p => ({ ...p, costs: [...(p.costs || []), newCostItem] }));
             setNewCost({ category: '', coa: '', description: '', month: '', year: '', amount: 0, status: 'Approved' });
             setIsAddCostDialogOpen(false);
         }
@@ -79,7 +78,7 @@ export function ProjectCostTab({ project, setProjects }: ProjectCostTabProps) {
             const truncatedCoa = Math.floor(coaNumber / 100) * 100;
             const category = coaToCategoryMap[truncatedCoa];
 
-            if (category && (project.budgets[category] ?? 0) > 0) {
+            if (category && ((project.budgets || {})[category] ?? 0) > 0) {
                 categoryToSet = category;
             } else {
                 categoryToSet = 'Other';
@@ -102,17 +101,17 @@ export function ProjectCostTab({ project, setProjects }: ProjectCostTabProps) {
         const period = `${month} ${year}`;
         const updatedCostData = { ...rest, period };
 
-        setProjects(p => ({ ...p, costs: p.costs.map(exp => exp.id === costToEdit.id ? updatedCostData : exp) }));
+        setProjects(p => ({ ...p, costs: (p.costs || []).map(exp => exp.id === costToEdit.id ? updatedCostData : exp) }));
         setIsEditCostDialogOpen(false);
         setCostToEdit(null);
     }, [costToEdit, setProjects]);
 
     const budgetedCategories = useMemo(() => {
-        return costCategories.filter(category => (project.budgets[category] ?? 0) > 0 || category === 'Other');
+        return costCategories.filter(category => ((project.budgets || {})[category] ?? 0) > 0 || category === 'Other');
     }, [project.budgets]);
 
     const spentByCategory = useMemo(() => {
-        return project.costs.reduce((acc, item) => {
+        return (project.costs || []).reduce((acc, item) => {
             if (item.status === 'Approved') {
                 acc[item.category] = (acc[item.category] || 0) + item.amount;
             }
@@ -121,7 +120,7 @@ export function ProjectCostTab({ project, setProjects }: ProjectCostTabProps) {
     }, [project.costs]);
 
     const selectedCategory = newCost.category;
-    const totalBudgetForCategory = project.budgets[selectedCategory] ?? 0;
+    const totalBudgetForCategory = (project.budgets || {})[selectedCategory] ?? 0;
     const spentAmountForCategory = spentByCategory[selectedCategory] || 0;
     const remainingBudget = totalBudgetForCategory - spentAmountForCategory;
 
@@ -161,7 +160,7 @@ export function ProjectCostTab({ project, setProjects }: ProjectCostTabProps) {
                                         <TableCell className="font-medium">{category}</TableCell>
                                         <TableCell className="text-right">
                                             <CurrencyInput
-                                                value={project.budgets[category] || 0}
+                                                value={(project.budgets || {})[category] || 0}
                                                 onValueChange={(value) => handleBudgetChange(category, value)}
                                                 className="ml-auto max-w-xs text-right"
                                                 placeholder="Enter budget"
@@ -319,7 +318,7 @@ export function ProjectCostTab({ project, setProjects }: ProjectCostTabProps) {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {project.costs.map((item) => (
+                                {(project.costs || []).map((item) => (
                                     <TableRow key={item.id}>
                                         <TableCell className="font-medium">{item.id}</TableCell>
                                         <TableCell>{item.category}</TableCell>
@@ -342,7 +341,7 @@ export function ProjectCostTab({ project, setProjects }: ProjectCostTabProps) {
                                         </TableCell>
                                     </TableRow>
                                 ))}
-                                {!project.costs?.length && (
+                                {!(project.costs || [])?.length && (
                                     <TableRow>
                                         <TableCell colSpan={7} className="text-center">No costs found.</TableCell>
                                     </TableRow>
