@@ -116,8 +116,6 @@ const CustomTooltipContent = ({ active, payload, label }: any) => {
 
     if (relevantPayload.length === 0) return null;
 
-    const total = relevantPayload.reduce((sum, item) => sum + item.value, 0);
-
     return (
         <div className="min-w-[12rem] rounded-lg border bg-background p-2 text-sm shadow-sm">
             <div className="font-bold">{label}</div>
@@ -131,10 +129,6 @@ const CustomTooltipContent = ({ active, payload, label }: any) => {
                         <span className="font-bold">{formatCurrencyCompact(item.value)}</span>
                     </div>
                 ))}
-                <div className="flex items-center justify-between border-t pt-1 mt-1 font-bold">
-                    <span>Total</span>
-                    <span>{formatCurrencyCompact(total)}</span>
-                </div>
             </div>
         </div>
     );
