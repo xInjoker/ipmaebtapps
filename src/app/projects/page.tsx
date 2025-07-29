@@ -270,7 +270,7 @@ export default function ProjectsPage() {
                     const progress = project.value > 0 ? Math.round((totalInvoiced / project.value) * 100) : 0;
                     return (
                     <Card key={project.id} className="flex flex-col">
-                        <CardHeader className="relative overflow-hidden bg-gradient-to-br from-primary to-primary/80 text-primary-foreground">
+                        <CardHeader className="relative overflow-hidden bg-gradient-to-br from-primary to-primary/80 text-primary-foreground rounded-t-lg">
                             <svg
                                 className="absolute -top-12 -left-12 h-48 w-48 text-primary-foreground/10"
                                 fill="currentColor"
@@ -287,7 +287,7 @@ export default function ProjectsPage() {
                                 <CardDescription className="text-primary-foreground/90 line-clamp-2">{project.description}</CardDescription>
                             </div>
                         </CardHeader>
-                        <CardContent className="flex-grow space-y-4">
+                        <CardContent className="flex-grow space-y-4 pt-6">
                             <div className="flex justify-between text-sm">
                                 <p className="text-muted-foreground">Client</p>
                                 <p className="font-medium">{project.client}</p>
