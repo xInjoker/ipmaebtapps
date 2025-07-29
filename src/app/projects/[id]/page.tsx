@@ -123,23 +123,27 @@ export default function ProjectDetailsPage() {
       };
     }
 
-    const cost = project.costs
+    const costs = project.costs || [];
+    const invoices = project.invoices || [];
+    const serviceOrders = project.serviceOrders || [];
+
+    const cost = costs
       .filter((exp) => exp.status === 'Approved')
       .reduce((acc, exp) => acc + exp.amount, 0);
 
-    const invoiced = project.invoices
+    const invoiced = invoices
       .filter((inv) => inv.status === 'Invoiced' || inv.status === 'Paid')
       .reduce((acc, inv) => acc + inv.value, 0);
 
-    const pad = project.invoices
+    const pad = invoices
       .filter((inv) => inv.status === 'PAD')
       .reduce((acc, inv) => acc + inv.value, 0);
     
-    const documentPreparation = project.invoices
+    const documentPreparation = invoices
       .filter((inv) => inv.status === 'Document Preparation')
       .reduce((acc, inv) => acc + inv.value, 0);
 
-    const serviceOrderValue = project.serviceOrders.reduce((acc, so) => acc + so.value, 0);
+    const serviceOrderValue = serviceOrders.reduce((acc, so) => acc + so.value, 0);
     
     const calculatedProgress = project.value > 0 ? Math.round((invoiced / project.value) * 100) : 0;
 
@@ -310,13 +314,13 @@ export default function ProjectDetailsPage() {
     };
     
     const invoicedOrPaidValuesBySO: Record<string, number> = {};
-    project.invoices.forEach(invoice => {
+    (project.invoices || []).forEach(invoice => {
         if (invoice.status === 'Paid' || invoice.status === 'Invoiced') {
             invoicedOrPaidValuesBySO[invoice.soNumber] = (invoicedOrPaidValuesBySO[invoice.soNumber] || 0) + invoice.value;
         }
     });
   
-    project.invoices.forEach(invoice => {
+    (project.invoices || []).forEach(invoice => {
       const periodInfo = processPeriod(invoice.period);
       if (!periodInfo) return;
       const { sortKey, displayMonth } = periodInfo;
@@ -338,7 +342,7 @@ export default function ProjectDetailsPage() {
       }
     });
   
-    project.costs.forEach(exp => {
+    (project.costs || []).forEach(exp => {
       if (exp.status !== 'Approved') return;
       
       const periodInfo = processPeriod(exp.period);
