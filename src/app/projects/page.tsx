@@ -269,12 +269,12 @@ export default function ProjectsPage() {
                     const { totalInvoiced } = getProjectStats([project]);
                     const progress = project.value > 0 ? Math.round((totalInvoiced / project.value) * 100) : 0;
                     return (
-                    <Card key={project.id}>
+                    <Card key={project.id} className="flex flex-col">
                         <CardHeader>
                         <CardTitle className="font-headline">{project.name}</CardTitle>
                         <CardDescription>{project.description}</CardDescription>
                         </CardHeader>
-                        <CardContent className="pt-4">
+                        <CardContent className="pt-4 flex-grow space-y-4 flex flex-col">
                         <div className="space-y-4">
                             <div className="flex justify-between text-sm">
                                 <p className="text-muted-foreground">Client</p>
@@ -300,6 +300,8 @@ export default function ProjectsPage() {
                                 <p className="text-muted-foreground">Duration</p>
                                 <p className="font-medium">{project.duration}</p>
                             </div>
+                        </div>
+                        <div className="mt-auto space-y-4">
                             <div>
                             <p className="text-sm text-muted-foreground">Contract Value</p>
                             <p className="text-2xl font-bold text-primary">
