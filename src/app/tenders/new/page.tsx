@@ -22,7 +22,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Textarea } from '@/components/ui/textarea';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { portfolios, subPortfolios, servicesBySubPortfolio } from '@/lib/projects';
-import { CurrencyInput } from './ui/currency-input';
+import { CurrencyInput } from '@/components/ui/currency-input';
 import { Separator } from '@/components/ui/separator';
 
 export default function NewTenderPage() {
