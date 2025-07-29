@@ -36,6 +36,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { Expand } from 'lucide-react';
 import { formatCurrency, formatCurrencyCompact } from '@/lib/utils';
 import { cn } from '@/lib/utils';
+import { Separator } from './ui/separator';
 
 
 type MonthlyData = {
@@ -86,50 +87,59 @@ const CustomTooltipContent = ({ active, payload, label }: any) => {
         return null;
     }
 
-    const hoveredStackId = payload[0].payload.stackId;
-    
-    let relevantPayload = [];
-    if (hoveredStackId === 'income') {
-        relevantPayload = Object.entries(incomeChartConfig)
-            .map(([key, config]) => ({
-                name: config.label,
-                value: payload[0].payload[key],
-                color: config.color,
-            }))
-            .filter(item => item.value > 0);
-    } else if (hoveredStackId === 'cost') {
-        relevantPayload = Object.entries(costChartConfig)
-            .map(([key, config]) => ({
-                name: config.label,
-                value: payload[0].payload.cost[key],
-                color: config.color,
-            }))
-            .filter(item => item.value > 0);
-    } else {
-        // Fallback for single bars or other cases
-        relevantPayload = payload.map((p: any) => ({
-            name: chartConfig[p.dataKey as keyof typeof chartConfig]?.label || p.name,
-            value: p.value,
-            color: p.fill,
-        })).filter((p: any) => p.value > 0);
-    }
+    const data = payload[0].payload;
 
-    if (relevantPayload.length === 0) return null;
+    const incomeItems = Object.entries(incomeChartConfig)
+        .map(([key, config]) => ({
+            name: config.label,
+            value: data[key],
+            color: config.color,
+        }))
+        .filter(item => item.value > 0);
+
+    const costItems = Object.entries(costChartConfig)
+        .map(([key, config]) => ({
+            name: config.label,
+            value: data.cost[key],
+            color: config.color,
+        }))
+        .filter(item => item.value > 0);
+    
+    if (incomeItems.length === 0 && costItems.length === 0) return null;
 
     return (
         <div className="min-w-[12rem] rounded-lg border bg-background p-2 text-sm shadow-sm">
             <div className="font-bold">{label}</div>
-            <div className="mt-2 space-y-1">
-                {relevantPayload.map((item, index) => (
-                     <div key={index} className="flex items-center justify-between">
-                        <div className="flex items-center">
-                            <span className="mr-2 h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: item.color }} />
-                            <span className="text-muted-foreground">{item.name}</span>
+            
+            {incomeItems.length > 0 && (
+                <div className="mt-2 space-y-1">
+                    {incomeItems.map((item, index) => (
+                         <div key={index} className="flex items-center justify-between">
+                            <div className="flex items-center">
+                                <span className="mr-2 h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: item.color }} />
+                                <span className="text-muted-foreground">{item.name}</span>
+                            </div>
+                            <span className="font-bold">{formatCurrencyCompact(item.value)}</span>
                         </div>
-                        <span className="font-bold">{formatCurrencyCompact(item.value)}</span>
-                    </div>
-                ))}
-            </div>
+                    ))}
+                </div>
+            )}
+            
+            {incomeItems.length > 0 && costItems.length > 0 && <Separator className="my-2" />}
+
+            {costItems.length > 0 && (
+                <div className="space-y-1">
+                     {costItems.map((item, index) => (
+                         <div key={index} className="flex items-center justify-between">
+                            <div className="flex items-center">
+                                <span className="mr-2 h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: item.color }} />
+                                <span className="text-muted-foreground">{item.name}</span>
+                            </div>
+                            <span className="font-bold">{formatCurrencyCompact(item.value)}</span>
+                        </div>
+                    ))}
+                </div>
+            )}
         </div>
     );
 };
