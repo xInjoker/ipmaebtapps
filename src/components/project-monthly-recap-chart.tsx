@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ComposedChart } from 'recharts';
@@ -112,8 +111,10 @@ const CustomTooltipContent = ({ active, payload, label }: any) => {
             name: chartConfig[p.dataKey as keyof typeof chartConfig]?.label || p.name,
             value: p.value,
             color: p.fill,
-        }));
+        })).filter((p: any) => p.value > 0);
     }
+
+    if (relevantPayload.length === 0) return null;
 
     const total = relevantPayload.reduce((sum, item) => sum + item.value, 0);
 
