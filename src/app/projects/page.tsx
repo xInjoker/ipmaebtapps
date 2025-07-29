@@ -272,7 +272,7 @@ export default function ProjectsPage() {
                     <Card key={project.id} className="flex flex-col">
                         <CardHeader className="relative overflow-hidden bg-gradient-to-br from-primary to-primary/80 text-primary-foreground rounded-t-lg">
                             <svg
-                                className="absolute -top-12 -left-12 h-48 w-48 text-primary-foreground/10"
+                                className="absolute -top-12 -left-12 h-48 w-48 text-primary/10"
                                 fill="currentColor"
                                 viewBox="0 0 200 200"
                                 xmlns="http://www.w3.org/2000/svg"
@@ -287,7 +287,7 @@ export default function ProjectsPage() {
                                 <CardDescription className="text-primary-foreground/90 line-clamp-2">{project.description}</CardDescription>
                             </div>
                         </CardHeader>
-                        <CardContent className="flex-grow space-y-4 pt-6">
+                        <CardContent className="flex-grow pt-6 space-y-4">
                             <div className="flex justify-between text-sm">
                                 <p className="text-muted-foreground">Client</p>
                                 <p className="font-medium">{project.client}</p>
