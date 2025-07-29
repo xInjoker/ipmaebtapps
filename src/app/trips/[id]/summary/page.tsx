@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -119,7 +120,8 @@ export default function TripSummaryPage() {
             return;
         }
 
-        if (!tripProject.tripApprovalWorkflow || tripProject.tripApprovalWorkflow.length === 0) {
+        const workflow = tripProject.tripApprovalWorkflow || [];
+        if (workflow.length === 0) {
             toast({
                 variant: 'destructive',
                 title: 'Approval Workflow Not Configured',
@@ -146,7 +148,7 @@ export default function TripSummaryPage() {
         updateTrip(trip.id, updatedTrip);
 
         // Notify the first approver
-        const firstApprover = users.find(u => u.id.toString() === tripProject.tripApprovalWorkflow[0].approverId);
+        const firstApprover = users.find(u => u.id.toString() === workflow[0].approverId);
         if (firstApprover) {
             addNotification({
                 userId: firstApprover.id,
@@ -401,9 +403,9 @@ export default function TripSummaryPage() {
                         </CardHeader>
                         <CardContent>
                            <ol className="relative border-s border-gray-200 dark:border-gray-700 ml-2">                  
-                                {tripProject?.tripApprovalWorkflow.map((stage, index) => {
+                                {(tripProject?.tripApprovalWorkflow || []).map((stage, index) => {
                                     const approver = users.find(u => u.id.toString() === stage.approverId);
-                                    const isLast = index === tripProject.tripApprovalWorkflow.length - 1;
+                                    const isLast = index === (tripProject?.tripApprovalWorkflow.length || 0) - 1;
                                     return (
                                         <li key={stage.stage} className={cn(!isLast && "mb-6", "ms-6")}>            
                                             <span className="absolute flex items-center justify-center w-6 h-6 bg-blue-100 rounded-full -start-3 ring-8 ring-white dark:ring-gray-900 dark:bg-blue-900">

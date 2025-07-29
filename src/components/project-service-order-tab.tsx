@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
@@ -29,7 +30,7 @@ export function ProjectServiceOrderTab({ project, setProjects }: ProjectServiceO
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const { toast } = useToast();
-
+    
     const [itemToEdit, setItemToEdit] = useState<Omit<ServiceOrderItem, 'status'> & { date?: Date } | null>(null);
 
     const [newItem, setNewItem] = useState<{
@@ -43,7 +44,7 @@ export function ProjectServiceOrderTab({ project, setProjects }: ProjectServiceO
         date: undefined,
         value: 0,
     });
-
+    
     const invoicedAmountsBySO = useMemo(() => {
         return (project.invoices || [])
             .filter(invoice => invoice.status !== 'Cancel')
@@ -54,6 +55,11 @@ export function ProjectServiceOrderTab({ project, setProjects }: ProjectServiceO
                 return acc;
             }, {} as Record<string, number>);
     }, [project.invoices]);
+
+    const serviceOrderMap = useMemo(() => {
+        return new Map((project.serviceOrders || []).map(so => [so.soNumber, so]));
+    }, [project.serviceOrders]);
+
 
     const handleAddItem = useCallback(() => {
         if (newItem.soNumber && newItem.description && newItem.date && newItem.value > 0) {
@@ -102,12 +108,13 @@ export function ProjectServiceOrderTab({ project, setProjects }: ProjectServiceO
     }, [itemToEdit, setProjects]);
 
     const handleExport = useCallback(() => {
-        if (!project || !project.serviceOrders) return;
+        const serviceOrders = project.serviceOrders || [];
+        if (serviceOrders.length === 0) return;
 
         const headers = ['ID', 'SO Number', 'Description', 'Date', 'Value (IDR)', 'Status'];
         const csvRows = [headers.join(',')];
 
-        project.serviceOrders.forEach((item) => {
+        serviceOrders.forEach((item) => {
             const soNumber = `"${item.soNumber.replace(/"/g, '""')}"`;
             const description = `"${item.description.replace(/"/g, '""')}"`;
             
@@ -233,7 +240,7 @@ export function ProjectServiceOrderTab({ project, setProjects }: ProjectServiceO
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {project.serviceOrders?.map((item) => {
+                            {(project.serviceOrders || []).map((item) => {
                                 const invoicedAmount = invoicedAmountsBySO[item.soNumber] || 0;
                                 const remainingValue = item.value - invoicedAmount;
                                 
@@ -268,7 +275,7 @@ export function ProjectServiceOrderTab({ project, setProjects }: ProjectServiceO
                                     </TableCell>
                                 </TableRow>
                             )})}
-                            {!project.serviceOrders?.length && (
+                            {!(project.serviceOrders || [])?.length && (
                                 <TableRow>
                                     <TableCell colSpan={7} className="text-center">No service orders found.</TableCell>
                                 </TableRow>

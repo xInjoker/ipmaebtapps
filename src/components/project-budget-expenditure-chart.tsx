@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
@@ -34,14 +35,17 @@ export function ProjectBudgetExpenditureChart({ project }: ProjectBudgetExpendit
   const chartData = useMemo(() => {
     if (!project) return [];
     
-    const spentByCategory = project.costs.reduce((acc, item) => {
+    const costs = project.costs || [];
+    const budgets = project.budgets || {};
+    
+    const spentByCategory = costs.reduce((acc, item) => {
         if (item.status === 'Approved') {
             acc[item.category] = (acc[item.category] || 0) + item.amount;
         }
         return acc;
     }, {} as { [category: string]: number });
 
-    return Object.entries(project.budgets)
+    return Object.entries(budgets)
       .filter(([, budgetValue]) => budgetValue > 0)
       .map(([category, budgetValue]) => ({
         name: category,

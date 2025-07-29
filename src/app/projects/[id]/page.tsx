@@ -242,7 +242,7 @@ export default function ProjectDetailsPage() {
     }
     
     // --- Data Tables ---
-    if(project.serviceOrders.length > 0) {
+    if((project.serviceOrders || []).length > 0) {
         doc.addPage();
         addPageHeader('Service Order Details');
         doc.autoTable({
@@ -253,7 +253,7 @@ export default function ProjectDetailsPage() {
         finalY = (doc as any).lastAutoTable.finalY;
     }
 
-    if(project.invoices.length > 0) {
+    if((project.invoices || []).length > 0) {
         if (finalY + 40 > pageHeight - 20) { // Check space for next table
           doc.addPage();
           addPageHeader('Invoice Details');
@@ -268,7 +268,7 @@ export default function ProjectDetailsPage() {
         finalY = (doc as any).lastAutoTable.finalY;
     }
     
-    if(project.costs.length > 0) {
+    if((project.costs || []).length > 0) {
         if (finalY + 40 > pageHeight - 20) { // Check space for next table
           doc.addPage();
           addPageHeader('Cost Details');
@@ -611,14 +611,14 @@ export default function ProjectDetailsPage() {
            <ApprovalWorkflowManager
             title="Trip Approval Workflow"
             description="Define the sequence of approvers for business trip requests in this project."
-            workflow={project.tripApprovalWorkflow}
+            workflow={project.tripApprovalWorkflow || []}
             onWorkflowChange={(newWorkflow) => handleWorkflowChange('trip', newWorkflow)}
             users={users}
            />
             <ApprovalWorkflowManager
             title="Report Approval Workflow"
             description="Define the sequence of reviewers and approvers for NDT reports in this project."
-            workflow={project.reportApprovalWorkflow}
+            workflow={project.reportApprovalWorkflow || []}
             onWorkflowChange={(newWorkflow) => handleWorkflowChange('report', newWorkflow)}
             users={users}
            />
