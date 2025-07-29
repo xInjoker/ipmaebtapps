@@ -32,7 +32,7 @@ export function ProjectProfitChart({ project }: ProjectProfitChartProps) {
 
   const availableYears = useMemo(() => {
     if (!project) return ['all'];
-    const years = new Set([...project.invoices, ...project.costs].map(i => i.period.split(' ')[1]).filter(Boolean));
+    const years = new Set([...(project.invoices || []), ...(project.costs || [])].map(i => i.period.split(' ')[1]).filter(Boolean));
     return ['all', ...Array.from(years).sort((a,b) => Number(b) - Number(a))];
   }, [project]);
   
@@ -57,13 +57,13 @@ export function ProjectProfitChart({ project }: ProjectProfitChartProps) {
         }
     };
     
-    project.invoices.forEach(invoice => {
+    (project.invoices || []).forEach(invoice => {
         if (invoice.status === 'Paid') {
             processPeriod(invoice.period, invoice.value, 'income');
         }
     });
       
-    project.costs.forEach(exp => {
+    (project.costs || []).forEach(exp => {
         if (exp.status === 'Approved') {
             processPeriod(exp.period, exp.amount, 'cost');
         }
