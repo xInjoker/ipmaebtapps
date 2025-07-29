@@ -143,14 +143,17 @@ export default function ProjectsPage() {
     };
     
     visibleProjects.forEach(project => {
+        const projectInvoices = project.invoices || [];
+        const projectCosts = project.costs || [];
+
         const invoicedOrPaidValuesBySO: Record<string, number> = {};
-        project.invoices.forEach(invoice => {
+        projectInvoices.forEach(invoice => {
             if (invoice.status === 'Paid' || invoice.status === 'Invoiced') {
                 invoicedOrPaidValuesBySO[invoice.soNumber] = (invoicedOrPaidValuesBySO[invoice.soNumber] || 0) + invoice.value;
             }
         });
     
-        project.invoices.forEach(invoice => {
+        projectInvoices.forEach(invoice => {
         const periodInfo = processPeriod(invoice.period);
         if (!periodInfo) return;
         const { sortKey, displayMonth } = periodInfo;
@@ -172,7 +175,7 @@ export default function ProjectsPage() {
         }
         });
     
-        project.costs.forEach(exp => {
+        projectCosts.forEach(exp => {
         if (exp.status !== 'Approved') return;
         
         const periodInfo = processPeriod(exp.period);
@@ -344,4 +347,3 @@ export default function ProjectsPage() {
     </div>
   );
 }
-
