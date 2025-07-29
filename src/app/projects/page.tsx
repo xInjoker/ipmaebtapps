@@ -65,7 +65,7 @@ export default function ProjectsPage() {
                           project.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           project.contractNumber.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const branchMatch = branchFilter === 'all' || project.branchId === branchFilter;
+      const branchMatch = branchFilter === 'all' || project.branchId === branchMatch;
 
       return searchMatch && branchMatch;
     });
@@ -269,12 +269,25 @@ export default function ProjectsPage() {
                     const { totalInvoiced } = getProjectStats([project]);
                     const progress = project.value > 0 ? Math.round((totalInvoiced / project.value) * 100) : 0;
                     return (
-                    <Card key={project.id}>
-                        <CardHeader>
-                            <CardTitle className="font-headline">{project.name}</CardTitle>
-                            <CardDescription>{project.description}</CardDescription>
+                    <Card key={project.id} className="flex flex-col">
+                        <CardHeader className="relative overflow-hidden bg-gradient-to-br from-primary to-primary/80 text-primary-foreground">
+                            <svg
+                                className="absolute -top-12 -left-12 h-48 w-48 text-primary-foreground/10"
+                                fill="currentColor"
+                                viewBox="0 0 200 200"
+                                xmlns="http://www.w3.org/2000/svg"
+                            >
+                                <path
+                                d="M28.3,-43.3C38.8,-35,50.8,-29.4,59.3,-20.1C67.8,-10.8,72.7,2.1,68.9,12.7C65.1,23.3,52.5,31.6,41.2,38.6C29.9,45.6,19.9,51.3,8.7,55.1C-2.5,58.9,-15.1,60.8,-27.2,57.7C-39.4,54.6,-51.2,46.5,-59.1,35.6C-67.1,24.8,-71.3,11.2,-71.4,-2.7C-71.5,-16.5,-67.5,-30.7,-58,-40.9C-48.4,-51.2,-33.2,-57.5,-19.5,-59.5C-5.8,-61.6,6.4,-59.4,15.6,-53.8C24.7,-48.2,32.8,-48.2,28.3,-43.3Z"
+                                transform="translate(100 100)"
+                                />
+                            </svg>
+                            <div className="relative z-10">
+                                <CardTitle className="font-headline line-clamp-2">{project.name}</CardTitle>
+                                <CardDescription className="text-primary-foreground/90 line-clamp-2">{project.description}</CardDescription>
+                            </div>
                         </CardHeader>
-                        <CardContent className="space-y-4">
+                        <CardContent className="flex-grow space-y-4">
                             <div className="flex justify-between text-sm">
                                 <p className="text-muted-foreground">Client</p>
                                 <p className="font-medium">{project.client}</p>
@@ -300,14 +313,14 @@ export default function ProjectsPage() {
                                 <p className="font-medium">{project.duration}</p>
                             </div>
                         </CardContent>
-                        <CardFooter className="flex-col items-start gap-4 border-t bg-muted/50 p-4">
+                        <CardFooter className="flex-col items-start gap-4 border-t p-4">
                             <div>
                                 <p className="text-sm text-muted-foreground">Contract Value</p>
                                 <p className="text-2xl font-bold text-primary">
                                     {formatCurrency(project.value)}
                                 </p>
                             </div>
-                            <div>
+                            <div className="w-full">
                                 <div className="flex justify-between items-baseline mb-1 w-full">
                                     <p className="text-sm text-muted-foreground">Progress</p>
                                     <p className="text-sm font-semibold">{progress}%</p>
