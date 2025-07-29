@@ -38,11 +38,14 @@ import { type Tender } from '@/lib/tenders';
 import { formatCurrency, getTenderStatusVariant } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 
-function DetailItem({ icon: Icon, label, value }: { icon: React.ElementType, label: string, value?: React.ReactNode }) {
+function DetailItem({ icon: Icon, label, value, iconColor }: { icon: React.ElementType, label: string, value?: React.ReactNode, iconColor: string }) {
     if (!value) return null;
+    const bgColor = `${iconColor}1A`; // Adds ~10% opacity
     return (
         <div className="flex items-start gap-4">
-            <Icon className="h-5 w-5 text-muted-foreground mt-1 flex-shrink-0" />
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: bgColor }}>
+                <Icon className="h-5 w-5" style={{ color: iconColor }} />
+            </div>
             <div>
                 <div className="text-sm text-muted-foreground">{label}</div>
                 <div className="font-medium">{value}</div>
@@ -95,57 +98,86 @@ export default function TenderDetailsPage() {
     document.body.removeChild(link);
   };
 
+  const iconColors = ['#0D5EA6', '#0ABAB5', '#00C897', '#FFA955', '#FFD63A', '#FFBE98'];
+  let colorIndex = 0;
+
 
   return (
     <div className="space-y-6">
-        <Card>
-            <CardHeader>
-            <div className="flex items-start justify-between gap-4">
-                <div className="flex items-center gap-4">
-                <Button asChild variant="outline" size="icon">
-                    <Link href="/tenders">
-                    <ArrowLeft className="h-4 w-4" />
-                    <span className="sr-only">Back to Tenders</span>
+      <Card className="relative overflow-hidden bg-gradient-to-br from-primary to-primary/80 text-primary-foreground">
+        <svg
+            className="absolute -right-16 -top-24 text-warning"
+            fill="currentColor"
+            width="400"
+            height="400"
+            viewBox="0 0 200 200"
+            xmlns="http://www.w3.org/2000/svg"
+        >
+            <path
+                d="M51.9,-54.9C64.6,-45.5,71.2,-28.9,72,-12.3C72.8,4.2,67.7,20.8,58.3,34.5C48.9,48.2,35.1,59.1,20,64.2C4.9,69.3,-11.5,68.6,-26.4,62.8C-41.2,57,-54.6,46,-61.7,31.7C-68.9,17.4,-70,-0.1,-64.7,-14.8C-59.4,-29.4,-47.8,-41.3,-35,-50.7C-22.3,-60,-8.4,-67,5.5,-69.6C19.4,-72.2,39.1,-70.4,51.9,-54.9Z"
+                transform="translate(100 100)"
+            />
+        </svg>
+        <svg
+            className="absolute -left-20 -bottom-24 text-primary-foreground/10"
+            fill="currentColor"
+            width="400"
+            height="400"
+            viewBox="0 0 200 200"
+            xmlns="http://www.w3.org/2000/svg"
+        >
+            <path
+                d="M51.9,-54.9C64.6,-45.5,71.2,-28.9,72,-12.3C72.8,4.2,67.7,20.8,58.3,34.5C48.9,48.2,35.1,59.1,20,64.2C4.9,69.3,-11.5,68.6,-26.4,62.8C-41.2,57,-54.6,46,-61.7,31.7C-68.9,17.4,-70,-0.1,-64.7,-14.8C-59.4,-29.4,-47.8,-41.3,-35,-50.7C-22.3,-60,-8.4,-67,5.5,-69.6C19.4,-72.2,39.1,-70.4,51.9,-54.9Z"
+                transform="translate(100 100)"
+            />
+        </svg>
+        <CardHeader className="flex flex-row items-start justify-between gap-4 z-10 relative">
+            <div className="flex items-center gap-4">
+            <Button asChild variant="secondary" size="icon">
+                <Link href="/tenders">
+                <ArrowLeft className="h-4 w-4" />
+                <span className="sr-only">Back to Tenders</span>
+                </Link>
+            </Button>
+            <div className="space-y-1.5">
+                <CardTitle className="font-headline">{tender.title}</CardTitle>
+                <CardDescription className="text-primary-foreground/90">
+                    {tender.tenderNumber} &bull; <Badge variant={getTenderStatusVariant(tender.status)}>{tender.status}</Badge>
+                </CardDescription>
+            </div>
+            </div>
+            {userHasPermission('manage-tenders') && (
+                <Button asChild variant="secondary">
+                    <Link href={`/tenders/${tender.id}/edit`}>
+                    <Edit className="mr-2 h-4 w-4" />
+                    Edit Tender
                     </Link>
                 </Button>
-                <div className="space-y-1.5">
-                    <CardTitle>{tender.title}</CardTitle>
-                    <CardDescription>
-                        {tender.tenderNumber} &bull; <Badge variant={getTenderStatusVariant(tender.status)}>{tender.status}</Badge>
-                    </CardDescription>
-                </div>
-                </div>
-                {userHasPermission('manage-tenders') && (
-                    <Button asChild>
-                        <Link href={`/tenders/${tender.id}/edit`}>
-                        <Edit className="mr-2 h-4 w-4" />
-                        Edit Tender
-                        </Link>
-                    </Button>
-                )}
-            </div>
-            </CardHeader>
-        </Card>
+            )}
+        </CardHeader>
+      </Card>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <Card className="lg:col-span-2">
                 <CardHeader>
                     <CardTitle>Tender Details</CardTitle>
                 </CardHeader>
-                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-                    <DetailItem icon={Building} label="Client" value={tender.client} />
-                    <DetailItem icon={User} label="Principal" value={tender.principal} />
-                    <DetailItem icon={GanttChart} label="Portfolio" value={tender.portfolio} />
-                    <DetailItem icon={FolderTree} label="Sub-Portfolio" value={tender.subPortfolio} />
-                    <DetailItem icon={List} label="Service Name" value={tender.serviceName} />
-                    <DetailItem icon={Briefcase} label="Services (Legacy)" value={tender.services} />
-                    <DetailItem icon={FileText} label="Description" value={tender.description} />
-                    <DetailItem icon={Globe} label="Regional" value={tender.regional} />
-                    <DetailItem icon={Building} label="Branch" value={tender.branchId ? branchMap[tender.branchId] : 'N/A'} />
-                    <DetailItem icon={UserCheck} label="Person In Charge" value={tender.personInCharge} />
-                    <DetailItem icon={Calendar} label="Submission Date" value={format(new Date(tender.submissionDate), 'PPP')} />
-                    <DetailItem icon={CircleDollarSign} label="Owner Estimate Price" value={formatCurrency(tender.ownerEstimatePrice || 0)} />
-                    <DetailItem icon={CircleDollarSign} label="Bid Price" value={formatCurrency(tender.bidPrice)} />
+                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-8">
+                    <DetailItem icon={Building} label="Client" value={tender.client} iconColor={iconColors[colorIndex++ % iconColors.length]} />
+                    <DetailItem icon={User} label="Principal" value={tender.principal} iconColor={iconColors[colorIndex++ % iconColors.length]} />
+                    <DetailItem icon={GanttChart} label="Portfolio" value={tender.portfolio} iconColor={iconColors[colorIndex++ % iconColors.length]} />
+                    <DetailItem icon={FolderTree} label="Sub-Portfolio" value={tender.subPortfolio} iconColor={iconColors[colorIndex++ % iconColors.length]} />
+                    <DetailItem icon={List} label="Service Name" value={tender.serviceName} iconColor={iconColors[colorIndex++ % iconColors.length]} />
+                    <DetailItem icon={Briefcase} label="Services (Legacy)" value={tender.services} iconColor={iconColors[colorIndex++ % iconColors.length]} />
+                    <div className="md:col-span-2">
+                      <DetailItem icon={FileText} label="Description" value={tender.description} iconColor={iconColors[colorIndex++ % iconColors.length]} />
+                    </div>
+                    <DetailItem icon={Globe} label="Regional" value={tender.regional} iconColor={iconColors[colorIndex++ % iconColors.length]} />
+                    <DetailItem icon={Building} label="Branch" value={tender.branchId ? branchMap[tender.branchId] : 'N/A'} iconColor={iconColors[colorIndex++ % iconColors.length]} />
+                    <DetailItem icon={UserCheck} label="Person In Charge" value={tender.personInCharge} iconColor={iconColors[colorIndex++ % iconColors.length]} />
+                    <DetailItem icon={Calendar} label="Submission Date" value={format(new Date(tender.submissionDate), 'PPP')} iconColor={iconColors[colorIndex++ % iconColors.length]} />
+                    <DetailItem icon={CircleDollarSign} label="Owner Estimate Price" value={formatCurrency(tender.ownerEstimatePrice || 0)} iconColor={iconColors[colorIndex++ % iconColors.length]} />
+                    <DetailItem icon={CircleDollarSign} label="Bid Price" value={formatCurrency(tender.bidPrice)} iconColor={iconColors[colorIndex++ % iconColors.length]} />
                 </CardContent>
             </Card>
             
