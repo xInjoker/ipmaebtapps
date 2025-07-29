@@ -269,13 +269,12 @@ export default function ProjectsPage() {
                     const { totalInvoiced } = getProjectStats([project]);
                     const progress = project.value > 0 ? Math.round((totalInvoiced / project.value) * 100) : 0;
                     return (
-                    <Card key={project.id} className="flex flex-col">
+                    <Card key={project.id}>
                         <CardHeader>
-                        <CardTitle className="font-headline">{project.name}</CardTitle>
-                        <CardDescription>{project.description}</CardDescription>
+                            <CardTitle className="font-headline">{project.name}</CardTitle>
+                            <CardDescription>{project.description}</CardDescription>
                         </CardHeader>
-                        <CardContent className="pt-4 flex-grow space-y-4 flex flex-col">
-                        <div className="space-y-4">
+                        <CardContent className="space-y-4">
                             <div className="flex justify-between text-sm">
                                 <p className="text-muted-foreground">Client</p>
                                 <p className="font-medium">{project.client}</p>
@@ -300,27 +299,24 @@ export default function ProjectsPage() {
                                 <p className="text-muted-foreground">Duration</p>
                                 <p className="font-medium">{project.duration}</p>
                             </div>
-                        </div>
-                        <div className="mt-auto space-y-4">
-                            <div>
-                            <p className="text-sm text-muted-foreground">Contract Value</p>
-                            <p className="text-2xl font-bold text-primary">
-                                {formatCurrency(project.value)}
-                            </p>
-                            </div>
-                            <div>
-                            <div className="flex justify-between items-baseline mb-1">
-                                <p className="text-sm text-muted-foreground">Progress</p>
-                                <p className="text-sm font-semibold">{progress}%</p>
-                            </div>
-                            <Progress value={progress} className="h-3" />
-                            </div>
-                        </div>
                         </CardContent>
-                        <CardFooter>
-                        <Button variant="outline" className="w-full" asChild>
-                            <Link href={`/projects/${project.id}`}>View Details</Link>
-                        </Button>
+                        <CardFooter className="flex-col items-start gap-4 border-t bg-muted/50 p-4">
+                            <div>
+                                <p className="text-sm text-muted-foreground">Contract Value</p>
+                                <p className="text-2xl font-bold text-primary">
+                                    {formatCurrency(project.value)}
+                                </p>
+                            </div>
+                            <div>
+                                <div className="flex justify-between items-baseline mb-1 w-full">
+                                    <p className="text-sm text-muted-foreground">Progress</p>
+                                    <p className="text-sm font-semibold">{progress}%</p>
+                                </div>
+                                <Progress value={progress} className="h-3 w-full" />
+                            </div>
+                            <Button variant="outline" className="w-full mt-2" asChild>
+                                <Link href={`/projects/${project.id}`}>View Details</Link>
+                            </Button>
                         </CardFooter>
                     </Card>
                     );
