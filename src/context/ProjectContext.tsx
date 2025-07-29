@@ -40,27 +40,30 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
 
   const getProjectStats = useCallback((projectList: Project[]): ProjectStats => {
     return projectList.reduce((acc, project) => {
-        acc.totalProjectValue += project.value;
+        acc.totalProjectValue += project.value || 0;
 
-        const totalCost = project.costs
+        const costs = project.costs || [];
+        const invoices = project.invoices || [];
+
+        const totalCost = costs
             .filter(exp => exp.status === 'Approved')
             .reduce((sum, exp) => sum + exp.amount, 0);
         acc.totalCost += totalCost;
 
-        const totalInvoicedValue = project.invoices
+        const totalInvoicedValue = invoices
             .filter(inv => ['Invoiced', 'Paid'].includes(inv.status))
             .reduce((sum, inv) => sum + inv.value, 0);
         acc.totalInvoiced += totalInvoicedValue;
 
-        const totalPaidValue = project.invoices
+        const totalPaidValue = invoices
             .filter(inv => ['Paid'].includes(inv.status))
             .reduce((sum, inv) => sum + inv.value, 0);
         acc.totalPaid += totalPaidValue;
 
-        const padInvoices = project.invoices.filter(inv => inv.status === 'PAD');
+        const padInvoices = invoices.filter(inv => inv.status === 'PAD');
         const invoicedOrPaidValuesBySO: Record<string, number> = {};
 
-        project.invoices
+        invoices
             .filter(inv => ['Invoiced', 'Paid'].includes(inv.status))
             .forEach(inv => {
                 invoicedOrPaidValuesBySO[inv.soNumber] = (invoicedOrPaidValuesBySO[inv.soNumber] || 0) + inv.value;
@@ -73,7 +76,7 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
             netPadValue += remainingPad;
         });
 
-        const reInvoicedValue = project.invoices
+        const reInvoicedValue = invoices
             .filter(inv => inv.status === 'Re-invoiced')
             .reduce((sum, inv) => sum + inv.value, 0);
 
