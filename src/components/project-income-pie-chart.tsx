@@ -82,7 +82,7 @@ export function ProjectIncomePieChart({ project }: ProjectIncomePieChartProps) {
   
   const availableYears = useMemo(() => {
     if (!project) return ['all'];
-    const years = new Set(project.invoices.map(i => i.period.split(' ')[1]).filter(Boolean));
+    const years = new Set((project.invoices || []).map(i => i.period.split(' ')[1]).filter(Boolean));
     return ['all', ...Array.from(years).sort((a, b) => Number(b) - Number(a))];
   }, [project]);
   
@@ -90,8 +90,8 @@ export function ProjectIncomePieChart({ project }: ProjectIncomePieChartProps) {
     if (!project) return { chartData: [], totalValue: 0 };
     
     const filteredInvoices = selectedYear === 'all' 
-        ? project.invoices 
-        : project.invoices.filter(inv => inv.period.endsWith(selectedYear));
+        ? (project.invoices || [])
+        : (project.invoices || []).filter(inv => inv.period.endsWith(selectedYear));
 
     const valueByStatus: Record<string, number> = {
         'Paid': 0,

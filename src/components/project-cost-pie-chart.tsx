@@ -81,7 +81,7 @@ export function ProjectCostPieChart({ project }: ProjectCostPieChartProps) {
   
   const availableYears = useMemo(() => {
     if (!project) return ['all'];
-    const years = new Set(project.costs.map(i => i.period.split(' ')[1]).filter(Boolean));
+    const years = new Set((project.costs || []).map(i => i.period.split(' ')[1]).filter(Boolean));
     return ['all', ...Array.from(years).sort((a, b) => Number(b) - Number(a))];
   }, [project]);
 
@@ -89,8 +89,8 @@ export function ProjectCostPieChart({ project }: ProjectCostPieChartProps) {
     if (!project) return { chartData: [], totalCost: 0 };
     
     const filteredCosts = selectedYear === 'all'
-        ? project.costs
-        : project.costs.filter(exp => exp.period.endsWith(selectedYear));
+        ? (project.costs || [])
+        : (project.costs || []).filter(exp => exp.period.endsWith(selectedYear));
 
     const costByCategory = filteredCosts
       .filter(exp => exp.status === 'Approved')
