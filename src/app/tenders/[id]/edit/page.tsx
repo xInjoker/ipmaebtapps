@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -111,7 +110,7 @@ export default function EditTenderPage() {
 
         await updateTender(tender.id, updatedTenderData);
         toast({ title: 'Tender Updated', description: `Successfully updated tender ${tender.tenderNumber}.` });
-        router.push('/tenders');
+        router.push(`/tenders/${tender.id}`);
     }, [tender, newDocuments, router, toast, updateTender]);
     
     if (!tender) {
@@ -393,3 +392,5 @@ export default function EditTenderPage() {
         </div>
     );
 }
+
+    
