@@ -105,10 +105,6 @@ export default function NewEquipmentPage() {
   const removeDocument = useCallback((index: number) => {
     setDocuments(prev => prev.filter((_, i) => i !== index));
   }, []);
-
-  const removePersonnelCert = useCallback((index: number) => {
-    setPersonnelCertifications(prev => prev.filter((_, i) => i !== index));
-  }, []);
   
   const handlePersonnelChange = useCallback((inspectorId: string) => {
     setNewEquipment(prev => {
@@ -144,7 +140,7 @@ export default function NewEquipmentPage() {
       assignedPersonnelIds: newEquipment.assignedPersonnelIds,
       images: images.map(img => img.file),
       documents: documents,
-      personnelCerts: personnelCertifications,
+      personnelCerts: [], // This is now handled dynamically
     });
     
     toast({
@@ -153,7 +149,7 @@ export default function NewEquipmentPage() {
     });
 
     setTimeout(() => router.push('/equipment'), 500);
-  }, [newEquipment, images, documents, personnelCertifications, addEquipment, toast, router]);
+  }, [newEquipment, images, documents, addEquipment, toast, router]);
 
   const calibrationDate = newEquipment.calibrationDueDate ? new Date(newEquipment.calibrationDueDate) : undefined;
   const Image = NextImage.default;
@@ -374,34 +370,6 @@ export default function NewEquipmentPage() {
                                 <span className="text-sm truncate">{file.name}</span>
                             </div>
                             <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeDocument(index)}>
-                                <X className="h-4 w-4" />
-                            </Button>
-                        </div>
-                        ))}
-                    </div>
-                )}
-            </div>
-            <div className="space-y-2 md:col-span-2">
-                <Label>Personnel Certifications</Label>
-                <div className="flex items-center justify-center w-full">
-                    <label htmlFor="cert-upload" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-card hover:bg-muted">
-                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                            <Upload className="w-8 h-8 mb-3 text-muted-foreground" />
-                            <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> or drag and drop</p>
-                            <p className="text-xs text-muted-foreground">PDF, JPG, PNG</p>
-                        </div>
-                        <Input id="cert-upload" type="file" className="hidden" multiple onChange={(e) => handleFileChange(e, setPersonnelCertifications)} />
-                    </label>
-                </div>
-                 {personnelCertifications.length > 0 && (
-                    <div className="mt-4 space-y-2">
-                        {personnelCertifications.map((file, index) => (
-                        <div key={index} className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
-                            <div className="flex items-center gap-2 truncate">
-                                <FileIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                                <span className="text-sm truncate">{file.name}</span>
-                            </div>
-                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removePersonnelCert(index)}>
                                 <X className="h-4 w-4" />
                             </Button>
                         </div>

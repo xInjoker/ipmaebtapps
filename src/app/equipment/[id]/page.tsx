@@ -71,6 +71,10 @@ export default function EquipmentDetailsPage() {
     return inspectors.filter(inspector => (equipment.assignedPersonnelIds || []).includes(inspector.id));
   }, [equipment, inspectors]);
 
+  const personnelCertifications = useMemo(() => {
+    return assignedInspectors.flatMap(inspector => inspector.qualifications || []);
+  }, [assignedInspectors]);
+
   if (!equipment) {
     return (
       <div className="flex h-[calc(100vh-10rem)] flex-col items-center justify-center text-center">
@@ -294,9 +298,9 @@ export default function EquipmentDetailsPage() {
             <Separator />
             <div>
                 <h3 className="font-semibold text-lg mb-4">Personnel Certifications</h3>
-                {(equipment.personnelCertificationUrls || []).length > 0 ? (
+                {personnelCertifications.length > 0 ? (
                     <div className="space-y-2">
-                        {equipment.personnelCertificationUrls.map((doc, index) => (
+                        {personnelCertifications.map((doc, index) => (
                             <div key={index} className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
                                 <div className="flex items-center gap-2 truncate">
                                     <FileText className="h-4 w-4 flex-shrink-0" />
@@ -310,7 +314,7 @@ export default function EquipmentDetailsPage() {
                      <div className="flex items-center justify-center h-32 rounded-md border-2 border-dashed bg-muted">
                         <div className="text-center text-muted-foreground">
                             <FileText className="mx-auto h-10 w-10" />
-                            <p className="mt-2 text-sm">No certifications uploaded</p>
+                            <p className="mt-2 text-sm">No certifications found for assigned personnel.</p>
                         </div>
                     </div>
                 )}

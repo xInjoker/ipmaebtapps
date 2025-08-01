@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useCallback, useMemo } from 'react';
@@ -9,7 +10,7 @@ type EquipmentContextType = {
   equipmentList: EquipmentItem[];
   setEquipmentList: Dispatch<SetStateAction<EquipmentItem[]>>;
   isLoading: boolean;
-  addEquipment: (item: Omit<EquipmentItem, 'id' | 'imageUrls' | 'documentUrls' | 'personnelCertificationUrls'> & { images: File[], documents: File[], personnelCerts: File[] }) => Promise<void>;
+  addEquipment: (item: Omit<EquipmentItem, 'id' | 'imageUrls' | 'documentUrls'> & { images: File[], documents: File[], personnelCerts: File[] }) => Promise<void>;
   updateEquipment: (id: string, item: EquipmentItem, newFiles: {newImages?: File[], newDocuments?: File[], newPersonnelCerts?: File[]}) => Promise<void>;
   getEquipmentById: (id: string) => EquipmentItem | undefined;
 };
@@ -23,21 +24,14 @@ export function EquipmentProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
 
 
-  const addEquipment = useCallback(async (item: Omit<EquipmentItem, 'id' | 'imageUrls' | 'documentUrls' | 'personnelCertificationUrls'> & { images: File[], documents: File[], personnelCerts: File[] }) => {
+  const addEquipment = useCallback(async (item: Omit<EquipmentItem, 'id' | 'imageUrls' | 'documentUrls'> & { images: File[], documents: File[] }) => {
     const newId = `EQ-${Date.now()}`;
-    const { images, documents, personnelCerts, ...rest } = item;
+    const { images, documents, ...rest } = item;
 
     const imageUrls = await Promise.all(images.map(file => fileToBase64(file) as Promise<string>));
 
     const documentUrls: EquipmentDocument[] = await Promise.all(
         documents.map(async file => ({
-            name: file.name,
-            url: await fileToBase64(file) as string,
-        }))
-    );
-
-    const personnelCertificationUrls: EquipmentDocument[] = await Promise.all(
-        personnelCerts.map(async file => ({
             name: file.name,
             url: await fileToBase64(file) as string,
         }))
@@ -48,12 +42,11 @@ export function EquipmentProvider({ children }: { children: ReactNode }) {
       id: newId,
       imageUrls,
       documentUrls,
-      personnelCertificationUrls,
     };
     setEquipmentList(prev => [...prev, newItem]);
   }, []);
   
-  const updateEquipment = useCallback(async (id: string, updatedItem: EquipmentItem, newFiles: {newImages?: File[], newDocuments?: File[], newPersonnelCerts?: File[]}) => {
+  const updateEquipment = useCallback(async (id: string, updatedItem: EquipmentItem, newFiles: {newImages?: File[], newDocuments?: File[]}) => {
     const newImageUrls = await Promise.all((newFiles.newImages || []).map(file => fileToBase64(file) as Promise<string>));
     
     const newDocumentUrls: EquipmentDocument[] = await Promise.all(
@@ -62,19 +55,11 @@ export function EquipmentProvider({ children }: { children: ReactNode }) {
             url: await fileToBase64(file) as string,
         }))
     );
-    
-    const newCertUrls: EquipmentDocument[] = await Promise.all(
-        (newFiles.newPersonnelCerts || []).map(async file => ({
-            name: file.name,
-            url: await fileToBase64(file) as string,
-        }))
-    );
 
     const finalItem = {
         ...updatedItem,
-        imageUrls: [...updatedItem.imageUrls, ...newImageUrls],
-        documentUrls: [...updatedItem.documentUrls, ...newDocumentUrls],
-        personnelCertificationUrls: [...updatedItem.personnelCertificationUrls, ...newCertUrls],
+        imageUrls: [...(updatedItem.imageUrls || []), ...newImageUrls],
+        documentUrls: [...(updatedItem.documentUrls || []), ...newDocumentUrls],
     };
 
     setEquipmentList(prev => prev.map(item => item.id === id ? finalItem : item));
