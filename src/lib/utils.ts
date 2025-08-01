@@ -163,6 +163,10 @@ export function getTenderStatusVariant(status: TenderStatus) {
 
 export function fileToBase64(file: File): Promise<string | ArrayBuffer | null> {
     return new Promise((resolve, reject) => {
+        if (!file) {
+            resolve(null);
+            return;
+        }
         const reader = new FileReader();
         reader.readAsDataURL(file);
         reader.onload = () => resolve(reader.result);
