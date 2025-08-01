@@ -163,7 +163,8 @@ export function getTenderStatusVariant(status: TenderStatus) {
 
 export function fileToBase64(file: File): Promise<string | ArrayBuffer | null> {
     return new Promise((resolve, reject) => {
-        if (!file) {
+        // Add a robust check to ensure the parameter is a File/Blob object
+        if (!(file instanceof Blob)) {
             resolve(null);
             return;
         }
