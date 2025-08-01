@@ -169,14 +169,13 @@ export function fileToBase64(file: File): Promise<string | ArrayBuffer | null> {
             return;
         }
         const reader = new FileReader();
-        const customFileName = encodeURIComponent(file.name);
-        reader.readAsDataURL(file);
         reader.onload = () => {
-            let encoded = reader.result as string;
+            const encoded = reader.result as string;
+            const customFileName = encodeURIComponent(file.name);
             // The result is in the format: "data:<mime_type>;base64,<encoded_data>"
             // We want to inject the name into it: "data:<mime_type>;name=<file_name>;base64,<encoded_data>"
             const parts = encoded.split(';base64,');
-            if(parts.length === 2) {
+            if (parts.length === 2) {
                 const newMimePart = `${parts[0]};name=${customFileName}`;
                 resolve(`${newMimePart};base64,${parts[1]}`);
             } else {
@@ -185,6 +184,7 @@ export function fileToBase64(file: File): Promise<string | ArrayBuffer | null> {
             }
         };
         reader.onerror = error => reject(error);
+        reader.readAsDataURL(file);
     });
 }
 
