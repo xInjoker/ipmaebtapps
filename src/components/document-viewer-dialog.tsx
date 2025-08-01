@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -34,14 +35,14 @@ export function DocumentViewerDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl h-[90vh]">
+      <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>{documentName}</DialogTitle>
           <DialogDescription>
             Previewing document. You can also download it.
           </DialogDescription>
         </DialogHeader>
-        <div className="h-full flex-grow border rounded-md overflow-hidden">
+        <div className="flex-grow border rounded-md overflow-hidden">
           <iframe
             src={documentUrl}
             width="100%"
@@ -49,7 +50,7 @@ export function DocumentViewerDialog({
             title={documentName}
           />
         </div>
-        <DialogFooter>
+        <DialogFooter className="flex-shrink-0 pt-4">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Close
           </Button>
