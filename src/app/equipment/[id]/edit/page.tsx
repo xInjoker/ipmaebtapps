@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -77,12 +76,12 @@ export default function EditEquipmentPage() {
 
   const assignedInspectors = useMemo(() => {
     if (!equipment) return [];
-    return inspectors.filter(inspector => equipment.assignedPersonnelIds.includes(inspector.id));
+    return inspectors.filter(inspector => (equipment.assignedPersonnelIds || []).includes(inspector.id));
   }, [equipment, inspectors]);
 
   const unassignedInspectors = useMemo(() => {
       if (!equipment) return [];
-      return inspectors.filter(inspector => !equipment.assignedPersonnelIds.includes(inspector.id));
+      return inspectors.filter(inspector => !(equipment.assignedPersonnelIds || []).includes(inspector.id));
   }, [equipment, inspectors]);
   
   const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>, setter: React.Dispatch<React.SetStateAction<{file: File, url: string}[]>>) => {
@@ -105,7 +104,7 @@ export default function EditEquipmentPage() {
     if (equipment) {
       setEquipment({
         ...equipment,
-        imageUrls: equipment.imageUrls.filter(u => u !== url),
+        imageUrls: (equipment.imageUrls || []).filter(u => u !== url),
       });
     }
   }, [equipment]);
@@ -118,7 +117,7 @@ export default function EditEquipmentPage() {
     if (equipment) {
       setEquipment({
         ...equipment,
-        documentUrls: equipment.documentUrls.filter(u => u !== url),
+        documentUrls: (equipment.documentUrls || []).filter(u => u !== url),
       });
     }
   }, [equipment]);
@@ -131,14 +130,15 @@ export default function EditEquipmentPage() {
     if (equipment) {
       setEquipment({
         ...equipment,
-        personnelCertificationUrls: equipment.personnelCertificationUrls.filter(u => u !== url),
+        personnelCertificationUrls: (equipment.personnelCertificationUrls || []).filter(u => u !== url),
       });
     }
   }, [equipment]);
 
   const handlePersonnelChange = useCallback((inspectorId: string) => {
     if (!equipment) return;
-    const newAssigned = [...equipment.assignedPersonnelIds];
+    const currentAssigned = equipment.assignedPersonnelIds || [];
+    const newAssigned = [...currentAssigned];
     const index = newAssigned.indexOf(inspectorId);
     if (index > -1) {
         newAssigned.splice(index, 1);
@@ -352,8 +352,8 @@ export default function EditEquipmentPage() {
             <div className="space-y-2 md:col-span-2">
                 <Label>Equipment Images</Label>
                  <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                    {equipment.imageUrls.map((url, index) => (
-                      <div key={`existing-${index}`} className="relative group">
+                    {(equipment.imageUrls || []).map((url, index) => (
+                      url && <div key={`existing-${index}`} className="relative group">
                         <div className="aspect-square w-full overflow-hidden rounded-md border bg-muted">
                            <Image
                                 src={url || 'https://placehold.co/100x100.png'}
@@ -406,8 +406,8 @@ export default function EditEquipmentPage() {
             <div className="space-y-2 md:col-span-2">
                 <Label>Supporting Documents</Label>
                 <div className="mt-2 space-y-2">
-                    {equipment.documentUrls.map((url, index) => (
-                    <div key={`existing-doc-${index}`} className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
+                    {(equipment.documentUrls || []).map((url, index) => (
+                    url && <div key={`existing-doc-${index}`} className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
                         <div className="flex items-center gap-2 truncate">
                             <FileIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                             <span className="text-sm truncate">{url.split('/').pop()}</span>
@@ -443,8 +443,8 @@ export default function EditEquipmentPage() {
             <div className="space-y-2 md:col-span-2">
                 <Label>Personnel Certifications</Label>
                  <div className="mt-2 space-y-2">
-                    {equipment.personnelCertificationUrls.map((url, index) => (
-                    <div key={`existing-cert-${index}`} className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
+                    {(equipment.personnelCertificationUrls || []).map((url, index) => (
+                    url && <div key={`existing-cert-${index}`} className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
                         <div className="flex items-center gap-2 truncate">
                             <FileIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                             <span className="text-sm truncate">{url.split('/').pop()}</span>
@@ -491,3 +491,5 @@ export default function EditEquipmentPage() {
     </div>
   );
 }
+
+    
