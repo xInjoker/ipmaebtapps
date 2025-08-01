@@ -1,4 +1,5 @@
 
+
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 import { isPast, differenceInDays } from "date-fns";
@@ -163,14 +164,40 @@ export function getTenderStatusVariant(status: TenderStatus) {
 
 export function fileToBase64(file: File): Promise<string | ArrayBuffer | null> {
     return new Promise((resolve, reject) => {
-        // Add a robust check to ensure the parameter is a File/Blob object
-        if (!(file instanceof Blob)) {
+        if (!(file instanceof File)) {
             resolve(null);
             return;
         }
         const reader = new FileReader();
+        const customFileName = encodeURIComponent(file.name);
         reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result);
+        reader.onload = () => {
+            let encoded = reader.result as string;
+            // The result is in the format: "data:<mime_type>;base64,<encoded_data>"
+            // We want to inject the name into it: "data:<mime_type>;name=<file_name>;base64,<encoded_data>"
+            const parts = encoded.split(';base64,');
+            if(parts.length === 2) {
+                const newMimePart = `${parts[0]};name=${customFileName}`;
+                resolve(`${newMimePart};base64,${parts[1]}`);
+            } else {
+                 // Fallback if the format is unexpected
+                resolve(encoded);
+            }
+        };
         reader.onerror = error => reject(error);
     });
+}
+
+export function getFileNameFromDataUrl(dataUrl: string): string | null {
+    if (typeof dataUrl !== 'string') return null;
+    const match = dataUrl.match(/^data:.*;name=([^;]+);/);
+    if (match && match[1]) {
+        try {
+            return decodeURIComponent(match[1]);
+        } catch (e) {
+            console.error("Could not decode filename from data URL", e);
+            return 'document';
+        }
+    }
+    return null;
 }

@@ -35,7 +35,7 @@ import {
 import { format } from 'date-fns';
 import { useAuth } from '@/context/AuthContext';
 import { type Tender } from '@/lib/tenders';
-import { formatCurrency, getTenderStatusVariant } from '@/lib/utils';
+import { formatCurrency, getTenderStatusVariant, getFileNameFromDataUrl } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 
 function DetailItem({ icon: Icon, label, value, iconColor }: { icon: React.ElementType, label: string, value?: React.ReactNode, iconColor: string }) {
@@ -206,16 +206,7 @@ export default function TenderDetailsPage() {
                     {(tender.documentUrls || []).length > 0 ? (
                         <div className="space-y-2">
                             {tender.documentUrls!.map((url, index) => {
-                                let fileName = `Document ${index + 1}`;
-                                try {
-                                    // Extract filename from our custom data URI format
-                                    const metadataMatch = url.match(/^data:application\/octet-stream;name=([^;]+);/);
-                                    if (metadataMatch && metadataMatch[1]) {
-                                        fileName = decodeURIComponent(metadataMatch[1]);
-                                    }
-                                } catch (e) {
-                                    console.error("Could not parse filename from data URL", e);
-                                }
+                                const fileName = getFileNameFromDataUrl(url) || `Document ${index + 1}`;
                                 return (
                                 <div key={index} className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
                                     <div className="flex items-center gap-2 truncate">

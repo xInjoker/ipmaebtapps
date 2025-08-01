@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -23,6 +24,8 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { portfolios, subPortfolios, servicesBySubPortfolio } from '@/lib/projects';
 import { CurrencyInput } from '@/components/ui/currency-input';
 import { Separator } from '@/components/ui/separator';
+import { getFileNameFromDataUrl } from '@/lib/utils';
+
 
 export default function EditTenderPage() {
     const router = useRouter();
@@ -347,7 +350,7 @@ export default function EditTenderPage() {
                                     <div key={`existing-doc-${index}`} className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
                                         <div className="flex items-center gap-2 truncate">
                                             <FileIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                                            <span className="text-sm truncate">{url.split(';base64,').pop()?.substring(0, 40) || 'Uploaded Document'}</span>
+                                            <span className="text-sm truncate">{getFileNameFromDataUrl(url) || 'Uploaded Document'}</span>
                                         </div>
                                         <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeExistingDocument(url)}>
                                             <X className="h-4 w-4" />
