@@ -165,23 +165,16 @@ export function getTenderStatusVariant(status: TenderStatus) {
 export function fileToBase64(file: File): Promise<string | ArrayBuffer | null> {
     return new Promise((resolve, reject) => {
         if (!(file instanceof File)) {
+            // It's not a file, resolve with null to avoid errors.
             resolve(null);
             return;
         }
         const reader = new FileReader();
         reader.onload = () => {
             const encoded = reader.result as string;
-            const customFileName = encodeURIComponent(file.name);
             // The result is in the format: "data:<mime_type>;base64,<encoded_data>"
-            // We want to inject the name into it: "data:<mime_type>;name=<file_name>;base64,<encoded_data>"
-            const parts = encoded.split(';base64,');
-            if (parts.length === 2) {
-                const newMimePart = `${parts[0]};name=${customFileName}`;
-                resolve(`${newMimePart};base64,${parts[1]}`);
-            } else {
-                 // Fallback if the format is unexpected
-                resolve(encoded);
-            }
+            // For previewing, this format is sufficient. The name can be stored separately.
+            resolve(encoded);
         };
         reader.onerror = error => reject(error);
         reader.readAsDataURL(file);
@@ -190,6 +183,8 @@ export function fileToBase64(file: File): Promise<string | ArrayBuffer | null> {
 
 export function getFileNameFromDataUrl(dataUrl: string): string | null {
     if (typeof dataUrl !== 'string') return null;
+    // This is a common but non-standard way to embed a filename in a data URI.
+    // Let's keep it for now as it seems to be used for downloading.
     const match = dataUrl.match(/^data:.*;name=([^;]+);/);
     if (match && match[1]) {
         try {
@@ -199,5 +194,6 @@ export function getFileNameFromDataUrl(dataUrl: string): string | null {
             return 'document';
         }
     }
+    // If the name is not embedded, we can't extract it.
     return null;
 }

@@ -9,21 +9,24 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, Edit, Mail, Phone, FileText, Download, Award, Paperclip, CalendarDays, MapPin, Briefcase, Star } from 'lucide-react';
-import { type Inspector } from '@/lib/inspectors';
-import { getInitials, getAvatarColor, getDocumentStatus } from '@/lib/utils';
+import { ArrowLeft, Edit, Mail, Phone, FileText, Download, Award, Paperclip, CalendarDays, MapPin, Briefcase, Star, Eye } from 'lucide-react';
+import { type Inspector, type InspectorDocument } from '@/lib/inspectors';
+import { getInitials, getAvatarColor, getDocumentStatus, getFileNameFromDataUrl } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { useAuth } from '@/context/AuthContext';
-
+import { DocumentViewerDialog } from '@/components/document-viewer-dialog';
 
 function formatDocumentName(name?: string) {
     if (!name) return 'Untitled Document';
-    // Remove file extension and replace underscores/hyphens with spaces.
-    return name.replace(/\.[^/.]+$/, "").replace(/[_.-]/g, ' ');
+    return name.replace(/\.[^/.]+$/, "").replace(/[_-]/g, ' ');
 }
 
+type DocumentToView = {
+    url: string;
+    name: string;
+}
 
 export default function InspectorDetailsPage() {
   const router = useRouter();
@@ -32,6 +35,7 @@ export default function InspectorDetailsPage() {
   const { getInspectorById } = useInspectors();
   const { branches, userHasPermission } = useAuth();
   const [inspector, setInspector] = useState<Inspector | null>(null);
+  const [documentToView, setDocumentToView] = useState<DocumentToView | null>(null);
 
   useEffect(() => {
     if (inspectorId) {
@@ -46,6 +50,15 @@ export default function InspectorDetailsPage() {
         return acc;
     }, {} as Record<string, string>);
   }, [branches]);
+  
+  const downloadFile = (url: string, fileName: string) => {
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName || 'download';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
   
   if (!inspector) {
     return (
@@ -67,6 +80,7 @@ export default function InspectorDetailsPage() {
   let colorIndex = 0;
   
   return (
+    <>
     <div className="space-y-6">
       <Card>
         <CardHeader>
@@ -164,9 +178,12 @@ export default function InspectorDetailsPage() {
                          <div className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
                             <div className="flex items-center gap-2 truncate">
                                 <FileText className="h-4 w-4 flex-shrink-0" />
-                                <span className="text-sm truncate" title={inspector.cvUrl}>{formatDocumentName(inspector.cvUrl.split('/').pop())}</span>
+                                <span className="text-sm truncate" title={inspector.cvUrl}>{getFileNameFromDataUrl(inspector.cvUrl) || 'Curriculum Vitae'}</span>
                             </div>
-                            <Button variant="ghost" size="sm"><Download className="mr-2 h-4 w-4" />Download</Button>
+                            <div>
+                                <Button variant="ghost" size="sm" onClick={() => setDocumentToView({ url: inspector.cvUrl, name: getFileNameFromDataUrl(inspector.cvUrl) || 'CV' })}><Eye className="mr-2 h-4 w-4" />View</Button>
+                                <Button variant="ghost" size="icon" onClick={() => downloadFile(inspector.cvUrl, getFileNameFromDataUrl(inspector.cvUrl) || 'cv.pdf')}><Download className="h-4 w-4" /></Button>
+                            </div>
                         </div>
                     ) : <p className="text-sm text-muted-foreground">No CV uploaded.</p>}
                 </div>
@@ -184,7 +201,10 @@ export default function InspectorDetailsPage() {
                                             <FileText className="h-4 w-4 flex-shrink-0" />
                                             <span className="text-sm font-medium truncate" title={doc.name}>{formatDocumentName(doc.name)}</span>
                                         </div>
-                                        <Button variant="ghost" size="sm"><Download className="mr-2 h-4 w-4" />Download</Button>
+                                         <div>
+                                            <Button variant="ghost" size="sm" onClick={() => setDocumentToView(doc)}><Eye className="mr-2 h-4 w-4" />View</Button>
+                                            <Button variant="ghost" size="icon" onClick={() => downloadFile(doc.url, doc.name)}><Download className="h-4 w-4" /></Button>
+                                        </div>
                                     </div>
                                     <div className="flex items-center justify-between pl-6">
                                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -214,7 +234,10 @@ export default function InspectorDetailsPage() {
                                             <FileText className="h-4 w-4 flex-shrink-0" />
                                             <span className="text-sm font-medium truncate" title={doc.name}>{formatDocumentName(doc.name)}</span>
                                         </div>
-                                        <Button variant="ghost" size="sm"><Download className="mr-2 h-4 w-4" />Download</Button>
+                                         <div>
+                                            <Button variant="ghost" size="sm" onClick={() => setDocumentToView(doc)}><Eye className="mr-2 h-4 w-4" />View</Button>
+                                            <Button variant="ghost" size="icon" onClick={() => downloadFile(doc.url, doc.name)}><Download className="h-4 w-4" /></Button>
+                                        </div>
                                     </div>
                                     <div className="flex items-center justify-between pl-6">
                                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -235,5 +258,14 @@ export default function InspectorDetailsPage() {
         </CardContent>
       </Card>
     </div>
+    {documentToView && (
+        <DocumentViewerDialog
+            isOpen={!!documentToView}
+            onOpenChange={(isOpen) => !isOpen && setDocumentToView(null)}
+            documentUrl={documentToView.url}
+            documentName={documentToView.name}
+        />
+    )}
+    </>
   );
 }

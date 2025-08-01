@@ -31,7 +31,13 @@ export function TenderProvider({ children }: { children: ReactNode }) {
   const addTender = useCallback(async (item: AddTenderData) => {
     const { documents, ...rest } = item;
     const documentUrls = await Promise.all(
-        (documents || []).map(file => fileToBase64(file) as Promise<string>)
+        (documents || []).map(async file => {
+             const base64 = await fileToBase64(file) as string;
+             // Inject filename into data URI for later retrieval
+             const parts = base64.split(';base64,');
+             const newMimePart = `${parts[0]};name=${encodeURIComponent(file.name)}`;
+             return `${newMimePart};base64,${parts[1]}`;
+        })
     );
     const newTender = {
         ...rest,
@@ -48,7 +54,12 @@ export function TenderProvider({ children }: { children: ReactNode }) {
     if (!existingTender) return;
 
     const newDocumentUrls = await Promise.all(
-        (newDocuments || []).map(file => fileToBase64(file) as Promise<string>)
+        (newDocuments || []).map(async file => {
+             const base64 = await fileToBase64(file) as string;
+             const parts = base64.split(';base64,');
+             const newMimePart = `${parts[0]};name=${encodeURIComponent(file.name)}`;
+             return `${newMimePart};base64,${parts[1]}`;
+        })
     );
 
     const finalItem: Tender = {

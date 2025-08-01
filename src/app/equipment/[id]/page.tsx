@@ -35,13 +35,22 @@ import {
   FileText,
   ImageIcon,
   Edit,
+  Eye,
+  Download,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '@/context/AuthContext';
-import { type EquipmentItem } from '@/lib/equipment';
+import { type EquipmentItem, type EquipmentDocument } from '@/lib/equipment';
 import { useInspectors } from '@/context/InspectorContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn, getAvatarColor, getInitials, getCalibrationStatus } from '@/lib/utils';
+import { DocumentViewerDialog } from '@/components/document-viewer-dialog';
+
+
+type DocumentToView = {
+    url: string;
+    name: string;
+}
 
 export default function EquipmentDetailsPage() {
   const router = useRouter();
@@ -51,6 +60,7 @@ export default function EquipmentDetailsPage() {
   const { inspectors } = useInspectors();
   const { branches, userHasPermission } = useAuth();
   const [equipment, setEquipment] = useState<EquipmentItem | null>(null);
+  const [documentToView, setDocumentToView] = useState<DocumentToView | null>(null);
 
   useEffect(() => {
     if (equipmentId) {
@@ -105,6 +115,7 @@ export default function EquipmentDetailsPage() {
   };
 
   return (
+    <>
     <div className="space-y-6">
       <Card>
         <CardHeader>
@@ -241,7 +252,7 @@ export default function EquipmentDetailsPage() {
           <div className="space-y-6 lg:col-span-2">
              <div>
                 <h3 className="font-semibold text-lg mb-4">Equipment Images</h3>
-                {equipment.imageUrls.length > 0 ? (
+                {equipment.imageUrls && equipment.imageUrls.length > 0 ? (
                     <Carousel className="w-full">
                         <CarouselContent>
                         {equipment.imageUrls.map((url, index) => (
@@ -282,7 +293,10 @@ export default function EquipmentDetailsPage() {
                                     <FileText className="h-4 w-4 flex-shrink-0" />
                                     <span className="text-sm truncate">{doc.name}</span>
                                 </div>
-                                <Button variant="ghost" size="sm" onClick={() => downloadFile(doc.url, doc.name)}>Download</Button>
+                                <div>
+                                    <Button variant="ghost" size="sm" onClick={() => setDocumentToView(doc)}><Eye className="mr-2 h-4 w-4" />View</Button>
+                                    <Button variant="ghost" size="icon" onClick={() => downloadFile(doc.url, doc.name)}><Download className="h-4 w-4" /></Button>
+                                </div>
                             </div>
                         ))}
                     </div>
@@ -306,7 +320,10 @@ export default function EquipmentDetailsPage() {
                                     <FileText className="h-4 w-4 flex-shrink-0" />
                                     <span className="text-sm truncate">{doc.name}</span>
                                 </div>
-                                <Button variant="ghost" size="sm" onClick={() => downloadFile(doc.url, doc.name)}>Download</Button>
+                                <div>
+                                    <Button variant="ghost" size="sm" onClick={() => setDocumentToView(doc)}><Eye className="mr-2 h-4 w-4" />View</Button>
+                                    <Button variant="ghost" size="icon" onClick={() => downloadFile(doc.url, doc.name)}><Download className="h-4 w-4" /></Button>
+                                </div>
                             </div>
                         ))}
                     </div>
@@ -323,5 +340,14 @@ export default function EquipmentDetailsPage() {
         </CardContent>
       </Card>
     </div>
+    {documentToView && (
+        <DocumentViewerDialog
+            isOpen={!!documentToView}
+            onOpenChange={(isOpen) => !isOpen && setDocumentToView(null)}
+            documentUrl={documentToView.url}
+            documentName={documentToView.name}
+        />
+    )}
+    </>
   );
 }

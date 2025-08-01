@@ -31,12 +31,19 @@ import {
   List,
   Download,
   Paperclip,
+  Eye,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '@/context/AuthContext';
 import { type Tender } from '@/lib/tenders';
 import { formatCurrency, getTenderStatusVariant, getFileNameFromDataUrl } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
+import { DocumentViewerDialog } from '@/components/document-viewer-dialog';
+
+type DocumentToView = {
+    url: string;
+    name: string;
+}
 
 function DetailItem({ icon: Icon, label, value, iconColor }: { icon: React.ElementType, label: string, value?: React.ReactNode, iconColor: string }) {
     if (!value) return null;
@@ -61,6 +68,7 @@ export default function TenderDetailsPage() {
   const { getTenderById } = useTenders();
   const { branches, userHasPermission } = useAuth();
   const [tender, setTender] = useState<Tender | null>(null);
+  const [documentToView, setDocumentToView] = useState<DocumentToView | null>(null);
 
   useEffect(() => {
     if (tenderId) {
@@ -103,6 +111,7 @@ export default function TenderDetailsPage() {
 
 
   return (
+    <>
     <div className="space-y-6">
       <Card className="relative overflow-hidden bg-gradient-to-br from-primary to-primary/80 text-primary-foreground">
         <svg
@@ -213,10 +222,10 @@ export default function TenderDetailsPage() {
                                         <FileText className="h-4 w-4 flex-shrink-0" />
                                         <span className="text-sm truncate">{fileName}</span>
                                     </div>
-                                    <Button variant="ghost" size="sm" onClick={() => downloadFile(url, fileName)}>
-                                        <Download className="mr-2 h-4 w-4" />
-                                        Download
-                                    </Button>
+                                    <div>
+                                        <Button variant="ghost" size="sm" onClick={() => setDocumentToView({ url, name: fileName })}><Eye className="mr-2 h-4 w-4" />View</Button>
+                                        <Button variant="ghost" size="icon" onClick={() => downloadFile(url, fileName)}><Download className="h-4 w-4" /></Button>
+                                    </div>
                                 </div>
                             )})}
                         </div>
@@ -232,5 +241,14 @@ export default function TenderDetailsPage() {
             </Card>
         </div>
     </div>
+     {documentToView && (
+        <DocumentViewerDialog
+            isOpen={!!documentToView}
+            onOpenChange={(isOpen) => !isOpen && setDocumentToView(null)}
+            documentUrl={documentToView.url}
+            documentName={documentToView.name}
+        />
+    )}
+    </>
   );
 }
