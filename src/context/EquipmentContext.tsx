@@ -2,7 +2,7 @@
 'use client';
 
 import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useCallback, useMemo } from 'react';
-import { type EquipmentItem, initialEquipment } from '@/lib/equipment';
+import { type EquipmentItem, type EquipmentDocument, initialEquipment } from '@/lib/equipment';
 import { fileToBase64 } from '@/lib/utils';
 
 type EquipmentContextType = {
@@ -27,11 +27,21 @@ export function EquipmentProvider({ children }: { children: ReactNode }) {
     const newId = `EQ-${Date.now()}`;
     const { images, documents, personnelCerts, ...rest } = item;
 
-    const [imageUrls, documentUrls, personnelCertificationUrls] = await Promise.all([
-        Promise.all(images.map(file => fileToBase64(file) as Promise<string>)),
-        Promise.all(documents.map(file => fileToBase64(file) as Promise<string>)),
-        Promise.all(personnelCerts.map(file => fileToBase64(file) as Promise<string>)),
-    ]);
+    const imageUrls = await Promise.all(images.map(file => fileToBase64(file) as Promise<string>));
+
+    const documentUrls: EquipmentDocument[] = await Promise.all(
+        documents.map(async file => ({
+            name: file.name,
+            url: await fileToBase64(file) as string,
+        }))
+    );
+
+    const personnelCertificationUrls: EquipmentDocument[] = await Promise.all(
+        personnelCerts.map(async file => ({
+            name: file.name,
+            url: await fileToBase64(file) as string,
+        }))
+    );
     
     const newItem: EquipmentItem = { 
       ...rest, 
@@ -44,11 +54,21 @@ export function EquipmentProvider({ children }: { children: ReactNode }) {
   }, []);
   
   const updateEquipment = useCallback(async (id: string, updatedItem: EquipmentItem, newFiles: {newImages?: File[], newDocuments?: File[], newPersonnelCerts?: File[]}) => {
-    const [newImageUrls, newDocumentUrls, newCertUrls] = await Promise.all([
-        Promise.all((newFiles.newImages || []).map(file => fileToBase64(file) as Promise<string>)),
-        Promise.all((newFiles.newDocuments || []).map(file => fileToBase64(file) as Promise<string>)),
-        Promise.all((newFiles.newPersonnelCerts || []).map(file => fileToBase64(file) as Promise<string>)),
-    ]);
+    const newImageUrls = await Promise.all((newFiles.newImages || []).map(file => fileToBase64(file) as Promise<string>));
+    
+    const newDocumentUrls: EquipmentDocument[] = await Promise.all(
+        (newFiles.newDocuments || []).map(async file => ({
+            name: file.name,
+            url: await fileToBase64(file) as string,
+        }))
+    );
+    
+    const newCertUrls: EquipmentDocument[] = await Promise.all(
+        (newFiles.newPersonnelCerts || []).map(async file => ({
+            name: file.name,
+            url: await fileToBase64(file) as string,
+        }))
+    );
 
     const finalItem = {
         ...updatedItem,

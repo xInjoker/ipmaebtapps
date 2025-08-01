@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -13,6 +14,7 @@ import {
   type EquipmentType,
   type EquipmentStatus,
   type EquipmentItem,
+  type EquipmentDocument,
 } from '@/lib/equipment';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -41,8 +43,8 @@ export default function EditEquipmentPage() {
   
   const [equipment, setEquipment] = useState<EquipmentItem | null>(null);
   const [newImages, setNewImages] = useState<{file: File, url: string}[]>([]);
-  const [newDocuments, setNewDocuments] = useState<{file: File, url: string}[]>([]);
-  const [newPersonnelCerts, setNewPersonnelCerts] = useState<{file: File, url: string}[]>([]);
+  const [newDocuments, setNewDocuments] = useState<File[]>([]);
+  const [newPersonnelCerts, setNewPersonnelCerts] = useState<File[]>([]);
   const [isPersonnelPopoverOpen, setIsPersonnelPopoverOpen] = useState(false);
 
   useEffect(() => {
@@ -84,7 +86,14 @@ export default function EditEquipmentPage() {
       return inspectors.filter(inspector => !(equipment.assignedPersonnelIds || []).includes(inspector.id));
   }, [equipment, inspectors]);
   
-  const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>, setter: React.Dispatch<React.SetStateAction<{file: File, url: string}[]>>) => {
+  const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>, setter: React.Dispatch<React.SetStateAction<File[]>>) => {
+    if (e.target.files) {
+        const files = Array.from(e.target.files);
+        setter(prev => [...prev, ...files]);
+    }
+  }, []);
+  
+  const handleImageChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
         const files = Array.from(e.target.files);
         const filePromises = files.map(async file => ({
@@ -92,7 +101,7 @@ export default function EditEquipmentPage() {
             url: await fileToBase64(file) as string,
         }));
         const newFiles = await Promise.all(filePromises);
-        setter(prev => [...prev, ...newFiles]);
+        setNewImages(prev => [...prev, ...newFiles]);
     }
   }, []);
 
@@ -113,11 +122,11 @@ export default function EditEquipmentPage() {
     setNewDocuments(prev => prev.filter((_, i) => i !== index));
   }, []);
   
-  const removeExistingDocument = useCallback((url: string) => {
+  const removeExistingDocument = useCallback((urlToRemove: string) => {
     if (equipment) {
       setEquipment({
         ...equipment,
-        documentUrls: (equipment.documentUrls || []).filter(u => u !== url),
+        documentUrls: (equipment.documentUrls || []).filter(doc => doc.url !== urlToRemove),
       });
     }
   }, [equipment]);
@@ -126,11 +135,11 @@ export default function EditEquipmentPage() {
     setNewPersonnelCerts(prev => prev.filter((_, i) => i !== index));
   }, []);
 
-  const removeExistingPersonnelCert = useCallback((url: string) => {
+  const removeExistingPersonnelCert = useCallback((urlToRemove: string) => {
     if (equipment) {
       setEquipment({
         ...equipment,
-        personnelCertificationUrls: (equipment.personnelCertificationUrls || []).filter(u => u !== url),
+        personnelCertificationUrls: (equipment.personnelCertificationUrls || []).filter(doc => doc.url !== urlToRemove),
       });
     }
   }, [equipment]);
@@ -160,7 +169,7 @@ export default function EditEquipmentPage() {
     }
 
     await updateEquipment(equipment.id, equipment, {
-        newImages: newImages,
+        newImages: newImages.map(i => i.file),
         newDocuments: newDocuments,
         newPersonnelCerts: newPersonnelCerts,
     });
@@ -399,25 +408,25 @@ export default function EditEquipmentPage() {
                             <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> or drag and drop</p>
                             <p className="text-xs text-muted-foreground">PNG, JPG, GIF</p>
                         </div>
-                        <Input id="image-upload" type="file" className="hidden" multiple onChange={(e) => handleFileChange(e, setNewImages)} accept="image/*" />
+                        <Input id="image-upload" type="file" className="hidden" multiple onChange={handleImageChange} accept="image/*" />
                     </label>
                 </div>
             </div>
             <div className="space-y-2 md:col-span-2">
                 <Label>Supporting Documents</Label>
                 <div className="mt-2 space-y-2">
-                    {(equipment.documentUrls || []).map((url, index) => (
-                    url && <div key={`existing-doc-${index}`} className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
+                    {(equipment.documentUrls || []).map((doc, index) => (
+                    doc && <div key={`existing-doc-${index}`} className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
                         <div className="flex items-center gap-2 truncate">
                             <FileIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                            <span className="text-sm truncate">{url.split('/').pop()}</span>
+                            <span className="text-sm truncate">{doc.name}</span>
                         </div>
-                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeExistingDocument(url)}>
+                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeExistingDocument(doc.url)}>
                             <X className="h-4 w-4" />
                         </Button>
                     </div>
                     ))}
-                    {newDocuments.map(({ file }, index) => (
+                    {newDocuments.map((file, index) => (
                     <div key={`new-doc-${index}`} className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
                         <div className="flex items-center gap-2 truncate">
                             <FileIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
@@ -443,18 +452,18 @@ export default function EditEquipmentPage() {
             <div className="space-y-2 md:col-span-2">
                 <Label>Personnel Certifications</Label>
                  <div className="mt-2 space-y-2">
-                    {(equipment.personnelCertificationUrls || []).map((url, index) => (
-                    url && <div key={`existing-cert-${index}`} className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
+                    {(equipment.personnelCertificationUrls || []).map((doc, index) => (
+                    doc && <div key={`existing-cert-${index}`} className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
                         <div className="flex items-center gap-2 truncate">
                             <FileIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                            <span className="text-sm truncate">{url.split('/').pop()}</span>
+                            <span className="text-sm truncate">{doc.name}</span>
                         </div>
-                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeExistingPersonnelCert(url)}>
+                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeExistingPersonnelCert(doc.url)}>
                             <X className="h-4 w-4" />
                         </Button>
                     </div>
                     ))}
-                    {newPersonnelCerts.map(({ file }, index) => (
+                    {newPersonnelCerts.map((file, index) => (
                     <div key={`new-cert-${index}`} className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
                         <div className="flex items-center gap-2 truncate">
                             <FileIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />

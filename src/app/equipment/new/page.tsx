@@ -39,8 +39,8 @@ export default function NewEquipmentPage() {
   const { toast } = useToast();
 
   const [images, setImages] = useState<{file: File, url: string}[]>([]);
-  const [documents, setDocuments] = useState<{file: File, url: string}[]>([]);
-  const [personnelCertifications, setPersonnelCertifications] = useState<{file: File, url: string}[]>([]);
+  const [documents, setDocuments] = useState<File[]>([]);
+  const [personnelCertifications, setPersonnelCertifications] = useState<File[]>([]);
   const [isPersonnelPopoverOpen, setIsPersonnelPopoverOpen] = useState(false);
 
   const [newEquipment, setNewEquipment] = useState<{
@@ -78,7 +78,7 @@ export default function NewEquipmentPage() {
       return inspectors.filter(inspector => !newEquipment.assignedPersonnelIds.includes(inspector.id));
   }, [newEquipment, inspectors]);
 
-  const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>, setter: React.Dispatch<React.SetStateAction<{file: File, url: string}[]>>) => {
+  const handleImageChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
         const files = Array.from(e.target.files);
         const filePromises = files.map(async file => ({
@@ -86,7 +86,14 @@ export default function NewEquipmentPage() {
             url: await fileToBase64(file) as string,
         }));
         const newFiles = await Promise.all(filePromises);
-        setter(prev => [...prev, ...newFiles]);
+        setImages(prev => [...prev, ...newFiles]);
+    }
+  }, []);
+
+  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>, setter: React.Dispatch<React.SetStateAction<File[]>>) => {
+    if (e.target.files) {
+        const files = Array.from(e.target.files);
+        setter(prev => [...prev, ...files]);
     }
   }, []);
 
@@ -136,8 +143,8 @@ export default function NewEquipmentPage() {
       status: newEquipment.status,
       assignedPersonnelIds: newEquipment.assignedPersonnelIds,
       images: images.map(img => img.file),
-      documents: documents.map(doc => doc.file),
-      personnelCerts: personnelCertifications.map(cert => cert.file),
+      documents: documents,
+      personnelCerts: personnelCertifications,
     });
     
     toast({
@@ -325,7 +332,7 @@ export default function NewEquipmentPage() {
                             <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> or drag and drop</p>
                             <p className="text-xs text-muted-foreground">PNG, JPG, GIF</p>
                         </div>
-                        <Input id="image-upload" type="file" className="hidden" multiple onChange={(e) => handleFileChange(e, setImages)} accept="image/*" />
+                        <Input id="image-upload" type="file" className="hidden" multiple onChange={handleImageChange} accept="image/*" />
                     </label>
                 </div>
                  {images.length > 0 && (
@@ -360,7 +367,7 @@ export default function NewEquipmentPage() {
                 </div>
                  {documents.length > 0 && (
                     <div className="mt-4 space-y-2">
-                        {documents.map(({ file }, index) => (
+                        {documents.map((file, index) => (
                         <div key={index} className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
                             <div className="flex items-center gap-2 truncate">
                                 <FileIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
@@ -388,7 +395,7 @@ export default function NewEquipmentPage() {
                 </div>
                  {personnelCertifications.length > 0 && (
                     <div className="mt-4 space-y-2">
-                        {personnelCertifications.map(({ file }, index) => (
+                        {personnelCertifications.map((file, index) => (
                         <div key={index} className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
                             <div className="flex items-center gap-2 truncate">
                                 <FileIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />

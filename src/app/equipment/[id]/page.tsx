@@ -272,13 +272,13 @@ export default function EquipmentDetailsPage() {
                 <h3 className="font-semibold text-lg mb-4">Supporting Documents</h3>
                 {(equipment.documentUrls || []).length > 0 ? (
                     <div className="space-y-2">
-                        {equipment.documentUrls.map((url, index) => (
+                        {equipment.documentUrls.map((doc, index) => (
                             <div key={index} className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
                                 <div className="flex items-center gap-2 truncate">
                                     <FileText className="h-4 w-4 flex-shrink-0" />
-                                    <span className="text-sm truncate">Document {index + 1}</span>
+                                    <span className="text-sm truncate">{doc.name}</span>
                                 </div>
-                                <Button variant="ghost" size="sm" onClick={() => downloadFile(url, `doc_${equipment.serialNumber}_${index+1}`)}>Download</Button>
+                                <Button variant="ghost" size="sm" onClick={() => downloadFile(doc.url, doc.name)}>Download</Button>
                             </div>
                         ))}
                     </div>
@@ -296,13 +296,13 @@ export default function EquipmentDetailsPage() {
                 <h3 className="font-semibold text-lg mb-4">Personnel Certifications</h3>
                 {(equipment.personnelCertificationUrls || []).length > 0 ? (
                     <div className="space-y-2">
-                        {equipment.personnelCertificationUrls.map((url, index) => (
+                        {equipment.personnelCertificationUrls.map((doc, index) => (
                             <div key={index} className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
                                 <div className="flex items-center gap-2 truncate">
                                     <FileText className="h-4 w-4 flex-shrink-0" />
-                                    <span className="text-sm truncate">Certification {index + 1}</span>
+                                    <span className="text-sm truncate">{doc.name}</span>
                                 </div>
-                                <Button variant="ghost" size="sm" onClick={() => downloadFile(url, `cert_${equipment.serialNumber}_${index+1}`)}>Download</Button>
+                                <Button variant="ghost" size="sm" onClick={() => downloadFile(doc.url, doc.name)}>Download</Button>
                             </div>
                         ))}
                     </div>
