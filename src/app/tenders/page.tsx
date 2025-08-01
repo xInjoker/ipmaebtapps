@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
@@ -416,7 +417,9 @@ export default function TendersPage() {
                             filteredTenders.map((tender) => (
                             <TableRow key={tender.id}>
                                 <TableCell className="font-medium">
-                                    {tender.tenderNumber}
+                                     <Link href={`/tenders/${tender.id}`} className="hover:underline">
+                                        {tender.tenderNumber}
+                                     </Link>
                                 </TableCell>
                                 <TableCell>{tender.title}</TableCell>
                                 <TableCell>{tender.client}</TableCell>
