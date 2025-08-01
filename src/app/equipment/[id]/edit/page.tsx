@@ -156,7 +156,6 @@ export default function EditEquipmentPage() {
     await updateEquipment(equipment.id, equipment, {
         newImages: newImages.map(i => i.file),
         newDocuments: newDocuments,
-        newPersonnelCerts: [], // This is now handled dynamically
     });
     
     toast({
@@ -164,7 +163,7 @@ export default function EditEquipmentPage() {
         description: `Successfully updated ${equipment.name}.`,
     });
 
-    router.push('/equipment');
+    router.push(`/equipment/${equipment.id}`);
   }, [equipment, newImages, newDocuments, router, toast, updateEquipment]);
 
   if (!equipment) {
