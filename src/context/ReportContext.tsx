@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useCallback, useMemo } from 'react';
@@ -11,7 +12,7 @@ type ReportContextType = {
   reports: ReportItem[];
   setReports: Dispatch<SetStateAction<ReportItem[]>>;
   addReport: (item: Omit<ReportItem, 'id'|'details'> & { details: Omit<ReportDetails, 'testResults'> & { testResults: any[] }}) => Promise<void>;
-  updateReport: (id: string, item: Omit<ReportItem, 'details'> & { details: Omit<ReportDetails, 'testResults'> & { testResults: any[] }}) => Promise<void>;
+  updateReport: (id: string, item: ReportItem) => Promise<void>;
   deleteReport: (id: string) => void;
   getReportById: (id: string) => ReportItem | undefined;
   getPendingReportApprovalsForUser: (userId: number) => ReportItem[];
@@ -24,13 +25,13 @@ export function ReportProvider({ children }: { children: ReactNode }) {
   const { projects } = useProjects();
 
   const processTestResultImages = async (testResults: any[]) => {
-      return Promise.all(testResults.map(async result => {
+      return Promise.all((testResults || []).map(async result => {
           if (result.images && result.images.length > 0) {
               const imageUrls = await Promise.all(
                   result.images.map((file: File) => fileToBase64(file) as Promise<string>)
               );
               const { images, ...rest } = result;
-              return { ...rest, imageUrls };
+              return { ...rest, imageUrls: [...(result.imageUrls || []), ...imageUrls] };
           }
           return result;
       }));
@@ -49,14 +50,18 @@ export function ReportProvider({ children }: { children: ReactNode }) {
     setReports(prev => [...prev, newItem]);
   }, []);
 
-  const updateReport = useCallback(async (id: string, updatedItem: Omit<ReportItem, 'id'|'details'> & { details: Omit<ReportDetails, 'testResults'> & { testResults: any[] }}) => {
-    const { details, ...rest } = updatedItem;
-    const processedTestResults = await processTestResultImages(details.testResults);
+  const updateReport = useCallback(async (id: string, updatedItem: ReportItem) => {
+    const details = updatedItem.details as (Omit<ReportDetails, 'testResults'> & { testResults: any[] }) | null;
+    let processedDetails = null;
+
+    if (details) {
+        const processedTestResults = await processTestResultImages(details.testResults);
+        processedDetails = { ...details, testResults: processedTestResults };
+    }
     
     const finalItem = { 
-        ...rest, 
-        id, 
-        details: { ...details, testResults: processedTestResults },
+        ...updatedItem, 
+        details: processedDetails,
     };
 
     setReports(prev => prev.map(item => item.id === id ? finalItem : item));

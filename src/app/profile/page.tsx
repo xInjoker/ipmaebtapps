@@ -3,7 +3,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import * as NextImage from 'next/image';
+import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -82,7 +82,6 @@ export default function ProfilePage() {
 
   const userRole = roles.find((r) => r.id === user.roleId);
   const avatarColor = getAvatarColor(user.name);
-  const Image = NextImage.default;
 
   return (
     <div className="space-y-6">

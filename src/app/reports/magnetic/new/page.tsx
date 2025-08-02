@@ -4,7 +4,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
-import * as NextImage from 'next/image';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -208,7 +208,6 @@ export default function MagneticTestPage() {
         toast({ title: 'Report Submitted', description: `Report ${formData.reportNumber} has been successfully submitted.` });
         router.push('/reports/magnetic');
     };
-    const Image = NextImage.default;
 
     return (
         <div className="space-y-6">

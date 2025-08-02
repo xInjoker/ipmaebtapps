@@ -5,7 +5,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import * as NextImage from 'next/image';
+import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 import { useTrips } from '@/context/TripContext';
 import { Button } from '@/components/ui/button';
@@ -40,7 +40,6 @@ export default function TripSummaryPage() {
     const { projects } = useProjects();
     const { addNotification } = useNotifications();
     const logoUrl = 'https://placehold.co/120x60.png';
-    const Image = NextImage.default;
     
     const trip = getTripById(tripId);
 

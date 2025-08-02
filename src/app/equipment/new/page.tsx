@@ -5,7 +5,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import * as NextImage from 'next/image';
+import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 import { useEquipment } from '@/context/EquipmentContext';
 import {
@@ -40,7 +40,6 @@ export default function NewEquipmentPage() {
 
   const [images, setImages] = useState<{file: File, url: string}[]>([]);
   const [documents, setDocuments] = useState<File[]>([]);
-  const [personnelCertifications, setPersonnelCertifications] = useState<File[]>([]);
   const [isPersonnelPopoverOpen, setIsPersonnelPopoverOpen] = useState(false);
 
   const [newEquipment, setNewEquipment] = useState<{
@@ -140,7 +139,6 @@ export default function NewEquipmentPage() {
       assignedPersonnelIds: newEquipment.assignedPersonnelIds,
       images: images.map(img => img.file),
       documents: documents,
-      personnelCerts: [], // This is now handled dynamically
     });
     
     toast({
@@ -152,7 +150,6 @@ export default function NewEquipmentPage() {
   }, [newEquipment, images, documents, addEquipment, toast, router]);
 
   const calibrationDate = newEquipment.calibrationDueDate ? new Date(newEquipment.calibrationDueDate) : undefined;
-  const Image = NextImage.default;
 
   return (
     <div className="space-y-6">

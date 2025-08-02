@@ -5,7 +5,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import * as NextImage from 'next/image';
+import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 import { useEquipment } from '@/context/EquipmentContext';
 import {
@@ -121,10 +121,10 @@ export default function EditEquipmentPage() {
   }, []);
   
   const removeExistingDocument = useCallback((urlToRemove: string) => {
-    if (equipment) {
+    if (equipment && equipment.documentUrls) {
       setEquipment({
         ...equipment,
-        documentUrls: (equipment.documentUrls || []).filter(doc => doc.url !== urlToRemove),
+        documentUrls: equipment.documentUrls.filter(doc => doc.url !== urlToRemove),
       });
     }
   }, [equipment]);
@@ -175,7 +175,6 @@ export default function EditEquipmentPage() {
   }
 
   const calibrationDate = equipment.calibrationDueDate ? new Date(equipment.calibrationDueDate) : undefined;
-  const Image = NextImage.default;
 
   return (
     <div className="space-y-6">

@@ -1,7 +1,7 @@
 
 
 'use client';
-import * as NextImage from 'next/image';
+import Image from 'next/image';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -24,7 +24,6 @@ type UserNavProps = {
 
 export function UserNav({ isSidebarFooter = false }: UserNavProps) {
   const { user, logout, roles } = useAuth();
-  const Image = NextImage.default;
 
   if (!user) {
     return null;

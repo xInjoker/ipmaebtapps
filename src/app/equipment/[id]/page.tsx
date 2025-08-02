@@ -5,7 +5,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import * as NextImage from 'next/image';
+import Image from 'next/image';
 import { useEquipment } from '@/context/EquipmentContext';
 import { Button } from '@/components/ui/button';
 import {
@@ -103,7 +103,6 @@ export default function EquipmentDetailsPage() {
   const calibration = getCalibrationStatus(new Date(equipment.calibrationDueDate));
   const iconColors = ['#0D5EA6', '#0ABAB5', '#00C897', '#FFA955', '#FFD63A', '#FFBE98'];
   let colorIndex = 0;
-  const Image = NextImage.default;
 
   const downloadFile = (url: string, fileName: string) => {
     const link = document.createElement('a');

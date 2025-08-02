@@ -5,7 +5,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import * as NextImage from 'next/image';
+import Image from 'next/image';
 import { useReports } from '@/context/ReportContext';
 import { type ReportItem, type ReportDetails, RadiographicFinding, PenetrantTestReportDetails, MagneticParticleTestReportDetails, UltrasonicTestReportDetails, RadiographicTestReportDetails } from '@/lib/reports';
 import { Button } from '@/components/ui/button';
@@ -31,7 +31,6 @@ interface jsPDFWithAutoTable extends jsPDF {
 
 // --- Reusable Image Gallery ---
 const ImageGallery = ({ allImages }: { allImages: { url: string, jointNo: string, weldId: string }[] }) => {
-    const Image = NextImage.default;
     return (
         <Card>
             <CardHeader>
@@ -376,7 +375,6 @@ export default function ReportDetailsPage() {
     const { users } = useAuth();
     const [report, setReport] = useState<ReportItem | null>(null);
     const logoUrl = 'https://placehold.co/120x60.png';
-    const Image = NextImage.default;
 
     useEffect(() => {
         if (reportId) {
@@ -492,7 +490,7 @@ export default function ReportDetailsPage() {
                 try {
                     const base64Img = await getBase64Image(image.url);
                     
-                    const img = new (NextImage.default)();
+                    const img = new Image();
                     img.src = base64Img;
                     await new Promise(resolve => { img.onload = resolve; });
 
