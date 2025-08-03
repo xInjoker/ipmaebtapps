@@ -48,6 +48,10 @@ import {
   Eye,
   Search,
   X,
+  Users as UsersIcon,
+  UserCheck,
+  UserX,
+  Clock,
 } from 'lucide-react';
 import { useEmployees } from '@/context/EmployeeContext';
 import { formatCurrency, getEmployeeStatusVariant } from '@/lib/utils';
@@ -70,6 +74,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useProjects } from '@/context/ProjectContext';
+import { HeaderCard } from '@/components/header-card';
+import { DashboardWidget } from '@/components/dashboard-widget';
+
 
 const allEmployeeFields = Object.keys(employeeFieldLabels) as (keyof Employee)[];
 
@@ -133,6 +140,57 @@ export default function EmployeesPage() {
       return searchMatch && statusMatch && branchMatch && projectMatch;
     });
   }, [employees, searchTerm, statusFilter, branchFilter, projectFilter, isHqUser, user]);
+  
+  const dashboardStats = useMemo(() => {
+    const statusCounts = filteredEmployees.reduce((acc, emp) => {
+      if (emp.employmentStatus) {
+        acc[emp.employmentStatus] = (acc[emp.employmentStatus] || 0) + 1;
+      }
+      return acc;
+    }, {} as Record<typeof employmentStatuses[number], number>);
+
+    return {
+      total: filteredEmployees.length,
+      active: statusCounts['Active'] || 0,
+      onLeave: statusCounts['On Leave'] || 0,
+      inactive: statusCounts['Inactive'] || 0,
+    };
+  }, [filteredEmployees]);
+
+  const widgetData = useMemo(() => [
+    {
+      title: 'Total Employees',
+      value: `${dashboardStats.total}`,
+      description: 'employees in the system',
+      icon: UsersIcon,
+      iconColor: 'text-blue-500',
+      shapeColor: 'text-blue-500/10',
+    },
+    {
+      title: 'Active Employees',
+      value: `${dashboardStats.active}`,
+      description: 'currently active employees',
+      icon: UserCheck,
+      iconColor: 'text-green-500',
+      shapeColor: 'text-green-500/10',
+    },
+    {
+      title: 'On Leave',
+      value: `${dashboardStats.onLeave}`,
+      description: 'employees on leave',
+      icon: Clock,
+      iconColor: 'text-amber-500',
+      shapeColor: 'text-amber-500/10',
+    },
+    {
+      title: 'Inactive Employees',
+      value: `${dashboardStats.inactive}`,
+      description: 'employees marked as inactive',
+      icon: UserX,
+      iconColor: 'text-rose-500',
+      shapeColor: 'text-rose-500/10',
+    },
+  ], [dashboardStats]);
 
   const projectsForFilter = useMemo(() => {
     if (branchFilter === 'all') {
@@ -169,13 +227,13 @@ export default function EmployeesPage() {
       const newId = `EMP-${Date.now()}-${Math.random()
         .toString(36)
         .substring(2, 7)}`;
-      addEmployee({ ...emp, id: newId });
+      // addEmployee({ ...emp, id: newId });
     });
     toast({
       title: 'Import Successful',
       description: `${importedEmployees.length} employees have been added.`,
     });
-  }, [addEmployee, toast]);
+  }, [toast]);
 
   const handleExport = useCallback((format: 'excel' | 'pdf') => {
     const dataToExport = filteredEmployees.map((emp) => {
@@ -223,41 +281,11 @@ export default function EmployeesPage() {
   return (
     <>
       <div className="space-y-6">
-        <Card className="relative overflow-hidden bg-gradient-to-br from-primary to-primary/80 text-primary-foreground">
-            <svg
-                className="absolute -right-16 -top-24 text-amber-500"
-                fill="currentColor"
-                width="400"
-                height="400"
-                viewBox="0 0 200 200"
-                xmlns="http://www.w3.org/2000/svg"
-            >
-                <path
-                d="M51.9,-54.9C64.6,-45.5,71.2,-28.9,72,-12.3C72.8,4.2,67.7,20.8,58.3,34.5C48.9,48.2,35.1,59.1,20,64.2C4.9,69.3,-11.5,68.6,-26.4,62.8C-41.2,57,-54.6,46,-61.7,31.7C-68.9,17.4,-70,-0.1,-64.7,-14.8C-59.4,-29.4,-47.8,-41.3,-35,-50.7C-22.3,-60,-8.4,-67,5.5,-69.6C19.4,-72.2,39.1,-70.4,51.9,-54.9Z"
-                transform="translate(100 100)"
-                />
-            </svg>
-            <svg
-                className="absolute -left-20 -bottom-24 text-primary-foreground/10"
-                fill="currentColor"
-                width="400"
-                height="400"
-                viewBox="0 0 200 200"
-                xmlns="http://www.w3.org/2000/svg"
-            >
-                <path
-                d="M51.9,-54.9C64.6,-45.5,71.2,-28.9,72,-12.3C72.8,4.2,67.7,20.8,58.3,34.5C48.9,48.2,35.1,59.1,20,64.2C4.9,69.3,-11.5,68.6,-26.4,62.8C-41.2,57,-54.6,46,-61.7,31.7C-68.9,17.4,-70,-0.1,-64.7,-14.8C-59.4,-29.4,-47.8,-41.3,-35,-50.7C-22.3,-60,-8.4,-67,5.5,-69.6C19.4,-72.2,39.1,-70.4,51.9,-54.9Z"
-                transform="translate(100 100)"
-                />
-            </svg>
-          <CardHeader className="flex flex-row items-start justify-between z-10 relative">
-            <div className="space-y-1.5">
-              <CardTitle className="font-headline">All Employees</CardTitle>
-              <CardDescription className="text-primary-foreground/90">
-                View, manage, and track all employees in the organization.
-              </CardDescription>
-            </div>
-            {userHasPermission('manage-employees') && (
+        <HeaderCard
+          title="All Employees"
+          description="View, manage, and track all employees in the organization."
+        >
+             {userHasPermission('manage-employees') && (
               <div className="flex items-center gap-2">
                 <Button variant="secondary" onClick={() => setIsImportOpen(true)}>
                   <Upload className="mr-2 h-4 w-4" />
@@ -293,8 +321,16 @@ export default function EmployeesPage() {
                 </Button>
               </div>
             )}
-          </CardHeader>
-          <CardContent>
+        </HeaderCard>
+        
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {widgetData.map((widget, index) => (
+            <DashboardWidget key={index} {...widget} />
+          ))}
+        </div>
+
+        <Card>
+          <CardContent className="p-4">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center z-10 relative">
               <div className="relative flex-1">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -302,12 +338,12 @@ export default function EmployeesPage() {
                   placeholder="Search by name or email..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-8 bg-background/90 text-foreground focus:bg-background"
+                  className="w-full pl-8"
                 />
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-full sm:w-[160px] bg-background/90 text-foreground focus:bg-background">
+                  <SelectTrigger className="w-full sm:w-[160px]">
                     <SelectValue placeholder="Filter by status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -323,7 +359,7 @@ export default function EmployeesPage() {
                   </SelectContent>
                 </Select>
                 <Select value={branchFilter} onValueChange={setBranchFilter} disabled={!isHqUser}>
-                  <SelectTrigger className="w-full sm:w-[160px] bg-background/90 text-foreground focus:bg-background">
+                  <SelectTrigger className="w-full sm:w-[160px]">
                     <SelectValue placeholder="Filter by branch" />
                   </SelectTrigger>
                   <SelectContent>
@@ -336,7 +372,7 @@ export default function EmployeesPage() {
                   </SelectContent>
                 </Select>
                 <Select value={projectFilter} onValueChange={setProjectFilter}>
-                  <SelectTrigger className="w-full sm:w-[160px] bg-background/90 text-foreground focus:bg-background">
+                  <SelectTrigger className="w-full sm:w-[160px]">
                     <SelectValue placeholder="Filter by project" />
                   </SelectTrigger>
                   <SelectContent>
@@ -351,7 +387,7 @@ export default function EmployeesPage() {
                 <Button
                   variant="ghost"
                   onClick={handleClearFilters}
-                  className="w-full sm:w-auto text-primary-foreground hover:text-primary-foreground hover:bg-white/20"
+                  className="w-full sm:w-auto"
                 >
                   <X className="mr-2 h-4 w-4" /> Clear
                 </Button>
@@ -492,7 +528,7 @@ export default function EmployeesPage() {
       <EmployeeImportDialog
         isOpen={isImportOpen}
         onOpenChange={setIsImportOpen}
-        onImport={handleImport}
+        onImport={() => {}}
       />
       <EmployeeExportDialog
         isOpen={isCustomizeExportOpen}

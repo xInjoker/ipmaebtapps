@@ -90,7 +90,7 @@ export function EmployeeImportDialog({ isOpen, onOpenChange, onImport }: Employe
       const employees: Omit<Employee, 'id'>[] = json.map(row => {
         const employee: Partial<Employee> = {};
         for (const header in row) {
-          const mappedKey = headerMapping[header];
+          const mappedKey = headerMapping[header.toUpperCase().trim()];
           if (mappedKey) {
             let value = row[header];
             // Check for date fields and convert if they are Excel serial numbers
