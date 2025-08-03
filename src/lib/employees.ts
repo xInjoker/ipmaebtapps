@@ -7,6 +7,7 @@ export const employmentStatuses = ['Active', 'Inactive', 'On Leave'] as const;
 export const contractTypes = ['Monthly', 'Daily', 'Hourly'] as const;
 export const portfolios = ['AEBT', 'others'] as const;
 export const subPortfolios = ['IAPPM', 'EBT'] as const;
+export const religions = ['Islam', 'Christianity', 'Catholicism', 'Hinduism', 'Buddhism', 'Confucianism', 'Other'] as const;
 
 export type Employee = {
     id: string;

@@ -24,7 +24,8 @@ import {
   employmentStatuses,
   contractTypes,
   portfolios,
-  subPortfolios
+  subPortfolios,
+  religions,
 } from '@/lib/employees';
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
@@ -335,7 +336,15 @@ export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
                                 </SelectContent>
                             </Select>
                         </div>
-                        <div className="space-y-2"><Label>Religion</Label><Input {...form.register('religion')} /></div>
+                        <div className="space-y-2">
+                            <Label>Religion</Label>
+                            <Select onValueChange={(v) => form.setValue('religion', v)} value={form.watch('religion') || ''}>
+                                <SelectTrigger><SelectValue placeholder="Select a religion..."/></SelectTrigger>
+                                <SelectContent>
+                                    {religions.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                                </SelectContent>
+                            </Select>
+                        </div>
                         <div className="md:col-span-2 space-y-2"><Label>Address</Label><Textarea {...form.register('address')} /></div>
                         <div className="space-y-2"><Label>Email</Label><Input type="email" {...form.register('email')} /></div>
                         <div className="space-y-2"><Label>Phone Number</Label><Input {...form.register('phoneNumber')} /></div>
