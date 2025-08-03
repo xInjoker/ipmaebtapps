@@ -88,20 +88,26 @@ export const employeeFieldLabels: Record<keyof Employee | 'id', string> = {
 // This data is now only used for one-time database seeding.
 export const initialEmployees: Omit<Employee, 'id'>[] = [
     {
+        email: 'john.doe@example.com',
         reportingManagerId: 'EMP-002', // John reports to Jane
         name: 'John Doe',
         position: 'Senior Engineer',
-        projectName: 'Corporate Website Revamp',
+        projectName: 'Pipeline Integrity Assessment',
         workUnit: 'jakarta',
         workUnitName: 'Cabang Jakarta',
         salary: 15000000,
         contractEndDate: '2025-12-31',
         employmentStatus: 'Active',
+        isPromotedToInspector: true,
+        qualifications: [
+            { name: 'API_510.pdf', url: 'API_510.pdf', expirationDate: '2028-01-01' },
+        ]
     },
     {
+        email: 'jane.smith@example.com',
         name: 'Jane Smith',
         position: 'Project Manager',
-        projectName: 'Mobile App Development',
+        projectName: 'Offshore Platform Structural Inspection',
         workUnit: 'surabaya',
         workUnitName: 'Cabang Surabaya',
         salary: 25000000,
@@ -109,31 +115,38 @@ export const initialEmployees: Omit<Employee, 'id'>[] = [
         employmentStatus: 'On Leave',
     },
     {
+        email: 'michael.johnson@example.com',
         reportingManagerId: 'EMP-002', // Michael also reports to Jane
         name: 'Michael Johnson',
         position: 'Junior Developer',
-        projectName: 'Data Analytics Platform',
-        workUnit: 'jakarta',
-        workUnitName: 'Cabang Jakarta',
+        projectName: 'Storage Tank Inspection',
+        workUnit: 'pekanbaru',
+        workUnitName: 'Cabang Pekanbaru',
         salary: 8000000,
         contractEndDate: '2024-10-31',
         employmentStatus: 'Inactive',
     },
     {
+        email: 'emily.davis@example.com',
         name: 'Emily Davis',
         position: 'UI/UX Designer',
-        projectName: 'Corporate Website Revamp',
+        projectName: 'Pipeline Integrity Assessment',
         workUnit: 'jakarta',
         workUnitName: 'Cabang Jakarta',
         salary: 12000000,
         contractEndDate: '2026-06-30',
         employmentStatus: 'Active',
+        isPromotedToInspector: true,
+        qualifications: [
+            { name: 'ASNT_Level_II_Visual.pdf', url: 'ASNT_Level_II_Visual.pdf', expirationDate: '2026-07-15' },
+        ]
     },
     {
+        email: 'employee@example.com',
         reportingManagerId: 'EMP-001', // Employee user reports to John Doe
         name: 'Employee User',
         position: 'Field Technician',
-        projectName: 'Corporate Website Revamp',
+        projectName: 'Pipeline Integrity Assessment',
         workUnit: 'jakarta',
         workUnitName: 'Cabang Jakarta',
         salary: 9500000,

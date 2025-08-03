@@ -21,7 +21,7 @@ export type Inspector = {
   branchId: string;
 };
 
-export const inspectorPositions: Inspector['position'][] = ['Lead Inspector', 'Inspector', 'Trainee Inspector'];
+export const inspectorPositions: string[] = ['Lead Inspector', 'Inspector', 'Trainee Inspector', 'Senior Inspector', 'QA/QC Coordinator'];
 export const employmentStatuses: Exclude<Inspector['employmentStatus'], undefined>[] = ['Organik', 'Freelance'];
 
 
@@ -75,5 +75,20 @@ export const initialInspectors: Omit<Inspector, 'id'>[] = [
       { name: 'First_Aid_Cert.pdf', url: 'First_Aid_Cert.pdf' }, // No expiration date
     ],
     branchId: 'pekanbaru',
+  },
+  {
+    name: 'Inspector User',
+    email: 'inspector@example.com',
+    phone: '0811-1111-2222',
+    position: 'Senior Inspector',
+    employmentStatus: 'Organik',
+    yearsOfExperience: 12,
+    avatarUrl: '',
+    cvUrl: 'Inspector_User_CV.pdf',
+    qualifications: [
+       { name: 'API_570.pdf', url: 'API_570.pdf', expirationDate: '2029-01-01' },
+    ],
+    otherDocuments: [],
+    branchId: 'kantor-pusat',
   },
 ];
