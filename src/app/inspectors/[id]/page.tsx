@@ -11,17 +11,13 @@ import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ArrowLeft, Edit, Mail, Phone, FileText, Download, Award, Paperclip, CalendarDays, MapPin, Briefcase, Star, Eye } from 'lucide-react';
 import { type Inspector, type InspectorDocument } from '@/lib/inspectors';
-import { getInitials, getAvatarColor, getDocumentStatus, getFileNameFromDataUrl } from '@/lib/utils';
+import { getInitials, getAvatarColor, getDocumentStatus, getFileNameFromDataUrl, formatDocumentName } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { useAuth } from '@/context/AuthContext';
 import { DocumentViewerDialog } from '@/components/document-viewer-dialog';
 
-function formatDocumentName(name?: string) {
-    if (!name) return 'Untitled Document';
-    return name.replace(/\.[^/.]+$/, "").replace(/[_-]/g, ' ');
-}
 
 type DocumentToView = {
     url: string;

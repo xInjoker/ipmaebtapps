@@ -146,6 +146,11 @@ export function formatQualificationName(name: string) {
         .trim();
 }
 
+export function formatDocumentName(name?: string) {
+    if (!name) return 'Untitled Document';
+    return name.replace(/\.[^/.]+$/, "").replace(/[_-]/g, ' ');
+}
+
 export function getTenderStatusVariant(status: TenderStatus) {
     switch (status) {
         case 'Awarded': return 'green' as const;
