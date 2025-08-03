@@ -421,20 +421,19 @@ export default function ReportDetailsPage() {
             theme: 'plain',
             styles: { fontSize: 9 },
         });
-        finalY = (doc as any).lastAutoTable.finalY;
+        finalY = (doc as any).lastAutoTable.finalY + 5;
     
         // --- Report-specific Details & Results ---
         if (details.jobType === 'Penetrant Test') {
             doc.autoTable({
-                head: [['Test Details', '', 'More Test Details', '']],
+                head: [['Test Details']],
                 body: [
-                    ['Procedure No.', details.procedureNo, 'Acceptance Criteria', details.acceptanceCriteria],
-                    ['Test Equipment', details.testEquipment, 'Material', details.material],
+                    ['Procedure No.', details.procedureNo],
+                    ['Acceptance Criteria', details.acceptanceCriteria],
+                    ['Test Equipment', details.testEquipment],
+                    ['Material', details.material],
                 ],
-                startY: finalY + 5,
-                theme: 'striped',
-                headStyles: { fillColor: [22, 163, 74] },
-                styles: { fontSize: 9 },
+                startY: finalY, theme: 'striped', headStyles: { fillColor: [22, 163, 74] }, styles: { fontSize: 9 },
             });
             finalY = (doc as any).lastAutoTable.finalY;
 
@@ -445,21 +444,73 @@ export default function ReportDetailsPage() {
                     ['Remover', details.removerType, details.removerBrand, details.removerBatch],
                     ['Developer', details.developerType, details.developerBrand, details.developerBatch],
                 ],
-                startY: finalY,
-                theme: 'grid',
-                styles: { fontSize: 9 },
+                startY: finalY, theme: 'grid', styles: { fontSize: 9 },
             });
             finalY = (doc as any).lastAutoTable.finalY;
 
              doc.autoTable({
                 head: [['Subject ID', 'Joint No.', 'Weld/Part ID', 'Linear Ind.', 'Round Ind.', 'Result']],
                 body: details.testResults.map(r => [r.subjectIdentification, r.jointNo, r.weldId, r.linearIndication, r.roundIndication, r.result]),
-                startY: finalY + 5,
-                theme: 'grid',
-                headStyles: { fillColor: [41, 128, 185] },
-                styles: { fontSize: 9 },
+                startY: finalY + 5, theme: 'grid', headStyles: { fillColor: [41, 128, 185] }, styles: { fontSize: 9 },
             });
             finalY = (doc as any).lastAutoTable.finalY;
+        } else if (details.jobType === 'Magnetic Particle Test') {
+             doc.autoTable({
+                head: [['Test Details']],
+                body: [
+                    ['Procedure No.', details.procedureNo],
+                    ['Acceptance Criteria', details.acceptanceCriteria],
+                    ['Magnetization Technique', details.magnetizationTechnique],
+                    ['Current Type / Amperage', `${details.currentType} / ${details.amperage}`],
+                    ['Magnetic Particles', `${details.magneticParticlesType} (${details.particleBrand})`],
+                    ['Equipment', details.equipment],
+                ],
+                startY: finalY, theme: 'striped', headStyles: { fillColor: [22, 163, 74] }, styles: { fontSize: 9 },
+            });
+            finalY = (doc as any).lastAutoTable.finalY;
+             doc.autoTable({
+                head: [['Subject ID', 'Joint No.', 'Indication Details', 'Result']],
+                body: details.testResults.map(r => [r.subjectIdentification, r.jointNo, r.indicationDetails, r.result]),
+                startY: finalY + 5, theme: 'grid', headStyles: { fillColor: [41, 128, 185] }, styles: { fontSize: 9 },
+            });
+        } else if (details.jobType === 'Ultrasonic Test') {
+            doc.autoTable({
+                head: [['Test Details']],
+                body: [
+                    ['Procedure No.', details.procedureNo],
+                    ['Acceptance Criteria', details.acceptanceCriteria],
+                    ['Equipment', details.equipment],
+                    ['Transducer', details.transducer],
+                    ['Calibration Block', details.calibrationBlock],
+                    ['Couplant', details.couplant],
+                ],
+                startY: finalY, theme: 'striped', headStyles: { fillColor: [22, 163, 74] }, styles: { fontSize: 9 },
+            });
+            finalY = (doc as any).lastAutoTable.finalY;
+             doc.autoTable({
+                head: [['Joint No.', 'Weld ID', 'Thickness', 'Discontinuity', 'Remarks', 'Result']],
+                body: details.testResults.map(r => [r.jointNo, r.weldId, r.thickness, r.discontinuityType, r.remarks, r.result]),
+                startY: finalY + 5, theme: 'grid', headStyles: { fillColor: [41, 128, 185] }, styles: { fontSize: 9 },
+            });
+        } else if (details.jobType === 'Radiographic Test') {
+             doc.autoTable({
+                head: [['Test Details']],
+                body: [
+                    ['Procedure No.', details.procedureNo],
+                    ['Acceptance Criteria', details.acceptanceCriteria],
+                    ['Technique', details.technique],
+                    ['Source', `${details.source} (${details.sourceSize})`],
+                    ['SFD', details.sfd],
+                    ['Screens', details.screens],
+                ],
+                startY: finalY, theme: 'striped', headStyles: { fillColor: [22, 163, 74] }, styles: { fontSize: 9 },
+            });
+            finalY = (doc as any).lastAutoTable.finalY;
+             doc.autoTable({
+                head: [['Joint No.', 'Film Location', 'Weld Indication', 'Remarks', 'Result']],
+                body: details.testResults.flatMap(r => r.findings.map(f => [r.jointNo, f.filmLocation, f.weldIndication.join(', '), f.remarks, f.result])),
+                startY: finalY + 5, theme: 'grid', headStyles: { fillColor: [41, 128, 185] }, styles: { fontSize: 9 },
+            });
         }
 
         const getBase64Image = async (url: string): Promise<string> => {
@@ -481,8 +532,8 @@ export default function ReportDetailsPage() {
         };
 
         // --- Image Section ---
-        const allImages = details.testResults?.flatMap(result =>
-            (result.imageUrls || []).map(url => ({
+        const allImages = details.testResults?.flatMap((result: any) =>
+            (result.imageUrls || []).map((url: string) => ({
                 url,
                 caption: `Joint: ${result.jointNo} / Weld ID: ${result.weldId}`
             }))
@@ -490,7 +541,10 @@ export default function ReportDetailsPage() {
 
         if (allImages.length > 0) {
             finalY = (doc as any).lastAutoTable.finalY;
-            if (finalY + 15 > pageHeight - 10) doc.addPage();
+            if (finalY + 15 > pageHeight - 10) {
+                doc.addPage();
+                finalY = pageMargin;
+            }
             doc.setFontSize(12);
             doc.text('Evidence Images', pageMargin, finalY + 10);
             finalY += 15;
@@ -499,6 +553,7 @@ export default function ReportDetailsPage() {
             const columnWidth = (contentWidth - 10) / 2;
             let currentX = pageMargin;
             let rowMaxHeight = 0;
+            let rowStartY = finalY;
 
             for (let i = 0; i < allImages.length; i++) {
                 const image = allImages[i];
@@ -513,9 +568,12 @@ export default function ReportDetailsPage() {
 
                 if (isLeftColumn) {
                     currentX = pageMargin;
+                    rowMaxHeight = 0; // Reset max height for new row
+                    rowStartY = finalY;
                     if (finalY + imgHeight + 10 > pageHeight - 20) {
                         doc.addPage();
                         finalY = pageMargin;
+                        rowStartY = finalY;
                     }
                 } else {
                     currentX = pageMargin + columnWidth + 10;
@@ -525,11 +583,10 @@ export default function ReportDetailsPage() {
                 doc.setFontSize(8);
                 doc.text(image.caption, currentX, finalY + imgHeight + 4);
 
-                rowMaxHeight = Math.max(rowMaxHeight, imgHeight);
+                rowMaxHeight = Math.max(rowMaxHeight, imgHeight + 10);
 
                 if (!isLeftColumn || i === allImages.length - 1) {
-                    finalY += rowMaxHeight + 10;
-                    rowMaxHeight = 0;
+                    finalY = rowStartY + rowMaxHeight;
                 }
             }
         }
