@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -21,31 +20,24 @@ import { Textarea } from '@/components/ui/textarea';
 import { Camera, Upload, Signature, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { getInitials, getAvatarColor } from '@/lib/utils';
-import { cn } from '@/lib/utils';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { useEmployees } from '@/context/EmployeeContext';
+import { useInspectors } from '@/context/InspectorContext';
+import { EmployeeDetails } from '@/components/employee-details';
+import { InspectorDetails } from '@/components/inspector-details';
 
 export default function ProfilePage() {
-  const { user, roles, branches, updateUser } = useAuth();
+  const { user, roles, updateUser } = useAuth();
+  const { getEmployeeById } = useEmployees();
+  const { getInspectorById } = useInspectors();
   const { toast } = useToast();
 
   const [fullName, setFullName] = useState(user?.name || '');
-  const [selectedBranch, setSelectedBranch] = useState(user?.branchId || '');
-  const [bio, setBio] = useState(
-    'I am a Project Manager with over 5 years of experience in the tech industry.'
-  );
   const [signature, setSignature] = useState<string | null>(user?.signatureUrl || null);
 
   useEffect(() => {
     if (user) {
       setFullName(user.name);
-      setSelectedBranch(user.branchId);
       setSignature(user.signatureUrl || null);
     }
   }, [user]);
@@ -65,24 +57,35 @@ export default function ProfilePage() {
       setSignature(null);
   }, []);
 
-  if (!user) {
-    return null; // Or a loading state
-  }
-
   const handleSaveChanges = useCallback(() => {
     if (user) {
-      updateUser(user.id, { name: fullName, branchId: selectedBranch, signatureUrl: signature || '' });
-      // Note: 'bio' is not part of the User model in AuthContext, so changes to it are not persisted.
+      updateUser(user.id, { name: fullName, signatureUrl: signature || '' });
       toast({
         title: 'Profile Updated',
         description: 'Your personal information has been saved.',
       });
     }
-  }, [user, fullName, selectedBranch, signature, updateUser, toast]);
+  }, [user, fullName, signature, updateUser, toast]);
+
+  if (!user) {
+    return null; // Or a loading state
+  }
 
   const userRole = roles.find((r) => r.id === user.roleId);
   const avatarColor = getAvatarColor(user.name);
 
+  // --- Logic for Smart Profile ---
+  if (userRole?.id === 'employee') {
+      const employee = getEmployeeById(user.id.toString());
+      if (employee) return <EmployeeDetails employee={employee} />;
+  }
+  
+  if (userRole?.id === 'inspector') {
+      const inspector = getInspectorById(user.id.toString());
+      if (inspector) return <InspectorDetails inspector={inspector} />;
+  }
+  
+  // --- Default Profile Page for other roles ---
   return (
     <div className="space-y-6">
       <Card className="relative overflow-hidden bg-gradient-to-br from-primary to-primary/80 text-primary-foreground">
@@ -179,7 +182,7 @@ export default function ProfilePage() {
                 onChange={(e) => setFullName(e.target.value)}
               />
             </div>
-            <div className="space-y-2">
+             <div className="space-y-2">
               <Label htmlFor="email">Email Address</Label>
               <Input
                 id="email"
@@ -188,37 +191,8 @@ export default function ProfilePage() {
                 disabled
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="role">Role</Label>
-              <Input id="role" defaultValue={userRole?.name} disabled />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="officeLocation">Office Location</Label>
-              <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-                <SelectTrigger id="officeLocation">
-                  <SelectValue placeholder="Select your branch" />
-                </SelectTrigger>
-                <SelectContent>
-                  {branches.map((branch) => (
-                    <SelectItem key={branch.id} value={branch.id}>
-                      {branch.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="bio">Bio</Label>
-              <Textarea
-                id="bio"
-                placeholder="Tell us a little about yourself."
-                rows={4}
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-              />
-            </div>
           </CardContent>
-          <CardFooter className="flex justify-end">
+           <CardFooter className="flex justify-end">
               <Button onClick={handleSaveChanges}>Save Changes</Button>
             </CardFooter>
         </Card>
@@ -228,7 +202,7 @@ export default function ProfilePage() {
                 <CardHeader>
                     <CardTitle>Digital Signature</CardTitle>
                     <CardDescription>
-                    Upload an image of your signature. This will be used on reports you approve.
+                    Upload an image of your signature.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
