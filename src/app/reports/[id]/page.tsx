@@ -375,6 +375,8 @@ export default function ReportDetailsPage() {
     const { users } = useAuth();
     const [report, setReport] = useState<ReportItem | null>(null);
     const logoUrl = 'https://placehold.co/120x60.png';
+    // Base64 for a simple 100x100 grey placeholder with a border
+    const placeholderImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAMAAABHPGVmAAAAAXNSR0IB2cksfwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAB5QTFRF////bW1tgICAlZWVjo6OioqKh4eHd3d3dXV1fX19rI1EEgAAAAd0Uk5T/wD/AP8A/wD/AP8A2I/eKwAAAMdJREFUeJzt1ssRwyAMBEFUIbL//+mGSDuIJAk2eJ9kG8IuZVme5wV04sSJEydOnDhx4sSJEycuGZ1t249oeN5/b9s2D7j+4dG2fQ/Y9b+3bdu3gG1/2rZtXwG2/W/btm1fALb9adq2/QfY9pdt2/YfYNN/Jm3bnwJ2/WPaNn8N2PWXats8Auy6/2rbXAWs+sW0bS8CVn0sbcsuYNYX0rJsD/7qg6RIkuSYJEmSJClJkpEkSZIkSZIkyT8LfAFTGxgwB8s98gAAAABJRU5ErkJggg==';
 
     useEffect(() => {
         if (reportId) {
@@ -461,14 +463,21 @@ export default function ReportDetailsPage() {
         }
 
         const getBase64Image = async (url: string): Promise<string> => {
-            const response = await fetch(url);
-            const blob = await response.blob();
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onloadend = () => resolve(reader.result as string);
-                reader.onerror = reject;
-                reader.readAsDataURL(blob);
-            });
+            if (!url) return placeholderImage;
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Image fetch failed');
+                const blob = await response.blob();
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result as string);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob);
+                });
+            } catch (error) {
+                console.error("Failed to fetch image, using placeholder.", error);
+                return placeholderImage;
+            }
         };
 
         // --- Image Section ---
@@ -487,33 +496,24 @@ export default function ReportDetailsPage() {
             finalY += 15;
 
             for (const image of allImages) {
-                try {
-                    const base64Img = await getBase64Image(image.url);
-                    
-                    const img = new Image();
-                    img.src = base64Img;
-                    await new Promise(resolve => { img.onload = resolve; });
+                const base64Img = await getBase64Image(image.url);
+                
+                const img = new Image();
+                img.src = base64Img;
+                await new Promise(resolve => { img.onload = resolve; });
 
-                    const imgWidth = 80;
-                    const imgHeight = (img.height * imgWidth) / img.width;
+                const imgWidth = 80;
+                const imgHeight = (img.height * imgWidth) / img.width;
 
-                    if (finalY + imgHeight + 10 > pageHeight - 10) {
-                        doc.addPage();
-                        finalY = pageMargin;
-                    }
-
-                    doc.addImage(base64Img, 'PNG', pageMargin, finalY, imgWidth, imgHeight);
-                    doc.setFontSize(8);
-                    doc.text(image.caption, pageMargin, finalY + imgHeight + 4);
-                    finalY += imgHeight + 10;
-
-                } catch (error) {
-                    console.error("Error loading image for PDF:", error);
-                    if (finalY + 10 > pageHeight - 10) { doc.addPage(); finalY = pageMargin; }
-                    doc.setFontSize(8);
-                    doc.text(`Error loading image: ${image.caption}`, pageMargin, finalY);
-                    finalY += 5;
+                if (finalY + imgHeight + 10 > pageHeight - 10) {
+                    doc.addPage();
+                    finalY = pageMargin;
                 }
+
+                doc.addImage(base64Img, 'PNG', pageMargin, finalY, imgWidth, imgHeight);
+                doc.setFontSize(8);
+                doc.text(image.caption, pageMargin, finalY + imgHeight + 4);
+                finalY += imgHeight + 10;
             }
         }
         
