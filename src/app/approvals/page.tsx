@@ -40,12 +40,12 @@ export default function ApprovalsPage() {
     const pendingTrips = useMemo(() => {
         if (!user) return [];
         return getPendingTripApprovalsForUser(user.id).map(trip => ({ ...trip, type: 'trip' as const }));
-    }, [user, getPendingTripApprovalsForUser, trips]); // Add trips to dependency array
+    }, [user, getPendingTripApprovalsForUser, trips]);
     
     const pendingReports = useMemo(() => {
         if (!user) return [];
         return getPendingReportApprovalsForUser(user.id).map(report => ({ ...report, type: 'report' as const }));
-    }, [user, getPendingReportApprovalsForUser, reports]); // Add reports to dependency array
+    }, [user, getPendingReportApprovalsForUser, reports]);
 
 
     const reportResultSummary = useMemo(() => {
