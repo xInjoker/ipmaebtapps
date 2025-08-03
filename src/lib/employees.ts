@@ -1,5 +1,7 @@
 
 
+import { type InspectorDocument } from './inspectors';
+
 export const genders = ['Male', 'Female'] as const;
 export const employmentStatuses = ['Active', 'Inactive', 'On Leave'] as const;
 export const contractTypes = ['Monthly', 'Daily', 'Hourly'] as const;
@@ -8,7 +10,7 @@ export const subPortfolios = ['IAPPM', 'EBT'] as const;
 
 export type Employee = {
     id: string;
-    reportingManagerId?: string; // New field for direct superior
+    reportingManagerId?: string; 
     nationalId?: string;
     name?: string;
     placeOfBirth?: string;
@@ -38,6 +40,9 @@ export type Employee = {
     bpjsHealth?: string;
     bpjsEmployment?: string;
     competency?: string;
+    cvUrl?: string;
+    qualifications?: InspectorDocument[];
+    otherDocuments?: InspectorDocument[];
 };
 
 export const employeeFieldLabels: Record<keyof Employee | 'id', string> = {
@@ -72,6 +77,9 @@ export const employeeFieldLabels: Record<keyof Employee | 'id', string> = {
     bpjsHealth: 'BPJS Health',
     bpjsEmployment: 'BPJS Employment',
     competency: 'Competency',
+    cvUrl: 'CV',
+    qualifications: 'Qualification Certificates',
+    otherDocuments: 'Other Documents',
 };
 
 // This data is now only used for one-time database seeding.

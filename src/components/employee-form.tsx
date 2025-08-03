@@ -13,9 +13,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { ArrowLeft, CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, CalendarIcon, ChevronLeft, ChevronRight, File as FileIcon, Upload, X } from 'lucide-react';
 import { Textarea } from './ui/textarea';
-import { cn } from '@/lib/utils';
+import { cn, getFileNameFromDataUrl } from '@/lib/utils';
 import { format } from 'date-fns';
 import {
   type Employee,
@@ -33,6 +33,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useProjects } from '@/context/ProjectContext';
 import { useEmployees } from '@/context/EmployeeContext';
 import { CurrencyInput } from './ui/currency-input';
+import type { InspectorDocument } from '@/lib/inspectors';
 
 const employeeSchema = z.object({
   // Step 1: Work & Project
@@ -76,11 +77,16 @@ const employeeSchema = z.object({
   ptkpStatus: z.string().optional(),
 });
 
+type NewUploadableDocument = {
+  file: File;
+  expirationDate?: string;
+};
+
 type EmployeeFormData = z.infer<typeof employeeSchema>;
 
 interface EmployeeFormProps {
   employee?: Employee | null;
-  onSave: (data: Employee) => void;
+  onSave: (data: Employee, newDocs: { newCvFile: File | null, newQualifications: NewUploadableDocument[], newOtherDocs: NewUploadableDocument[] }) => void;
 }
 
 const steps = [
@@ -89,6 +95,7 @@ const steps = [
   { id: 3, name: 'Employment' },
   { id: 4, name: 'Contract' },
   { id: 5, name: 'Financial & Tax' },
+  { id: 6, name: 'Documents' },
 ];
 
 export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
@@ -98,6 +105,10 @@ export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
   const { employees } = useEmployees();
   const { projects } = useProjects();
   const [generatedId, setGeneratedId] = useState('');
+
+  const [newCvFile, setNewCvFile] = useState<File | null>(null);
+  const [newQualifications, setNewQualifications] = useState<NewUploadableDocument[]>([]);
+  const [newOtherDocs, setNewOtherDocs] = useState<NewUploadableDocument[]>([]);
 
   const form = useForm<EmployeeFormData>({
     resolver: zodResolver(employeeSchema),
@@ -164,8 +175,8 @@ export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
       contractStartDate: data.contractStartDate ? format(data.contractStartDate, 'yyyy-MM-dd') : undefined,
       contractEndDate: data.contractEndDate ? format(data.contractEndDate, 'yyyy-MM-dd') : undefined,
     };
-    onSave(finalData);
-  }, [employee, generatedId, onSave]);
+    onSave(finalData, { newCvFile, newQualifications, newOtherDocs });
+  }, [employee, generatedId, onSave, newCvFile, newQualifications, newOtherDocs]);
 
   const handleReview = useCallback(async () => {
     const isValid = await form.trigger();
@@ -179,7 +190,17 @@ export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
   
   const pageTitle = employee ? 'Edit Employee' : 'Add New Employee';
   const pageDescription = employee ? `Update details for ${employee.name}` : 'Fill in the details for the new employee.';
+  
+  const handleFileChange = useCallback((setter: React.Dispatch<React.SetStateAction<NewUploadableDocument[]>>, e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const newFiles = Array.from(e.target.files).map(file => ({ file, expirationDate: undefined }));
+      setter(prev => [...prev, ...newFiles]);
+    }
+  }, []);
 
+  const removeNewFile = useCallback((setter: React.Dispatch<React.SetStateAction<NewUploadableDocument[]>>, index: number) => {
+    setter(prev => prev.filter((_, i) => i !== index));
+  }, []);
 
   return (
     <>
@@ -382,6 +403,30 @@ export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
                         <div className="space-y-2"><Label>PTKP Status</Label><Input {...form.register('ptkpStatus')} /></div>
                     </div>
                 )}
+                {currentStep === 5 && (
+                  <div className="space-y-6">
+                      <div className="space-y-2">
+                          <Label>Curriculum Vitae (CV)</Label>
+                          {employee?.cvUrl && <div className="flex items-center justify-between p-2 rounded-md border bg-muted/50"><div className="flex items-center gap-2 truncate"><FileIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" /><span className="text-sm truncate">{getFileNameFromDataUrl(employee.cvUrl)}</span></div></div>}
+                          {newCvFile && <div className="flex items-center justify-between p-2 rounded-md border bg-muted/50"><div className="flex items-center gap-2 truncate"><FileIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" /><span className="text-sm truncate">{newCvFile.name}</span></div><Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setNewCvFile(null)}><X className="h-4 w-4" /></Button></div>}
+                          <div className="flex items-center justify-center w-full mt-2"><label htmlFor="cv-upload" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-card hover:bg-muted"><div className="flex flex-col items-center justify-center pt-5 pb-6"><Upload className="w-8 h-8 mb-3 text-muted-foreground" /><p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload new CV</span></p></div><Input id="cv-upload" type="file" className="hidden" onChange={(e) => setNewCvFile(e.target.files ? e.target.files[0] : null)} /></label></div>
+                      </div>
+                      <div className="space-y-2">
+                          <Label>Qualification Certificates</Label>
+                          <div className="mt-2 space-y-2">
+                              {newQualifications.map((doc, index) => <div key={index} className="flex items-center justify-between p-2 rounded-md border bg-muted/50"><div className="flex items-center gap-2 truncate flex-1"><FileIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" /><span className="text-sm truncate">{doc.file.name}</span></div><Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeNewFile(setNewQualifications, index)}><X className="h-4 w-4" /></Button></div>)}
+                          </div>
+                          <div className="flex items-center justify-center w-full mt-4"><label htmlFor="qual-upload" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-card hover:bg-muted"><div className="flex flex-col items-center justify-center pt-5 pb-6"><Upload className="w-8 h-8 mb-3 text-muted-foreground" /><p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span></p></div><Input id="qual-upload" type="file" className="hidden" multiple onChange={(e) => handleFileChange(setNewQualifications, e)} /></label></div>
+                      </div>
+                      <div className="space-y-2">
+                          <Label>Other Documents</Label>
+                          <div className="mt-2 space-y-2">
+                              {newOtherDocs.map((doc, index) => <div key={index} className="flex items-center justify-between p-2 rounded-md border bg-muted/50"><div className="flex items-center gap-2 truncate flex-1"><FileIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" /><span className="text-sm truncate">{doc.file.name}</span></div><Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeNewFile(setNewOtherDocs, index)}><X className="h-4 w-4" /></Button></div>)}
+                          </div>
+                          <div className="flex items-center justify-center w-full mt-4"><label htmlFor="other-upload" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-card hover:bg-muted"><div className="flex flex-col items-center justify-center pt-5 pb-6"><Upload className="w-8 h-8 mb-3 text-muted-foreground" /><p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span></p></div><Input id="other-upload" type="file" className="hidden" multiple onChange={(e) => handleFileChange(setNewOtherDocs, e)} /></label></div>
+                      </div>
+                  </div>
+                )}
                 </form>
             </CardContent>
             <CardFooter className="flex justify-between pt-4 border-t">
@@ -466,6 +511,15 @@ export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
                                 <p><span className="font-medium text-muted-foreground">{employeeFieldLabels.npwp}:</span> {formData.npwp || 'N/A'}</p>
                                 <p><span className="font-medium text-muted-foreground">{employeeFieldLabels.ptkpStatus}:</span> {formData.ptkpStatus || 'N/A'}</p>
                             </div>
+                        </div>
+                        {/* Step 6: Documents */}
+                        <div>
+                            <h3 className="font-semibold mb-2 text-lg border-b pb-1">Documents</h3>
+                             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2 text-sm mt-2">
+                                 <div><span className="font-medium text-muted-foreground">CV:</span> {newCvFile?.name || 'No new CV'}</div>
+                                 <div><span className="font-medium text-muted-foreground">Qualifications:</span> {newQualifications.length} new file(s)</div>
+                                 <div className="md:col-span-2"><span className="font-medium text-muted-foreground">Other Documents:</span> {newOtherDocs.length} new file(s)</div>
+                             </div>
                         </div>
                     </div>
                 </ScrollArea>

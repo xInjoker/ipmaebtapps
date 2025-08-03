@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -32,12 +33,22 @@ import {
   Landmark,
   Shield,
   HeartPulse,
+  Award,
+  Paperclip,
+  Download,
+  Eye,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '@/context/AuthContext';
-import { formatCurrency, getEmployeeStatusVariant, getInitials, getAvatarColor } from '@/lib/utils';
+import { formatCurrency, getEmployeeStatusVariant, getInitials, getAvatarColor, formatDocumentName, getDocumentStatus, getFileNameFromDataUrl } from '@/lib/utils';
 import { employeeFieldLabels } from '@/lib/employees';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { DocumentViewerDialog } from '@/components/document-viewer-dialog';
+
+type DocumentToView = {
+    url: string;
+    name: string;
+}
 
 function DetailItem({ icon: Icon, label, value, iconColor }: { icon: React.ElementType, label: string, value: React.ReactNode, iconColor: string }) {
     if (!value && typeof value !== 'number') return null;
@@ -62,6 +73,7 @@ export default function EmployeeDetailsPage() {
   const { getEmployeeById } = useEmployees();
   const { userHasPermission } = useAuth();
   const [employee, setEmployee] = useState<Employee | null>(null);
+  const [documentToView, setDocumentToView] = useState<DocumentToView | null>(null);
 
   useEffect(() => {
     if (employeeId) {
@@ -69,6 +81,15 @@ export default function EmployeeDetailsPage() {
       setEmployee(item || null);
     }
   }, [employeeId, getEmployeeById]);
+  
+  const downloadFile = (url: string, fileName: string) => {
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName || 'download';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
   
   if (!employee) {
     return (
@@ -93,6 +114,7 @@ export default function EmployeeDetailsPage() {
   const avatarColor = getAvatarColor(employee.name || '');
 
   return (
+    <>
     <div className="space-y-6">
       <Card>
         <CardHeader>
@@ -188,6 +210,91 @@ export default function EmployeeDetailsPage() {
             <DetailItem icon={HeartPulse} label={employeeFieldLabels.bpjsEmployment} value={employee.bpjsEmployment} iconColor={iconColors[financialColorIndex++ % iconColors.length]} />
         </CardContent>
       </Card>
+      
+      <Card>
+          <CardHeader>
+              <CardTitle>Documents</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div>
+                <h4 className="flex items-center text-md font-medium mb-2"><FileText className="mr-2 h-5 w-5"/>CV</h4>
+                {employee.cvUrl ? (
+                     <div className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
+                        <div className="flex items-center gap-2 truncate">
+                            <FileText className="h-4 w-4 flex-shrink-0" />
+                            <span className="text-sm truncate" title={employee.cvUrl}>{getFileNameFromDataUrl(employee.cvUrl) || 'Curriculum Vitae'}</span>
+                        </div>
+                        <div>
+                            <Button variant="ghost" size="sm" onClick={() => setDocumentToView({ url: employee.cvUrl || '', name: getFileNameFromDataUrl(employee.cvUrl || '') || 'CV' })}><Eye className="mr-2 h-4 w-4" />View</Button>
+                            <Button variant="ghost" size="icon" onClick={() => downloadFile(employee.cvUrl || '', getFileNameFromDataUrl(employee.cvUrl || '') || 'cv.pdf')}><Download className="h-4 w-4" /></Button>
+                        </div>
+                    </div>
+                ) : <p className="text-sm text-muted-foreground">No CV uploaded.</p>}
+            </div>
+            <Separator />
+            <div>
+                <h4 className="flex items-center text-md font-medium mb-2"><Award className="mr-2 h-5 w-5"/>Qualification Certificates</h4>
+                {(employee.qualifications || []).length > 0 ? (
+                     <div className="space-y-2">
+                        {(employee.qualifications || []).map((doc, index) => {
+                            const status = getDocumentStatus(doc.expirationDate);
+                            return (
+                            <div key={index} className="flex flex-col gap-2 p-2 rounded-md border bg-muted/50">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2 truncate">
+                                        <FileText className="h-4 w-4 flex-shrink-0" />
+                                        <span className="text-sm font-medium truncate" title={doc.name}>{formatDocumentName(doc.name)}</span>
+                                    </div>
+                                     <div>
+                                        <Button variant="ghost" size="sm" onClick={() => setDocumentToView(doc)}><Eye className="mr-2 h-4 w-4" />View</Button>
+                                        <Button variant="ghost" size="icon" onClick={() => downloadFile(doc.url, doc.name)}><Download className="h-4 w-4" /></Button>
+                                    </div>
+                                </div>
+                                <div className="flex items-center justify-between pl-6">
+                                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                       {doc.expirationDate && <>
+                                        <Calendar className="h-3 w-3" />
+                                        <span>Expires: {format(new Date(doc.expirationDate), 'PPP')}</span>
+                                       </>}
+                                    </div>
+                                    <Badge variant={status.variant} className="text-xs">{status.text}</Badge>
+                                </div>
+                            </div>
+                        )})}
+                    </div>
+                ) : <p className="text-sm text-muted-foreground">No qualification certificates uploaded.</p>}
+            </div>
+            <Separator />
+            <div>
+                <h4 className="flex items-center text-md font-medium mb-2"><Paperclip className="mr-2 h-5 w-5"/>Other Documents</h4>
+                {(employee.otherDocuments || []).length > 0 ? (
+                     <div className="space-y-2">
+                        {(employee.otherDocuments || []).map((doc, index) => (
+                            <div key={index} className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
+                                <div className="flex items-center gap-2 truncate">
+                                    <FileText className="h-4 w-4 flex-shrink-0" />
+                                    <span className="text-sm font-medium truncate" title={doc.name}>{formatDocumentName(doc.name)}</span>
+                                </div>
+                                 <div>
+                                    <Button variant="ghost" size="sm" onClick={() => setDocumentToView(doc)}><Eye className="mr-2 h-4 w-4" />View</Button>
+                                    <Button variant="ghost" size="icon" onClick={() => downloadFile(doc.url, doc.name)}><Download className="h-4 w-4" /></Button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ) : <p className="text-sm text-muted-foreground">No other documents uploaded.</p>}
+            </div>
+          </CardContent>
+      </Card>
     </div>
+     {documentToView && (
+        <DocumentViewerDialog
+            isOpen={!!documentToView}
+            onOpenChange={(isOpen) => !isOpen && setDocumentToView(null)}
+            documentUrl={documentToView.url}
+            documentName={documentToView.name}
+        />
+    )}
+    </>
   );
 }
