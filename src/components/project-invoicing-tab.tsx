@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
@@ -6,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal, PlusCircle, FileDown } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuPortal, DropdownMenuSubTrigger, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -107,9 +108,9 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
         setIsEditInvoiceDialogOpen(true);
     }, []);
 
-    const handleCancelInvoice = useCallback((invoiceId: string) => {
-        setProjects(p => ({ ...p, invoices: p.invoices.map(inv => inv.id === invoiceId ? { ...inv, status: 'Cancel' } : inv) }));
-        toast({ title: 'Invoice Cancelled', description: 'The invoice status has been updated to "Cancel".' });
+    const handleStatusUpdate = useCallback((invoiceId: string, newStatus: InvoiceItem['status']) => {
+        setProjects(p => ({ ...p, invoices: p.invoices.map(inv => inv.id === invoiceId ? { ...inv, status: newStatus } : inv) }));
+        toast({ title: 'Invoice Status Updated', description: `The invoice status has been updated to "${newStatus}".` });
     }, [setProjects, toast]);
 
     const handleExportInvoices = useCallback(() => {
@@ -286,13 +287,18 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
                                                 >
                                                     Edit
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem
-                                                    onSelect={() => handleCancelInvoice(invoice.id)}
-                                                    disabled={invoice.status !== 'Invoiced'}
-                                                >
-                                                    Cancel Invoice
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem>View Details</DropdownMenuItem>
+                                                <DropdownMenuSub>
+                                                    <DropdownMenuSubTrigger>Update Status</DropdownMenuSubTrigger>
+                                                    <DropdownMenuPortal>
+                                                        <DropdownMenuSubContent>
+                                                            {(['Paid', 'Invoiced', 'Cancel', 'Re-invoiced', 'PAD', 'Document Preparation'] as const).map(status => (
+                                                                <DropdownMenuItem key={status} onSelect={() => handleStatusUpdate(invoice.id, status)}>
+                                                                    {status}
+                                                                </DropdownMenuItem>
+                                                            ))}
+                                                        </DropdownMenuSubContent>
+                                                    </DropdownMenuPortal>
+                                                </DropdownMenuSub>
                                             </DropdownMenuContent>
                                         </DropdownMenu>
                                     </TableCell>
@@ -308,7 +314,7 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
                 </CardContent>
             </Card>
 
-            <Dialog open={isEditInvoiceDialogOpen} onOpenChange={(open) => { setIsEditInvoiceDialogOpen(open); if (!open) setInvoiceToEdit(null); }}>
+            <Dialog open={isEditDialogOpen} onOpenChange={(open) => { setIsEditInvoiceDialogOpen(open); if (!open) setInvoiceToEdit(null); }}>
                 <DialogContent className="sm:max-w-lg">
                     {editedInvoice && (
                         <>
