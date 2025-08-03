@@ -13,7 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { ArrowLeft, CalendarIcon, ChevronLeft, ChevronRight, File as FileIcon, Upload, X } from 'lucide-react';
+import { ArrowLeft, Calendar as CalendarIcon, ChevronLeft, ChevronRight, File as FileIcon, Upload, X } from 'lucide-react';
 import { Textarea } from './ui/textarea';
 import { cn, getFileNameFromDataUrl } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -201,6 +201,14 @@ export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
 
   const removeNewFile = useCallback((setter: React.Dispatch<React.SetStateAction<NewUploadableDocument[]>>, index: number) => {
     setter(prev => prev.filter((_, i) => i !== index));
+  }, []);
+
+  const handleNewDocDateChange = useCallback((setter: React.Dispatch<React.SetStateAction<NewUploadableDocument[]>>, index: number, date?: Date) => {
+    setter(prev => {
+        const newDocs = [...prev];
+        newDocs[index].expirationDate = date ? format(date, 'yyyy-MM-dd') : undefined;
+        return newDocs;
+    });
   }, []);
 
   return (
@@ -423,14 +431,56 @@ export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
                       <div className="space-y-2">
                           <Label>Qualification Certificates</Label>
                           <div className="mt-2 space-y-2">
-                              {newQualifications.map((doc, index) => <div key={index} className="flex items-center justify-between p-2 rounded-md border bg-muted/50"><div className="flex items-center gap-2 truncate flex-1"><FileIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" /><span className="text-sm truncate">{doc.file.name}</span></div><Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeNewFile(setNewQualifications, index)}><X className="h-4 w-4" /></Button></div>)}
+                              {newQualifications.map((doc, index) => (
+                                <div key={`new-qual-${index}`} className="flex items-center justify-between gap-2 p-2 rounded-md border bg-muted/50">
+                                    <div className="flex items-center gap-2 truncate flex-1">
+                                        <FileIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                        <span className="text-sm truncate">{doc.file.name}</span>
+                                    </div>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button variant={"outline"} className={cn("w-[240px] justify-start text-left font-normal", !doc.expirationDate && "text-muted-foreground")}>
+                                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                                {doc.expirationDate ? format(new Date(doc.expirationDate), "PPP") : <span>Expiry date (optional)</span>}
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0">
+                                            <Calendar mode="single" selected={doc.expirationDate ? new Date(doc.expirationDate) : undefined} onSelect={(date) => handleNewDocDateChange(setNewQualifications, index, date)} initialFocus />
+                                        </PopoverContent>
+                                    </Popover>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeNewFile(setNewQualifications, index)}>
+                                        <X className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                              ))}
                           </div>
                           <div className="flex items-center justify-center w-full mt-4"><label htmlFor="qual-upload" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-card hover:bg-muted"><div className="flex flex-col items-center justify-center pt-5 pb-6"><Upload className="w-8 h-8 mb-3 text-muted-foreground" /><p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span></p></div><Input id="qual-upload" type="file" className="hidden" multiple onChange={(e) => handleFileChange(setNewQualifications, e)} /></label></div>
                       </div>
                       <div className="space-y-2">
                           <Label>Other Documents</Label>
                           <div className="mt-2 space-y-2">
-                              {newOtherDocs.map((doc, index) => <div key={index} className="flex items-center justify-between p-2 rounded-md border bg-muted/50"><div className="flex items-center gap-2 truncate flex-1"><FileIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" /><span className="text-sm truncate">{doc.file.name}</span></div><Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeNewFile(setNewOtherDocs, index)}><X className="h-4 w-4" /></Button></div>)}
+                              {newOtherDocs.map((doc, index) => (
+                                <div key={`new-other-${index}`} className="flex items-center justify-between gap-2 p-2 rounded-md border bg-muted/50">
+                                    <div className="flex items-center gap-2 truncate flex-1">
+                                        <FileIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                        <span className="text-sm truncate">{doc.file.name}</span>
+                                    </div>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button variant={"outline"} className={cn("w-[240px] justify-start text-left font-normal", !doc.expirationDate && "text-muted-foreground")}>
+                                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                                {doc.expirationDate ? format(new Date(doc.expirationDate), "PPP") : <span>Expiry date (optional)</span>}
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0">
+                                            <Calendar mode="single" selected={doc.expirationDate ? new Date(doc.expirationDate) : undefined} onSelect={(date) => handleNewDocDateChange(setNewOtherDocs, index, date)} initialFocus />
+                                        </PopoverContent>
+                                    </Popover>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeNewFile(setNewOtherDocs, index)}>
+                                        <X className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                              ))}
                           </div>
                           <div className="flex items-center justify-center w-full mt-4"><label htmlFor="other-upload" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-card hover:bg-muted"><div className="flex flex-col items-center justify-center pt-5 pb-6"><Upload className="w-8 h-8 mb-3 text-muted-foreground" /><p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span></p></div><Input id="other-upload" type="file" className="hidden" multiple onChange={(e) => handleFileChange(setNewOtherDocs, e)} /></label></div>
                       </div>

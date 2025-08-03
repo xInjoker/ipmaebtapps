@@ -8,7 +8,6 @@ import { useToast } from '@/hooks/use-toast';
 import { type Employee } from '@/lib/employees';
 import { EmployeeForm } from '@/components/employee-form';
 import { useEffect, useState, useCallback } from 'react';
-import type { InspectorDocument } from '@/lib/inspectors';
 
 type NewUploadableDocument = {
   file: File;
@@ -57,5 +56,3 @@ export default function EditEmployeePage() {
 
   return <EmployeeForm employee={employee} onSave={handleSave} />;
 }
-
-    
