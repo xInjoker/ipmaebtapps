@@ -495,25 +495,42 @@ export default function ReportDetailsPage() {
             doc.text('Evidence Images', pageMargin, finalY + 10);
             finalY += 15;
 
-            for (const image of allImages) {
+            const contentWidth = pageWidth - 2 * pageMargin;
+            const columnWidth = (contentWidth - 10) / 2;
+            let currentX = pageMargin;
+            let rowMaxHeight = 0;
+
+            for (let i = 0; i < allImages.length; i++) {
+                const image = allImages[i];
+                const isLeftColumn = i % 2 === 0;
+
                 const base64Img = await getBase64Image(image.url);
-                
                 const img = new Image();
                 img.src = base64Img;
                 await new Promise(resolve => { img.onload = resolve; });
 
-                const imgWidth = 80;
-                const imgHeight = (img.height * imgWidth) / img.width;
+                const imgHeight = (img.height * columnWidth) / img.width;
 
-                if (finalY + imgHeight + 10 > pageHeight - 10) {
-                    doc.addPage();
-                    finalY = pageMargin;
+                if (isLeftColumn) {
+                    currentX = pageMargin;
+                    if (finalY + imgHeight + 10 > pageHeight - 20) {
+                        doc.addPage();
+                        finalY = pageMargin;
+                    }
+                } else {
+                    currentX = pageMargin + columnWidth + 10;
                 }
-
-                doc.addImage(base64Img, 'PNG', pageMargin, finalY, imgWidth, imgHeight);
+                
+                doc.addImage(base64Img, 'PNG', currentX, finalY, columnWidth, imgHeight);
                 doc.setFontSize(8);
-                doc.text(image.caption, pageMargin, finalY + imgHeight + 4);
-                finalY += imgHeight + 10;
+                doc.text(image.caption, currentX, finalY + imgHeight + 4);
+
+                rowMaxHeight = Math.max(rowMaxHeight, imgHeight);
+
+                if (!isLeftColumn || i === allImages.length - 1) {
+                    finalY += rowMaxHeight + 10;
+                    rowMaxHeight = 0;
+                }
             }
         }
         
