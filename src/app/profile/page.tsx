@@ -28,7 +28,7 @@ import { InspectorDetails } from '@/components/inspector-details';
 
 export default function ProfilePage() {
   const { user, roles, updateUser } = useAuth();
-  const { getEmployeeById } = useEmployees();
+  const { employees } = useEmployees();
   const { getInspectorById } = useInspectors();
   const { toast } = useToast();
 
@@ -76,7 +76,7 @@ export default function ProfilePage() {
 
   // --- Logic for Smart Profile ---
   if (userRole?.id === 'employee') {
-      const employee = getEmployeeById(user.id.toString());
+      const employee = employees.find(e => e.email === user.email);
       if (employee) return <EmployeeDetails employee={employee} />;
   }
   
