@@ -40,7 +40,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '@/context/AuthContext';
-import { formatCurrency, getEmployeeStatusVariant, getInitials, getAvatarColor, getDocumentStatus, getFileNameFromDataUrl } from '@/lib/utils';
+import { formatCurrency, getEmployeeStatusVariant, getInitials, getAvatarColor, getDocumentStatus, getFileNameFromDataUrl, formatDocumentName } from '@/lib/utils';
 import { employeeFieldLabels } from '@/lib/employees';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DocumentViewerDialog } from '@/components/document-viewer-dialog';
