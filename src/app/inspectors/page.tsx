@@ -15,10 +15,14 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { formatQualificationName, getDocumentStatus } from '@/lib/utils';
 import { HeaderCard } from '@/components/header-card';
 import { DashboardWidget } from '@/components/dashboard-widget';
+import { useEmployees } from '@/context/EmployeeContext';
+import { type Inspector } from '@/lib/inspectors';
 
+type CombinedPersonnel = Inspector & { type: 'Inspector' | 'Employee' };
 
 export default function InspectorsPage() {
-  const { inspectors, widgetData, isLoading } = useInspectors();
+  const { inspectors, widgetData, isLoading: isInspectorsLoading } = useInspectors();
+  const { employees, isLoading: isEmployeesLoading } = useEmployees();
   const { branches, userHasPermission } = useAuth();
   const [isClient, setIsClient] = useState(false);
 
@@ -37,27 +41,49 @@ export default function InspectorsPage() {
       return acc;
     }, {} as Record<string, string>);
   }, [branches]);
+  
+  const combinedPersonnel: CombinedPersonnel[] = useMemo(() => {
+    const inspectorPersonnel = inspectors.map(i => ({ ...i, type: 'Inspector' as const, branchId: i.branchId }));
+    const promotedEmployees = employees
+      .filter(e => e.isPromotedToInspector)
+      .map(e => ({
+        id: e.id,
+        name: e.name || 'Unknown',
+        email: e.email || '',
+        phone: e.phoneNumber || '',
+        position: e.position as any, // Cast as position might differ
+        employmentStatus: e.employmentStatus,
+        yearsOfExperience: undefined, // Or calculate if available
+        avatarUrl: '', // Employees don't have this,
+        cvUrl: e.cvUrl || '',
+        qualifications: e.qualifications || [],
+        otherDocuments: e.otherDocuments || [],
+        branchId: e.workUnit || '',
+        type: 'Employee' as const,
+      }));
+    return [...inspectorPersonnel, ...promotedEmployees];
+  }, [inspectors, employees]);
 
   const allQualifications = useMemo(() => {
     const qualifications = new Set<string>();
-    inspectors.forEach(inspector => {
-        inspector.qualifications.forEach(q => {
+    combinedPersonnel.forEach(person => {
+        (person.qualifications || []).forEach(q => {
             qualifications.add(q.name);
         });
     });
     return Array.from(qualifications).sort();
-  }, [inspectors]);
+  }, [combinedPersonnel]);
 
-  const filteredInspectors = useMemo(() => {
-    return inspectors.filter(inspector => {
+  const filteredPersonnel = useMemo(() => {
+    return combinedPersonnel.filter(person => {
       const searchMatch = searchTerm.toLowerCase() === '' ||
-                          inspector.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          inspector.email.toLowerCase().includes(searchTerm.toLowerCase());
+                          person.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          person.email.toLowerCase().includes(searchTerm.toLowerCase());
       
-      const qualificationMatch = qualificationFilter === 'all' || inspector.qualifications.some(q => q.name === qualificationFilter);
-      const branchMatch = branchFilter === 'all' || inspector.branchId === branchFilter;
+      const qualificationMatch = qualificationFilter === 'all' || person.qualifications.some(q => q.name === qualificationFilter);
+      const branchMatch = branchFilter === 'all' || person.branchId === branchFilter;
 
-      const statusMatch = statusFilter === 'all' || inspector.qualifications.some(q => {
+      const statusMatch = statusFilter === 'all' || (person.qualifications || []).some(q => {
           if (!q.expirationDate) return false;
           const status = getDocumentStatus(q.expirationDate);
           if (statusFilter === 'valid') return status.variant === 'green';
@@ -68,7 +94,7 @@ export default function InspectorsPage() {
 
       return searchMatch && qualificationMatch && branchMatch && statusMatch;
     });
-  }, [inspectors, searchTerm, qualificationFilter, branchFilter, statusFilter]);
+  }, [combinedPersonnel, searchTerm, qualificationFilter, branchFilter, statusFilter]);
   
   const handleClearFilters = useCallback(() => {
     setSearchTerm('');
@@ -76,6 +102,8 @@ export default function InspectorsPage() {
     setBranchFilter('all');
     setStatusFilter('all');
   }, []);
+
+  const isLoading = isInspectorsLoading || isEmployeesLoading;
 
   return (
     <div className="space-y-6">
@@ -149,7 +177,7 @@ export default function InspectorsPage() {
         </CardContent>
       </Card>
 
-      {isLoading && inspectors.length === 0 ? (
+      {isLoading && combinedPersonnel.length === 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {[...Array(4)].map((_, i) => (
              <Card key={i}>
@@ -174,10 +202,10 @@ export default function InspectorsPage() {
               </Card>
           ))}
         </div>
-      ) : filteredInspectors.length > 0 ? (
+      ) : filteredPersonnel.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredInspectors.map((inspector) => (
-            <InspectorCard key={inspector.id} inspector={inspector} branchMap={branchMap} />
+          {filteredPersonnel.map((person) => (
+            <InspectorCard key={person.id} inspector={person} branchMap={branchMap} personnelType={person.type} />
           ))}
         </div>
       ) : (

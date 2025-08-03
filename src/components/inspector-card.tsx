@@ -18,17 +18,25 @@ type QualificationWithStatus = {
   status: DocumentStatus;
 };
 
-export function InspectorCard({ inspector, branchMap }: { inspector: Inspector, branchMap: Record<string, string> }) {
+interface InspectorCardProps {
+    inspector: Inspector & { type?: 'Inspector' | 'Employee' };
+    branchMap: Record<string, string>;
+    personnelType?: 'Inspector' | 'Employee';
+}
+
+export function InspectorCard({ inspector, branchMap, personnelType }: InspectorCardProps) {
   const avatarColor = getAvatarColor(inspector.name);
   const [qualificationStatuses, setQualificationStatuses] = useState<QualificationWithStatus[]>([]);
 
   useEffect(() => {
-    const statuses = inspector.qualifications.map(q => ({
+    const statuses = (inspector.qualifications || []).map(q => ({
       name: q.name,
       status: getDocumentStatus(q.expirationDate),
     }));
     setQualificationStatuses(statuses);
   }, [inspector.qualifications]);
+  
+  const linkTo = inspector.type === 'Employee' ? `/employees/${inspector.id}` : `/inspectors/${inspector.id}`;
   
   return (
     <Card className="flex flex-col">
@@ -48,11 +56,14 @@ export function InspectorCard({ inspector, branchMap }: { inspector: Inspector, 
               {getInitials(inspector.name)}
             </AvatarFallback>
           </Avatar>
-          <div>
-            <Link href={`/inspectors/${inspector.id}`} className="hover:underline">
+          <div className="flex-1">
+            <Link href={linkTo} className="hover:underline">
               <CardTitle className="font-headline text-lg">{inspector.name}</CardTitle>
             </Link>
-            <CardDescription>{inspector.position}</CardDescription>
+            <CardDescription className="flex items-center gap-2">
+                <span>{inspector.position}</span>
+                {personnelType && <Badge variant={personnelType === 'Inspector' ? 'info' : 'secondary'}>{personnelType}</Badge>}
+            </CardDescription>
           </div>
         </div>
       </CardHeader>
@@ -75,9 +86,9 @@ export function InspectorCard({ inspector, branchMap }: { inspector: Inspector, 
                     qualificationStatuses.map(q => (
                         <Badge key={q.name} variant={q.status.variant} className={cn('font-bold')}>{formatQualificationName(q.name)}</Badge>
                     ))
-                ) : inspector.qualifications.length > 0 ? (
+                ) : (inspector.qualifications || []).length > 0 ? (
                     // Skeleton loader if qualifications exist but statuses are not yet computed
-                    inspector.qualifications.map(q => <Skeleton key={q.name} className="h-5 w-16 rounded-full" />)
+                    (inspector.qualifications || []).map(q => <Skeleton key={q.name} className="h-5 w-16 rounded-full" />)
                 ) : (
                     <span className="text-xs text-muted-foreground">No qualifications listed</span>
                 )}
@@ -86,7 +97,7 @@ export function InspectorCard({ inspector, branchMap }: { inspector: Inspector, 
       </CardContent>
       <CardFooter>
         <Button asChild variant="outline" className="w-full">
-          <Link href={`/inspectors/${inspector.id}`}>View Details</Link>
+          <Link href={linkTo}>View Details</Link>
         </Button>
       </CardFooter>
     </Card>

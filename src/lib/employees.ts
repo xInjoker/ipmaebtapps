@@ -44,6 +44,7 @@ export type Employee = {
     cvUrl?: string;
     qualifications?: InspectorDocument[];
     otherDocuments?: InspectorDocument[];
+    isPromotedToInspector?: boolean;
 };
 
 export const employeeFieldLabels: Record<keyof Employee | 'id', string> = {
@@ -81,6 +82,7 @@ export const employeeFieldLabels: Record<keyof Employee | 'id', string> = {
     cvUrl: 'CV',
     qualifications: 'Qualification Certificates',
     otherDocuments: 'Other Documents',
+    isPromotedToInspector: 'Promoted to Inspector',
 };
 
 // This data is now only used for one-time database seeding.

@@ -76,6 +76,7 @@ import {
 import { useProjects } from '@/context/ProjectContext';
 import { HeaderCard } from '@/components/header-card';
 import { DashboardWidget } from '@/components/dashboard-widget';
+import { Switch } from '@/components/ui/switch';
 
 
 const allEmployeeFields = Object.keys(employeeFieldLabels) as (keyof Employee)[];
@@ -83,7 +84,7 @@ const allEmployeeFields = Object.keys(employeeFieldLabels) as (keyof Employee)[]
 export default function EmployeesPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { employees, addEmployee, deleteEmployee, isLoading } = useEmployees();
+  const { employees, addEmployee, deleteEmployee, isLoading, updateEmployee } = useEmployees();
   const { user, isHqUser, userHasPermission, branches } = useAuth();
   const { projects } = useProjects();
   const { toast } = useToast();
@@ -278,6 +279,16 @@ export default function EmployeesPage() {
     }
   }, [isHqUser]);
 
+   const handlePromotionToggle = useCallback(async (employee: Employee, isPromoted: boolean) => {
+        const updatedEmployee = { ...employee, isPromotedToInspector: isPromoted };
+        // We pass empty newDocs because we are not uploading files here
+        await updateEmployee(employee.id, updatedEmployee, { newCvFile: null, newQualifications: [], newOtherDocs: [] });
+        toast({
+            title: 'Employee Updated',
+            description: `${employee.name} has been ${isPromoted ? 'promoted' : 'demoted'} ${isPromoted ? 'to' : 'from'} inspector list.`
+        });
+    }, [updateEmployee, toast]);
+
   return (
     <>
       <div className="space-y-6">
@@ -404,11 +415,9 @@ export default function EmployeesPage() {
                   <TableRow>
                     <TableHead>Name</TableHead>
                     <TableHead>Position</TableHead>
-                    <TableHead>Reporting Manager</TableHead>
                     <TableHead>Project Name</TableHead>
-                    <TableHead>Salary</TableHead>
-                    <TableHead>Contract End</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead>Promote to Inspector</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -429,13 +438,10 @@ export default function EmployeesPage() {
                           <Skeleton className="h-5 w-40" />
                         </TableCell>
                         <TableCell>
-                          <Skeleton className="h-5 w-20" />
-                        </TableCell>
-                        <TableCell>
-                          <Skeleton className="h-5 w-24" />
-                        </TableCell>
-                        <TableCell>
                           <Skeleton className="h-6 w-20 rounded-full" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-6 w-12" />
                         </TableCell>
                         <TableCell className="text-right">
                           <Skeleton className="ml-auto h-8 w-8" />
@@ -451,18 +457,7 @@ export default function EmployeesPage() {
                           {employee.name || 'N/A'}
                         </TableCell>
                         <TableCell>{employee.position || 'N/A'}</TableCell>
-                        <TableCell>{manager?.name || 'N/A'}</TableCell>
                         <TableCell>{employee.projectName || 'N/A'}</TableCell>
-                        <TableCell>
-                          {employee.salary
-                            ? formatCurrency(employee.salary)
-                            : 'N/A'}
-                        </TableCell>
-                        <TableCell>
-                          {employee.contractEndDate
-                            ? format(new Date(employee.contractEndDate), 'PPP')
-                            : 'N/A'}
-                        </TableCell>
                         <TableCell>
                           <Badge
                             variant={getEmployeeStatusVariant(
@@ -471,6 +466,13 @@ export default function EmployeesPage() {
                           >
                             {employee.employmentStatus || 'Unknown'}
                           </Badge>
+                        </TableCell>
+                         <TableCell>
+                          <Switch
+                            checked={employee.isPromotedToInspector}
+                            onCheckedChange={(checked) => handlePromotionToggle(employee, checked)}
+                            disabled={!userHasPermission('manage-inspectors')}
+                           />
                         </TableCell>
                         <TableCell className="text-right">
                           <DropdownMenu>
