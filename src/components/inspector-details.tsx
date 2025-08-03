@@ -21,7 +21,7 @@ type DocumentToView = {
 }
 
 export function InspectorDetails({ inspector }: { inspector: Inspector }) {
-  const { branches, userHasPermission } = useAuth();
+  const { user, branches, userHasPermission } = useAuth();
   const [documentToView, setDocumentToView] = useState<DocumentToView | null>(null);
 
   const branchMap = useMemo(() => {
@@ -44,6 +44,9 @@ export function InspectorDetails({ inspector }: { inspector: Inspector }) {
   const iconColors = ['#0D5EA6', '#0ABAB5', '#00C897', '#FFA955', '#FFD63A', '#FFBE98'];
   let colorIndex = 0;
   
+  // Determine if the logged-in user is viewing their own profile
+  const isOwnProfile = user?.email === inspector.email;
+  
   return (
     <>
     <div className="space-y-6">
@@ -64,7 +67,7 @@ export function InspectorDetails({ inspector }: { inspector: Inspector }) {
                 </div>
               </div>
             </div>
-            {userHasPermission('manage-inspectors') && (
+            {userHasPermission('manage-inspectors') && !isOwnProfile && (
               <Button asChild>
                 <Link href={`/inspectors/${inspector.id}/edit`}>
                   <Edit className="mr-2 h-4 w-4" />

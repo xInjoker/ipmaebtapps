@@ -16,7 +16,6 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Camera, Upload, Signature, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { getInitials, getAvatarColor } from '@/lib/utils';
@@ -34,6 +33,7 @@ export default function ProfilePage() {
 
   const [fullName, setFullName] = useState(user?.name || '');
   const [signature, setSignature] = useState<string | null>(user?.signatureUrl || null);
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -41,13 +41,14 @@ export default function ProfilePage() {
       setSignature(user.signatureUrl || null);
     }
   }, [user]);
-  
+
   const handleSignatureUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
         setSignature(reader.result as string);
+        setIsEditing(true); // Mark as editing when a new signature is uploaded
       };
       reader.readAsDataURL(file);
     }
@@ -55,6 +56,7 @@ export default function ProfilePage() {
   
   const removeSignature = useCallback(() => {
       setSignature(null);
+      setIsEditing(true); // Mark as editing when signature is removed
   }, []);
 
   const handleSaveChanges = useCallback(() => {
@@ -64,6 +66,7 @@ export default function ProfilePage() {
         title: 'Profile Updated',
         description: 'Your personal information has been saved.',
       });
+      setIsEditing(false);
     }
   }, [user, fullName, signature, updateUser, toast]);
 
@@ -75,14 +78,14 @@ export default function ProfilePage() {
   const avatarColor = getAvatarColor(user.name);
 
   // --- Logic for Smart Profile ---
-  if (userRole?.id === 'employee') {
-      const employee = employees.find(e => e.email === user.email);
-      if (employee) return <EmployeeDetails employee={employee} />;
+  const employeeProfile = employees.find(e => e.email === user.email);
+  if (userRole?.id === 'employee' && employeeProfile) {
+    return <EmployeeDetails employee={employeeProfile} />;
   }
   
-  if (userRole?.id === 'inspector') {
-      const inspector = getInspectorById(user.id.toString());
-      if (inspector) return <InspectorDetails inspector={inspector} />;
+  const inspectorProfile = userRole?.id === 'inspector' ? getInspectorById(user.id.toString()) : null;
+  if (userRole?.id === 'inspector' && inspectorProfile) {
+    return <InspectorDetails inspector={inspectorProfile} />;
   }
   
   // --- Default Profile Page for other roles ---
@@ -170,7 +173,7 @@ export default function ProfilePage() {
           <CardHeader>
             <CardTitle>Personal Information</CardTitle>
             <CardDescription>
-              Update your personal details here. Click "Save Changes" at the bottom to apply.
+              Update your personal details here. Click "Save Changes" to apply.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -179,7 +182,7 @@ export default function ProfilePage() {
               <Input
                 id="fullName"
                 value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
+                onChange={(e) => { setFullName(e.target.value); setIsEditing(true); }}
               />
             </div>
              <div className="space-y-2">
@@ -192,9 +195,11 @@ export default function ProfilePage() {
               />
             </div>
           </CardContent>
-           <CardFooter className="flex justify-end">
+           {(isEditing) && (
+            <CardFooter className="flex justify-end">
               <Button onClick={handleSaveChanges}>Save Changes</Button>
             </CardFooter>
+            )}
         </Card>
 
         <div className="space-y-6">

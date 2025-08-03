@@ -62,7 +62,7 @@ function DetailItem({ icon: Icon, label, value, iconColor }: { icon: React.Eleme
 }
 
 export function EmployeeDetails({ employee }: { employee: Employee }) {
-  const { userHasPermission } = useAuth();
+  const { user, userHasPermission } = useAuth();
   const [documentToView, setDocumentToView] = useState<DocumentToView | null>(null);
 
   const downloadFile = (url: string, fileName: string) => {
@@ -80,6 +80,9 @@ export function EmployeeDetails({ employee }: { employee: Employee }) {
   let financialColorIndex = 0;
   
   const avatarColor = getAvatarColor(employee.name || '');
+
+  // Determine if the logged-in user is viewing their own profile
+  const isOwnProfile = user?.email === employee.email;
 
   return (
      <>
@@ -102,7 +105,7 @@ export function EmployeeDetails({ employee }: { employee: Employee }) {
                 </div>
               </div>
             </div>
-            {userHasPermission('manage-employees') && (
+            {userHasPermission('manage-employees') && !isOwnProfile && (
               <Button asChild>
                 <Link href={`/employees/${employee.id}/edit`}>
                   <Edit className="mr-2 h-4 w-4" />
