@@ -36,7 +36,7 @@ export function InspectorCard({ inspector, branchMap, personnelType }: Inspector
     setQualificationStatuses(statuses);
   }, [inspector.qualifications]);
   
-  const linkTo = inspector.type === 'Employee' ? `/employees/${inspector.id}` : `/inspectors/${inspector.id}`;
+  const linkTo = personnelType === 'Employee' ? `/employees/${inspector.id}` : `/inspectors/${inspector.id}`;
   
   return (
     <Card className="flex flex-col">

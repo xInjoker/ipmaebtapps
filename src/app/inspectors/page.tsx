@@ -46,21 +46,33 @@ export default function InspectorsPage() {
     const inspectorPersonnel = inspectors.map(i => ({ ...i, type: 'Inspector' as const, branchId: i.branchId }));
     const promotedEmployees = employees
       .filter(e => e.isPromotedToInspector)
-      .map(e => ({
-        id: e.id,
-        name: e.name || 'Unknown',
-        email: e.email || '',
-        phone: e.phoneNumber || '',
-        position: e.position as any, // Cast as position might differ
-        employmentStatus: e.employmentStatus,
-        yearsOfExperience: undefined, // Or calculate if available
-        avatarUrl: '', // Employees don't have this,
-        cvUrl: e.cvUrl || '',
-        qualifications: e.qualifications || [],
-        otherDocuments: e.otherDocuments || [],
-        branchId: e.workUnit || '',
-        type: 'Employee' as const,
-      }));
+      .map(e => {
+        let yearsOfExperience = 0;
+        if (e.contractStartDate) {
+            const startDate = new Date(e.contractStartDate);
+            const today = new Date();
+            yearsOfExperience = today.getFullYear() - startDate.getFullYear();
+            const m = today.getMonth() - startDate.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < startDate.getDate())) {
+                yearsOfExperience--;
+            }
+        }
+        return {
+            id: e.id,
+            name: e.name || 'Unknown',
+            email: e.email || '',
+            phone: e.phoneNumber || '',
+            position: e.position || 'Employee',
+            employmentStatus: 'Freelance', // All project-based are considered freelance here
+            yearsOfExperience: yearsOfExperience > 0 ? yearsOfExperience : undefined,
+            avatarUrl: '', // Employees don't have this
+            cvUrl: e.cvUrl || '',
+            qualifications: e.qualifications || [],
+            otherDocuments: e.otherDocuments || [],
+            branchId: e.workUnit || '',
+            type: 'Employee' as const,
+        };
+      });
     return [...inspectorPersonnel, ...promotedEmployees];
   }, [inspectors, employees]);
 

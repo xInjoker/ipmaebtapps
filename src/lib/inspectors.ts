@@ -11,7 +11,7 @@ export type Inspector = {
   name: string;
   email: string;
   phone: string;
-  position: 'Lead Inspector' | 'Inspector' | 'Trainee Inspector';
+  position: string;
   employmentStatus?: 'Organik' | 'Freelance';
   yearsOfExperience?: number;
   avatarUrl: string;
