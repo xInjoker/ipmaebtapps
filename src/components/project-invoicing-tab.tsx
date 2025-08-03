@@ -314,7 +314,7 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
                 </CardContent>
             </Card>
 
-            <Dialog open={isEditDialogOpen} onOpenChange={(open) => { setIsEditInvoiceDialogOpen(open); if (!open) setInvoiceToEdit(null); }}>
+            <Dialog open={isEditInvoiceDialogOpen} onOpenChange={(open) => { setIsEditInvoiceDialogOpen(open); if (!open) setInvoiceToEdit(null); }}>
                 <DialogContent className="sm:max-w-lg">
                     {editedInvoice && (
                         <>
