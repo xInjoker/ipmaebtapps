@@ -40,7 +40,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '@/context/AuthContext';
-import { formatCurrency, getEmployeeStatusVariant, getInitials, getAvatarColor, formatDocumentName, getDocumentStatus, getFileNameFromDataUrl } from '@/lib/utils';
+import { formatCurrency, getEmployeeStatusVariant, getInitials, getAvatarColor, getDocumentStatus, getFileNameFromDataUrl } from '@/lib/utils';
 import { employeeFieldLabels } from '@/lib/employees';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DocumentViewerDialog } from '@/components/document-viewer-dialog';
@@ -197,19 +197,21 @@ export default function EmployeeDetailsPage() {
             </CardContent>
         </Card>
       </div>
-      <Card>
-        <CardHeader>
-            <CardTitle>Financial & Tax Information</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <DetailItem icon={CircleDollarSign} label={employeeFieldLabels.salary} value={employee.salary ? formatCurrency(employee.salary) : null} iconColor={iconColors[financialColorIndex++ % iconColors.length]} />
-            <DetailItem icon={Landmark} label="Bank" value={employee.bankName && employee.bankAccountNumber ? `${employee.bankName} - ${employee.bankAccountNumber}` : (employee.bankName || employee.bankAccountNumber)} iconColor={iconColors[financialColorIndex++ % iconColors.length]} />
-            <DetailItem icon={Wallet} label={employeeFieldLabels.npwp} value={employee.npwp} iconColor={iconColors[financialColorIndex++ % iconColors.length]} />
-            <DetailItem icon={User} label={employeeFieldLabels.ptkpStatus} value={employee.ptkpStatus} iconColor={iconColors[financialColorIndex++ % iconColors.length]} />
-            <DetailItem icon={HeartPulse} label={employeeFieldLabels.bpjsHealth} value={employee.bpjsHealth} iconColor={iconColors[financialColorIndex++ % iconColors.length]} />
-            <DetailItem icon={HeartPulse} label={employeeFieldLabels.bpjsEmployment} value={employee.bpjsEmployment} iconColor={iconColors[financialColorIndex++ % iconColors.length]} />
-        </CardContent>
-      </Card>
+      {userHasPermission('manage-employees') && (
+        <Card>
+            <CardHeader>
+                <CardTitle>Financial & Tax Information</CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <DetailItem icon={CircleDollarSign} label={employeeFieldLabels.salary} value={employee.salary ? formatCurrency(employee.salary) : null} iconColor={iconColors[financialColorIndex++ % iconColors.length]} />
+                <DetailItem icon={Landmark} label="Bank" value={employee.bankName && employee.bankAccountNumber ? `${employee.bankName} - ${employee.bankAccountNumber}` : (employee.bankName || employee.bankAccountNumber)} iconColor={iconColors[financialColorIndex++ % iconColors.length]} />
+                <DetailItem icon={Wallet} label={employeeFieldLabels.npwp} value={employee.npwp} iconColor={iconColors[financialColorIndex++ % iconColors.length]} />
+                <DetailItem icon={User} label={employeeFieldLabels.ptkpStatus} value={employee.ptkpStatus} iconColor={iconColors[financialColorIndex++ % iconColors.length]} />
+                <DetailItem icon={HeartPulse} label={employeeFieldLabels.bpjsHealth} value={employee.bpjsHealth} iconColor={iconColors[financialColorIndex++ % iconColors.length]} />
+                <DetailItem icon={HeartPulse} label={employeeFieldLabels.bpjsEmployment} value={employee.bpjsEmployment} iconColor={iconColors[financialColorIndex++ % iconColors.length]} />
+            </CardContent>
+        </Card>
+      )}
       
       <Card>
           <CardHeader>
