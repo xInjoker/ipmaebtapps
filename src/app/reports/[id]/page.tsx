@@ -5,7 +5,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
+import NextImage from 'next/image';
 import { useReports } from '@/context/ReportContext';
 import { type ReportItem, type ReportDetails, RadiographicFinding, PenetrantTestReportDetails, MagneticParticleTestReportDetails, UltrasonicTestReportDetails, RadiographicTestReportDetails } from '@/lib/reports';
 import { Button } from '@/components/ui/button';
@@ -47,7 +47,7 @@ const ImageGallery = ({ allImages }: { allImages: { url: string, jointNo: string
                                         <DialogTrigger asChild>
                                             <Card className="cursor-pointer">
                                                 <CardContent className="flex aspect-video items-center justify-center p-0 rounded-t-lg overflow-hidden">
-                                                    <Image src={image.url} alt={`Image for Joint ${image.jointNo}`} width={400} height={225} className="h-full w-full object-cover" data-ai-hint="test result" />
+                                                    <NextImage src={image.url} alt={`Image for Joint ${image.jointNo}`} width={400} height={225} className="h-full w-full object-cover" data-ai-hint="test result" />
                                                 </CardContent>
                                                 <CardFooter className="text-xs p-2 bg-muted/50 rounded-b-lg">
                                                     <div className="font-medium truncate">Joint: {image.jointNo} / Weld ID: {image.weldId}</div>
@@ -61,7 +61,7 @@ const ImageGallery = ({ allImages }: { allImages: { url: string, jointNo: string
                                                     Enlarged view of the evidence image for Joint {image.jointNo} / Weld ID: {image.weldId}.
                                                 </DialogDescription>
                                             </DialogHeader>
-                                            <Image src={image.url} alt={`Enlarged evidence image for Joint ${image.jointNo}`} width={1280} height={720} className="h-auto w-full object-contain rounded-lg" />
+                                            <NextImage src={image.url} alt={`Enlarged evidence image for Joint ${image.jointNo}`} width={1280} height={720} className="h-auto w-full object-contain rounded-lg" />
                                         </DialogContent>
                                     </Dialog>
                                 </div>
