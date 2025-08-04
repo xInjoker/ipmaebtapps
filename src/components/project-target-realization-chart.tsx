@@ -101,7 +101,7 @@ export function ProjectTargetRealizationChart({ projects }: ProjectTargetRealiza
             const date = parse(`${month} 1, ${year}`, 'MMMM d, yyyy', new Date());
             const monthKey = formatDate(date, 'MMM yy');
              if (monthlyData[monthKey]) {
-                if (['Paid', 'Invoiced'].includes(invoice.status)) {
+                if (['Paid', 'Invoiced', 'PAD', 'Re-invoiced'].includes(invoice.status)) {
                     monthlyData[monthKey].incomeRealization += invoice.value;
                 }
              }

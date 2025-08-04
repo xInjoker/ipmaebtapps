@@ -58,7 +58,7 @@ export function ProjectProfitChart({ project }: ProjectProfitChartProps) {
     };
     
     (project.invoices || []).forEach(invoice => {
-        if (invoice.status === 'Paid') {
+        if (['Paid', 'Invoiced', 'PAD', 'Re-invoiced'].includes(invoice.status)) {
             processPeriod(invoice.period, invoice.value, 'income');
         }
     });

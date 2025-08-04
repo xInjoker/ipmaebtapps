@@ -38,9 +38,9 @@ export function CumulativeProfitChart({ projects }: CumulativeProfitChartProps) 
     const monthlyData: Record<string, { month: string, income: number, cost: number }> = {};
     
     projects.forEach(project => {
-        // Process income from paid invoices
+        // Process income
         (project.invoices || []).forEach(invoice => {
-            if (invoice.status === 'Paid') {
+            if (['Paid', 'Invoiced', 'PAD', 'Re-invoiced'].includes(invoice.status)) {
                 const [month, year] = invoice.period.split(' ');
                 if (!month || !year || (selectedYear !== 'all' && selectedYear !== year)) return;
                 try {

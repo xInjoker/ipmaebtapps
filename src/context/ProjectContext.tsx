@@ -9,7 +9,7 @@ type ProjectStats = {
   totalCost: number;
   totalInvoiced: number; // Invoiced + Paid
   totalPaid: number; // Paid 
-  totalIncome: number; // Paid + Invoiced + net PAD + Re-invoiced
+  totalIncome: number; // Paid + Invoiced + PAD + Re-invoiced
 };
 
 type ProjectContextType = {
@@ -60,27 +60,11 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
             .reduce((sum, inv) => sum + inv.value, 0);
         acc.totalPaid += totalPaidValue;
 
-        const padInvoices = invoices.filter(inv => inv.status === 'PAD');
-        const invoicedOrPaidValuesBySO: Record<string, number> = {};
-
-        invoices
-            .filter(inv => ['Invoiced', 'Paid'].includes(inv.status))
-            .forEach(inv => {
-                invoicedOrPaidValuesBySO[inv.soNumber] = (invoicedOrPaidValuesBySO[inv.soNumber] || 0) + inv.value;
-            });
-
-        let netPadValue = 0;
-        padInvoices.forEach(pad => {
-            const invoicedAmountForSO = invoicedOrPaidValuesBySO[pad.soNumber] || 0;
-            const remainingPad = Math.max(0, pad.value - invoicedAmountForSO);
-            netPadValue += remainingPad;
-        });
-
-        const reInvoicedValue = invoices
-            .filter(inv => inv.status === 'Re-invoiced')
+        // Updated income calculation
+        const totalIncomeValue = invoices
+            .filter(inv => ['Paid', 'Invoiced', 'PAD', 'Re-invoiced'].includes(inv.status))
             .reduce((sum, inv) => sum + inv.value, 0);
-
-        acc.totalIncome += totalInvoicedValue + reInvoicedValue + netPadValue;
+        acc.totalIncome += totalIncomeValue;
 
         return acc;
     }, { totalProjectValue: 0, totalCost: 0, totalInvoiced: 0, totalPaid: 0, totalIncome: 0 });
