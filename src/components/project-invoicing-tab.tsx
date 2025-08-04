@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal, PlusCircle, FileDown, Info } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuPortal } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -93,6 +93,17 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
             });
         }
     }, [newInvoice, project, setProjects, toast]);
+    
+    const handleStatusUpdate = useCallback((invoiceId: string, newStatus: 'PAD' | 'Invoiced') => {
+        setProjects(p => ({ 
+            ...p, 
+            invoices: p.invoices.map(inv => 
+                inv.id === invoiceId ? { ...inv, status: newStatus } : inv
+            ) 
+        }));
+        toast({ title: 'Invoice Status Updated', description: `Invoice has been updated to ${newStatus}.` });
+    }, [setProjects, toast]);
+
 
     const handleAdjustmentClick = (invoice: InvoiceItem, type: 'finalize' | 'cancel') => {
         setInvoiceToAdjust(invoice);
@@ -331,6 +342,17 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
                                                 {invoice.status === 'PAD' && <DropdownMenuItem onSelect={() => handleAdjustmentClick(invoice, 'finalize')}>Finalize/Adjust Invoice</DropdownMenuItem>}
+                                                {invoice.status === 'Document Preparation' && (
+                                                    <DropdownMenuSub>
+                                                        <DropdownMenuSubTrigger>Update Status</DropdownMenuSubTrigger>
+                                                        <DropdownMenuPortal>
+                                                            <DropdownMenuSubContent>
+                                                                <DropdownMenuItem onSelect={() => handleStatusUpdate(invoice.id, 'PAD')}>To PAD</DropdownMenuItem>
+                                                                <DropdownMenuItem onSelect={() => handleStatusUpdate(invoice.id, 'Invoiced')}>To Invoice</DropdownMenuItem>
+                                                            </DropdownMenuSubContent>
+                                                        </DropdownMenuPortal>
+                                                    </DropdownMenuSub>
+                                                )}
                                                 {invoice.status !== 'Cancel' && <DropdownMenuItem onSelect={() => handleAdjustmentClick(invoice, 'cancel')} className="text-destructive">Cancel Invoice</DropdownMenuItem>}
                                                 {user?.roleId === 'super-admin' && <DropdownMenuItem onSelect={() => handleEditClick(invoice)}>Edit (Admin)</DropdownMenuItem>}
                                             </DropdownMenuContent>
