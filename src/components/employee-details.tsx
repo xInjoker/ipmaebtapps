@@ -105,7 +105,7 @@ export function EmployeeDetails({ employee }: { employee: Employee }) {
                 </div>
               </div>
             </div>
-            {userHasPermission('manage-employees') && !isOwnProfile && (
+            {(userHasPermission('manage-employees') || isOwnProfile) && (
               <Button asChild>
                 <Link href={`/employees/${employee.id}/edit`}>
                   <Edit className="mr-2 h-4 w-4" />
@@ -117,8 +117,8 @@ export function EmployeeDetails({ employee }: { employee: Employee }) {
         </CardHeader>
       </Card>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-1">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <Card>
             <CardHeader>
                 <CardTitle>Personal Information</CardTitle>
             </CardHeader>
@@ -133,31 +133,18 @@ export function EmployeeDetails({ employee }: { employee: Employee }) {
                  <DetailItem icon={Home} label={employeeFieldLabels.address} value={employee.address} iconColor={iconColors[personalColorIndex++ % iconColors.length]} />
             </CardContent>
         </Card>
-         <Card className="lg:col-span-2">
+         <Card>
             <CardHeader>
                 <CardTitle>Work, Project & Contract</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-4">
-                        <DetailItem icon={Briefcase} label={employeeFieldLabels.position} value={employee.position} iconColor={iconColors[workColorIndex++ % iconColors.length]} />
-                        <DetailItem icon={Building} label={employeeFieldLabels.workUnitName} value={employee.workUnitName} iconColor={iconColors[workColorIndex++ % iconColors.length]} />
-                        <DetailItem icon={FileText} label={employeeFieldLabels.projectName} value={employee.projectName} iconColor={iconColors[workColorIndex++ % iconColors.length]} />
-                        <DetailItem icon={FileText} label={employeeFieldLabels.rabNumber} value={employee.rabNumber} iconColor={iconColors[workColorIndex++ % iconColors.length]} />
-                        <DetailItem icon={FileText} label={employeeFieldLabels.portfolio} value={employee.portfolio} iconColor={iconColors[workColorIndex++ % iconColors.length]} />
-                        <DetailItem icon={FileText} label={employeeFieldLabels.subPortfolio} value={employee.subPortfolio} iconColor={iconColors[workColorIndex++ % iconColors.length]} />
-                    </div>
-                     <div className="space-y-4">
-                        <DetailItem icon={Shield} label={employeeFieldLabels.contractType} value={employee.contractType} iconColor={iconColors[workColorIndex++ % iconColors.length]} />
-                        <DetailItem icon={FileText} label={employeeFieldLabels.contractNumber} value={employee.contractNumber} iconColor={iconColors[workColorIndex++ % iconColors.length]} />
-                        <DetailItem icon={Calendar} label={employeeFieldLabels.contractStartDate} value={employee.contractStartDate ? format(new Date(employee.contractStartDate), 'PPP') : null} iconColor={iconColors[workColorIndex++ % iconColors.length]} />
-                        <DetailItem icon={Calendar} label={employeeFieldLabels.contractEndDate} value={employee.contractEndDate ? format(new Date(employee.contractEndDate), 'PPP') : null} iconColor={iconColors[workColorIndex++ % iconColors.length]} />
-                    </div>
-                </div>
-                <Separator className="my-4"/>
-                <div>
-                  <h4 className="font-medium mb-2">Competency</h4>
-                  <div className="text-sm text-muted-foreground">{employee.competency || 'No competency details provided.'}</div>
+                 <div className="space-y-4">
+                    <DetailItem icon={Briefcase} label={employeeFieldLabels.position} value={employee.position} iconColor={iconColors[workColorIndex++ % iconColors.length]} />
+                    <DetailItem icon={Building} label={employeeFieldLabels.workUnitName} value={employee.workUnitName} iconColor={iconColors[workColorIndex++ % iconColors.length]} />
+                    <DetailItem icon={FileText} label={employeeFieldLabels.projectName} value={employee.projectName} iconColor={iconColors[workColorIndex++ % iconColors.length]} />
+                    <DetailItem icon={Shield} label={employeeFieldLabels.contractType} value={employee.contractType} iconColor={iconColors[workColorIndex++ % iconColors.length]} />
+                    <DetailItem icon={Calendar} label={employeeFieldLabels.contractStartDate} value={employee.contractStartDate ? format(new Date(employee.contractStartDate), 'PPP') : null} iconColor={iconColors[workColorIndex++ % iconColors.length]} />
+                    <DetailItem icon={Calendar} label={employeeFieldLabels.contractEndDate} value={employee.contractEndDate ? format(new Date(employee.contractEndDate), 'PPP') : null} iconColor={iconColors[workColorIndex++ % iconColors.length]} />
                 </div>
             </CardContent>
         </Card>

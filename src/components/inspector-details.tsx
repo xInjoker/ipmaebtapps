@@ -67,7 +67,7 @@ export function InspectorDetails({ inspector }: { inspector: Inspector }) {
                 </div>
               </div>
             </div>
-            {userHasPermission('manage-inspectors') && !isOwnProfile && (
+            {(userHasPermission('manage-inspectors') || isOwnProfile) && (
               <Button asChild>
                 <Link href={`/inspectors/${inspector.id}/edit`}>
                   <Edit className="mr-2 h-4 w-4" />
@@ -79,146 +79,157 @@ export function InspectorDetails({ inspector }: { inspector: Inspector }) {
         </CardHeader>
       </Card>
 
-      <Card>
-        <CardContent className="grid gap-6 p-6 md:grid-cols-3">
-          <div className="space-y-6 md:col-span-1">
-            <h3 className="font-semibold text-lg">Contact Information</h3>
-             <div className="space-y-4">
-                <div className="flex items-center gap-4">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
-                        <Mail className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
-                    </div>
-                    <div>
-                        <p className="text-sm text-muted-foreground">Email</p>
-                        <p className="font-medium">{inspector.email}</p>
-                    </div>
-                </div>
-                <div className="flex items-center gap-4">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
-                        <Phone className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
-                    </div>
-                    <div>
-                        <p className="text-sm text-muted-foreground">Phone</p>
-                        <p className="font-medium">{inspector.phone}</p>
-                    </div>
-                </div>
-                 <div className="flex items-center gap-4">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
-                        <Briefcase className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
-                    </div>
-                    <div>
-                        <p className="text-sm text-muted-foreground">Employment Status</p>
-                        <p className="font-medium">{inspector.employmentStatus || 'N/A'}</p>
-                    </div>
-                </div>
-                 <div className="flex items-center gap-4">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
-                        <Star className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
-                    </div>
-                    <div>
-                        <p className="text-sm text-muted-foreground">Years of Experience</p>
-                        <p className="font-medium">{inspector.yearsOfExperience ? `${inspector.yearsOfExperience} years` : 'N/A'}</p>
-                    </div>
-                </div>
-                <div className="flex items-center gap-4">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
-                        <MapPin className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
-                    </div>
-                    <div>
-                        <p className="text-sm text-muted-foreground">Location</p>
-                        <p className="font-medium">{branchMap[inspector.branchId] || 'Unknown Branch'}</p>
-                    </div>
-                </div>
-            </div>
-          </div>
-          <div className="space-y-6 md:col-span-2">
-            <h3 className="font-semibold text-lg">Documents</h3>
-            <div className="space-y-4">
-                <div>
-                    <h4 className="flex items-center text-md font-medium mb-2"><FileText className="mr-2 h-5 w-5"/>CV</h4>
-                    {inspector.cvUrl ? (
-                         <div className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
-                            <div className="flex items-center gap-2 truncate">
-                                <FileText className="h-4 w-4 flex-shrink-0" />
-                                <span className="text-sm truncate" title={inspector.cvUrl}>{getFileNameFromDataUrl(inspector.cvUrl) || 'Curriculum Vitae'}</span>
-                            </div>
-                            <div>
-                                <Button variant="ghost" size="sm" onClick={() => setDocumentToView({ url: inspector.cvUrl, name: getFileNameFromDataUrl(inspector.cvUrl) || 'CV' })}><Eye className="mr-2 h-4 w-4" />View</Button>
-                                <Button variant="ghost" size="icon" onClick={() => downloadFile(inspector.cvUrl, getFileNameFromDataUrl(inspector.cvUrl) || 'cv.pdf')}><Download className="h-4 w-4" /></Button>
-                            </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+            <CardHeader>
+                <CardTitle>Contact & Work Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                 <div className="space-y-4">
+                    <div className="flex items-center gap-4">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
+                            <Mail className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
                         </div>
-                    ) : <p className="text-sm text-muted-foreground">No CV uploaded.</p>}
+                        <div>
+                            <p className="text-sm text-muted-foreground">Email</p>
+                            <p className="font-medium">{inspector.email}</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
+                            <Phone className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
+                        </div>
+                        <div>
+                            <p className="text-sm text-muted-foreground">Phone</p>
+                            <p className="font-medium">{inspector.phone}</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
+                            <Briefcase className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
+                        </div>
+                        <div>
+                            <p className="text-sm text-muted-foreground">Employment Status</p>
+                            <p className="font-medium">{inspector.employmentStatus || 'N/A'}</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
+                            <Star className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
+                        </div>
+                        <div>
+                            <p className="text-sm text-muted-foreground">Years of Experience</p>
+                            <p className="font-medium">{inspector.yearsOfExperience ? `${inspector.yearsOfExperience} years` : 'N/A'}</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
+                            <MapPin className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
+                        </div>
+                        <div>
+                            <p className="text-sm text-muted-foreground">Location</p>
+                            <p className="font-medium">{branchMap[inspector.branchId] || 'Unknown Branch'}</p>
+                        </div>
+                    </div>
                 </div>
-                <Separator />
-                 <div>
-                    <h4 className="flex items-center text-md font-medium mb-2"><Award className="mr-2 h-5 w-5"/>Qualification Certificates</h4>
-                    {inspector.qualifications.length > 0 ? (
-                         <div className="space-y-2">
-                            {inspector.qualifications.map((doc, index) => {
-                                const status = getDocumentStatus(doc.expirationDate);
-                                return (
-                                <div key={index} className="flex flex-col gap-2 p-2 rounded-md border bg-muted/50">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2 truncate">
-                                            <FileText className="h-4 w-4 flex-shrink-0" />
-                                            <span className="text-sm font-medium truncate" title={doc.name}>{formatDocumentName(doc.name)}</span>
+            </CardContent>
+        </Card>
+        <Card>
+            <CardHeader>
+                <CardTitle>Documents</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <div className="space-y-4">
+                    <div>
+                        <h4 className="flex items-center text-md font-medium mb-2"><FileText className="mr-2 h-5 w-5"/>CV</h4>
+                        {inspector.cvUrl ? (
+                            <div className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
+                                <div className="flex items-center gap-2 truncate">
+                                    <FileText className="h-4 w-4 flex-shrink-0" />
+                                    <span className="text-sm truncate" title={inspector.cvUrl}>{getFileNameFromDataUrl(inspector.cvUrl) || 'Curriculum Vitae'}</span>
+                                </div>
+                                <div>
+                                    <Button variant="ghost" size="sm" onClick={() => setDocumentToView({ url: inspector.cvUrl, name: getFileNameFromDataUrl(inspector.cvUrl) || 'CV' })}><Eye className="mr-2 h-4 w-4" />View</Button>
+                                    <Button variant="ghost" size="icon" onClick={() => downloadFile(inspector.cvUrl, getFileNameFromDataUrl(inspector.cvUrl) || 'cv.pdf')}><Download className="h-4 w-4" /></Button>
+                                </div>
+                            </div>
+                        ) : <p className="text-sm text-muted-foreground">No CV uploaded.</p>}
+                    </div>
+                    <Separator />
+                    <div>
+                        <h4 className="flex items-center text-md font-medium mb-2"><Award className="mr-2 h-5 w-5"/>Qualification Certificates</h4>
+                        {inspector.qualifications.length > 0 ? (
+                            <div className="space-y-2">
+                                {inspector.qualifications.map((doc, index) => {
+                                    const status = getDocumentStatus(doc.expirationDate);
+                                    return (
+                                    <div key={index} className="flex flex-col gap-2 p-2 rounded-md border bg-muted/50">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2 truncate">
+                                                <FileText className="h-4 w-4 flex-shrink-0" />
+                                                <span className="text-sm font-medium truncate" title={doc.name}>{formatDocumentName(doc.name)}</span>
+                                            </div>
+                                            <div>
+                                                <Button variant="ghost" size="sm" onClick={() => setDocumentToView(doc)}><Eye className="mr-2 h-4 w-4" />View</Button>
+                                                <Button variant="ghost" size="icon" onClick={() => downloadFile(doc.url, doc.name)}><Download className="h-4 w-4" /></Button>
+                                            </div>
                                         </div>
-                                         <div>
-                                            <Button variant="ghost" size="sm" onClick={() => setDocumentToView(doc)}><Eye className="mr-2 h-4 w-4" />View</Button>
-                                            <Button variant="ghost" size="icon" onClick={() => downloadFile(doc.url, doc.name)}><Download className="h-4 w-4" /></Button>
+                                        <div className="flex items-center justify-between pl-6">
+                                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                            {doc.expirationDate && <>
+                                                <CalendarDays className="h-3 w-3" />
+                                                <span>Expires: {format(new Date(doc.expirationDate), 'PPP')}</span>
+                                            </>}
+                                            </div>
+                                            <Badge variant={status.variant} className="text-xs">{status.text}</Badge>
                                         </div>
                                     </div>
-                                    <div className="flex items-center justify-between pl-6">
+                                )})}
+                            </div>
+                        ) : <p className="text-sm text-muted-foreground">No qualification certificates uploaded.</p>}
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
+      </div>
+      <div className="grid grid-cols-1 gap-6">
+         <Card>
+            <CardHeader>
+                <CardTitle>Other Documents</CardTitle>
+            </CardHeader>
+             <CardContent>
+                {inspector.otherDocuments.length > 0 ? (
+                    <div className="space-y-2">
+                        {inspector.otherDocuments.map((doc, index) => {
+                            const status = getDocumentStatus(doc.expirationDate);
+                            return (
+                            <div key={index} className="flex flex-col gap-2 p-2 rounded-md border bg-muted/50">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2 truncate">
+                                        <FileText className="h-4 w-4 flex-shrink-0" />
+                                        <span className="text-sm font-medium truncate" title={doc.name}>{formatDocumentName(doc.name)}</span>
+                                    </div>
+                                        <div>
+                                        <Button variant="ghost" size="sm" onClick={() => setDocumentToView(doc)}><Eye className="mr-2 h-4 w-4" />View</Button>
+                                        <Button variant="ghost" size="icon" onClick={() => downloadFile(doc.url, doc.name)}><Download className="h-4 w-4" /></Button>
+                                    </div>
+                                </div>
+                                <div className="flex items-center justify-between pl-6">
                                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                           {doc.expirationDate && <>
+                                        {doc.expirationDate && <>
                                             <CalendarDays className="h-3 w-3" />
                                             <span>Expires: {format(new Date(doc.expirationDate), 'PPP')}</span>
-                                           </>}
-                                        </div>
-                                        <Badge variant={status.variant} className="text-xs">{status.text}</Badge>
+                                        </>}
                                     </div>
+                                    <Badge variant={status.variant} className="text-xs">{status.text}</Badge>
                                 </div>
-                            )})}
-                        </div>
-                    ) : <p className="text-sm text-muted-foreground">No qualification certificates uploaded.</p>}
-                </div>
-                <Separator />
-                <div>
-                    <h4 className="flex items-center text-md font-medium mb-2"><Paperclip className="mr-2 h-5 w-5"/>Other Documents</h4>
-                    {inspector.otherDocuments.length > 0 ? (
-                         <div className="space-y-2">
-                            {inspector.otherDocuments.map((doc, index) => {
-                                const status = getDocumentStatus(doc.expirationDate);
-                                return (
-                                <div key={index} className="flex flex-col gap-2 p-2 rounded-md border bg-muted/50">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2 truncate">
-                                            <FileText className="h-4 w-4 flex-shrink-0" />
-                                            <span className="text-sm font-medium truncate" title={doc.name}>{formatDocumentName(doc.name)}</span>
-                                        </div>
-                                         <div>
-                                            <Button variant="ghost" size="sm" onClick={() => setDocumentToView(doc)}><Eye className="mr-2 h-4 w-4" />View</Button>
-                                            <Button variant="ghost" size="icon" onClick={() => downloadFile(doc.url, doc.name)}><Download className="h-4 w-4" /></Button>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center justify-between pl-6">
-                                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                           {doc.expirationDate && <>
-                                            <CalendarDays className="h-3 w-3" />
-                                            <span>Expires: {format(new Date(doc.expirationDate), 'PPP')}</span>
-                                           </>}
-                                        </div>
-                                        <Badge variant={status.variant} className="text-xs">{status.text}</Badge>
-                                    </div>
-                                </div>
-                            )})}
-                        </div>
-                    ) : <p className="text-sm text-muted-foreground">No other documents uploaded.</p>}
-                </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+                            </div>
+                        )})}
+                    </div>
+                ) : <p className="text-sm text-muted-foreground">No other documents uploaded.</p>}
+            </CardContent>
+        </Card>
+      </div>
     </div>
     {documentToView && (
         <DocumentViewerDialog
