@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useMemo, useCallback, useEffect } from 'react';
@@ -7,7 +8,7 @@ import { type Project, initialProjects } from '@/lib/projects';
 type ProjectStats = {
   totalProjectValue: number;
   totalCost: number;
-  totalInvoiced: number; // Invoiced + Paid
+  totalInvoiced: number; // Invoiced (not paid)
   totalPaid: number; // Paid 
   totalIncome: number; // Paid + Invoiced + PAD + Re-invoiced
 };
@@ -50,17 +51,18 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
             .reduce((sum, exp) => sum + exp.amount, 0);
         acc.totalCost += totalCost;
 
+        // Invoiced but not yet paid
         const totalInvoicedValue = invoices
-            .filter(inv => ['Invoiced', 'Paid'].includes(inv.status))
+            .filter(inv => ['Invoiced', 'Re-invoiced'].includes(inv.status))
             .reduce((sum, inv) => sum + inv.value, 0);
         acc.totalInvoiced += totalInvoicedValue;
 
         const totalPaidValue = invoices
-            .filter(inv => ['Paid'].includes(inv.status))
+            .filter(inv => inv.status === 'Paid')
             .reduce((sum, inv) => sum + inv.value, 0);
         acc.totalPaid += totalPaidValue;
 
-        // Updated income calculation
+        // Total income is sum of all relevant statuses
         const totalIncomeValue = invoices
             .filter(inv => ['Paid', 'Invoiced', 'PAD', 'Re-invoiced'].includes(inv.status))
             .reduce((sum, inv) => sum + inv.value, 0);

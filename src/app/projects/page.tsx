@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
@@ -269,8 +270,8 @@ export default function ProjectsPage() {
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {visibleProjects.length > 0 ? (
                 visibleProjects.map((project) => {
-                    const { totalInvoiced } = getProjectStats([project]);
-                    const progress = project.value > 0 ? Math.round((totalInvoiced / project.value) * 100) : 0;
+                    const { totalInvoiced, totalPaid } = getProjectStats([project]);
+                    const progress = project.value > 0 ? Math.round(((totalPaid + totalInvoiced) / project.value) * 100) : 0;
                     return (
                     <Card key={project.id} className="flex flex-col">
                         <CardHeader className="relative overflow-hidden bg-gradient-to-br from-primary to-primary/80 text-primary-foreground rounded-t-lg flex flex-col justify-center h-28">
