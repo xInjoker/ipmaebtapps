@@ -82,16 +82,16 @@ export default function ProfilePage() {
   const inspectorProfile = inspectors.find(i => i.email === user.email);
 
   const renderProfileDetails = () => {
-    if (userRole?.id === 'employee' && employeeProfile) {
+    if ((userRole?.id === 'employee' || userRole?.permissions.includes('manage-employees')) && employeeProfile) {
       return <EmployeeDetails employee={employeeProfile} />;
     }
-    if (userRole?.id === 'inspector' && inspectorProfile) {
+    if ((userRole?.id === 'inspector' || userRole?.permissions.includes('manage-inspectors')) && inspectorProfile) {
       return <InspectorDetails inspector={inspectorProfile} />;
     }
     
     // --- Default Profile Page for other roles ---
     return (
-        <Card className="lg:col-span-2">
+        <Card>
             <CardHeader>
                 <CardTitle>Personal Information</CardTitle>
                 <CardDescription>
@@ -130,13 +130,9 @@ export default function ProfilePage() {
 
   return (
     <div className="space-y-6">
-       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className={isDetailedProfile ? 'lg:col-span-3' : 'lg:col-span-2'}>
-          {renderProfileDetails()}
-        </div>
-        
-        <div className={isDetailedProfile ? 'lg:col-span-1' : 'lg:col-span-1'}>
-          <div className="space-y-6">
+        {renderProfileDetails()}
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
                 <CardHeader>
                     <CardTitle>Digital Signature</CardTitle>
@@ -171,7 +167,7 @@ export default function ProfilePage() {
                         <Input id="signature-upload" type="file" className="hidden" accept="image/png, image/jpeg" onChange={handleSignatureUpload} />
                     </label>
                 </CardContent>
-                 {(isEditing) && (
+                 {(isEditing && !isDetailedProfile) && (
                     <CardFooter className="flex justify-end">
                         <Button onClick={handleSaveChanges}>Save Changes</Button>
                     </CardFooter>
@@ -203,9 +199,7 @@ export default function ProfilePage() {
                 </div>
             </CardContent>
             </Card>
-          </div>
         </div>
-      </div>
     </div>
   );
 }
