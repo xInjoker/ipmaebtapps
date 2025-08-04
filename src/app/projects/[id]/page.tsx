@@ -46,7 +46,7 @@ import { useProjects } from '@/context/ProjectContext';
 import { ProjectMonthlyRecapChart } from '@/components/project-monthly-recap-chart';
 import { ProjectInvoicingTab } from '@/components/project-invoicing-tab';
 import { ProjectCostTab } from '@/components/project-cost-tab';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, formatCurrencyMillions } from '@/lib/utils';
 import { ProjectBudgetExpenditureChart } from '@/components/project-budget-expenditure-chart';
 import { ProjectServiceOrderChart } from '@/components/project-service-order-chart';
 import { ApprovalWorkflowManager } from '@/components/project-approval-workflow';
@@ -61,6 +61,7 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import html2canvas from 'html2canvas';
 import { DashboardWidget } from '@/components/dashboard-widget';
+import { format } from 'date-fns';
 
 
 // Extend jsPDF with autoTable
@@ -72,7 +73,7 @@ interface jsPDFWithAutoTable extends jsPDF {
 export default function ProjectDetailsPage() {
   const params = useParams();
   const projectId = params.id as string;
-  const { getProjectById, setProjects } = useProjects();
+  const { getProjectById, setProjects, getProjectStats } = useProjects();
   const { users, userHasPermission } = useAuth();
   
   const [project, setProject] = useState<Project | null>(null);
@@ -114,8 +115,8 @@ export default function ProjectDetailsPage() {
     totalCost,
     totalInvoiced,
     totalPaid,
+    totalIncome,
     totalServiceOrderValue,
-    totalDocumentPreparation,
     progress,
     totalBudget,
     profit,
@@ -125,56 +126,37 @@ export default function ProjectDetailsPage() {
         totalCost: 0,
         totalInvoiced: 0,
         totalPaid: 0,
+        totalIncome: 0,
         totalServiceOrderValue: 0,
-        totalDocumentPreparation: 0,
         progress: 0,
         totalBudget: 0,
         profit: 0,
       };
     }
 
-    const costs = project.costs || [];
-    const invoices = project.invoices || [];
-    const serviceOrders = project.serviceOrders || [];
-    const budgets = project.budgets || {};
+    const stats = getProjectStats([project]);
 
-    const cost = costs
-      .filter((exp) => exp.status === 'Approved')
-      .reduce((acc, exp) => acc + exp.amount, 0);
-
-    const paid = invoices
-      .filter((inv) => inv.status === 'Paid')
-      .reduce((acc, inv) => acc + inv.value, 0);
-    
-    const invoiced = invoices
-      .filter((inv) => inv.status === 'Invoiced')
-      .reduce((acc, inv) => acc + inv.value, 0);
-
-    const documentPreparation = invoices
-      .filter((inv) => inv.status === 'Document Preparation')
-      .reduce((acc, inv) => acc + inv.value, 0);
-
-    const serviceOrderValue = serviceOrders.reduce((acc, so) => acc + so.value, 0);
-    
-    const calculatedProgress = project.value > 0 ? Math.round((paid / project.value) * 100) : 0;
-    const totalBudgetValue = Object.values(budgets).reduce((sum, val) => sum + val, 0);
-    const calculatedProfit = paid - cost;
+    const serviceOrderValue = (project.serviceOrders || []).reduce((acc, so) => acc + so.value, 0);
+    const calculatedProgress = project.value > 0 ? Math.round(((stats.totalPaid + stats.totalInvoiced) / project.value) * 100) : 0;
+    const totalBudgetValue = Object.values(project.budgets || {}).reduce((sum, val) => sum + val, 0);
+    const calculatedProfit = stats.totalIncome - stats.totalCost;
 
 
     return {
-      totalCost: cost,
-      totalInvoiced: invoiced,
-      totalPaid: paid,
+      totalCost: stats.totalCost,
+      totalInvoiced: stats.totalInvoiced,
+      totalPaid: stats.totalPaid,
+      totalIncome: stats.totalIncome,
       totalServiceOrderValue: serviceOrderValue,
-      totalDocumentPreparation: documentPreparation,
       progress: calculatedProgress,
       totalBudget: totalBudgetValue,
       profit: calculatedProfit,
     };
-  }, [project]);
+  }, [project, getProjectStats]);
 
   const summaryWidgets = useMemo(() => {
     const budgetUtilization = totalBudget > 0 ? (totalCost / totalBudget) * 100 : 0;
+    const totalSubmittedInvoices = totalInvoiced + totalPaid;
     return [
       {
         title: 'Project Profit/Loss',
@@ -187,15 +169,15 @@ export default function ProjectDetailsPage() {
       {
         title: 'Budget Utilization',
         value: `${budgetUtilization.toFixed(1)}%`,
-        description: `Spent ${formatCurrency(totalCost)} of ${formatCurrency(totalBudget)}`,
+        description: `Spent ${formatCurrencyMillions(totalCost)} of ${formatCurrencyMillions(totalBudget)}`,
         icon: Percent,
         iconColor: 'text-blue-500',
         shapeColor: 'text-blue-500/10',
       },
       {
         title: 'Invoice Payment Rate',
-        value: `${totalInvoiced + totalPaid > 0 ? ((totalPaid / (totalInvoiced + totalPaid)) * 100).toFixed(1) : 0}%`,
-        description: `${formatCurrency(totalPaid)} paid`,
+        value: `${totalSubmittedInvoices > 0 ? ((totalPaid / totalSubmittedInvoices) * 100).toFixed(1) : 0}%`,
+        description: `${formatCurrencyMillions(totalPaid)} paid`,
         icon: CircleDollarSign,
         iconColor: 'text-amber-500',
         shapeColor: 'text-amber-500/10',
@@ -552,7 +534,12 @@ export default function ProjectDetailsPage() {
                         </div>
                         <div>
                             <p className="text-sm text-muted-foreground">Period</p>
-                            <p className="font-medium">{project.period}</p>
+                             <p className="font-medium">
+                                {project.contractStartDate && project.contractEndDate ? 
+                                    `${format(new Date(project.contractStartDate), 'd MMM yyyy')} - ${format(new Date(project.contractEndDate), 'd MMM yyyy')}` 
+                                    : project.period
+                                }
+                            </p>
                         </div>
                     </div>
                     <div className="flex items-center gap-4">
@@ -598,7 +585,7 @@ export default function ProjectDetailsPage() {
             <Separator className="my-6" />
             <div className="mt-auto">
               <div className="mb-2 flex items-baseline justify-between">
-                <p className="text-sm text-muted-foreground">Progress (by Paid Amount)</p>
+                <p className="text-sm text-muted-foreground">Progress (by Invoiced + Paid Amount)</p>
                 <p className="text-lg font-semibold">{progress}%</p>
               </div>
               <Progress value={progress} className="h-6" />
@@ -716,3 +703,4 @@ export default function ProjectDetailsPage() {
     </div>
   );
 }
+

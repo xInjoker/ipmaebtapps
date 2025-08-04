@@ -70,6 +70,8 @@ export type Project = {
   value: number;
   period: string;
   duration: string;
+  contractStartDate?: string; // 'YYYY-MM-DD'
+  contractEndDate?: string; // 'YYYY-MM-DD'
   serviceOrders: ServiceOrderItem[];
   invoices: InvoiceItem[];
   budgets: { [category: string]: number };
@@ -94,8 +96,10 @@ export const initialProjects: Project[] = [
     client: 'PT Pertamina Hulu Rokan',
     description: 'Comprehensive integrity assessment for the Duri-Dumai pipeline, including NDT and risk analysis.',
     value: 2500000000,
-    period: 'January 2024',
+    period: 'January 2024 - December 2024',
     duration: '12 Months',
+    contractStartDate: '2024-01-01',
+    contractEndDate: '2024-12-31',
     serviceOrders: [
       { id: 'SO-1', soNumber: 'SO-PHR-001-A', description: 'Initial Survey and Data Collection', date: '2024-01-10', value: 500000000 },
       { id: 'SO-2', soNumber: 'SO-PHR-001-B', description: 'NDT Inspection Services (UT, MT, PT)', date: '2024-03-15', value: 1500000000 },
@@ -127,6 +131,8 @@ export const initialProjects: Project[] = [
       { id: 'EXP-PROJ1-005', category: 'Promosi', coa: '4800', description: 'Project launch event.', period: 'January 2024', amount: 50000000, status: 'Approved' },
       { id: 'EXP-PROJ1-006', category: 'Perjalanan Dinas', coa: '4300', description: 'Accommodation for team (Apr-Jul).', period: 'July 2024', amount: 100000000, status: 'Approved' },
       { id: 'EXP-PROJ1-007', category: 'Operasional', coa: '4400', description: 'Consumables and supplies.', period: 'May 2024', amount: 150000000, status: 'Approved' },
+      { id: 'EXP-PROJ1-008', category: 'Tenaga Ahli dan Labour Supply', coa: '4200', description: 'Additional manpower for Q3', period: 'September 2024', amount: 200000000, status: 'Approved' },
+      { id: 'EXP-PROJ1-009', category: 'Operasional', coa: '4400', description: 'Vehicle rentals for Q3', period: 'September 2024', amount: 100000000, status: 'Approved' },
     ],
     branchId: 'jakarta',
     contractExecutor: 'Cabang Jakarta',
@@ -151,8 +157,10 @@ export const initialProjects: Project[] = [
     client: 'PT Medco E&P Natuna',
     description: 'Annual structural integrity inspection for the Belida offshore platform.',
     value: 5000000000,
-    period: 'February 2024',
+    period: 'February 2024 - January 2026',
     duration: '24 Months',
+    contractStartDate: '2024-02-01',
+    contractEndDate: '2026-01-31',
     serviceOrders: [
       { id: 'SO-4', soNumber: 'SO-MEP-002-A', description: 'Project Kick-off & Mobilization', date: '2024-02-01', value: 1000000000 },
       { id: 'SO-5', soNumber: 'SO-MEP-002-B', description: 'Rope Access Inspection & NDT', date: '2024-04-15', value: 3000000000 },
@@ -183,6 +191,8 @@ export const initialProjects: Project[] = [
       { id: 'EXP-PROJ2-004', category: 'Operasional', coa: '4400', description: 'Consumables and supplies for inspection.', period: 'June 2024', amount: 500000000, status: 'Approved' },
       { id: 'EXP-PROJ2-005', category: 'Tenaga Ahli dan Labour Supply', coa: '4200', description: 'Salaries for June-Aug.', period: 'August 2024', amount: 600000000, status: 'Approved' },
       { id: 'EXP-PROJ2-006', category: 'Perjalanan Dinas', coa: '4300', description: 'Crew change flights.', period: 'July 2024', amount: 200000000, status: 'Approved' },
+      { id: 'EXP-PROJ2-007', category: 'Operasional', coa: '4400', description: 'Safety equipment procurement', period: 'February 2024', amount: 300000000, status: 'Approved' },
+      { id: 'EXP-PROJ2-008', category: 'Tenaga Ahli dan Labour Supply', coa: '4200', description: 'Project management team salaries for Q2-Q3', period: 'September 2024', amount: 450000000, status: 'Approved' }
     ],
     branchId: 'surabaya',
     contractExecutor: 'Cabang Surabaya',
@@ -201,8 +211,10 @@ export const initialProjects: Project[] = [
     client: 'PT Chevron Pacific Indonesia',
     description: 'API 653 compliant inspection of crude oil storage tanks.',
     value: 3200000000,
-    period: 'November 2023',
+    period: 'November 2023 - April 2025',
     duration: '18 Months',
+    contractStartDate: '2023-11-01',
+    contractEndDate: '2025-04-30',
     serviceOrders: [
       { id: 'SO-7', soNumber: 'SO-CPI-003-A', description: 'Tank Floor MFL Scanning', date: '2023-11-20', value: 2500000000 },
       { id: 'SO-8', soNumber: 'SO-CPI-003-B', description: 'Shell and Roof Inspection', date: '2024-05-10', value: 700000000 },
@@ -231,6 +243,8 @@ export const initialProjects: Project[] = [
       { id: 'EXP-PROJ3-003', category: 'Operasional', coa: '4400', description: 'MFL equipment calibration & leasing.', period: 'December 2023', amount: 500000000, status: 'Approved' },
       { id: 'EXP-PROJ3-004', category: 'Fasilitas dan Interen', coa: '4500', description: 'Site office rental (Dec 23 - Apr 24).', period: 'April 2024', amount: 80000000, status: 'Approved' },
       { id: 'EXP-PROJ3-005', category: 'Tenaga Ahli dan Labour Supply', coa: '4200', description: 'Technician salaries (Apr 24 - Jul 24).', period: 'July 2024', amount: 600000000, status: 'Approved' },
+      { id: 'EXP-PROJ3-006', category: 'Operasional', coa: '4400', description: 'Drone inspection services.', period: 'June 2024', amount: 100000000, status: 'Approved' },
+      { id: 'EXP-PROJ3-007', category: 'Perjalanan Dinas', coa: '4300', description: 'Accommodation for May-July.', period: 'July 2024', amount: 120000000, status: 'Approved' }
     ],
     branchId: 'pekanbaru',
     contractExecutor: 'Cabang Pekanbaru',
@@ -242,3 +256,4 @@ export const initialProjects: Project[] = [
     reportApprovalWorkflow: []
   },
 ];
+

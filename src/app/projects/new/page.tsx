@@ -32,7 +32,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, Calendar as CalendarIcon, Save, Loader2 } from 'lucide-react';
 import { DateRange } from 'react-day-picker';
-import { format } from 'date-fns';
+import { format, differenceInMonths } from 'date-fns';
 import { cn } from '@/lib/utils';
 import {
   type Project,
@@ -84,15 +84,9 @@ export default function NewProjectPage() {
     if (date?.from && date?.to) {
       const fromDate = date.from;
       const toDate = date.to;
-      const periodString =
-        format(fromDate, 'yyyy') === format(toDate, 'yyyy')
-          ? format(fromDate, 'yyyy')
-          : `${format(fromDate, 'yyyy')}-${format(toDate, 'yyyy')}`;
+      const periodString = `${format(fromDate, 'MMMM yyyy')} - ${format(toDate, 'MMMM yyyy')}`;
 
-      let months = (toDate.getFullYear() - fromDate.getFullYear()) * 12;
-      months -= fromDate.getMonth();
-      months += toDate.getMonth();
-      const durationValue = months <= 0 ? 1 : months + 1;
+      const durationValue = differenceInMonths(toDate, fromDate) + 1;
       const durationString = `${durationValue} ${
         durationValue > 1 ? 'Months' : 'Month'
       }`;
@@ -156,10 +150,12 @@ export default function NewProjectPage() {
       contractExecutor: executorName,
       period,
       duration,
+      contractStartDate: format(date.from, 'yyyy-MM-dd'),
+      contractEndDate: format(date.to, 'yyyy-MM-dd'),
       serviceOrders: [],
       invoices: [],
       budgets: {},
-      expenditures: [],
+      costs: [],
       tripApprovalWorkflow: [],
       reportApprovalWorkflow: [],
     };
@@ -324,3 +320,4 @@ export default function NewProjectPage() {
     </Card>
   );
 }
+
