@@ -303,7 +303,7 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
                                     <TableCell className="font-medium">{invoice.soNumber}</TableCell>
                                     <TableCell>{invoice.description}</TableCell>
                                     <TableCell>{invoice.period}</TableCell>
-                                    <TableCell className="text-right font-mono">
+                                    <TableCell className="text-right">
                                         <div className="flex items-center justify-end gap-2">
                                             {formatCurrency(invoice.value)}
                                             {(invoice.originalValue || invoice.adjustmentReason) && (
