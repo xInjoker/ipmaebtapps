@@ -100,11 +100,12 @@ export function ProjectTargetRealizationChart({ projects }: ProjectTargetRealiza
         try {
             const date = parse(`${month} 1, ${year}`, 'MMMM d, yyyy', new Date());
             const monthKey = formatDate(date, 'MMM yy');
-             if (monthlyData[monthKey]) {
-                if (['Paid', 'Invoiced', 'PAD', 'Re-invoiced'].includes(invoice.status)) {
-                    monthlyData[monthKey].incomeRealization += invoice.value;
-                }
-             }
+             if (!monthlyData[monthKey]) {
+                monthlyData[monthKey] = { month: monthKey, incomeTarget: 0, costTarget: 0, incomeRealization: 0, costRealization: 0 };
+            }
+            if (['Paid', 'Invoiced', 'PAD', 'Re-invoiced'].includes(invoice.status)) {
+                monthlyData[monthKey].incomeRealization += invoice.value;
+            }
         } catch (e) {
             console.warn(`Could not parse date for invoice period: ${invoice.period}`);
         }
@@ -117,11 +118,12 @@ export function ProjectTargetRealizationChart({ projects }: ProjectTargetRealiza
          try {
             const date = parse(`${month} 1, ${year}`, 'MMMM d, yyyy', new Date());
             const monthKey = formatDate(date, 'MMM yy');
-             if (monthlyData[monthKey]) {
-                if (exp.status === 'Approved') {
-                    monthlyData[monthKey].costRealization += exp.amount;
-                }
-             }
+             if (!monthlyData[monthKey]) {
+                monthlyData[monthKey] = { month: monthKey, incomeTarget: 0, costTarget: 0, incomeRealization: 0, costRealization: 0 };
+            }
+            if (exp.status === 'Approved') {
+                monthlyData[monthKey].costRealization += exp.amount;
+            }
          } catch (e) {
             console.warn(`Could not parse date for cost period: ${exp.period}`);
          }
