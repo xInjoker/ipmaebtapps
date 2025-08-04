@@ -29,6 +29,9 @@ import {
   UserCog,
   BarChartHorizontal,
   Printer,
+  TrendingUp,
+  TrendingDown,
+  Percent,
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
@@ -56,6 +59,8 @@ import { ProjectProfitChart } from '@/components/project-profit-chart';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import html2canvas from 'html2canvas';
+import { DashboardWidget } from '@/components/dashboard-widget';
+
 
 // Extend jsPDF with autoTable
 interface jsPDFWithAutoTable extends jsPDF {
@@ -107,55 +112,95 @@ export default function ProjectDetailsPage() {
   const {
     totalCost,
     totalInvoiced,
-    totalPad,
+    totalPaid,
     totalServiceOrderValue,
     totalDocumentPreparation,
-    progress
+    progress,
+    totalBudget,
+    profit,
   } = useMemo(() => {
     if (!project) {
       return {
         totalCost: 0,
         totalInvoiced: 0,
-        totalPad: 0,
+        totalPaid: 0,
         totalServiceOrderValue: 0,
         totalDocumentPreparation: 0,
         progress: 0,
+        totalBudget: 0,
+        profit: 0,
       };
     }
 
     const costs = project.costs || [];
     const invoices = project.invoices || [];
     const serviceOrders = project.serviceOrders || [];
+    const budgets = project.budgets || {};
 
     const cost = costs
       .filter((exp) => exp.status === 'Approved')
       .reduce((acc, exp) => acc + exp.amount, 0);
 
-    const invoiced = invoices
-      .filter((inv) => inv.status === 'Invoiced' || inv.status === 'Paid')
-      .reduce((acc, inv) => acc + inv.value, 0);
-
-    const pad = invoices
-      .filter((inv) => inv.status === 'PAD')
+    const paid = invoices
+      .filter((inv) => inv.status === 'Paid')
       .reduce((acc, inv) => acc + inv.value, 0);
     
+    const invoiced = invoices
+      .filter((inv) => inv.status === 'Invoiced')
+      .reduce((acc, inv) => acc + inv.value, 0);
+
     const documentPreparation = invoices
       .filter((inv) => inv.status === 'Document Preparation')
       .reduce((acc, inv) => acc + inv.value, 0);
 
     const serviceOrderValue = serviceOrders.reduce((acc, so) => acc + so.value, 0);
     
-    const calculatedProgress = project.value > 0 ? Math.round((invoiced / project.value) * 100) : 0;
+    const calculatedProgress = project.value > 0 ? Math.round((paid / project.value) * 100) : 0;
+    const totalBudgetValue = Object.values(budgets).reduce((sum, val) => sum + val, 0);
+    const calculatedProfit = paid - cost;
+
 
     return {
       totalCost: cost,
       totalInvoiced: invoiced,
-      totalPad: pad,
+      totalPaid: paid,
       totalServiceOrderValue: serviceOrderValue,
       totalDocumentPreparation: documentPreparation,
       progress: calculatedProgress,
+      totalBudget: totalBudgetValue,
+      profit: calculatedProfit,
     };
   }, [project]);
+
+  const summaryWidgets = useMemo(() => {
+    const budgetUtilization = totalBudget > 0 ? (totalCost / totalBudget) * 100 : 0;
+    return [
+      {
+        title: 'Project Profit/Loss',
+        value: formatCurrency(profit),
+        description: profit >= 0 ? 'Currently profitable' : 'Currently at a loss',
+        icon: profit >= 0 ? TrendingUp : TrendingDown,
+        iconColor: profit >= 0 ? 'text-green-500' : 'text-rose-500',
+        shapeColor: profit >= 0 ? 'text-green-500/10' : 'text-rose-500/10',
+      },
+      {
+        title: 'Budget Utilization',
+        value: `${budgetUtilization.toFixed(1)}%`,
+        description: `Spent ${formatCurrency(totalCost)} of ${formatCurrency(totalBudget)}`,
+        icon: Percent,
+        iconColor: 'text-blue-500',
+        shapeColor: 'text-blue-500/10',
+      },
+      {
+        title: 'Invoice Payment Rate',
+        value: `${totalInvoiced + totalPaid > 0 ? ((totalPaid / (totalInvoiced + totalPaid)) * 100).toFixed(1) : 0}%`,
+        description: `${formatCurrency(totalPaid)} paid`,
+        icon: CircleDollarSign,
+        iconColor: 'text-amber-500',
+        shapeColor: 'text-amber-500/10',
+      }
+    ];
+  }, [profit, totalCost, totalBudget, totalInvoiced, totalPaid]);
 
   const handlePrint = useCallback(async () => {
     if (!project) return;
@@ -189,8 +234,8 @@ export default function ProjectDetailsPage() {
             ['Period', `${project.period} (${project.duration})`],
             ['Contract Value', formatCurrency(project.value)],
             ['Total Service Order', formatCurrency(totalServiceOrderValue)],
-            ['Total Invoiced', formatCurrency(totalInvoiced)],
-            ['Progress', `${progress}%`],
+            ['Total Paid', formatCurrency(totalPaid)],
+            ['Progress (by Paid)', `${progress}%`],
         ],
         theme: 'striped',
         headStyles: { fillColor: [22, 163, 74] }
@@ -284,7 +329,7 @@ export default function ProjectDetailsPage() {
 
     doc.save(`ProjectReport-${project.contractNumber}.pdf`);
 
-  }, [project, chartRefs, progress, totalInvoiced, totalServiceOrderValue]);
+  }, [project, chartRefs, progress, totalPaid, totalServiceOrderValue]);
 
   const monthlyRecapData = useMemo(() => {
     if (!project) return [];
@@ -453,7 +498,7 @@ export default function ProjectDetailsPage() {
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 <div className="space-y-6">
                     <div className="flex items-center gap-4">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex % iconColors.length]}1A` }}>
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full" style={{ backgroundColor: `${iconColors[colorIndex++ % iconColors.length]}1A` }}>
                         <User className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
                     </div>
                     <div>
@@ -533,8 +578,8 @@ export default function ProjectDetailsPage() {
                             <CircleDollarSign className="h-5 w-5" style={{ color: iconColors[colorIndex++ % iconColors.length] }} />
                         </div>
                         <div>
-                            <p className="text-sm text-muted-foreground">Total Invoiced</p>
-                            <p className="font-medium">{formatCurrency(totalInvoiced)}</p>
+                            <p className="text-sm text-muted-foreground">Total Paid</p>
+                            <p className="font-medium">{formatCurrency(totalPaid)}</p>
                         </div>
                     </div>
                 </div>
@@ -542,7 +587,7 @@ export default function ProjectDetailsPage() {
             <Separator className="my-6" />
             <div className="mt-auto">
               <div className="mb-2 flex items-baseline justify-between">
-                <p className="text-sm text-muted-foreground">Progress (by Invoiced Amount)</p>
+                <p className="text-sm text-muted-foreground">Progress (by Paid Amount)</p>
                 <p className="text-lg font-semibold">{progress}%</p>
               </div>
               <Progress value={progress} className="h-6" />
@@ -573,30 +618,62 @@ export default function ProjectDetailsPage() {
             Approval Settings
           </TabsTrigger>
         </TabsList>
-        <TabsContent value="summary-charts">
-           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
-                <div ref={chartRefs.incomePie}>
-                  <ProjectIncomePieChart project={project} />
-                </div>
-                <div ref={chartRefs.costPie}>
-                  <ProjectCostPieChart project={project} />
-                </div>
-                <div ref={chartRefs.recap} className="lg:col-span-2">
-                  <ProjectMonthlyRecapChart data={monthlyRecapData} />
-                </div>
-                <div ref={chartRefs.profit}>
-                  <ProjectProfitChart project={project} />
-                </div>
-                <div ref={chartRefs.so}>
-                  <ProjectServiceOrderChart project={project} />
-                </div>
-                <div ref={chartRefs.budget}>
-                  <ProjectBudgetExpenditureChart project={project} />
-                </div>
-                <div ref={chartRefs.target} className="lg:col-span-2">
-                  <ProjectTargetRealizationChart projects={[project]} />
-                </div>
+        <TabsContent value="summary-charts" className="space-y-6">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {summaryWidgets.map((widget, index) => (
+                <DashboardWidget key={index} {...widget} />
+              ))}
             </div>
+
+            <div className="space-y-4">
+              <h3 className="font-semibold text-lg">Overall Financial Health</h3>
+              <Separator />
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
+                  <div ref={chartRefs.profit}>
+                      <ProjectProfitChart project={project} />
+                  </div>
+                  <div ref={chartRefs.target} className="lg:col-span-1">
+                      <ProjectTargetRealizationChart projects={[project]} />
+                  </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="font-semibold text-lg">Income Deep Dive</h3>
+              <Separator />
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
+                  <div ref={chartRefs.incomePie}>
+                      <ProjectIncomePieChart project={project} />
+                  </div>
+                  <div ref={chartRefs.so}>
+                      <ProjectServiceOrderChart project={project} />
+                  </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="font-semibold text-lg">Cost & Budget Analysis</h3>
+              <Separator />
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
+                  <div ref={chartRefs.costPie}>
+                      <ProjectCostPieChart project={project} />
+                  </div>
+                  <div ref={chartRefs.budget}>
+                      <ProjectBudgetExpenditureChart project={project} />
+                  </div>
+              </div>
+            </div>
+
+             <div className="space-y-4">
+              <h3 className="font-semibold text-lg">Monthly Performance</h3>
+              <Separator />
+              <div className="grid grid-cols-1 gap-6 mt-4">
+                  <div ref={chartRefs.recap}>
+                    <ProjectMonthlyRecapChart data={monthlyRecapData} />
+                  </div>
+              </div>
+            </div>
+
         </TabsContent>
         <TabsContent value="service-orders">
           <ProjectServiceOrderTab project={project} setProjects={handleProjectUpdate} />

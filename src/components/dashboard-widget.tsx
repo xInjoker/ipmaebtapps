@@ -33,13 +33,13 @@ export function DashboardWidget({
           transform="translate(100 100)"
         />
       </svg>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 z-10">
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
         <Icon className={`h-8 w-8 ${iconColor}`} />
       </CardHeader>
-      <CardContent>
+      <CardContent className="z-10 relative">
         {value && <div className="text-xl font-bold font-headline sm:text-lg md:text-xl lg:text-2xl mt-1">{value}</div>}
-        <p className={`text-sm font-bold mt-2 ${iconColor}`}>
+        <p className="text-sm text-muted-foreground">
             {description}
         </p>
       </CardContent>
