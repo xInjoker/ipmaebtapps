@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import {
@@ -34,9 +34,8 @@ type DashboardStats = {
 
 export default function EquipmentPage() {
   useSearchParams();
-  const { user, isHqUser, branches, userHasPermission } = useAuth();
+  const { branches, userHasPermission } = useAuth();
   const { equipmentList, isLoading } = useEquipment();
-  const initialFilterSet = useRef(false);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -49,13 +48,6 @@ export default function EquipmentPage() {
     validCerts: 0,
     expiredCerts: 0,
   });
-  
-  useEffect(() => {
-    if (user && !isHqUser && !initialFilterSet.current) {
-      setBranchFilter(user.branchId);
-      initialFilterSet.current = true;
-    }
-  }, [user, isHqUser]);
 
   const branchMap = useMemo(() => {
     return branches.reduce((acc, branch) => {
@@ -139,12 +131,8 @@ export default function EquipmentPage() {
     setSearchTerm('');
     setStatusFilter('all');
     setTypeFilter('all');
-    if (isHqUser) {
-        setBranchFilter('all');
-    } else if (user) {
-        setBranchFilter(user.branchId);
-    }
-  }, [isHqUser, user]);
+    setBranchFilter('all');
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -199,7 +187,7 @@ export default function EquipmentPage() {
                         {equipmentTypes.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
                     </SelectContent>
                 </Select>
-                <Select value={branchFilter} onValueChange={setBranchFilter} disabled={!isHqUser}>
+                <Select value={branchFilter} onValueChange={setBranchFilter}>
                     <SelectTrigger className="w-full sm:w-[160px]">
                         <SelectValue placeholder="Filter by branch" />
                     </SelectTrigger>
