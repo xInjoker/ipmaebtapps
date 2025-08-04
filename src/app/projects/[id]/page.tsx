@@ -32,6 +32,7 @@ import {
   TrendingUp,
   TrendingDown,
   Percent,
+  Edit,
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
@@ -72,7 +73,7 @@ export default function ProjectDetailsPage() {
   const params = useParams();
   const projectId = params.id as string;
   const { getProjectById, setProjects } = useProjects();
-  const { users } = useAuth();
+  const { users, userHasPermission } = useAuth();
   
   const [project, setProject] = useState<Project | null>(null);
   const chartRefs = {
@@ -483,10 +484,20 @@ export default function ProjectDetailsPage() {
                 <CardDescription className="text-primary-foreground/90">{project.description}</CardDescription>
             </div>
           </div>
-          <Button onClick={handlePrint}>
-            <Printer className="mr-2 h-4 w-4" />
-            Export Report
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button onClick={handlePrint}>
+              <Printer className="mr-2 h-4 w-4" />
+              Export Report
+            </Button>
+             {userHasPermission('manage-projects') && (
+              <Button asChild variant="secondary">
+                <Link href={`/projects/${project.id}/edit`}>
+                  <Edit className="mr-2 h-4 w-4" />
+                  Edit Project
+                </Link>
+              </Button>
+            )}
+          </div>
         </CardHeader>
       </Card>
 
