@@ -32,8 +32,12 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
     const [invoiceToAdjust, setInvoiceToAdjust] = useState<InvoiceItem | null>(null);
     const [adjustmentData, setAdjustmentData] = useState({ finalValue: 0, reason: '' });
     
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+    const [itemToEdit, setItemToEdit] = useState<(Omit<InvoiceItem, 'date'> & { periodMonth?: string, periodYear?: string }) | null>(null);
+
+
     const { toast } = useToast();
-    const { userHasPermission } = useAuth();
+    const { userHasPermission, user } = useAuth();
     
     const [newInvoice, setNewInvoice] = useState<{
         soNumber: string;
@@ -168,6 +172,81 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
     
     const addSoDetails = useMemo(() => getSoDetails(newInvoice.soNumber, newInvoice.value), [newInvoice.soNumber, newInvoice.value, getSoDetails]);
 
+    const handleEditClick = useCallback((invoice: InvoiceItem) => {
+        const [month, year] = invoice.period.split(' ');
+        setItemToEdit({ ...invoice, periodMonth: month, periodYear: year });
+        setIsEditDialogOpen(true);
+    }, []);
+
+    const handleUpdateItem = useCallback(() => {
+        if (!itemToEdit) return;
+        const { periodMonth, periodYear, ...rest } = itemToEdit;
+        const period = `${periodMonth} ${periodYear}`;
+        const updatedItemData = { ...rest, period };
+
+        setProjects(p => ({ ...p, invoices: (p.invoices || []).map(item => item.id === updatedItemData.id ? updatedItemData : item) }));
+        setIsEditDialogOpen(false);
+        setItemToEdit(null);
+    }, [itemToEdit, setProjects]);
+
+
+    const dialogForm = useCallback((
+        isEdit: boolean, 
+        state: any, 
+        setter: (value: any) => void
+    ) => (
+        <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="soNumber" className="text-right">SO Number</Label>
+                <Select value={state.soNumber} onValueChange={(value) => setter({ ...state, soNumber: value })}>
+                    <SelectTrigger className="col-span-3"><SelectValue placeholder="Select an SO" /></SelectTrigger>
+                    <SelectContent>
+                        {project.serviceOrders.map(so => <SelectItem key={so.id} value={so.soNumber}>{so.soNumber}</SelectItem>)}
+                    </SelectContent>
+                </Select>
+            </div>
+             <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="serviceCategory" className="text-right">Service</Label>
+                <Input id="serviceCategory" value={state.serviceCategory} onChange={(e) => setter({ ...state, serviceCategory: e.target.value })} className="col-span-3" />
+            </div>
+            <div className="grid grid-cols-4 items-start gap-4">
+                <Label htmlFor="description" className="text-right pt-2">Description</Label>
+                <Textarea id="description" value={state.description} onChange={(e) => setter({ ...state, description: e.target.value })} className="col-span-3" placeholder="Detailed description of the service." rows={3} />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="status" className="text-right">Status</Label>
+                <Select value={state.status} onValueChange={(value: any) => setter({ ...state, status: value })}>
+                    <SelectTrigger className="col-span-3"><SelectValue placeholder="Select status" /></SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="Document Preparation">Document Preparation</SelectItem>
+                        <SelectItem value="PAD">PAD</SelectItem>
+                        <SelectItem value="Invoiced">Invoiced</SelectItem>
+                        <SelectItem value="Paid">Paid</SelectItem>
+                        <SelectItem value="Re-invoiced">Re-invoiced</SelectItem>
+                        <SelectItem value="Cancel">Cancel</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="periodMonth" className="text-right">Period</Label>
+                <div className="col-span-3 grid grid-cols-2 gap-2">
+                    <Select value={state.periodMonth} onValueChange={(value) => setter({ ...state, periodMonth: value })}>
+                        <SelectTrigger id="periodMonth"><SelectValue placeholder="Select month" /></SelectTrigger>
+                        <SelectContent>
+                            {['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                    <Input id="periodYear" type="number" value={state.periodYear} onChange={(e) => setter({ ...state, periodYear: e.target.value })} placeholder="Year" />
+                </div>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="value" className="text-right">Value (IDR)</Label>
+                 <CurrencyInput id="value" value={state.value} onValueChange={(value) => setter({ ...state, value })} className="col-span-3" />
+            </div>
+        </div>
+    ), [project.serviceOrders]);
+
+
     return (
         <>
             <Card>
@@ -193,64 +272,10 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
                                     <DialogTitle>Add New Invoice</DialogTitle>
                                     <DialogDescription>Fill in the details for the new invoice.</DialogDescription>
                                 </DialogHeader>
-                                <div className="grid gap-4 py-4">
-                                    <div className="grid grid-cols-4 items-center gap-4">
-                                        <Label htmlFor="soNumber" className="text-right">SO Number</Label>
-                                        <Select value={newInvoice.soNumber} onValueChange={(value) => setNewInvoice({ ...newInvoice, soNumber: value })}>
-                                            <SelectTrigger className="col-span-3"><SelectValue placeholder="Select an SO" /></SelectTrigger>
-                                            <SelectContent>
-                                                {project.serviceOrders.map(so => <SelectItem key={so.id} value={so.soNumber}>{so.soNumber}</SelectItem>)}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                    <div className="grid grid-cols-4 items-center gap-4">
-                                        <Label className="text-right">SO Remaining</Label>
-                                        <p className="col-span-3 text-sm font-medium">{formatCurrency(addSoDetails.remaining)}</p>
-                                    </div>
-                                    <div className="grid grid-cols-4 items-center gap-4">
-                                        <Label htmlFor="serviceCategory" className="text-right">Service</Label>
-                                        <Input id="serviceCategory" value={newInvoice.serviceCategory} onChange={(e) => setNewInvoice({ ...newInvoice, serviceCategory: e.target.value })} className="col-span-3" />
-                                    </div>
-                                    <div className="grid grid-cols-4 items-start gap-4">
-                                        <Label htmlFor="description" className="text-right pt-2">Description</Label>
-                                        <Textarea id="description" value={newInvoice.description} onChange={(e) => setNewInvoice({ ...newInvoice, description: e.target.value })} className="col-span-3" placeholder="Detailed description of the service." rows={3} />
-                                    </div>
-                                    <div className="grid grid-cols-4 items-center gap-4">
-                                        <Label htmlFor="status" className="text-right">Status</Label>
-                                        <Select value={newInvoice.status} onValueChange={(value: any) => setNewInvoice({ ...newInvoice, status: value })}>
-                                            <SelectTrigger className="col-span-3"><SelectValue placeholder="Select status" /></SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="Document Preparation">Document Preparation</SelectItem>
-                                                <SelectItem value="PAD">PAD</SelectItem>
-                                                <SelectItem value="Invoiced">Invoiced</SelectItem>
-                                                <SelectItem value="Paid">Paid</SelectItem>
-                                                <SelectItem value="Re-invoiced">Re-invoiced</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                    <div className="grid grid-cols-4 items-center gap-4">
-                                        <Label htmlFor="periodMonth" className="text-right">Period</Label>
-                                        <div className="col-span-3 grid grid-cols-2 gap-2">
-                                            <Select value={newInvoice.periodMonth} onValueChange={(value) => setNewInvoice({ ...newInvoice, periodMonth: value })}>
-                                                <SelectTrigger id="periodMonth"><SelectValue placeholder="Select month" /></SelectTrigger>
-                                                <SelectContent>
-                                                    {['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
-                                                </SelectContent>
-                                            </Select>
-                                            <Input id="periodYear" type="number" value={newInvoice.periodYear} onChange={(e) => setNewInvoice({ ...newInvoice, periodYear: e.target.value })} placeholder="Year" />
-                                        </div>
-                                    </div>
-                                    <div className="grid grid-cols-4 items-center gap-4">
-                                        <Label htmlFor="value" className="text-right">Value (IDR)</Label>
-                                         <CurrencyInput id="value" value={newInvoice.value} onValueChange={(value) => setNewInvoice({ ...newInvoice, value })} className="col-span-3" />
-                                    </div>
-                                    {addSoDetails.warning && (
-                                        <div className="grid grid-cols-4 items-center gap-4">
-                                            <div/>
-                                            <p className="col-span-3 text-sm font-medium text-destructive">{addSoDetails.warning}</p>
-                                        </div>
-                                    )}
-                                </div>
+                                {dialogForm(false, newInvoice, setNewInvoice)}
+                                {addSoDetails.warning && (
+                                    <div className="text-sm font-medium text-destructive text-center">{addSoDetails.warning}</div>
+                                )}
                                 <DialogFooter>
                                     <Button onClick={handleAddInvoice}>Add Invoice</Button>
                                 </DialogFooter>
@@ -307,6 +332,7 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
                                             <DropdownMenuContent align="end">
                                                 {invoice.status === 'PAD' && <DropdownMenuItem onSelect={() => handleAdjustmentClick(invoice, 'finalize')}>Finalize/Adjust Invoice</DropdownMenuItem>}
                                                 {invoice.status !== 'Cancel' && <DropdownMenuItem onSelect={() => handleAdjustmentClick(invoice, 'cancel')} className="text-destructive">Cancel Invoice</DropdownMenuItem>}
+                                                {user?.roleId === 'super-admin' && <DropdownMenuItem onSelect={() => handleEditClick(invoice)}>Edit (Admin)</DropdownMenuItem>}
                                             </DropdownMenuContent>
                                         </DropdownMenu>
                                     </TableCell>
@@ -349,6 +375,25 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
                             <DialogFooter>
                                 <Button variant="outline" onClick={() => setDialogState(null)}>Close</Button>
                                 <Button onClick={handleConfirmAdjustment}>Confirm</Button>
+                            </DialogFooter>
+                        </>
+                    )}
+                </DialogContent>
+            </Dialog>
+
+             {/* Edit Invoice Dialog */}
+            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+                <DialogContent className="sm:max-w-lg">
+                    {itemToEdit && (
+                        <>
+                            <DialogHeader>
+                                <DialogTitle>Edit Invoice (Admin)</DialogTitle>
+                                <DialogDescription>Directly modify any field for this invoice.</DialogDescription>
+                            </DialogHeader>
+                            {dialogForm(true, itemToEdit, setItemToEdit)}
+                            <DialogFooter>
+                                <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
+                                <Button onClick={handleUpdateItem}>Save Changes</Button>
                             </DialogFooter>
                         </>
                     )}
