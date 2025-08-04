@@ -12,7 +12,7 @@ import {
   ChartConfig,
 } from '@/components/ui/chart';
 import { useMemo, useState } from 'react';
-import type { Project } from '@/lib/projects';
+import type { Project, InvoiceItem } from '@/lib/projects';
 import { formatCurrency, formatCurrencyCompact } from "@/lib/utils";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
@@ -26,13 +26,17 @@ const chartConfig = {
     label: 'Paid',
     color: 'hsl(var(--chart-1))',
   },
-  'Invoiced (Unpaid)': {
-    label: 'Invoiced (Unpaid)',
+  Invoiced: {
+    label: 'Invoiced',
     color: 'hsl(var(--chart-2))',
   },
-  'Remaining PAD': {
-    label: 'Remaining PAD',
+  'Re-invoiced': {
+    label: 'Re-invoiced',
     color: 'hsl(var(--chart-3))'
+  },
+  PAD: {
+    label: 'PAD',
+    color: 'hsl(var(--chart-4))'
   },
 } satisfies ChartConfig;
 
@@ -93,31 +97,13 @@ export function ProjectIncomePieChart({ project }: ProjectIncomePieChartProps) {
         ? (project.invoices || [])
         : (project.invoices || []).filter(inv => inv.period.endsWith(selectedYear));
 
-    const valueByStatus: Record<string, number> = {
-        'Paid': 0,
-        'Invoiced (Unpaid)': 0,
-        'Remaining PAD': 0,
-    };
-
-    const invoicedOrPaidValuesBySO: Record<string, number> = {};
-
-    filteredInvoices.forEach(invoice => {
-        if (invoice.status === 'Paid') {
-            valueByStatus['Paid'] += invoice.value;
-            invoicedOrPaidValuesBySO[invoice.soNumber] = (invoicedOrPaidValuesBySO[invoice.soNumber] || 0) + invoice.value;
-        } else if (invoice.status === 'Invoiced') {
-            valueByStatus['Invoiced (Unpaid)'] += invoice.value;
-            invoicedOrPaidValuesBySO[invoice.soNumber] = (invoicedOrPaidValuesBySO[invoice.soNumber] || 0) + invoice.value;
+    const valueByStatus = filteredInvoices.reduce((acc, invoice) => {
+        const status = invoice.status;
+        if (status === 'Paid' || status === 'Invoiced' || status === 'Re-invoiced' || status === 'PAD') {
+            acc[status] = (acc[status] || 0) + invoice.value;
         }
-    });
-
-    filteredInvoices.forEach(invoice => {
-        if (invoice.status === 'PAD') {
-            const invoicedAmountForSO = invoicedOrPaidValuesBySO[invoice.soNumber] || 0;
-            const remainingPad = Math.max(0, invoice.value - invoicedAmountForSO);
-            valueByStatus['Remaining PAD'] += remainingPad;
-        }
-    });
+        return acc;
+    }, {} as Record<string, number>);
     
     const data = Object.entries(valueByStatus)
       .map(([status, value]) => ({
@@ -136,8 +122,8 @@ export function ProjectIncomePieChart({ project }: ProjectIncomePieChartProps) {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
-            <CardTitle>Income Realization (Paid vs. Invoiced)</CardTitle>
-            <CardDescription>A breakdown of realized income including remaining PAD.</CardDescription>
+            <CardTitle>Income Realization</CardTitle>
+            <CardDescription>A breakdown of income based on invoice status.</CardDescription>
         </div>
         <Select value={selectedYear} onValueChange={setSelectedYear}>
           <SelectTrigger className="w-[120px]"><SelectValue /></SelectTrigger>
