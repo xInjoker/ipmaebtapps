@@ -64,9 +64,9 @@ export function ProjectTargetRealizationChart({ projects }: ProjectTargetRealiza
   
   const chartData = useMemo(() => {
     if (!projects || projects.length === 0) return [];
-    
-    const monthlyData: Record<string, { month: string, incomeTarget: number, costTarget: number, incomeRealization: number, costRealization: number }> = {};
 
+    const monthlyData: Record<string, { month: string, incomeTarget: number, costTarget: number, incomeRealization: number, costRealization: number }> = {};
+    
     const processPeriod = (periodString: string, callback: (monthKey: string) => void) => {
         if (!periodString) return;
         const [month, year] = periodString.split(' ');
@@ -84,47 +84,59 @@ export function ProjectTargetRealizationChart({ projects }: ProjectTargetRealiza
     };
 
     projects.forEach(project => {
-      // Calculate Targets
-      if (project.period && project.duration) {
-        const durationInMonths = parseInt(project.duration.split(' ')[0], 10) || 1;
-        const monthlyIncomeTarget = project.value / durationInMonths;
-        const totalBudget = Object.values(project.budgets || {}).reduce((sum, val) => sum + val, 0);
-        const monthlyCostTarget = totalBudget / durationInMonths;
-        const projectStartDateMatch = project.period.match(/(\d{4})/);
-        const projectStartYear = projectStartDateMatch ? parseInt(projectStartDateMatch[1], 10) : new Date().getFullYear();
-        let currentMonthDate = new Date(projectStartYear, 0, 1);
-        
-        for (let i = 0; i < durationInMonths; i++) {
-          const currentYear = formatDate(currentMonthDate, 'yyyy');
-          if (selectedYear === 'all' || selectedYear === currentYear) {
-              const monthKey = formatDate(currentMonthDate, 'MMM yy');
-              if (!monthlyData[monthKey]) {
-                  monthlyData[monthKey] = { month: monthKey, incomeTarget: 0, costTarget: 0, incomeRealization: 0, costRealization: 0 };
-              }
-              monthlyData[monthKey].incomeTarget += monthlyIncomeTarget;
-              monthlyData[monthKey].costTarget += monthlyCostTarget;
-          }
-          currentMonthDate = addMonths(currentMonthDate, 1);
-        }
-      }
+        // Calculate Targets
+        if (project.period && project.duration) {
+            const durationInMonths = parseInt(project.duration.split(' ')[0], 10) || 1;
+            if (durationInMonths > 0) {
+                const monthlyIncomeTarget = project.value / durationInMonths;
+                const totalBudget = Object.values(project.budgets || {}).reduce((sum, val) => sum + val, 0);
+                const monthlyCostTarget = totalBudget / durationInMonths;
+                
+                let currentMonthDate;
+                try {
+                    const firstMonthMatch = project.period.match(/^[a-zA-Z]+/);
+                    const firstYearMatch = project.period.match(/(\d{4})/);
+                    if (firstMonthMatch && firstYearMatch) {
+                       currentMonthDate = parse(`${firstMonthMatch[0]} 1, ${firstYearMatch[0]}`, 'MMMM d, yyyy', new Date());
+                    } else {
+                       currentMonthDate = new Date(); // Fallback
+                    }
+                } catch {
+                     currentMonthDate = new Date(); // Fallback
+                }
 
-      // Calculate Income Realization
-      (project.invoices || []).forEach(invoice => {
-        processPeriod(invoice.period, (monthKey) => {
-           if (['Paid', 'Invoiced', 'PAD', 'Re-invoiced'].includes(invoice.status)) {
-                monthlyData[monthKey].incomeRealization += invoice.value;
+                for (let i = 0; i < durationInMonths; i++) {
+                    const currentYear = formatDate(currentMonthDate, 'yyyy');
+                    if (selectedYear === 'all' || selectedYear === currentYear) {
+                        const monthKey = formatDate(currentMonthDate, 'MMM yy');
+                        if (!monthlyData[monthKey]) {
+                            monthlyData[monthKey] = { month: monthKey, incomeTarget: 0, costTarget: 0, incomeRealization: 0, costRealization: 0 };
+                        }
+                        monthlyData[monthKey].incomeTarget += monthlyIncomeTarget;
+                        monthlyData[monthKey].costTarget += monthlyCostTarget;
+                    }
+                    currentMonthDate = addMonths(currentMonthDate, 1);
+                }
+            }
+        }
+
+        // Calculate Income Realization
+        (project.invoices || []).forEach(invoice => {
+            if (['Paid', 'Invoiced', 'PAD', 'Re-invoiced'].includes(invoice.status)) {
+                processPeriod(invoice.period, (monthKey) => {
+                    monthlyData[monthKey].incomeRealization += invoice.value;
+                });
             }
         });
-      });
-      
-      // Calculate Cost Realization
-      (project.costs || []).forEach(exp => {
-         processPeriod(exp.period, (monthKey) => {
+        
+        // Calculate Cost Realization
+        (project.costs || []).forEach(exp => {
             if (exp.status === 'Approved') {
-                monthlyData[monthKey].costRealization += exp.amount;
+                processPeriod(exp.period, (monthKey) => {
+                    monthlyData[monthKey].costRealization += exp.amount;
+                });
             }
-         });
-      });
+        });
     });
 
     const sortedData = Object.values(monthlyData).sort((a,b) => {
@@ -156,7 +168,7 @@ export function ProjectTargetRealizationChart({ projects }: ProjectTargetRealiza
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="h-[400px] w-full">
-          <ComposedChart
+          <BarChart
             data={chartData}
             margin={{
               top: 5,
@@ -178,11 +190,11 @@ export function ProjectTargetRealizationChart({ projects }: ProjectTargetRealiza
               />}
             />
             <ChartLegend content={<ChartLegendContent />} />
+            <Bar dataKey="incomeTarget" fill="var(--color-incomeTarget)" radius={[4, 4, 0, 0]} />
             <Bar dataKey="incomeRealization" fill="var(--color-incomeRealization)" radius={4} />
+            <Bar dataKey="costTarget" fill="var(--color-costTarget)" radius={[4, 4, 0, 0]} />
             <Bar dataKey="costRealization" fill="var(--color-costRealization)" radius={4} />
-            <Line type="monotone" dataKey="incomeTarget" stroke="var(--color-incomeTarget)" strokeWidth={2} dot={false} />
-            <Line type="monotone" dataKey="costTarget" stroke="var(--color-costTarget)" strokeWidth={2} dot={false} />
-          </ComposedChart>
+          </BarChart>
         </ChartContainer>
       </CardContent>
     </Card>
