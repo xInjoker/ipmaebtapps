@@ -16,6 +16,8 @@ export type InvoiceItem = {
   status: 'Paid' | 'Invoiced' | 'Cancel' | 'Re-invoiced' | 'PAD' | 'Document Preparation';
   period: string;
   value: number;
+  originalValue?: number;
+  adjustmentReason?: string;
 };
 
 export type ExpenditureItem = {
@@ -222,6 +224,7 @@ export const initialProjects: Project[] = [
         status: 'Cancel',
         period: 'November 2024',
         value: 1000000000,
+        adjustmentReason: 'Project scope changed, final report not required.',
       },
     ],
     budgets: {

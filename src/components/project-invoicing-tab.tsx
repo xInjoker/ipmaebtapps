@@ -5,9 +5,9 @@
 import { useState, useMemo, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, PlusCircle, FileDown } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, FileDown, Info } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuPortal, DropdownMenuSubTrigger, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -19,6 +19,7 @@ import { formatCurrency } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { CurrencyInput } from './ui/currency-input';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 
 type ProjectInvoicingTabProps = {
     project: Project;
@@ -27,13 +28,13 @@ type ProjectInvoicingTabProps = {
 
 export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTabProps) {
     const [isAddInvoiceDialogOpen, setIsAddInvoiceDialogOpen] = useState(false);
-    const [isEditInvoiceDialogOpen, setIsEditInvoiceDialogOpen] = useState(false);
+    const [dialogState, setDialogState] = useState<'finalize' | 'cancel' | null>(null);
+    const [invoiceToAdjust, setInvoiceToAdjust] = useState<InvoiceItem | null>(null);
+    const [adjustmentData, setAdjustmentData] = useState({ finalValue: 0, reason: '' });
+    
     const { toast } = useToast();
     const { userHasPermission } = useAuth();
     
-    const [invoiceToEdit, setInvoiceToEdit] = useState<InvoiceItem | null>(null);
-    const [editedInvoice, setEditedInvoice] = useState<InvoiceItem & { periodMonth: string; periodYear: string; } | null>(null);
-
     const [newInvoice, setNewInvoice] = useState<{
         soNumber: string;
         serviceCategory: string;
@@ -57,13 +58,12 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
             .filter(invoice => invoice.status !== 'Cancel')
             .reduce((acc, invoice) => {
                 if (invoice.soNumber) {
-                    // When calculating for an invoice being edited, exclude its own value
-                    const value = (invoiceToEdit && invoiceToEdit.id === invoice.id) ? 0 : invoice.value;
+                    const value = (invoiceToAdjust && invoiceToAdjust.id === invoice.id) ? 0 : invoice.value;
                     acc[invoice.soNumber] = (acc[invoice.soNumber] || 0) + value;
                 }
                 return acc;
             }, {} as Record<string, number>);
-    }, [project.invoices, invoiceToEdit]);
+    }, [project.invoices, invoiceToAdjust]);
 
     const serviceOrderMap = useMemo(() => {
         return new Map(project.serviceOrders.map(so => [so.soNumber, so]));
@@ -90,28 +90,43 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
         }
     }, [newInvoice, project, setProjects, toast]);
 
-    const handleUpdateInvoice = useCallback(() => {
-        if (!editedInvoice) return;
-        const { periodMonth, periodYear, ...restOfInvoice } = editedInvoice;
-        const period = `${periodMonth} ${periodYear}`;
-        const updatedInvoiceData = { ...restOfInvoice, period };
+    const handleAdjustmentClick = (invoice: InvoiceItem, type: 'finalize' | 'cancel') => {
+        setInvoiceToAdjust(invoice);
+        setAdjustmentData({ finalValue: invoice.value, reason: '' });
+        setDialogState(type);
+    };
 
-        setProjects(p => ({ ...p, invoices: p.invoices.map(inv => inv.id === editedInvoice.id ? updatedInvoiceData : inv) }));
-        setIsEditInvoiceDialogOpen(false);
-        setInvoiceToEdit(null);
-    }, [editedInvoice, setProjects]);
+    const handleConfirmAdjustment = useCallback(() => {
+        if (!invoiceToAdjust || !dialogState) return;
 
-    const handleEditClick = useCallback((invoice: InvoiceItem) => {
-        const [periodMonth, periodYear] = invoice.period.split(' ');
-        setEditedInvoice({ ...invoice, periodMonth, periodYear });
-        setInvoiceToEdit(invoice);
-        setIsEditInvoiceDialogOpen(true);
-    }, []);
+        if (!adjustmentData.reason) {
+            toast({ variant: 'destructive', title: 'Reason Required', description: 'Please provide a reason for this change.' });
+            return;
+        }
 
-    const handleStatusUpdate = useCallback((invoiceId: string, newStatus: InvoiceItem['status']) => {
-        setProjects(p => ({ ...p, invoices: p.invoices.map(inv => inv.id === invoiceId ? { ...inv, status: newStatus } : inv) }));
-        toast({ title: 'Invoice Status Updated', description: `The invoice status has been updated to "${newStatus}".` });
-    }, [setProjects, toast]);
+        let updatedInvoice: InvoiceItem;
+
+        if (dialogState === 'finalize') {
+            updatedInvoice = {
+                ...invoiceToAdjust,
+                originalValue: invoiceToAdjust.status === 'PAD' ? invoiceToAdjust.value : invoiceToAdjust.originalValue,
+                value: adjustmentData.finalValue,
+                status: 'Invoiced',
+                adjustmentReason: adjustmentData.reason,
+            };
+        } else { // 'cancel'
+             updatedInvoice = {
+                ...invoiceToAdjust,
+                status: 'Cancel',
+                adjustmentReason: adjustmentData.reason,
+            };
+        }
+
+        setProjects(p => ({ ...p, invoices: p.invoices.map(inv => inv.id === invoiceToAdjust.id ? updatedInvoice : inv) }));
+        setDialogState(null);
+        setInvoiceToAdjust(null);
+        toast({ title: 'Invoice Updated', description: `The invoice has been successfully ${dialogState === 'finalize' ? 'adjusted' : 'cancelled'}.` });
+    }, [invoiceToAdjust, dialogState, adjustmentData, setProjects, toast]);
 
     const handleExportInvoices = useCallback(() => {
         if (!project || !project.invoices) return;
@@ -152,11 +167,6 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
     }, [invoicedAmountsBySO, serviceOrderMap]);
     
     const addSoDetails = useMemo(() => getSoDetails(newInvoice.soNumber, newInvoice.value), [newInvoice.soNumber, newInvoice.value, getSoDetails]);
-    
-    const editSoDetails = useMemo(() => {
-        return editedInvoice ? getSoDetails(editedInvoice.soNumber, editedInvoice.value) : { remaining: 0, warning: '' };
-    }, [editedInvoice, getSoDetails]);
-
 
     return (
         <>
@@ -211,10 +221,9 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
                                             <SelectTrigger className="col-span-3"><SelectValue placeholder="Select status" /></SelectTrigger>
                                             <SelectContent>
                                                 <SelectItem value="Document Preparation">Document Preparation</SelectItem>
-                                                <SelectItem value="Paid">Paid</SelectItem>
                                                 <SelectItem value="PAD">PAD</SelectItem>
                                                 <SelectItem value="Invoiced">Invoiced</SelectItem>
-                                                <SelectItem value="Cancel">Cancel</SelectItem>
+                                                <SelectItem value="Paid">Paid</SelectItem>
                                                 <SelectItem value="Re-invoiced">Re-invoiced</SelectItem>
                                             </SelectContent>
                                         </Select>
@@ -255,7 +264,6 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
                             <TableRow>
                                 <TableHead>ID</TableHead>
                                 <TableHead>SO Number</TableHead>
-                                <TableHead>Service Category</TableHead>
                                 <TableHead>Description</TableHead>
                                 <TableHead>Period</TableHead>
                                 <TableHead className="text-right">Value</TableHead>
@@ -268,10 +276,26 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
                                 <TableRow key={invoice.id}>
                                     <TableCell>{invoice.id}</TableCell>
                                     <TableCell className="font-medium">{invoice.soNumber}</TableCell>
-                                    <TableCell className="font-medium">{invoice.serviceCategory}</TableCell>
                                     <TableCell>{invoice.description}</TableCell>
                                     <TableCell>{invoice.period}</TableCell>
-                                    <TableCell className="text-right">{formatCurrency(invoice.value)}</TableCell>
+                                    <TableCell className="text-right font-mono">
+                                        <div className="flex items-center justify-end gap-2">
+                                            {formatCurrency(invoice.value)}
+                                            {(invoice.originalValue || invoice.adjustmentReason) && (
+                                                <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                                                        </TooltipTrigger>
+                                                        <TooltipContent className="max-w-xs text-sm">
+                                                            {invoice.originalValue && <p>Original PAD: {formatCurrency(invoice.originalValue)}</p>}
+                                                            {invoice.adjustmentReason && <p>Reason: {invoice.adjustmentReason}</p>}
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+                                            )}
+                                        </div>
+                                    </TableCell>
                                     <TableCell>
                                         <Badge variant={invoice.status === 'Paid' ? 'success' : invoice.status === 'PAD' ? 'warning' : invoice.status === 'Invoiced' ? 'info' : invoice.status === 'Cancel' ? 'destructive' : invoice.status === 'Re-invoiced' ? 'indigo' : invoice.status === 'Document Preparation' ? 'secondary' : 'secondary'}>{invoice.status}</Badge>
                                     </TableCell>
@@ -281,24 +305,8 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
                                                 <Button variant="ghost" className="h-8 w-8 p-0"><span className="sr-only">Open menu</span><MoreHorizontal className="h-4 w-4" /></Button>
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
-                                                <DropdownMenuItem 
-                                                    onSelect={() => handleEditClick(invoice)}
-                                                    disabled={invoice.status === 'Paid' && !userHasPermission('super-admin')}
-                                                >
-                                                    Edit
-                                                </DropdownMenuItem>
-                                                <DropdownMenuSub>
-                                                    <DropdownMenuSubTrigger>Update Status</DropdownMenuSubTrigger>
-                                                    <DropdownMenuPortal>
-                                                        <DropdownMenuSubContent>
-                                                            {(['Paid', 'Invoiced', 'Cancel', 'Re-invoiced', 'PAD', 'Document Preparation'] as const).map(status => (
-                                                                <DropdownMenuItem key={status} onSelect={() => handleStatusUpdate(invoice.id, status)}>
-                                                                    {status}
-                                                                </DropdownMenuItem>
-                                                            ))}
-                                                        </DropdownMenuSubContent>
-                                                    </DropdownMenuPortal>
-                                                </DropdownMenuSub>
+                                                {invoice.status === 'PAD' && <DropdownMenuItem onSelect={() => handleAdjustmentClick(invoice, 'finalize')}>Finalize/Adjust Invoice</DropdownMenuItem>}
+                                                {invoice.status !== 'Cancel' && <DropdownMenuItem onSelect={() => handleAdjustmentClick(invoice, 'cancel')} className="text-destructive">Cancel Invoice</DropdownMenuItem>}
                                             </DropdownMenuContent>
                                         </DropdownMenu>
                                     </TableCell>
@@ -314,75 +322,33 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
                 </CardContent>
             </Card>
 
-            <Dialog open={isEditInvoiceDialogOpen} onOpenChange={(open) => { setIsEditInvoiceDialogOpen(open); if (!open) setInvoiceToEdit(null); }}>
+            <Dialog open={!!dialogState} onOpenChange={(open) => { if (!open) setDialogState(null); }}>
                 <DialogContent className="sm:max-w-lg">
-                    {editedInvoice && (
+                    {invoiceToAdjust && (
                         <>
                             <DialogHeader>
-                                <DialogTitle>Edit Invoice</DialogTitle>
-                                <DialogDescription>Update the details for this invoice.</DialogDescription>
+                                <DialogTitle>{dialogState === 'finalize' ? 'Finalize / Adjust Invoice' : 'Cancel Invoice'}</DialogTitle>
+                                <DialogDescription>
+                                    {dialogState === 'finalize' 
+                                        ? `Adjust the final value for invoice from PAD of ${formatCurrency(invoiceToAdjust.value)}.`
+                                        : `Provide a reason for cancelling invoice ${invoiceToAdjust.id}.`}
+                                </DialogDescription>
                             </DialogHeader>
                             <div className="grid gap-4 py-4">
-                                <div className="grid grid-cols-4 items-center gap-4">
-                                    <Label htmlFor="editSoNumber" className="text-right">SO Number</Label>
-                                    <Select value={editedInvoice.soNumber} onValueChange={(value) => setEditedInvoice({ ...editedInvoice, soNumber: value })}>
-                                        <SelectTrigger className="col-span-3"><SelectValue placeholder="Select an SO" /></SelectTrigger>
-                                        <SelectContent>
-                                            {project.serviceOrders.map(so => <SelectItem key={so.id} value={so.soNumber}>{so.soNumber}</SelectItem>)}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                 <div className="grid grid-cols-4 items-center gap-4">
-                                    <Label className="text-right">SO Remaining</Label>
-                                    <p className="col-span-3 text-sm font-medium">{formatCurrency(editSoDetails.remaining)}</p>
-                                 </div>
-                                <div className="grid grid-cols-4 items-center gap-4">
-                                    <Label htmlFor="editServiceCategory" className="text-right">Service</Label>
-                                    <Input id="editServiceCategory" value={editedInvoice.serviceCategory} onChange={(e) => setEditedInvoice({ ...editedInvoice, serviceCategory: e.target.value })} className="col-span-3" />
-                                </div>
-                                <div className="grid grid-cols-4 items-start gap-4">
-                                    <Label htmlFor="editDescription" className="text-right pt-2">Description</Label>
-                                    <Textarea id="editDescription" value={editedInvoice.description} onChange={(e) => setEditedInvoice({ ...editedInvoice, description: e.target.value })} className="col-span-3" rows={3} />
-                                </div>
-                                <div className="grid grid-cols-4 items-center gap-4">
-                                    <Label htmlFor="editStatus" className="text-right">Status</Label>
-                                    <Select value={editedInvoice.status} onValueChange={(value: any) => setEditedInvoice({ ...editedInvoice, status: value })}>
-                                        <SelectTrigger className="col-span-3"><SelectValue placeholder="Select status" /></SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="Document Preparation">Document Preparation</SelectItem>
-                                            <SelectItem value="Paid">Paid</SelectItem>
-                                            <SelectItem value="PAD">PAD</SelectItem>
-                                            <SelectItem value="Invoiced">Invoiced</SelectItem>
-                                            <SelectItem value="Cancel">Cancel</SelectItem>
-                                            <SelectItem value="Re-invoiced">Re-invoiced</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div className="grid grid-cols-4 items-center gap-4">
-                                    <Label htmlFor="editPeriodMonth" className="text-right">Period</Label>
-                                    <div className="col-span-3 grid grid-cols-2 gap-2">
-                                        <Select value={editedInvoice.periodMonth} onValueChange={(value) => setEditedInvoice({ ...editedInvoice, periodMonth: value })}>
-                                            <SelectTrigger id="editPeriodMonth"><SelectValue placeholder="Select month" /></SelectTrigger>
-                                            <SelectContent>
-                                                {['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
-                                            </SelectContent>
-                                        </Select>
-                                        <Input id="editPeriodYear" type="number" value={editedInvoice.periodYear} onChange={(e) => setEditedInvoice({ ...editedInvoice, periodYear: e.target.value })} placeholder="Year" />
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-4 items-center gap-4">
-                                    <Label htmlFor="editValue" className="text-right">Value (IDR)</Label>
-                                    <CurrencyInput id="editValue" value={editedInvoice.value} onValueChange={(value) => setEditedInvoice({ ...editedInvoice, value })} className="col-span-3" />
-                                </div>
-                                 {editSoDetails.warning && (
+                                {dialogState === 'finalize' && (
                                     <div className="grid grid-cols-4 items-center gap-4">
-                                        <div/>
-                                        <p className="col-span-3 text-sm font-medium text-destructive">{editSoDetails.warning}</p>
+                                        <Label htmlFor="finalValue" className="text-right">Final Value (IDR)</Label>
+                                        <CurrencyInput id="finalValue" value={adjustmentData.finalValue} onValueChange={(value) => setAdjustmentData(d => ({ ...d, finalValue: value }))} className="col-span-3" />
                                     </div>
-                                 )}
+                                )}
+                                <div className="grid grid-cols-4 items-start gap-4">
+                                    <Label htmlFor="reason" className="text-right pt-2">Reason</Label>
+                                    <Textarea id="reason" value={adjustmentData.reason} onChange={(e) => setAdjustmentData(d => ({ ...d, reason: e.target.value }))} className="col-span-3" placeholder="Explain the reason for this change..." rows={3} />
+                                </div>
                             </div>
                             <DialogFooter>
-                                <Button onClick={handleUpdateInvoice}>Save Changes</Button>
+                                <Button variant="outline" onClick={() => setDialogState(null)}>Close</Button>
+                                <Button onClick={handleConfirmAdjustment}>Confirm</Button>
                             </DialogFooter>
                         </>
                     )}
