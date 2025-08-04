@@ -67,66 +67,63 @@ export function ProjectTargetRealizationChart({ projects }: ProjectTargetRealiza
     
     const monthlyData: Record<string, { month: string, incomeTarget: number, costTarget: number, incomeRealization: number, costRealization: number }> = {};
 
-    projects.forEach(project => {
-      if (!project.period || !project.duration) return;
-      const durationInMonths = parseInt(project.duration.split(' ')[0], 10) || 1;
-      const monthlyIncomeTarget = project.value / durationInMonths;
-      
-      const totalBudget = Object.values(project.budgets || {}).reduce((sum, val) => sum + val, 0);
-      const monthlyCostTarget = totalBudget / durationInMonths;
-
-      const projectStartDateMatch = project.period.match(/(\d{4})/);
-      const projectStartYear = projectStartDateMatch ? parseInt(projectStartDateMatch[1], 10) : new Date().getFullYear();
-      
-      let currentMonthDate = new Date(projectStartYear, 0, 1);
-      
-      for (let i = 0; i < durationInMonths; i++) {
-        const currentYear = formatDate(currentMonthDate, 'yyyy');
-        if (selectedYear === 'all' || selectedYear === currentYear) {
-            const monthKey = formatDate(currentMonthDate, 'MMM yy');
-            if (!monthlyData[monthKey]) {
-                monthlyData[monthKey] = { month: monthKey, incomeTarget: 0, costTarget: 0, incomeRealization: 0, costRealization: 0 };
-            }
-            monthlyData[monthKey].incomeTarget += monthlyIncomeTarget;
-            monthlyData[monthKey].costTarget += monthlyCostTarget;
-        }
-        currentMonthDate = addMonths(currentMonthDate, 1);
-      }
-
-      (project.invoices || []).forEach(invoice => {
-        if (!invoice.period) return;
-        const [month, year] = invoice.period.split(' ');
-        if(!month || !year || (selectedYear !== 'all' && selectedYear !== year)) return;
+    const processPeriod = (periodString: string, callback: (monthKey: string) => void) => {
+        if (!periodString) return;
+        const [month, year] = periodString.split(' ');
+        if (!month || !year || (selectedYear !== 'all' && selectedYear !== year)) return;
         try {
             const date = parse(`${month} 1, ${year}`, 'MMMM d, yyyy', new Date());
             const monthKey = formatDate(date, 'MMM yy');
-             if (!monthlyData[monthKey]) {
+            if (!monthlyData[monthKey]) {
                 monthlyData[monthKey] = { month: monthKey, incomeTarget: 0, costTarget: 0, incomeRealization: 0, costRealization: 0 };
             }
-            if (['Paid', 'Invoiced', 'PAD', 'Re-invoiced'].includes(invoice.status)) {
+            callback(monthKey);
+        } catch (e) {
+            console.warn(`Could not parse date for period: ${periodString}`);
+        }
+    };
+
+    projects.forEach(project => {
+      // Calculate Targets
+      if (project.period && project.duration) {
+        const durationInMonths = parseInt(project.duration.split(' ')[0], 10) || 1;
+        const monthlyIncomeTarget = project.value / durationInMonths;
+        const totalBudget = Object.values(project.budgets || {}).reduce((sum, val) => sum + val, 0);
+        const monthlyCostTarget = totalBudget / durationInMonths;
+        const projectStartDateMatch = project.period.match(/(\d{4})/);
+        const projectStartYear = projectStartDateMatch ? parseInt(projectStartDateMatch[1], 10) : new Date().getFullYear();
+        let currentMonthDate = new Date(projectStartYear, 0, 1);
+        
+        for (let i = 0; i < durationInMonths; i++) {
+          const currentYear = formatDate(currentMonthDate, 'yyyy');
+          if (selectedYear === 'all' || selectedYear === currentYear) {
+              const monthKey = formatDate(currentMonthDate, 'MMM yy');
+              if (!monthlyData[monthKey]) {
+                  monthlyData[monthKey] = { month: monthKey, incomeTarget: 0, costTarget: 0, incomeRealization: 0, costRealization: 0 };
+              }
+              monthlyData[monthKey].incomeTarget += monthlyIncomeTarget;
+              monthlyData[monthKey].costTarget += monthlyCostTarget;
+          }
+          currentMonthDate = addMonths(currentMonthDate, 1);
+        }
+      }
+
+      // Calculate Income Realization
+      (project.invoices || []).forEach(invoice => {
+        processPeriod(invoice.period, (monthKey) => {
+           if (['Paid', 'Invoiced', 'PAD', 'Re-invoiced'].includes(invoice.status)) {
                 monthlyData[monthKey].incomeRealization += invoice.value;
             }
-        } catch (e) {
-            console.warn(`Could not parse date for invoice period: ${invoice.period}`);
-        }
+        });
       });
       
+      // Calculate Cost Realization
       (project.costs || []).forEach(exp => {
-        if(!exp.period) return;
-        const [month, year] = exp.period.split(' ');
-        if(!month || !year || (selectedYear !== 'all' && selectedYear !== year)) return;
-         try {
-            const date = parse(`${month} 1, ${year}`, 'MMMM d, yyyy', new Date());
-            const monthKey = formatDate(date, 'MMM yy');
-             if (!monthlyData[monthKey]) {
-                monthlyData[monthKey] = { month: monthKey, incomeTarget: 0, costTarget: 0, incomeRealization: 0, costRealization: 0 };
-            }
+         processPeriod(exp.period, (monthKey) => {
             if (exp.status === 'Approved') {
                 monthlyData[monthKey].costRealization += exp.amount;
             }
-         } catch (e) {
-            console.warn(`Could not parse date for cost period: ${exp.period}`);
-         }
+         });
       });
     });
 
