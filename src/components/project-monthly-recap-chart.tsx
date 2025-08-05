@@ -55,7 +55,7 @@ type ProjectMonthlyRecapChartProps = {
 const incomeChartConfig: ChartConfig = {
     paid: {
         label: 'Paid',
-        color: 'hsl(262 80% 40%)',
+        color: 'hsl(217 91% 60%)',
     },
     invoiced: {
         label: 'Invoiced',
@@ -63,21 +63,21 @@ const incomeChartConfig: ChartConfig = {
     },
     pad: {
         label: 'PAD',
-        color: 'hsl(173 80% 40%)',
+        color: 'hsl(217 91% 60%)',
     },
     documentPreparation: {
         label: 'Doc Prep',
-        color: 'hsl(142 71% 45%)',
+        color: 'hsl(217 91% 60%)',
     },
 };
 
 const costChartConfig: ChartConfig = {
-    'Tenaga Ahli dan Labour Supply': { label: 'TA & LS', color: 'hsl(30 90% 70%)' }, 
-    'Operasional': { label: 'Operasional', color: 'hsl(38 92% 50%)' }, 
-    'Perjalanan Dinas': { label: 'Perdin', color: 'hsl(15 85% 55%)' }, 
+    'Tenaga Ahli dan Labour Supply': { label: 'TA & LS', color: 'hsl(340 85% 65%)' }, 
+    'Operasional': { label: 'Operasional', color: 'hsl(340 85% 65%)' }, 
+    'Perjalanan Dinas': { label: 'Perdin', color: 'hsl(340 85% 65%)' }, 
     'Fasilitas dan Interen': { label: 'Fasilitas', color: 'hsl(340 85% 65%)' },
-    'Promosi': { label: 'Promosi', color: 'hsl(300 70% 50%)' },
-    'Other': { label: 'Other', color: 'hsl(262 80% 40%)' },
+    'Promosi': { label: 'Promosi', color: 'hsl(340 85% 65%)' },
+    'Other': { label: 'Other', color: 'hsl(340 85% 65%)' },
 };
 
 const chartConfig: ChartConfig = { ...incomeChartConfig, ...costChartConfig };
