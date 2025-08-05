@@ -7,7 +7,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import NextImage from 'next/image';
 import { useReports } from '@/context/ReportContext';
-import { type ReportItem, type ReportDetails, RadiographicFinding, PenetrantTestReportDetails, MagneticParticleTestReportDetails, UltrasonicTestReportDetails, RadiographicTestReportDetails, FlashReportDetails, OtherReportDetails } from '@/lib/reports';
+import { type ReportItem, type ReportDetails, RadiographicFinding, PenetrantTestReportDetails, MagneticParticleTestReportDetails, UltrasonicTestReportDetails, RadiographicTestReportDetails, FlashReportDetails } from '@/lib/reports';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -106,58 +106,6 @@ const FlashReportDetailsView = ({ details, setDocumentToView }: { details: Flash
                     <div className="col-span-full"><div className="font-medium text-muted-foreground">Item Description</div><div className="whitespace-pre-wrap">{details.itemDescription}</div></div>
                 </div>
                 {(details.documentUrls && details.documentUrls.length > 0) && (
-                    <div>
-                        <h4 className="font-semibold mb-2">Attachments</h4>
-                        <div className="space-y-2">
-                            {details.documentUrls.map((url, index) => {
-                                const name = getFileNameFromDataUrl(url) || `Document ${index + 1}`;
-                                return (
-                                    <div key={index} className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
-                                        <div className="flex items-center gap-2 truncate">
-                                            <FileText className="h-4 w-4 flex-shrink-0" />
-                                            <span className="text-sm truncate">{name}</span>
-                                        </div>
-                                        <div>
-                                            <Button variant="ghost" size="sm" onClick={() => setDocumentToView({ url, name })}><Eye className="mr-2 h-4 w-4" />View</Button>
-                                            <Button variant="ghost" size="icon" onClick={() => downloadFile(url, name)}><Download className="h-4 w-4" /></Button>
-                                        </div>
-                                    </div>
-                                )
-                            })}
-                        </div>
-                    </div>
-                )}
-            </CardContent>
-        </Card>
-    )
-};
-
-const OtherReportDetailsView = ({ details, setDocumentToView }: { details: OtherReportDetails, setDocumentToView: (doc: DocumentToView) => void; }) => {
-    
-    const downloadFile = (url: string, fileName: string) => {
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = fileName || 'download';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    };
-
-    return (
-         <Card>
-            <CardHeader><CardTitle>Inspection Details</CardTitle></CardHeader>
-            <CardContent className="space-y-6">
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-                    <div><div className="font-medium text-muted-foreground">Equipment/Material</div><div>{details.equipment}</div></div>
-                    <div><div className="font-medium text-muted-foreground">Inspector</div><div>{details.inspector}</div></div>
-                    <div><div className="font-medium text-muted-foreground">Vendor</div><div>{details.vendor}</div></div>
-                    <div><div className="font-medium text-muted-foreground">Sub-Vendor</div><div>{details.subVendor}</div></div>
-                    <div><div className="font-medium text-muted-foreground">Location</div><div>{details.locationCity}, {details.locationProvince}</div></div>
-                    <div><div className="font-medium text-muted-foreground">Region Type</div><div>{details.regionType}</div></div>
-                    <div><div className="font-medium text-muted-foreground">Location Type</div><div>{details.locationType}</div></div>
-                    <div><div className="font-medium text-muted-foreground">Result</div><div><Badge variant={details.result === 'Accept' ? 'green' : 'destructive'}>{details.result}</Badge></div></div>
-                </div>
-                 {(details.documentUrls && details.documentUrls.length > 0) && (
                     <div>
                         <h4 className="font-semibold mb-2">Attachments</h4>
                         <div className="space-y-2">
@@ -476,10 +424,6 @@ const reportTypeMap = {
         DetailsCard: FlashReportDetailsView,
         ResultsView: () => null,
     },
-    'Other': {
-        DetailsCard: OtherReportDetailsView,
-        ResultsView: () => null,
-    },
 };
 
 // --- Main Page Component ---
@@ -754,7 +698,6 @@ export default function ReportDetailsPage() {
     else if (report.jobType === 'Ultrasonic Test') backPath = '/reports/ultrasonic';
     else if (report.jobType === 'Radiographic Test') backPath = '/reports/radiographic';
     else if (report.jobType === 'Flash Report') backPath = '/reports/flash';
-    else if (report.jobType === 'Other') backPath = '/reports/other';
     
     const details = report.details;
     const creator = report.approvalHistory?.[0];
@@ -796,12 +739,10 @@ export default function ReportDetailsPage() {
                         <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                             {details && <>
                                 <div><div className="font-medium text-muted-foreground">Client</div><div>{details.client}</div></div>
-                                {details.jobType !== 'Flash Report' && details.jobType !== 'Other' && <div><div className="font-medium text-muted-foreground">Service Order</div><div>{(details as any).soNumber || 'N/A'}</div></div>}
-                                {details.jobType !== 'Flash Report' && details.jobType !== 'Other' && <div><div className="font-medium text-muted-foreground">Project Executor</div><div>{(details as any).projectExecutor}</div></div>}
+                                {details.jobType !== 'Flash Report' && <div><div className="font-medium text-muted-foreground">Service Order</div><div>{(details as any).soNumber || 'N/A'}</div></div>}
+                                {details.jobType !== 'Flash Report' && <div><div className="font-medium text-muted-foreground">Project Executor</div><div>{(details as any).projectExecutor}</div></div>}
                                 <div><div className="font-medium text-muted-foreground">Project</div><div>{details.project || 'N/A'}</div></div>
-                                {details.jobType !== 'Other' && <div><div className="font-medium text-muted-foreground">Date of Test</div><div>{(details as any).dateOfTest ? format(new Date((details as any).dateOfTest), 'PPP') : 'N/A'}</div></div>}
-                                {details.jobType === 'Other' && <div><div className="font-medium text-muted-foreground">Start Date</div><div>{(details as any).startDate ? format(new Date((details as any).startDate), 'PPP') : 'N/A'}</div></div>}
-                                {details.jobType === 'Other' && <div><div className="font-medium text-muted-foreground">End Date</div><div>{(details as any).endDate ? format(new Date((details as any).endDate), 'PPP') : 'N/A'}</div></div>}
+                                <div><div className="font-medium text-muted-foreground">Date of Test</div><div>{(details as any).dateOfTest ? format(new Date((details as any).dateOfTest), 'PPP') : 'N/A'}</div></div>
                             </>}
                             <div><div className="font-medium text-muted-foreground">Job Location</div><div>{report.jobLocation}</div></div>
                             <div><div className="font-medium text-muted-foreground">Date of Creation</div><div>{report.creationDate ? format(new Date(report.creationDate), 'PPP') : 'N/A'}</div></div>
@@ -813,13 +754,11 @@ export default function ReportDetailsPage() {
                     {ReportComponents && 'DetailsCard' in ReportComponents && (
                         details.jobType === 'Flash Report' 
                         ? <FlashReportDetailsView details={details as FlashReportDetails} setDocumentToView={setDocumentToView} />
-                        : details.jobType === 'Other'
-                        ? <OtherReportDetailsView details={details as OtherReportDetails} setDocumentToView={setDocumentToView} />
                         : <ReportComponents.DetailsCard details={details as any} />
                     )}
                 </div>
 
-                {ReportComponents && 'ResultsView' in ReportComponents && report.jobType !== 'Flash Report' && report.jobType !== 'Other' ? (
+                {ReportComponents && 'ResultsView' in ReportComponents && report.jobType !== 'Flash Report' ? (
                     <ReportComponents.ResultsView details={details as any} />
                 ) : null}
             </div>
