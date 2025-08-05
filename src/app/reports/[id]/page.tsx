@@ -655,15 +655,11 @@ export default function ReportDetailsPage() {
         if (!details?.jobType) return null;
         const ReportComponents = reportTypeMap[details.jobType];
         if (!ReportComponents) return null;
-    
-        const DetailsCardComponent = ReportComponents.DetailsCard;
-        const ResultsViewComponent = ReportComponents.ResultsView;
-
         return (
-            <div className="space-y-6">
-                <DetailsCardComponent details={details} setDocumentToView={setDocumentToView} />
-                {ResultsViewComponent && <ResultsViewComponent details={details} />}
-            </div>
+            <>
+                <ReportComponents.DetailsCard details={details as any} setDocumentToView={setDocumentToView} />
+                {ReportComponents.ResultsView && <ReportComponents.ResultsView details={details as any} />}
+            </>
         );
     };
 
@@ -705,7 +701,12 @@ export default function ReportDetailsPage() {
                                 {details.jobType !== 'Flash Report' && <div><div className="font-medium text-muted-foreground">Service Order</div><div>{(details as any).soNumber || 'N/A'}</div></div>}
                                 {details.jobType !== 'Flash Report' && <div><div className="font-medium text-muted-foreground">Project Executor</div><div>{(details as any).projectExecutor}</div></div>}
                                 <div><div className="font-medium text-muted-foreground">Project</div><div>{(details as any).project || 'N/A'}</div></div>
-                                <div><div className="font-medium text-muted-foreground">Date of Test</div><div>{(details as any).dateOfTest ? format(new Date((details as any).dateOfTest), 'PPP') : 'N/A'}</div></div>
+                                <div>
+                                    <div className="font-medium text-muted-foreground">
+                                        {details.jobType === 'Flash Report' ? 'Inspection Date' : 'Date of Test'}
+                                    </div>
+                                    <div>{(details as any).inspectionDate || (details as any).dateOfTest ? format(new Date((details as any).inspectionDate || (details as any).dateOfTest), 'PPP') : 'N/A'}</div>
+                                </div>
                             </>}
                             <div><div className="font-medium text-muted-foreground">Job Location</div><div>{report.jobLocation}</div></div>
                             <div><div className="font-medium text-muted-foreground">Date of Creation</div><div>{report.creationDate ? format(new Date(report.creationDate), 'PPP') : 'N/A'}</div></div>
