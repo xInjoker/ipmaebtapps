@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useCallback, useMemo } from 'react';
@@ -54,6 +55,7 @@ export function ReportProvider({ children }: { children: ReactNode }) {
         processedDetails = { 
             ...details, 
             documentUrls: docUrls,
+            testResults: processedTestResults // ensure testResults is carried over if it exists (for future extensibility)
         } as FlashReportDetails | OtherReportDetails;
     } else {
         processedDetails = { ...details, testResults: processedTestResults } as ReportDetails;

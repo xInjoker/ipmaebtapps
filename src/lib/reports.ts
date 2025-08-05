@@ -78,6 +78,7 @@ export type FlashReportDetails = {
 export type OtherReportDetails = {
     jobType: 'Inspection Report';
     project?: string;
+    vendor: string;
     reportNumber: string;
     startDate?: string;
     endDate?: string;
@@ -85,7 +86,6 @@ export type OtherReportDetails = {
     inspector: string;
     travelType: 'Local' | 'Overseas';
     locationType: 'Onshore' | 'Offshore';
-    vendor: string;
     subVendor: string;
     locationCity: string;
     locationProvince: string;

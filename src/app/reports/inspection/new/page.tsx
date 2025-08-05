@@ -30,7 +30,7 @@ export default function NewInspectionReportPage() {
 
     const [reportNumber, setReportNumber] = useState('');
     const [project, setProject] = useState('');
-    const [vendor, setVendor] = useState('');
+    const [client, setClient] = useState('');
     const [date, setDate] = useState<DateRange | undefined>(undefined);
     const [equipmentMaterial, setEquipmentMaterial] = useState('');
     const [inspector, setInspector] = useState('');
@@ -46,6 +46,19 @@ export default function NewInspectionReportPage() {
         if (!user) return [];
         return projects;
     }, [projects, user]);
+
+    const handleProjectChange = (value: string) => {
+        if (value === 'Non Project') {
+            setProject('Non Project');
+            setClient('');
+        } else {
+            const selectedProject = visibleProjects.find(p => p.name === value);
+            if (selectedProject) {
+                setProject(selectedProject.name);
+                setClient(selectedProject.client);
+            }
+        }
+    };
 
     const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
@@ -70,7 +83,7 @@ export default function NewInspectionReportPage() {
         const reportDetails: Omit<OtherReportDetails, 'documentUrls'> & { documents: File[] } = {
             jobType: 'Inspection Report',
             project: project,
-            vendor: vendor,
+            vendor: client, // The vendor field now takes the client name
             reportNumber,
             startDate: format(date.from, 'yyyy-MM-dd'),
             endDate: format(date.to, 'yyyy-MM-dd'),
@@ -105,7 +118,7 @@ export default function NewInspectionReportPage() {
         });
         router.push('/reports/inspection');
     }, [
-        reportNumber, date, equipmentMaterial, inspector, travelType, locationType, vendor, subVendor,
+        reportNumber, date, equipmentMaterial, inspector, travelType, locationType, client, subVendor,
         locationCity, locationProvince, result, documents, project,
         user, addReport, toast, router, roles
     ]);
@@ -129,12 +142,8 @@ export default function NewInspectionReportPage() {
                 </CardHeader>
                 <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <div className="space-y-2">
-                        <Label htmlFor="reportNumber">Report Number</Label>
-                        <Input id="reportNumber" value={reportNumber} onChange={e => setReportNumber(e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
                         <Label htmlFor="project">Project</Label>
-                        <Select value={project} onValueChange={setProject}>
+                        <Select value={project} onValueChange={handleProjectChange}>
                             <SelectTrigger id="project"><SelectValue placeholder="Select a project" /></SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="Non Project">Non Project</SelectItem>
@@ -145,8 +154,12 @@ export default function NewInspectionReportPage() {
                         </Select>
                     </div>
                      <div className="space-y-2">
-                        <Label htmlFor="vendor">Vendor</Label>
-                        <Input id="vendor" value={vendor} onChange={e => setVendor(e.target.value)} />
+                        <Label htmlFor="client">Client</Label>
+                        <Input id="client" value={client} onChange={e => setClient(e.target.value)} disabled={project !== 'Non Project' && project !== ''} placeholder="Autofilled from project" />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="reportNumber">Report Number</Label>
+                        <Input id="reportNumber" value={reportNumber} onChange={e => setReportNumber(e.target.value)} />
                     </div>
                     <div className="space-y-2 lg:col-span-2">
                         <Label htmlFor="dates">Inspection Dates</Label>
@@ -163,12 +176,12 @@ export default function NewInspectionReportPage() {
                         </Popover>
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="equipmentMaterial">Equipment/Material</Label>
-                        <Input id="equipmentMaterial" value={equipmentMaterial} onChange={e => setEquipmentMaterial(e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
                         <Label htmlFor="inspector">Inspector</Label>
                         <Input id="inspector" value={inspector} onChange={e => setInspector(e.target.value)} />
+                    </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="equipmentMaterial">Equipment/Material</Label>
+                        <Input id="equipmentMaterial" value={equipmentMaterial} onChange={e => setEquipmentMaterial(e.target.value)} />
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="travelType">Local/Overseas</Label>
