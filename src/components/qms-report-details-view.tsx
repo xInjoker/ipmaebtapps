@@ -57,6 +57,13 @@ export function QmsReportDetailsView({ details, setDocumentToView, report }: Qms
                     )}
                     {isInspectionReport && (
                         <>
+                             <div><div className="font-medium text-muted-foreground">Report Number</div><div>{details.reportNumber}</div></div>
+                             <div>
+                                <div className="font-medium text-muted-foreground">Inspection Dates</div>
+                                <div>
+                                    {details.startDate ? format(new Date(details.startDate), 'PPP') : 'N/A'} - {details.endDate ? format(new Date(details.endDate), 'PPP') : 'N/A'}
+                                </div>
+                             </div>
                              <div><div className="font-medium text-muted-foreground">Project</div><div>{details.project || 'N/A'}</div></div>
                             <div><div className="font-medium text-muted-foreground">Equipment/Material</div><div>{details.equipmentMaterial}</div></div>
                             <div><div className="font-medium text-muted-foreground">Inspector</div><div>{details.inspector}</div></div>

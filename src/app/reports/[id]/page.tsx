@@ -656,10 +656,10 @@ export default function ReportDetailsPage() {
         const ReportComponents = reportTypeMap[details.jobType];
         if (!ReportComponents) return null;
         return (
-            <>
-                <ReportComponents.DetailsCard details={details as any} setDocumentToView={setDocumentToView} report={report} />
-                {ReportComponents.ResultsView && <ReportComponents.ResultsView details={details as any} />}
-            </>
+            <div className="space-y-6">
+                <ReportComponents.DetailsCard details={details} setDocumentToView={setDocumentToView} report={report} />
+                {(ReportComponents as any).ResultsView && <(ReportComponents as any).ResultsView details={details} />}
+            </div>
         );
     };
 
@@ -698,10 +698,10 @@ export default function ReportDetailsPage() {
                         <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                             {details && <>
                                 <div><div className="font-medium text-muted-foreground">Client</div><div>{(details as any).client || 'N/A'}</div></div>
-                                {details.jobType !== 'Flash Report' && <div><div className="font-medium text-muted-foreground">Service Order</div><div>{(details as any).soNumber || 'N/A'}</div></div>}
-                                {details.jobType !== 'Flash Report' && <div><div className="font-medium text-muted-foreground">Project Executor</div><div>{(details as any).projectExecutor}</div></div>}
-                                <div><div className="font-medium text-muted-foreground">Project</div><div>{(details as any).project || 'N/A'}</div></div>
-                                {details.jobType !== 'Flash Report' && <div>
+                                {details.jobType !== 'Flash Report' && details.jobType !== 'Inspection Report' && <div><div className="font-medium text-muted-foreground">Service Order</div><div>{(details as any).soNumber || 'N/A'}</div></div>}
+                                {details.jobType !== 'Flash Report' && details.jobType !== 'Inspection Report' && <div><div className="font-medium text-muted-foreground">Project Executor</div><div>{(details as any).projectExecutor}</div></div>}
+                                {details.jobType !== 'Inspection Report' && <div><div className="font-medium text-muted-foreground">Project</div><div>{(details as any).project || 'N/A'}</div></div>}
+                                {details.jobType !== 'Flash Report' && details.jobType !== 'Inspection Report' && <div>
                                     <div className="font-medium text-muted-foreground">Date of Test</div>
                                     <div>{(details as any).dateOfTest ? format(new Date((details as any).dateOfTest), 'PPP') : 'N/A'}</div>
                                 </div>}
