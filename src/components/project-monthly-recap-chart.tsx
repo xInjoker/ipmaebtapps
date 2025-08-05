@@ -55,29 +55,29 @@ type ProjectMonthlyRecapChartProps = {
 const incomeChartConfig: ChartConfig = {
     paid: {
         label: 'Paid',
-        color: 'hsl(262 80% 40%)', // Dark Purple
+        color: 'hsl(262 80% 40%)',
     },
     invoiced: {
         label: 'Invoiced',
-        color: 'hsl(217 91% 60%)', // Indigo
+        color: 'hsl(217 91% 60%)',
     },
     pad: {
         label: 'PAD',
-        color: 'hsl(173 80% 40%)', // Teal
+        color: 'hsl(173 80% 40%)',
     },
     documentPreparation: {
         label: 'Doc Prep',
-        color: 'hsl(142 71% 45%)', // Green
+        color: 'hsl(142 71% 45%)',
     },
 };
 
 const costChartConfig: ChartConfig = {
-    'Tenaga Ahli dan Labour Supply': { label: 'TA & LS', color: 'hsl(262 80% 40%)' }, // Darkest Purple
-    'Operasional': { label: 'Operasional', color: 'hsl(300 70% 50%)' }, // Magenta-Purple
-    'Perjalanan Dinas': { label: 'Perdin', color: 'hsl(340 85% 65%)' }, // Red-Magenta
-    'Fasilitas dan Interen': { label: 'Fasilitas', color: 'hsl(15 85% 55%)' }, // Orange-Red
-    'Promosi': { label: 'Promosi', color: 'hsl(38 92% 50%)' }, // Yellow-Orange
-    'Other': { label: 'Other', color: 'hsl(30 90% 70%)' }, // Soft Peach
+    'Tenaga Ahli dan Labour Supply': { label: 'TA & LS', color: 'hsl(30 90% 70%)' }, 
+    'Operasional': { label: 'Operasional', color: 'hsl(38 92% 50%)' }, 
+    'Perjalanan Dinas': { label: 'Perdin', color: 'hsl(15 85% 55%)' }, 
+    'Fasilitas dan Interen': { label: 'Fasilitas', color: 'hsl(340 85% 65%)' },
+    'Promosi': { label: 'Promosi', color: 'hsl(300 70% 50%)' },
+    'Other': { label: 'Other', color: 'hsl(262 80% 40%)' },
 };
 
 const chartConfig: ChartConfig = { ...incomeChartConfig, ...costChartConfig };
