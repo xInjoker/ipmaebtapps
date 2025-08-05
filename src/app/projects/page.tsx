@@ -254,12 +254,12 @@ export default function ProjectsPage() {
           <TabsTrigger value="list"><List className="mr-2 h-4 w-4" />Project List</TabsTrigger>
         </TabsList>
         <TabsContent value="summary">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6">
+                <ProjectMonthlyRecapChart data={monthlyRecapData} />
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
                 <CumulativeIncomePieChart projects={visibleProjects} />
                 <CumulativeCostPieChart projects={visibleProjects} />
-                <div className="lg:col-span-2">
-                    <ProjectMonthlyRecapChart data={monthlyRecapData} />
-                </div>
                 <CumulativeProfitChart projects={visibleProjects} />
                 <ProjectBranchChart projects={visibleProjects} branches={branches} />
             </div>
