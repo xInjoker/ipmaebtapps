@@ -396,7 +396,7 @@ export default function ProjectDetailsPage() {
         </CardHeader>
         <CardContent>
           <Button asChild className="mt-4">
-            <Link href="/projects">
+            <Link href="/projects?tab=list">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Projects
             </Link>
