@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Beaker, Magnet, Waves, Radio, FileText, ArrowRight, PlusCircle } from 'lucide-react';
+import { Beaker, Magnet, Waves, Radio, FileText, ArrowRight, PlusCircle, Zap, ClipboardCheck } from 'lucide-react';
 import { HeaderCard } from '@/components/header-card';
 
 const reportTypes = [
@@ -13,6 +13,8 @@ const reportTypes = [
   { name: 'Ultrasonic Test', href: '/reports/ultrasonic', newHref: '/reports/ultrasonic/new', icon: Waves, description: 'View and manage ultrasonic testing reports.', iconColor: 'text-amber-500', shapeColor: 'text-amber-500/10' },
   { name: 'Radiographic Test', href: '/reports/radiographic', newHref: '/reports/radiographic/new', icon: Radio, description: 'View and manage radiographic testing reports.', iconColor: 'text-rose-500', shapeColor: 'text-rose-500/10' },
   { name: 'Other Methods', href: '/reports/other', newHref: '/reports/other/new', icon: FileText, description: 'View and manage reports for other testing methods.', iconColor: 'text-purple-500', shapeColor: 'text-purple-500/10' },
+  { name: 'Flash Report (QMS)', href: '#', newHref: '#', icon: Magnet, description: 'Quickly generate and view flash reports for quality management.', iconColor: 'text-green-500', shapeColor: 'text-green-500/10' },
+  { name: 'Inspection Report (QMS)', href: '#', newHref: '#', icon: ClipboardCheck, description: 'Create and access detailed QMS inspection reports.', iconColor: 'text-purple-500', shapeColor: 'text-purple-500/10' },
 ];
 
 export default function ReportsPage() {
