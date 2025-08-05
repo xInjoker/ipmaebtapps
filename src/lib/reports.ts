@@ -1,5 +1,6 @@
 
 
+
 export type ReportStatus = 'Draft' | 'Submitted' | 'Approved' | 'Rejected' | 'Reviewed';
 
 export type ApprovalAction = {
@@ -73,6 +74,26 @@ export type FlashReportDetails = {
     locationProvince: string;
     documentUrls?: string[];
 };
+
+// --- Other/Inspection Report (QMS) ---
+export type OtherReportDetails = {
+    jobType: 'Other';
+    project?: string;
+    reportNumber: string;
+    startDate?: string;
+    endDate?: string;
+    equipmentMaterial: string;
+    inspector: string;
+    travelType: 'Local' | 'Overseas';
+    locationType: 'Onshore' | 'Offshore';
+    vendor: string;
+    subVendor: string;
+    locationCity: string;
+    locationProvince: string;
+    result: 'Accept' | 'Reject';
+    documentUrls?: string[];
+};
+
 
 // --- Penetrant Test (PT) ---
 export type PenetrantTestResult = {
@@ -275,7 +296,8 @@ export type ReportDetails =
     | MagneticParticleTestReportDetails 
     | UltrasonicTestReportDetails 
     | RadiographicTestReportDetails
-    | FlashReportDetails;
+    | FlashReportDetails
+    | OtherReportDetails;
 
 
 export type ReportItem = {
@@ -283,7 +305,7 @@ export type ReportItem = {
     reportNumber: string;
     jobLocation: string;
     lineType: string;
-    jobType: 'Penetrant Test' | 'Magnetic Particle Test' | 'Ultrasonic Test' | 'Radiographic Test' | 'Flash Report';
+    jobType: 'Penetrant Test' | 'Magnetic Particle Test' | 'Ultrasonic Test' | 'Radiographic Test' | 'Flash Report' | 'Other';
     qtyJoint: number;
     status: ReportStatus;
     details: ReportDetails | null;

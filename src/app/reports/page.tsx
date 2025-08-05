@@ -13,6 +13,7 @@ const reportTypes = [
   { name: 'Ultrasonic Test', href: '/reports/ultrasonic', newHref: '/reports/ultrasonic/new', icon: Waves, description: 'View and manage ultrasonic testing reports.', iconColor: 'text-amber-500', shapeColor: 'text-amber-500/10' },
   { name: 'Radiographic Test', href: '/reports/radiographic', newHref: '/reports/radiographic/new', icon: Radio, description: 'View and manage radiographic testing reports.', iconColor: 'text-rose-500', shapeColor: 'text-rose-500/10' },
   { name: 'Flash Report (QMS)', href: '/reports/flash', newHref: '/reports/flash/new', icon: Zap, description: 'Quickly generate and view flash reports for quality management.', iconColor: 'text-green-500', shapeColor: 'text-green-500/10' },
+  { name: 'Inspection Report (QMS)', href: '/reports/other', newHref: '/reports/other/new', icon: ClipboardCheck, description: 'Generate other QMS inspection reports.', iconColor: 'text-indigo-500', shapeColor: 'text-indigo-500/10' },
 ];
 
 export default function ReportsPage() {
