@@ -42,7 +42,7 @@ export function ReportProvider({ children }: { children: ReactNode }) {
 
     let processedDetails: ReportDetails;
 
-    if (details.jobType === 'Flash Report' || details.jobType === 'Other') {
+    if (details.jobType === 'Flash Report' || details.jobType === 'Inspection Report') {
         const docUrls = await Promise.all(
             (details.documents || []).map(async file => {
                 const base64 = await fileToBase64(file) as string;

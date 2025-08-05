@@ -115,7 +115,7 @@ export function SidebarNav() {
         { href: '/reports/ultrasonic', label: 'Ultrasonic Test' },
         { href: '/reports/radiographic', label: 'Radiographic Test' },
         { href: '/reports/flash', label: 'Flash Report' },
-        { href: '/reports/other', label: 'Inspection Report' },
+        { href: '/reports/inspection', label: 'Inspection Report' },
       ],
       isCollapsible: true,
     },

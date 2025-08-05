@@ -1,6 +1,5 @@
 
 
-
 export type ReportStatus = 'Draft' | 'Submitted' | 'Approved' | 'Rejected' | 'Reviewed';
 
 export type ApprovalAction = {
@@ -77,7 +76,7 @@ export type FlashReportDetails = {
 
 // --- Other/Inspection Report (QMS) ---
 export type OtherReportDetails = {
-    jobType: 'Other';
+    jobType: 'Inspection Report';
     project?: string;
     reportNumber: string;
     startDate?: string;
@@ -305,7 +304,7 @@ export type ReportItem = {
     reportNumber: string;
     jobLocation: string;
     lineType: string;
-    jobType: 'Penetrant Test' | 'Magnetic Particle Test' | 'Ultrasonic Test' | 'Radiographic Test' | 'Flash Report' | 'Other';
+    jobType: 'Penetrant Test' | 'Magnetic Particle Test' | 'Ultrasonic Test' | 'Radiographic Test' | 'Flash Report' | 'Inspection Report';
     qtyJoint: number;
     status: ReportStatus;
     details: ReportDetails | null;

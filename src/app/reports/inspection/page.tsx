@@ -21,7 +21,7 @@ export default function OtherReportListPage() {
   const { toast } = useToast();
 
   const otherReports = useMemo(() => {
-    return reports.filter(r => r.jobType === 'Other');
+    return reports.filter(r => r.jobType === 'Inspection Report');
   }, [reports]);
 
   return (
@@ -31,7 +31,7 @@ export default function OtherReportListPage() {
           description="View and manage all other inspection reports."
       >
           <Button asChild>
-            <Link href="/reports/other/new">
+            <Link href="/reports/inspection/new">
               <PlusCircle className="mr-2 h-4 w-4" />
               Add New Report
             </Link>

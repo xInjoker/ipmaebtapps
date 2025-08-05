@@ -21,6 +21,7 @@ import type { UserOptions, CellHookData } from 'jspdf-autotable';
 import { useAuth } from '@/context/AuthContext';
 import { formatCurrency, getFileNameFromDataUrl } from '@/lib/utils';
 import { DocumentViewerDialog } from '@/components/document-viewer-dialog';
+import { QmsReportDetailsView } from '@/components/qms-report-details-view';
 
 
 // Extend jsPDF with autoTable
@@ -78,76 +79,6 @@ const ImageGallery = ({ allImages }: { allImages: { url: string, jointNo: string
             </CardContent>
         </Card>
     );
-};
-
-const QmsReportDetailsView = ({ details, setDocumentToView }: { details: FlashReportDetails | OtherReportDetails, setDocumentToView: (doc: DocumentToView) => void; }) => {
-    
-    const downloadFile = (url: string, fileName: string) => {
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = fileName || 'download';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    };
-
-    const isFlashReport = details.jobType === 'Flash Report';
-
-    return (
-        <Card>
-            <CardHeader><CardTitle>Inspection Details</CardTitle></CardHeader>
-            <CardContent className="space-y-6">
-                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-                    {isFlashReport ? (
-                        <>
-                            <div><div className="font-medium text-muted-foreground">Inspection Item</div><div>{details.inspectionItem}</div></div>
-                            <div><div className="font-medium text-muted-foreground">Quantity</div><div>{details.quantity}</div></div>
-                            <div><div className="font-medium text-muted-foreground">Manufacturer/Vendor</div><div>{details.vendorName}</div></div>
-                            <div><div className="font-medium text-muted-foreground">Inspector Name</div><div>{details.inspectorName}</div></div>
-                            <div><div className="font-medium text-muted-foreground">Location (City)</div><div>{details.locationCity}</div></div>
-                            <div><div className="font-medium text-muted-foreground">Location (Province)</div><div>{details.locationProvince}</div></div>
-                            <div className="col-span-full"><div className="font-medium text-muted-foreground">Item Description</div><div className="whitespace-pre-wrap">{details.itemDescription}</div></div>
-                        </>
-                    ) : (
-                        <>
-                             <div><div className="font-medium text-muted-foreground">Project</div><div>{details.project || 'N/A'}</div></div>
-                            <div><div className="font-medium text-muted-foreground">Equipment/Material</div><div>{details.equipmentMaterial}</div></div>
-                            <div><div className="font-medium text-muted-foreground">Inspector</div><div>{details.inspector}</div></div>
-                            <div><div className="font-medium text-muted-foreground">Travel</div><div>{details.travelType}</div></div>
-                            <div><div className="font-medium text-muted-foreground">Location</div><div>{details.locationType}</div></div>
-                            <div><div className="font-medium text-muted-foreground">Vendor</div><div>{details.vendor}</div></div>
-                            <div><div className="font-medium text-muted-foreground">Sub-vendor</div><div>{details.subVendor}</div></div>
-                            <div><div className="font-medium text-muted-foreground">Location (City)</div><div>{details.locationCity}</div></div>
-                            <div><div className="font-medium text-muted-foreground">Location (Province)</div><div>{details.locationProvince}</div></div>
-                            <div><div className="font-medium text-muted-foreground">Result</div><div><Badge variant={details.result === 'Accept' ? 'green' : 'destructive'}>{details.result}</Badge></div></div>
-                        </>
-                    )}
-                </div>
-                {(details.documentUrls && details.documentUrls.length > 0) && (
-                    <div>
-                        <h4 className="font-semibold mb-2">Attachments</h4>
-                        <div className="space-y-2">
-                            {details.documentUrls.map((url, index) => {
-                                const name = getFileNameFromDataUrl(url) || `Document ${index + 1}`;
-                                return (
-                                    <div key={index} className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
-                                        <div className="flex items-center gap-2 truncate">
-                                            <FileText className="h-4 w-4 flex-shrink-0" />
-                                            <span className="text-sm truncate">{name}</span>
-                                        </div>
-                                        <div>
-                                            <Button variant="ghost" size="sm" onClick={() => setDocumentToView({ url, name })}><Eye className="mr-2 h-4 w-4" />View</Button>
-                                            <Button variant="ghost" size="icon" onClick={() => downloadFile(url, name)}><Download className="h-4 w-4" /></Button>
-                                        </div>
-                                    </div>
-                                )
-                            })}
-                        </div>
-                    </div>
-                )}
-            </CardContent>
-        </Card>
-    )
 };
 
 // --- Detail Components Refactored ---
@@ -439,7 +370,7 @@ const reportTypeMap: Record<string, { DetailsCard: React.FC<any>, ResultsView?: 
     'Flash Report': {
         DetailsCard: QmsReportDetailsView,
     },
-    'Other': {
+    'Inspection Report': {
         DetailsCard: QmsReportDetailsView,
     }
 };
@@ -715,7 +646,7 @@ export default function ReportDetailsPage() {
     else if (report.jobType === 'Ultrasonic Test') backPath = '/reports/ultrasonic';
     else if (report.jobType === 'Radiographic Test') backPath = '/reports/radiographic';
     else if (report.jobType === 'Flash Report') backPath = '/reports/flash';
-    else if (report.jobType === 'Other') backPath = '/reports/other';
+    else if (report.jobType === 'Inspection Report') backPath = '/reports/inspection';
     
     const details = report.details;
     const creator = report.approvalHistory?.[0];

@@ -68,7 +68,7 @@ export default function NewInspectionReportPage() {
         }
 
         const reportDetails: Omit<OtherReportDetails, 'documentUrls'> & { documents: File[] } = {
-            jobType: 'Other',
+            jobType: 'Inspection Report',
             project: project,
             vendor: vendor,
             reportNumber,
@@ -89,7 +89,7 @@ export default function NewInspectionReportPage() {
             reportNumber,
             jobLocation: `${locationCity}, ${locationProvince}`,
             lineType: 'Inspection Report (QMS)',
-            jobType: 'Other',
+            jobType: 'Inspection Report',
             qtyJoint: 0,
             status: 'Submitted',
             creationDate: format(new Date(), 'yyyy-MM-dd'),
@@ -103,7 +103,7 @@ export default function NewInspectionReportPage() {
             title: 'Report Saved',
             description: 'Inspection Report has been saved.',
         });
-        router.push('/reports/other');
+        router.push('/reports/inspection');
     }, [
         reportNumber, date, equipmentMaterial, inspector, travelType, locationType, vendor, subVendor,
         locationCity, locationProvince, result, documents, project,
