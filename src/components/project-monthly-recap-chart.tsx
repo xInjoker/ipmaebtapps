@@ -63,7 +63,7 @@ const incomeChartConfig: ChartConfig = {
     },
     pad: {
         label: 'PAD',
-        color: 'hsl(var(--primary))',
+        color: 'hsl(var(--chart-3))',
     },
     documentPreparation: {
         label: 'Doc Prep',
@@ -210,6 +210,7 @@ export function ProjectMonthlyRecapChart({
   
   const simplifiedLegendPayload = [
     { value: 'Income', type: 'square', id: 'income', color: 'hsl(var(--primary))' },
+    { value: 'PAD', type: 'square', id: 'pad', color: 'hsl(var(--chart-3))' },
     { value: 'Doc Prep', type: 'square', id: 'docprep', color: 'hsl(var(--success))' },
     { value: 'Cost', type: 'square', id: 'cost', color: 'hsl(var(--warning))' },
   ];
