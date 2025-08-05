@@ -114,7 +114,7 @@ export function SidebarNav() {
         { href: '/reports/magnetic', label: 'Magnetic Particle' },
         { href: '/reports/ultrasonic', label: 'Ultrasonic Test' },
         { href: '/reports/radiographic', label: 'Radiographic Test' },
-        { href: '/reports/other', label: 'Other Methods' },
+        { href: '/reports/other', label: 'Inspection Report' },
         { href: '/reports/flash', label: 'Flash Report' },
       ],
       isCollapsible: true,
