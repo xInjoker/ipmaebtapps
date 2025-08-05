@@ -1,7 +1,8 @@
 
+
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -17,12 +18,25 @@ import { useToast } from '@/hooks/use-toast';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { DateRange } from 'react-day-picker';
 import { Separator } from '@/components/ui/separator';
+import { useProjects } from '@/context/ProjectContext';
+import { useAuth } from '@/context/AuthContext';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function NewInspectionReportPage() {
     const router = useRouter();
     const { toast } = useToast();
+    const { projects } = useProjects();
+    const { user, isHqUser } = useAuth();
+    
+    const [project, setProject] = useState('');
     const [documents, setDocuments] = useState<File[]>([]);
     const [date, setDate] = useState<DateRange | undefined>(undefined);
+
+    const visibleProjects = useMemo(() => {
+        if (isHqUser) return projects;
+        if (!user) return [];
+        return projects.filter(p => p.branchId === user.branchId);
+    }, [projects, user, isHqUser]);
 
     const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
@@ -63,10 +77,22 @@ export default function NewInspectionReportPage() {
                         <Separator />
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             <div className="space-y-2">
+                                <Label htmlFor="project">Project</Label>
+                                <Select value={project} onValueChange={setProject}>
+                                    <SelectTrigger id="project"><SelectValue placeholder="Select a project" /></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Non Project">Non Project</SelectItem>
+                                        {visibleProjects.map((p) => (
+                                            <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="space-y-2">
                                 <Label htmlFor="reportNumber">Report Number</Label>
                                 <Input id="reportNumber" />
                             </div>
-                            <div className="space-y-2 lg:col-span-2">
+                            <div className="space-y-2">
                                 <Label htmlFor="dates">Inspection Dates</Label>
                                 <Popover>
                                 <PopoverTrigger asChild>
@@ -114,7 +140,7 @@ export default function NewInspectionReportPage() {
                                 <Input id="inspector" />
                             </div>
                              <div className="space-y-2">
-                                <Label htmlFor="vendor">Vendor/Subcontractor</Label>
+                                <Label htmlFor="vendor">Vendor</Label>
                                 <Input id="vendor" />
                             </div>
                             <div className="space-y-2">
