@@ -74,6 +74,13 @@ export default function ProjectsPage() {
   const { totalProjectValue, totalCost, totalIncome } = getProjectStats(visibleProjects);
   const profit = totalIncome - totalCost;
 
+  const totalBudget = useMemo(() => {
+    return visibleProjects.reduce((acc, project) => {
+        const projectBudget = Object.values(project.budgets || {}).reduce((sum, val) => sum + val, 0);
+        return acc + projectBudget;
+    }, 0);
+  }, [visibleProjects]);
+
   const widgetData = [
     {
       title: 'Total Project Value',
@@ -94,7 +101,9 @@ export default function ProjectsPage() {
     {
       title: 'Total Cost',
       value: formatCurrencyMillions(totalCost),
-      description: 'Total costs realized across all projects',
+      description: totalBudget > 0 
+        ? `${((totalCost / totalBudget) * 100).toFixed(1)}% of budget used` 
+        : 'Total costs realized across all projects',
       icon: Wallet,
       iconColor: 'text-amber-500',
       shapeColor: 'text-amber-500/10',
