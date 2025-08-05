@@ -67,7 +67,7 @@ const incomeChartConfig: ChartConfig = {
     },
     documentPreparation: {
         label: 'Doc Prep',
-        color: 'hsl(var(--primary))',
+        color: 'hsl(var(--success))',
     },
 };
 
@@ -145,7 +145,7 @@ const CustomTooltipContent = ({ active, payload, label }: any) => {
 };
 
 
-function Chart({ data }: { data: ProjectMonthlyRecapChartProps['data'] }) {
+function Chart({ data, simplifiedLegendPayload }: { data: ProjectMonthlyRecapChartProps['data'], simplifiedLegendPayload: any[] }) {
   return (
     <ChartContainer config={chartConfig} className="h-[400px] w-full">
       <ComposedChart data={data} accessibilityLayer>
@@ -163,11 +163,11 @@ function Chart({ data }: { data: ProjectMonthlyRecapChartProps['data'] }) {
           cursor={{ fill: 'hsl(var(--muted))' }}
           content={<CustomTooltipContent />}
         />
-        <ChartLegend content={<ChartLegendContent />} />
-        <Bar dataKey="paid" stackId="income" fill="var(--color-paid)" radius={[4, 4, 0, 0]} barSize={30} />
+        <ChartLegend content={<ChartLegendContent payload={simplifiedLegendPayload} />} />
+        <Bar dataKey="paid" stackId="income" fill="var(--color-paid)" radius={[0, 0, 0, 0]} barSize={30} />
         <Bar dataKey="invoiced" stackId="income" fill="var(--color-invoiced)" barSize={30}/>
         <Bar dataKey="pad" stackId="income" fill="var(--color-pad)" barSize={30}/>
-        <Bar dataKey="documentPreparation" stackId="income" fill="var(--color-documentPreparation)" barSize={30}/>
+        <Bar dataKey="documentPreparation" stackId="income" fill="var(--color-documentPreparation)" radius={[4, 4, 0, 0]} barSize={30}/>
         
         {Object.keys(costChartConfig).map((key) => (
              <Bar key={key} dataKey={`cost.${key}`} stackId="cost" fill={(costChartConfig[key as keyof typeof costChartConfig] as any).color} radius={[4, 4, 0, 0]} barSize={30}/>
@@ -207,6 +207,12 @@ export function ProjectMonthlyRecapChart({
       (item) => `20${item.month.split("'")[1]}` === selectedYear
     );
   }, [data, selectedYear]);
+  
+  const simplifiedLegendPayload = [
+    { value: 'Income', type: 'square', id: 'income', color: 'hsl(var(--primary))' },
+    { value: 'Doc Prep', type: 'square', id: 'docprep', color: 'hsl(var(--success))' },
+    { value: 'Cost', type: 'square', id: 'cost', color: 'hsl(var(--warning))' },
+  ];
 
   const chartData = filteredData.slice(-6);
   const fullChartData = filteredData;
@@ -247,7 +253,7 @@ export function ProjectMonthlyRecapChart({
           </div>
         </CardHeader>
         <CardContent>
-          <Chart data={chartData} />
+          <Chart data={chartData} simplifiedLegendPayload={simplifiedLegendPayload} />
         </CardContent>
       </Card>
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -261,7 +267,7 @@ export function ProjectMonthlyRecapChart({
             </DialogDescription>
           </DialogHeader>
           <div className="h-[60vh]">
-            <Chart data={fullChartData} />
+            <Chart data={fullChartData} simplifiedLegendPayload={simplifiedLegendPayload} />
           </div>
         </DialogContent>
       </Dialog>
