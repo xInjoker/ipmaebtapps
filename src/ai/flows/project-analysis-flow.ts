@@ -55,7 +55,7 @@ Based on this data, provide:
 2.  3-4 key highlights (e.g., "Profit margin is strong", "Under budget so far").
 3.  3-4 actionable recommendations or concerns (e.g., "Cost overrun in operational category", "Accelerate invoicing for completed work").
 
-Be concise and professional.
+Be concise and professional. IMPORTANT: When you mention any financial figures in your response, format them as currency (e.g., Rp 1.500.000.000).
 `,
 });
 
@@ -70,3 +70,4 @@ const projectAnalysisFlow = ai.defineFlow(
     return output!;
   }
 );
+
