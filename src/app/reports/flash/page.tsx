@@ -1,15 +1,15 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuPortal, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger } from '@/components/ui/dropdown-menu';
 import { MoreHorizontal, PlusCircle, ArrowLeft, FileText, Layers, CheckCircle, Clock } from 'lucide-react';
-import { type ReportItem, type ReportStatus, type FlashReportDetails } from '@/lib/reports';
+import { type ReportItem, type ReportStatus, type FlashReportDetails, reportStatuses } from '@/lib/reports';
 import { useReports } from '@/context/ReportContext';
 import { useAuth } from '@/context/AuthContext';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
@@ -30,7 +30,7 @@ const getStatusVariant = (status: ReportStatus) => {
 };
 
 export default function FlashReportListPage() {
-  const { reports, deleteReport } = useReports();
+  const { reports, deleteReport, updateReport } = useReports();
   const { user, roles, userHasPermission } = useAuth();
   const { toast } = useToast();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -110,6 +110,14 @@ export default function FlashReportListPage() {
       setReportToDelete(null);
     }
   };
+  
+  const handleStatusUpdate = useCallback((report: ReportItem, status: ReportStatus) => {
+    updateReport(report.id, { ...report, status });
+    toast({
+      title: 'Status Updated',
+      description: `Report ${report.reportNumber} status has been updated to ${status}.`
+    });
+  }, [updateReport, toast]);
 
   return (
     <>
@@ -175,16 +183,33 @@ export default function FlashReportListPage() {
                                                 <Link href={`/reports/${report.id}`}>View</Link>
                                               </DropdownMenuItem>
                                               {userHasPermission('manage-reports') && (
-                                                <DropdownMenuItem
-                                                    className="text-destructive"
-                                                    onSelect={(e) => {
-                                                        e.preventDefault();
-                                                        setReportToDelete(report);
-                                                        setIsDeleteDialogOpen(true);
-                                                    }}
-                                                >
-                                                    Delete
-                                                </DropdownMenuItem>
+                                                <>
+                                                 <DropdownMenuSub>
+                                                    <DropdownMenuSubTrigger>Update Status</DropdownMenuSubTrigger>
+                                                    <DropdownMenuPortal>
+                                                      <DropdownMenuSubContent>
+                                                        {reportStatuses.map((status) => (
+                                                          <DropdownMenuItem
+                                                            key={status}
+                                                            onSelect={() => handleStatusUpdate(report, status)}
+                                                          >
+                                                            {status}
+                                                          </DropdownMenuItem>
+                                                        ))}
+                                                      </DropdownMenuSubContent>
+                                                    </DropdownMenuPortal>
+                                                  </DropdownMenuSub>
+                                                  <DropdownMenuItem
+                                                      className="text-destructive"
+                                                      onSelect={(e) => {
+                                                          e.preventDefault();
+                                                          setReportToDelete(report);
+                                                          setIsDeleteDialogOpen(true);
+                                                      }}
+                                                  >
+                                                      Delete
+                                                  </DropdownMenuItem>
+                                                </>
                                               )}
                                           </DropdownMenuContent>
                                       </DropdownMenu>
