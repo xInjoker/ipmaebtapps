@@ -135,22 +135,17 @@ export default function ProjectDetailsPage() {
     }
 
     const stats = getProjectStats([project]);
-
-    const serviceOrderValue = (project.serviceOrders || []).reduce((acc, so) => acc + so.value, 0);
-    const calculatedProgress = project.value > 0 ? Math.round(((stats.totalPaid + stats.totalInvoiced) / project.value) * 100) : 0;
-    const totalBudgetValue = Object.values(project.budgets || {}).reduce((sum, val) => sum + val, 0);
-    const calculatedProfit = stats.totalIncome - stats.totalCost;
-
-
+    const calculatedProgress = project.value > 0 ? ((stats.totalPaid + stats.totalInvoiced) / project.value) * 100 : 0;
+    
     return {
       totalCost: stats.totalCost,
       totalInvoiced: stats.totalInvoiced,
       totalPaid: stats.totalPaid,
       totalIncome: stats.totalIncome,
-      totalServiceOrderValue: serviceOrderValue,
-      progress: calculatedProgress,
-      totalBudget: totalBudgetValue,
-      profit: calculatedProfit,
+      totalServiceOrderValue: (project.serviceOrders || []).reduce((acc, so) => acc + so.value, 0),
+      progress: Math.round(calculatedProgress),
+      totalBudget: Object.values(project.budgets || {}).reduce((sum, val) => sum + val, 0),
+      profit: stats.totalIncome - stats.totalCost,
     };
   }, [project, getProjectStats]);
 
@@ -624,6 +619,16 @@ export default function ProjectDetailsPage() {
             </div>
 
             <div className="space-y-4">
+              <h3 className="font-semibold text-lg">Monthly Performance</h3>
+              <Separator />
+              <div className="grid grid-cols-1 gap-6 mt-4">
+                  <div ref={chartRefs.recap}>
+                    <ProjectMonthlyRecapChart data={monthlyRecapData} />
+                  </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
               <h3 className="font-semibold text-lg">Overall Financial Health</h3>
               <Separator />
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
@@ -661,17 +666,6 @@ export default function ProjectDetailsPage() {
                   </div>
               </div>
             </div>
-
-             <div className="space-y-4">
-              <h3 className="font-semibold text-lg">Monthly Performance</h3>
-              <Separator />
-              <div className="grid grid-cols-1 gap-6 mt-4">
-                  <div ref={chartRefs.recap}>
-                    <ProjectMonthlyRecapChart data={monthlyRecapData} />
-                  </div>
-              </div>
-            </div>
-
         </TabsContent>
         <TabsContent value="service-orders">
           <ProjectServiceOrderTab project={project} setProjects={handleProjectUpdate} />
@@ -703,5 +697,6 @@ export default function ProjectDetailsPage() {
     </div>
   );
 }
+
 
 
