@@ -145,47 +145,38 @@ export default function ProjectsPage() {
     visibleProjects.forEach(project => {
         const projectInvoices = project.invoices || [];
         const projectCosts = project.costs || [];
-
-        const invoicedOrPaidValuesBySO: Record<string, number> = {};
+    
         projectInvoices.forEach(invoice => {
-            if (invoice.status === 'Paid' || invoice.status === 'Invoiced') {
-                invoicedOrPaidValuesBySO[invoice.soNumber] = (invoicedOrPaidValuesBySO[invoice.soNumber] || 0) + invoice.value;
+            const periodInfo = processPeriod(invoice.period);
+            if (!periodInfo) return;
+            const { sortKey, displayMonth } = periodInfo;
+        
+            if (!dataMap[sortKey]) {
+                dataMap[sortKey] = { month: displayMonth, paid: 0, invoiced: 0, pad: 0, documentPreparation: 0, cost: {} };
+            }
+        
+            if (invoice.status === 'Paid') {
+                dataMap[sortKey].paid += invoice.value;
+            } else if (invoice.status === 'Invoiced' || invoice.status === 'Re-invoiced') {
+                dataMap[sortKey].invoiced += invoice.value;
+            } else if (invoice.status === 'Document Preparation') {
+                dataMap[sortKey].documentPreparation += invoice.value;
+            } else if (invoice.status === 'PAD') {
+                dataMap[sortKey].pad += invoice.value;
             }
         });
     
-        projectInvoices.forEach(invoice => {
-        const periodInfo = processPeriod(invoice.period);
-        if (!periodInfo) return;
-        const { sortKey, displayMonth } = periodInfo;
-    
-        if (!dataMap[sortKey]) {
-            dataMap[sortKey] = { month: displayMonth, paid: 0, invoiced: 0, pad: 0, documentPreparation: 0, cost: {} };
-        }
-    
-        if (invoice.status === 'Paid') {
-            dataMap[sortKey].paid += invoice.value;
-        } else if (invoice.status === 'Invoiced') {
-            dataMap[sortKey].invoiced += invoice.value;
-        } else if (invoice.status === 'Document Preparation') {
-            dataMap[sortKey].documentPreparation += invoice.value;
-        } else if (invoice.status === 'PAD') {
-            const invoicedAmountForSO = invoicedOrPaidValuesBySO[invoice.soNumber] || 0;
-            const remainingPad = Math.max(0, invoice.value - invoicedAmountForSO);
-            dataMap[sortKey].pad += remainingPad;
-        }
-        });
-    
         projectCosts.forEach(exp => {
-        if (exp.status !== 'Approved') return;
+            if (exp.status !== 'Approved') return;
+            
+            const periodInfo = processPeriod(exp.period);
+            if (!periodInfo) return;
+            const { sortKey, displayMonth } = periodInfo;
         
-        const periodInfo = processPeriod(exp.period);
-        if (!periodInfo) return;
-        const { sortKey, displayMonth } = periodInfo;
-    
-        if (!dataMap[sortKey]) {
-            dataMap[sortKey] = { month: displayMonth, paid: 0, invoiced: 0, pad: 0, documentPreparation: 0, cost: {} };
-        }
-        dataMap[sortKey].cost[exp.category] = (dataMap[sortKey].cost[exp.category] || 0) + exp.amount;
+            if (!dataMap[sortKey]) {
+                dataMap[sortKey] = { month: displayMonth, paid: 0, invoiced: 0, pad: 0, documentPreparation: 0, cost: {} };
+            }
+            dataMap[sortKey].cost[exp.category] = (dataMap[sortKey].cost[exp.category] || 0) + exp.amount;
         });
     });
   

@@ -334,13 +334,6 @@ export default function ProjectDetailsPage() {
       const displayMonth = `${month.slice(0, 3)} '${year.slice(2)}`;
       return { sortKey, displayMonth };
     };
-    
-    const invoicedOrPaidValuesBySO: Record<string, number> = {};
-    (project.invoices || []).forEach(invoice => {
-        if (invoice.status === 'Paid' || invoice.status === 'Invoiced') {
-            invoicedOrPaidValuesBySO[invoice.soNumber] = (invoicedOrPaidValuesBySO[invoice.soNumber] || 0) + invoice.value;
-        }
-    });
   
     (project.invoices || []).forEach(invoice => {
       const periodInfo = processPeriod(invoice.period);
@@ -353,14 +346,12 @@ export default function ProjectDetailsPage() {
   
       if (invoice.status === 'Paid') {
         dataMap[sortKey].paid += invoice.value;
-      } else if (invoice.status === 'Invoiced') {
+      } else if (invoice.status === 'Invoiced' || invoice.status === 'Re-invoiced') {
         dataMap[sortKey].invoiced += invoice.value;
       } else if (invoice.status === 'Document Preparation') {
         dataMap[sortKey].documentPreparation += invoice.value;
       } else if (invoice.status === 'PAD') {
-        const invoicedAmountForSO = invoicedOrPaidValuesBySO[invoice.soNumber] || 0;
-        const remainingPad = Math.max(0, invoice.value - invoicedAmountForSO);
-        dataMap[sortKey].pad += remainingPad;
+        dataMap[sortKey].pad += invoice.value;
       }
     });
   
@@ -699,3 +690,4 @@ export default function ProjectDetailsPage() {
     </div>
   );
 }
+
