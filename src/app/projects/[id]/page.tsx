@@ -618,6 +618,16 @@ export default function ProjectDetailsPage() {
             </div>
 
             <div className="space-y-4">
+                <h3 className="font-semibold text-lg">Monthly Performance</h3>
+                <Separator />
+                <div className="grid grid-cols-1 gap-6 mt-4">
+                    <div ref={chartRefs.recap}>
+                    <ProjectMonthlyRecapChart data={monthlyRecapData} />
+                    </div>
+                </div>
+            </div>
+
+            <div className="space-y-4">
                 <h3 className="font-semibold text-lg">Overall Financial Health</h3>
                 <Separator />
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
@@ -631,16 +641,6 @@ export default function ProjectDetailsPage() {
                         progress={progress}
                     />
                 </div>
-            </div>
-
-            <div className="space-y-4">
-              <h3 className="font-semibold text-lg">Monthly Performance</h3>
-              <Separator />
-              <div className="grid grid-cols-1 gap-6 mt-4">
-                  <div ref={chartRefs.recap}>
-                    <ProjectMonthlyRecapChart data={monthlyRecapData} />
-                  </div>
-              </div>
             </div>
 
             <div className="space-y-4">
@@ -699,4 +699,5 @@ export default function ProjectDetailsPage() {
     </div>
   );
 }
+
 
