@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -21,16 +21,32 @@ import { Separator } from '@/components/ui/separator';
 import { useProjects } from '@/context/ProjectContext';
 import { useAuth } from '@/context/AuthContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useReports } from '@/context/ReportContext';
+import type { ReportItem, OtherReportDetails } from '@/lib/reports';
 
 export default function NewInspectionReportPage() {
     const router = useRouter();
     const { toast } = useToast();
     const { projects } = useProjects();
-    const { user, isHqUser } = useAuth();
+    const { user, isHqUser, roles } = useAuth();
+    const { addReport } = useReports();
     
-    const [project, setProject] = useState('');
     const [documents, setDocuments] = useState<File[]>([]);
     const [date, setDate] = useState<DateRange | undefined>(undefined);
+    
+    const [formData, setFormData] = useState({
+        project: '',
+        reportNumber: '',
+        equipment: '',
+        inspector: '',
+        vendor: '',
+        subVendor: '',
+        locationCity: '',
+        locationProvince: '',
+        regionType: 'Local' as 'Local' | 'Overseas',
+        locationType: 'Onshore' as 'Onshore' | 'Offshore',
+        result: 'Accept' as 'Accept' | 'Reject',
+    });
 
     const visibleProjects = useMemo(() => {
         if (isHqUser) return projects;
@@ -47,12 +63,57 @@ export default function NewInspectionReportPage() {
     const removeDocument = useCallback((index: number) => {
         setDocuments(prev => prev.filter((_, i) => i !== index));
     }, []);
+    
+    const handleInputChange = (field: keyof typeof formData, value: string) => {
+        setFormData(prev => ({...prev, [field]: value}));
+    };
+    
+    const handleSave = useCallback(async () => {
+        if (!formData.reportNumber || !date?.from || !date?.to || !user) {
+            toast({
+                variant: 'destructive',
+                title: 'Missing Information',
+                description: 'Report number and inspection dates are required.',
+            });
+            return;
+        }
 
-    const handleSave = () => {
-        // Handle saving logic here
+        const reportDetails: Omit<OtherReportDetails, 'documentUrls'> & { documents: File[] } = {
+            jobType: 'Other',
+            project: formData.project,
+            client: projects.find(p => p.name === formData.project)?.client || 'Internal',
+            reportNumber: formData.reportNumber,
+            startDate: format(date.from, 'yyyy-MM-dd'),
+            endDate: format(date.to, 'yyyy-MM-dd'),
+            equipment: formData.equipment,
+            inspector: formData.inspector,
+            vendor: formData.vendor,
+            subVendor: formData.subVendor,
+            locationCity: formData.locationCity,
+            locationProvince: formData.locationProvince,
+            regionType: formData.regionType,
+            locationType: formData.locationType,
+            result: formData.result,
+            documents: documents,
+        };
+
+        const newReport: Omit<ReportItem, 'id' | 'details'> & { details: typeof reportDetails } = {
+            reportNumber: formData.reportNumber,
+            jobLocation: `${formData.locationCity}, ${formData.locationProvince}`,
+            lineType: 'QMS Inspection',
+            jobType: 'Other',
+            qtyJoint: 1, // Represents one report
+            status: 'Submitted',
+            creationDate: format(new Date(), 'yyyy-MM-dd'),
+            approvalHistory: [{ actorName: user.name, actorRole: roles.find(r => r.id === user.roleId)?.name || 'N/A', status: 'Submitted', timestamp: new Date().toISOString(), comments: 'Inspection report created.' }],
+            details: reportDetails,
+        };
+
+        await addReport(newReport as any);
+
         toast({ title: 'Report Saved', description: 'Inspection report has been saved.' });
         router.push('/reports/other');
-    }
+    }, [formData, date, user, addReport, toast, router, roles, projects]);
 
     return (
         <div className="space-y-6">
@@ -78,7 +139,7 @@ export default function NewInspectionReportPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             <div className="space-y-2">
                                 <Label htmlFor="project">Project</Label>
-                                <Select value={project} onValueChange={setProject}>
+                                <Select value={formData.project} onValueChange={(value) => handleInputChange('project', value)}>
                                     <SelectTrigger id="project"><SelectValue placeholder="Select a project" /></SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="Non Project">Non Project</SelectItem>
@@ -90,7 +151,7 @@ export default function NewInspectionReportPage() {
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="reportNumber">Report Number</Label>
-                                <Input id="reportNumber" />
+                                <Input id="reportNumber" value={formData.reportNumber} onChange={(e) => handleInputChange('reportNumber', e.target.value)} />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="dates">Inspection Dates</Label>
@@ -133,27 +194,27 @@ export default function NewInspectionReportPage() {
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="equipment">Equipment/Material</Label>
-                                <Input id="equipment" />
+                                <Input id="equipment" value={formData.equipment} onChange={(e) => handleInputChange('equipment', e.target.value)} />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="inspector">Inspector</Label>
-                                <Input id="inspector" />
+                                <Input id="inspector" value={formData.inspector} onChange={(e) => handleInputChange('inspector', e.target.value)} />
                             </div>
                              <div className="space-y-2">
                                 <Label htmlFor="vendor">Vendor</Label>
-                                <Input id="vendor" />
+                                <Input id="vendor" value={formData.vendor} onChange={(e) => handleInputChange('vendor', e.target.value)} />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="subVendor">Sub-vendor/Manufacturer</Label>
-                                <Input id="subVendor" />
+                                <Input id="subVendor" value={formData.subVendor} onChange={(e) => handleInputChange('subVendor', e.target.value)} />
                             </div>
                              <div className="space-y-2">
                                 <Label htmlFor="locationCity">Inspection Location (City)</Label>
-                                <Input id="locationCity" />
+                                <Input id="locationCity" value={formData.locationCity} onChange={(e) => handleInputChange('locationCity', e.target.value)} />
                             </div>
                              <div className="space-y-2">
                                 <Label htmlFor="locationProvince">Inspection Location (Province)</Label>
-                                <Input id="locationProvince" />
+                                <Input id="locationProvince" value={formData.locationProvince} onChange={(e) => handleInputChange('locationProvince', e.target.value)} />
                             </div>
                         </div>
                     </div>
@@ -163,23 +224,23 @@ export default function NewInspectionReportPage() {
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div className="space-y-2">
                                 <Label>Local / Overseas</Label>
-                                <RadioGroup defaultValue="local" className="flex items-center gap-4">
-                                    <div className="flex items-center space-x-2"><RadioGroupItem value="local" id="local" /><Label htmlFor="local">Local</Label></div>
-                                    <div className="flex items-center space-x-2"><RadioGroupItem value="overseas" id="overseas" /><Label htmlFor="overseas">Overseas</Label></div>
+                                <RadioGroup value={formData.regionType} onValueChange={(value) => handleInputChange('regionType', value)} className="flex items-center gap-4">
+                                    <div className="flex items-center space-x-2"><RadioGroupItem value="Local" id="local" /><Label htmlFor="local">Local</Label></div>
+                                    <div className="flex items-center space-x-2"><RadioGroupItem value="Overseas" id="overseas" /><Label htmlFor="overseas">Overseas</Label></div>
                                 </RadioGroup>
                             </div>
                             <div className="space-y-2">
                                 <Label>Offshore / Onshore</Label>
-                                <RadioGroup defaultValue="onshore" className="flex items-center gap-4">
-                                    <div className="flex items-center space-x-2"><RadioGroupItem value="onshore" id="onshore" /><Label htmlFor="onshore">Onshore</Label></div>
-                                    <div className="flex items-center space-x-2"><RadioGroupItem value="offshore" id="offshore" /><Label htmlFor="offshore">Offshore</Label></div>
+                                <RadioGroup value={formData.locationType} onValueChange={(value) => handleInputChange('locationType', value)} className="flex items-center gap-4">
+                                    <div className="flex items-center space-x-2"><RadioGroupItem value="Onshore" id="onshore" /><Label htmlFor="onshore">Onshore</Label></div>
+                                    <div className="flex items-center space-x-2"><RadioGroupItem value="Offshore" id="offshore" /><Label htmlFor="offshore">Offshore</Label></div>
                                 </RadioGroup>
                             </div>
                             <div className="space-y-2">
                                 <Label>Result</Label>
-                                <RadioGroup defaultValue="accept" className="flex items-center gap-4">
-                                    <div className="flex items-center space-x-2"><RadioGroupItem value="accept" id="accept" /><Label htmlFor="accept">Accept</Label></div>
-                                    <div className="flex items-center space-x-2"><RadioGroupItem value="reject" id="reject" /><Label htmlFor="reject">Reject</Label></div>
+                                <RadioGroup value={formData.result} onValueChange={(value) => handleInputChange('result', value)} className="flex items-center gap-4">
+                                    <div className="flex items-center space-x-2"><RadioGroupItem value="Accept" id="accept" /><Label htmlFor="accept">Accept</Label></div>
+                                    <div className="flex items-center space-x-2"><RadioGroupItem value="Reject" id="reject" /><Label htmlFor="reject">Reject</Label></div>
                                 </RadioGroup>
                             </div>
                         </div>

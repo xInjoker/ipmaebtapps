@@ -3,7 +3,7 @@
 'use client';
 
 import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useCallback, useMemo } from 'react';
-import { initialReports, type ReportItem, type ReportDetails, type ApprovalAction, type ReportStatus, FlashReportDetails } from '@/lib/reports';
+import { initialReports, type ReportItem, type ReportDetails, type ApprovalAction, type ReportStatus, FlashReportDetails, OtherReportDetails } from '@/lib/reports';
 import { useProjects } from '@/context/ProjectContext'; 
 import { fileToBase64 } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -43,7 +43,7 @@ export function ReportProvider({ children }: { children: ReactNode }) {
 
     let processedDetails: ReportDetails;
 
-    if (details.jobType === 'Flash Report') {
+    if (details.jobType === 'Flash Report' || details.jobType === 'Other') {
         const docUrls = await Promise.all(
             (details.documents || []).map(async file => {
                 const base64 = await fileToBase64(file) as string;
@@ -54,9 +54,8 @@ export function ReportProvider({ children }: { children: ReactNode }) {
         );
         processedDetails = { 
             ...details, 
-            testResults: processedTestResults,
             documentUrls: docUrls,
-        } as FlashReportDetails;
+        } as FlashReportDetails | OtherReportDetails;
     } else {
         processedDetails = { ...details, testResults: processedTestResults } as ReportDetails;
     }
