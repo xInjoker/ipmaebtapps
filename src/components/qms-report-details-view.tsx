@@ -2,7 +2,7 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { type FlashReportDetails, type OtherReportDetails } from '@/lib/reports';
+import { type FlashReportDetails, type InspectionReportDetails } from '@/lib/reports';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { FileText, Eye, Download } from 'lucide-react';
@@ -15,7 +15,7 @@ type DocumentToView = {
 };
 
 type QmsReportDetailsViewProps = {
-    details: FlashReportDetails | OtherReportDetails;
+    details: FlashReportDetails | InspectionReportDetails;
     setDocumentToView: (doc: DocumentToView) => void;
     report: { reportNumber: string };
 };

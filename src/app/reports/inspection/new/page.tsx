@@ -17,7 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useReports } from '@/context/ReportContext';
-import type { ReportItem, OtherReportDetails } from '@/lib/reports';
+import type { ReportItem, InspectionReportDetails } from '@/lib/reports';
 import { DateRange } from 'react-day-picker';
 import { useProjects } from '@/context/ProjectContext';
 
@@ -80,7 +80,7 @@ export default function NewInspectionReportPage() {
             return;
         }
 
-        const reportDetails: Omit<OtherReportDetails, 'documentUrls'> & { documents: File[] } = {
+        const reportDetails: Omit<InspectionReportDetails, 'documentUrls'> & { documents: File[] } = {
             jobType: 'Inspection Report',
             project: project,
             vendor: client, // The vendor field now takes the client name
@@ -155,7 +155,7 @@ export default function NewInspectionReportPage() {
                     </div>
                      <div className="space-y-2">
                         <Label htmlFor="client">Client</Label>
-                        <Input id="client" value={client} onChange={e => setClient(e.target.value)} disabled={project !== 'Non Project' && project !== ''} placeholder="Autofilled from project" />
+                        <Input id="client" value={client} onChange={e => setClient(e.target.value)} readOnly={project !== 'Non Project' && project !== ''} placeholder="Autofilled from project" />
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="reportNumber">Report Number</Label>

@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { MoreHorizontal, PlusCircle } from 'lucide-react';
-import { type ReportItem, type OtherReportDetails } from '@/lib/reports';
+import { type ReportItem, type InspectionReportDetails } from '@/lib/reports';
 import { useReports } from '@/context/ReportContext';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -58,7 +58,7 @@ export default function OtherReportListPage() {
                 <TableBody>
                     {otherReports.length > 0 ? (
                       otherReports.map((report) => {
-                        const details = report.details as OtherReportDetails | null;
+                        const details = report.details as InspectionReportDetails | null;
                         return (
                             <TableRow key={report.id}>
                                 <TableCell className="font-medium">{report.reportNumber}</TableCell>

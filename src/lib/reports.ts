@@ -74,8 +74,8 @@ export type FlashReportDetails = {
     documentUrls?: string[];
 };
 
-// --- Other/Inspection Report (QMS) ---
-export type OtherReportDetails = {
+// --- Inspection Report (QMS) ---
+export type InspectionReportDetails = {
     jobType: 'Inspection Report';
     project?: string;
     vendor: string;
@@ -296,7 +296,7 @@ export type ReportDetails =
     | UltrasonicTestReportDetails 
     | RadiographicTestReportDetails
     | FlashReportDetails
-    | OtherReportDetails;
+    | InspectionReportDetails;
 
 
 export type ReportItem = {
