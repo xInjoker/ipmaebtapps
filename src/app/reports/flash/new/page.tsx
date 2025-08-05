@@ -218,6 +218,7 @@ export default function NewFlashReportPage() {
                             <SelectContent>
                                 <SelectItem value="Draft">Draft</SelectItem>
                                 <SelectItem value="Submitted">Submitted</SelectItem>
+                                <SelectItem value="Approved">Approved</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
