@@ -142,25 +142,25 @@ export default function OtherMethodsListPage() {
                   <TableHeader>
                       <TableRow>
                           <TableHead>Report Number</TableHead>
-                          <TableHead>Project Name</TableHead>
-                          <TableHead>Qty Joint</TableHead>
-                          <TableHead>Created By</TableHead>
-                          <TableHead>Status</TableHead>
+                          <TableHead>Equipment/Material</TableHead>
+                          <TableHead>Vendor/Subcontractor</TableHead>
+                          <TableHead>Inspector</TableHead>
+                          <TableHead>Result</TableHead>
                           <TableHead className="w-[80px] text-right">Actions</TableHead>
                       </TableRow>
                   </TableHeader>
                   <TableBody>
                       {otherReports.length > 0 ? (
                         otherReports.map((report) => {
-                          const creator = report.approvalHistory?.[0]?.actorName || 'N/A';
+                          const details = report.details as any; // Cast to any to access potential fields
                           return (
                               <TableRow key={report.id}>
                                   <TableCell className="font-medium">{report.reportNumber}</TableCell>
-                                  <TableCell>{report.details?.project || 'N/A'}</TableCell>
-                                  <TableCell>{report.qtyJoint}</TableCell>
-                                  <TableCell>{creator}</TableCell>
+                                  <TableCell>{details?.equipment || 'N/A'}</TableCell>
+                                  <TableCell>{details?.vendor || 'N/A'}</TableCell>
+                                  <TableCell>{details?.inspector || 'N/A'}</TableCell>
                                   <TableCell>
-                                      <Badge variant={getStatusVariant(report.status)}>{report.status}</Badge>
+                                      <Badge variant={details?.result === 'Accept' ? 'green' : 'destructive'}>{details?.result || 'N/A'}</Badge>
                                   </TableCell>
                                   <TableCell className="text-right">
                                       <DropdownMenu>
