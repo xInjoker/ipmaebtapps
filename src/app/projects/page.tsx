@@ -93,7 +93,9 @@ export default function ProjectsPage() {
     {
       title: 'Total Income',
       value: formatCurrencyMillions(totalIncome),
-      description: 'Total income generated to date',
+      description: totalProjectValue > 0 
+        ? `${((totalIncome / totalProjectValue) * 100).toFixed(1)}% of total project value`
+        : 'Total income generated to date',
       icon: Landmark,
       iconColor: 'text-green-500',
       shapeColor: 'text-green-500/10',
@@ -346,3 +348,4 @@ export default function ProjectsPage() {
     </div>
   );
 }
+
