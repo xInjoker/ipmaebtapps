@@ -2,6 +2,7 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
 type DashboardWidgetProps = {
   title: string;
@@ -39,7 +40,7 @@ export function DashboardWidget({
       </CardHeader>
       <CardContent className="z-10 relative">
         {value && <div className="text-xl font-bold font-headline sm:text-lg md:text-xl lg:text-2xl mt-1">{value}</div>}
-        <p className="text-sm text-muted-foreground">
+        <p className={cn("text-sm font-bold", iconColor)}>
             {description}
         </p>
       </CardContent>
