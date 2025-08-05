@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -15,11 +15,18 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
+import { useProjects } from '@/context/ProjectContext';
+import { useAuth } from '@/context/AuthContext';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function NewFlashReportPage() {
     const router = useRouter();
     const { toast } = useToast();
+    const { projects } = useProjects();
+    const { user, isHqUser } = useAuth();
 
+    const [project, setProject] = useState('');
+    const [client, setClient] = useState('');
     const [reportNumber, setReportNumber] = useState('');
     const [inspectionDate, setInspectionDate] = useState<Date | undefined>();
     const [inspectionItem, setInspectionItem] = useState('');
@@ -30,6 +37,25 @@ export default function NewFlashReportPage() {
     const [locationCity, setLocationCity] = useState('');
     const [locationProvince, setLocationProvince] = useState('');
     
+    const visibleProjects = useMemo(() => {
+        if (isHqUser) return projects;
+        if (!user) return [];
+        return projects.filter(p => p.branchId === user.branchId);
+    }, [projects, user, isHqUser]);
+
+    const handleProjectChange = (value: string) => {
+        if (value === 'Non Project') {
+            setProject('Non Project');
+            setClient('');
+        } else {
+            const selectedProject = visibleProjects.find(p => p.name === value);
+            if (selectedProject) {
+                setProject(selectedProject.name);
+                setClient(selectedProject.client);
+            }
+        }
+    };
+
     const handleSave = () => {
         // Basic validation
         if (!reportNumber || !inspectionDate || !inspectionItem || !quantity) {
@@ -42,6 +68,8 @@ export default function NewFlashReportPage() {
         }
 
         console.log({
+            project,
+            client,
             reportNumber,
             inspectionDate: inspectionDate ? format(inspectionDate, 'yyyy-MM-dd') : null,
             inspectionItem,
@@ -78,6 +106,22 @@ export default function NewFlashReportPage() {
                     </div>
                 </CardHeader>
                 <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                        <Label htmlFor="project">Project</Label>
+                        <Select value={project} onValueChange={handleProjectChange}>
+                            <SelectTrigger id="project"><SelectValue placeholder="Select a project" /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="Non Project">Non Project</SelectItem>
+                                {visibleProjects.map((p) => (
+                                    <SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="client">Client</Label>
+                        <Input id="client" value={client} onChange={e => setClient(e.target.value)} disabled={project !== 'Non Project' && project !== ''} />
+                    </div>
                     <div className="space-y-2">
                         <Label htmlFor="reportNumber">Report Number</Label>
                         <Input id="reportNumber" value={reportNumber} onChange={e => setReportNumber(e.target.value)} />
