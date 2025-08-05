@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -10,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { MoreHorizontal, PlusCircle, ArrowLeft, FileText, Layers, CheckCircle, Clock } from 'lucide-react';
-import { type ReportItem, type ReportStatus } from '@/lib/reports';
+import { type ReportItem, type ReportStatus, type FlashReportDetails } from '@/lib/reports';
 import { useReports } from '@/context/ReportContext';
 import { useAuth } from '@/context/AuthContext';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
@@ -143,9 +142,9 @@ export default function FlashReportListPage() {
                   <TableHeader>
                       <TableRow>
                           <TableHead>Report Number</TableHead>
-                          <TableHead>Project Name</TableHead>
+                          <TableHead>Inspection Item</TableHead>
                           <TableHead>Quantity</TableHead>
-                          <TableHead>Created By</TableHead>
+                          <TableHead>Inspector</TableHead>
                           <TableHead>Status</TableHead>
                           <TableHead className="w-[80px] text-right">Actions</TableHead>
                       </TableRow>
@@ -153,13 +152,13 @@ export default function FlashReportListPage() {
                   <TableBody>
                       {flashReports.length > 0 ? (
                         flashReports.map((report) => {
-                          const creator = report.approvalHistory?.[0]?.actorName || 'N/A';
+                          const details = report.details as FlashReportDetails | null;
                           return (
                               <TableRow key={report.id}>
                                   <TableCell className="font-medium">{report.reportNumber}</TableCell>
-                                  <TableCell>{report.details?.project || 'Non Project'}</TableCell>
+                                  <TableCell>{details?.inspectionItem || 'N/A'}</TableCell>
                                   <TableCell>{report.qtyJoint}</TableCell>
-                                  <TableCell>{creator}</TableCell>
+                                  <TableCell>{details?.inspectorName || 'N/A'}</TableCell>
                                   <TableCell>
                                       <Badge variant={getStatusVariant(report.status)}>{report.status}</Badge>
                                   </TableCell>
