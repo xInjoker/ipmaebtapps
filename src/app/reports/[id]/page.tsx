@@ -657,7 +657,7 @@ export default function ReportDetailsPage() {
         if (!ReportComponents) return null;
         return (
             <>
-                <ReportComponents.DetailsCard details={details as any} setDocumentToView={setDocumentToView} />
+                <ReportComponents.DetailsCard details={details as any} setDocumentToView={setDocumentToView} report={report} />
                 {ReportComponents.ResultsView && <ReportComponents.ResultsView details={details as any} />}
             </>
         );
@@ -701,16 +701,13 @@ export default function ReportDetailsPage() {
                                 {details.jobType !== 'Flash Report' && <div><div className="font-medium text-muted-foreground">Service Order</div><div>{(details as any).soNumber || 'N/A'}</div></div>}
                                 {details.jobType !== 'Flash Report' && <div><div className="font-medium text-muted-foreground">Project Executor</div><div>{(details as any).projectExecutor}</div></div>}
                                 <div><div className="font-medium text-muted-foreground">Project</div><div>{(details as any).project || 'N/A'}</div></div>
-                                <div>
-                                    <div className="font-medium text-muted-foreground">
-                                        {details.jobType === 'Flash Report' ? 'Inspection Date' : 'Date of Test'}
-                                    </div>
-                                    <div>{(details as any).inspectionDate || (details as any).dateOfTest ? format(new Date((details as any).inspectionDate || (details as any).dateOfTest), 'PPP') : 'N/A'}</div>
-                                </div>
+                                {details.jobType !== 'Flash Report' && <div>
+                                    <div className="font-medium text-muted-foreground">Date of Test</div>
+                                    <div>{(details as any).dateOfTest ? format(new Date((details as any).dateOfTest), 'PPP') : 'N/A'}</div>
+                                </div>}
                             </>}
                             <div><div className="font-medium text-muted-foreground">Job Location</div><div>{report.jobLocation}</div></div>
                             <div><div className="font-medium text-muted-foreground">Date of Creation</div><div>{report.creationDate ? format(new Date(report.creationDate), 'PPP') : 'N/A'}</div></div>
-                            <div><div className="font-medium text-muted-foreground">Report Number</div><div>{report.reportNumber}</div></div>
                             <div><div className="font-medium text-muted-foreground">Line Type</div><div>{report.lineType}</div></div>
                             {creator && <div><div className="font-medium text-muted-foreground">Created By</div><div>{`${creator.actorName} (${creator.actorRole})`}</div></div>}
                         </CardContent>

@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { FileText, Eye, Download } from 'lucide-react';
 import { getFileNameFromDataUrl } from '@/lib/utils';
+import { format } from 'date-fns';
 
 type DocumentToView = {
     url: string;
@@ -16,9 +17,10 @@ type DocumentToView = {
 type QmsReportDetailsViewProps = {
     details: FlashReportDetails | OtherReportDetails;
     setDocumentToView: (doc: DocumentToView) => void;
+    report: { reportNumber: string };
 };
 
-export function QmsReportDetailsView({ details, setDocumentToView }: QmsReportDetailsViewProps) {
+export function QmsReportDetailsView({ details, setDocumentToView, report }: QmsReportDetailsViewProps) {
     
     const downloadFile = (url: string, fileName: string) => {
         const link = document.createElement('a');
@@ -39,6 +41,11 @@ export function QmsReportDetailsView({ details, setDocumentToView }: QmsReportDe
                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                     {isFlashReport && (
                         <>
+                            <div><div className="font-medium text-muted-foreground">Report Number</div><div>{details.reportNumber}</div></div>
+                            <div>
+                                <div className="font-medium text-muted-foreground">Inspection Date</div>
+                                <div>{details.inspectionDate ? format(new Date(details.inspectionDate), 'PPP') : 'N/A'}</div>
+                            </div>
                             <div><div className="font-medium text-muted-foreground">Inspection Item</div><div>{details.inspectionItem}</div></div>
                             <div><div className="font-medium text-muted-foreground">Quantity</div><div>{details.quantity}</div></div>
                             <div><div className="font-medium text-muted-foreground">Manufacturer/Vendor</div><div>{details.vendorName}</div></div>
