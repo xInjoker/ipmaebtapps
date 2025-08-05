@@ -105,7 +105,7 @@ export function ProjectAiSummary({ project, totalCost, totalIncome, progress }: 
         <CardTitle>AI Summary & Analysis</CardTitle>
         <CardDescription>Automated insights based on project data.</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="h-[400px] overflow-y-auto">
         {renderContent()}
       </CardContent>
     </Card>
