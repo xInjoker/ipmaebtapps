@@ -30,7 +30,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProjectBranchChart } from '@/components/project-branch-chart';
 import { HeaderCard } from '@/components/header-card';
 import { DashboardWidget } from '@/components/dashboard-widget';
-import { ProjectTargetRealizationChart } from '@/components/project-target-realization-chart';
 import { CumulativeProfitChart } from '@/components/cumulative-profit-chart';
 import { CumulativeCostPieChart } from '@/components/cumulative-cost-pie-chart';
 import { CumulativeIncomePieChart } from '@/components/cumulative-income-pie-chart';
@@ -66,7 +65,7 @@ export default function ProjectsPage() {
                           project.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           project.contractNumber.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const branchMatch = branchFilter === 'all' || project.branchId === branchFilter;
+      const branchMatch = branchFilter === 'all' || project.branchId === branchMatch;
 
       return searchMatch && branchMatch;
     });
@@ -263,7 +262,6 @@ export default function ProjectsPage() {
                 </div>
                 <CumulativeProfitChart projects={visibleProjects} />
                 <ProjectBranchChart projects={visibleProjects} branches={branches} />
-                <ProjectTargetRealizationChart projects={visibleProjects} />
             </div>
         </TabsContent>
         <TabsContent value="list">

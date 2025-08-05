@@ -52,7 +52,6 @@ import { ProjectServiceOrderChart } from '@/components/project-service-order-cha
 import { ApprovalWorkflowManager } from '@/components/project-approval-workflow';
 import { useAuth } from '@/context/AuthContext';
 import type { ApprovalStage, Project } from '@/lib/projects';
-import { ProjectTargetRealizationChart } from '@/components/project-target-realization-chart';
 import { ProjectCostPieChart } from '@/components/project-cost-pie-chart';
 import { ProjectIncomePieChart } from '@/components/project-income-pie-chart';
 import { ProjectServiceOrderTab } from '@/components/project-service-order-tab';
@@ -82,7 +81,6 @@ export default function ProjectDetailsPage() {
     costPie: useRef<HTMLDivElement>(null),
     profit: useRef<HTMLDivElement>(null),
     so: useRef<HTMLDivElement>(null),
-    target: useRef<HTMLDivElement>(null),
     recap: useRef<HTMLDivElement>(null),
     budget: useRef<HTMLDivElement>(null),
   };
@@ -632,11 +630,8 @@ export default function ProjectDetailsPage() {
               <h3 className="font-semibold text-lg">Overall Financial Health</h3>
               <Separator />
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
-                  <div ref={chartRefs.profit}>
+                  <div ref={chartRefs.profit} className="lg:col-span-2">
                       <ProjectProfitChart project={project} />
-                  </div>
-                  <div ref={chartRefs.target} className="lg:col-span-1">
-                      <ProjectTargetRealizationChart projects={[project]} />
                   </div>
               </div>
             </div>
@@ -697,6 +692,3 @@ export default function ProjectDetailsPage() {
     </div>
   );
 }
-
-
-
