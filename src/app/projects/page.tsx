@@ -34,14 +34,18 @@ import { CumulativeProfitChart } from '@/components/cumulative-profit-chart';
 import { CumulativeCostPieChart } from '@/components/cumulative-cost-pie-chart';
 import { CumulativeIncomePieChart } from '@/components/cumulative-income-pie-chart';
 import { ProjectMonthlyRecapChart } from '@/components/project-monthly-recap-chart';
+import { useSearchParams } from 'next/navigation';
 
 export default function ProjectsPage() {
   const { projects, getProjectStats } = useProjects();
   const { user, isHqUser, branches, userHasPermission } = useAuth();
   const initialFilterSet = useRef(false);
+  const searchParams = useSearchParams();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [branchFilter, setBranchFilter] = useState('all');
+  
+  const defaultTab = searchParams.get('tab') || 'summary';
 
   useEffect(() => {
     if (user && !isHqUser && !initialFilterSet.current) {
@@ -251,7 +255,7 @@ export default function ProjectsPage() {
         </CardContent>
       </Card>
 
-      <Tabs defaultValue="summary" className="w-full space-y-4">
+      <Tabs defaultValue={defaultTab} className="w-full space-y-4">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="summary"><BarChartBig className="mr-2 h-4 w-4" />Financial Summary</TabsTrigger>
           <TabsTrigger value="list"><List className="mr-2 h-4 w-4" />Project List</TabsTrigger>
@@ -348,4 +352,3 @@ export default function ProjectsPage() {
     </div>
   );
 }
-

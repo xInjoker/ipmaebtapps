@@ -441,7 +441,7 @@ export default function ProjectDetailsPage() {
         <CardHeader className="flex flex-row items-center justify-between gap-4 z-10 relative">
           <div className="flex items-center gap-4">
             <Button asChild variant="secondary" size="icon">
-              <Link href="/projects">
+              <Link href="/projects?tab=list">
                 <ArrowLeft />
                 <span className="sr-only">Back</span>
               </Link>
@@ -609,13 +609,13 @@ export default function ProjectDetailsPage() {
             </div>
 
             <div className="space-y-4">
-                <h3 className="font-semibold text-lg">Monthly Performance</h3>
-                <Separator />
-                <div className="grid grid-cols-1 gap-6 mt-4">
-                    <div ref={chartRefs.recap}>
+              <h3 className="font-semibold text-lg">Monthly Performance</h3>
+              <Separator />
+              <div className="grid grid-cols-1 gap-6 mt-4">
+                  <div ref={chartRefs.recap}>
                     <ProjectMonthlyRecapChart data={monthlyRecapData} />
-                    </div>
-                </div>
+                  </div>
+              </div>
             </div>
 
             <div className="space-y-4">
@@ -690,4 +690,3 @@ export default function ProjectDetailsPage() {
     </div>
   );
 }
-
