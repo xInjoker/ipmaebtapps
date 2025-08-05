@@ -115,7 +115,7 @@ export default function OtherMethodsListPage() {
     <>
       <div className="space-y-6">
         <HeaderCard
-            title="Other Methods Reports"
+            title="Inspection Reports (QMS)"
             description="View and manage all other methods reports."
         >
             <Button asChild>
@@ -195,7 +195,7 @@ export default function OtherMethodsListPage() {
                       ) : (
                         <TableRow>
                             <TableCell colSpan={6} className="h-24 text-center">
-                                No other methods reports found.
+                                No inspection reports found.
                             </TableCell>
                         </TableRow>
                       )}
