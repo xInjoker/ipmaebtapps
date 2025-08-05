@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Printer } from 'lucide-react';
+import { ArrowLeft, Printer, FileText, Download, Eye } from 'lucide-react';
 import { format } from 'date-fns';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
@@ -20,7 +20,8 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import type { UserOptions, CellHookData } from 'jspdf-autotable';
 import { useAuth } from '@/context/AuthContext';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, getFileNameFromDataUrl } from '@/lib/utils';
+import { DocumentViewerDialog } from '@/components/document-viewer-dialog';
 
 
 // Extend jsPDF with autoTable
@@ -28,6 +29,10 @@ interface jsPDFWithAutoTable extends jsPDF {
   autoTable: (options: UserOptions) => jsPDF;
 }
 
+type DocumentToView = {
+    url: string;
+    name: string;
+}
 
 // --- Reusable Image Gallery ---
 const ImageGallery = ({ allImages }: { allImages: { url: string, jointNo: string, weldId: string }[] }) => {
@@ -76,20 +81,57 @@ const ImageGallery = ({ allImages }: { allImages: { url: string, jointNo: string
     );
 };
 
-const FlashReportDetailsView = ({ details }: { details: FlashReportDetails }) => (
-    <Card>
-        <CardHeader><CardTitle>Inspection Details</CardTitle></CardHeader>
-        <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-            <div><div className="font-medium text-muted-foreground">Inspection Item</div><div>{details.inspectionItem}</div></div>
-            <div><div className="font-medium text-muted-foreground">Quantity</div><div>{details.quantity}</div></div>
-            <div><div className="font-medium text-muted-foreground">Manufacturer/Vendor</div><div>{details.vendorName}</div></div>
-            <div><div className="font-medium text-muted-foreground">Inspector Name</div><div>{details.inspectorName}</div></div>
-            <div><div className="font-medium text-muted-foreground">Location (City)</div><div>{details.locationCity}</div></div>
-            <div><div className="font-medium text-muted-foreground">Location (Province)</div><div>{details.locationProvince}</div></div>
-            <div className="col-span-full"><div className="font-medium text-muted-foreground">Item Description</div><div className="whitespace-pre-wrap">{details.itemDescription}</div></div>
-        </CardContent>
-    </Card>
-);
+const FlashReportDetailsView = ({ details, setDocumentToView }: { details: FlashReportDetails, setDocumentToView: (doc: DocumentToView) => void; }) => {
+    
+    const downloadFile = (url: string, fileName: string) => {
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fileName || 'download';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    return (
+        <>
+        <Card>
+            <CardHeader><CardTitle>Inspection Details</CardTitle></CardHeader>
+            <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                <div><div className="font-medium text-muted-foreground">Inspection Item</div><div>{details.inspectionItem}</div></div>
+                <div><div className="font-medium text-muted-foreground">Quantity</div><div>{details.quantity}</div></div>
+                <div><div className="font-medium text-muted-foreground">Manufacturer/Vendor</div><div>{details.vendorName}</div></div>
+                <div><div className="font-medium text-muted-foreground">Inspector Name</div><div>{details.inspectorName}</div></div>
+                <div><div className="font-medium text-muted-foreground">Location (City)</div><div>{details.locationCity}</div></div>
+                <div><div className="font-medium text-muted-foreground">Location (Province)</div><div>{details.locationProvince}</div></div>
+                <div className="col-span-full"><div className="font-medium text-muted-foreground">Item Description</div><div className="whitespace-pre-wrap">{details.itemDescription}</div></div>
+            </CardContent>
+        </Card>
+        {(details.documentUrls && details.documentUrls.length > 0) && (
+            <Card>
+                <CardHeader><CardTitle>Attachments</CardTitle></CardHeader>
+                <CardContent className="space-y-2">
+                    {details.documentUrls.map((url, index) => {
+                        const name = getFileNameFromDataUrl(url) || `Document ${index + 1}`;
+                        return (
+                             <div key={index} className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
+                                <div className="flex items-center gap-2 truncate">
+                                    <FileText className="h-4 w-4 flex-shrink-0" />
+                                    <span className="text-sm truncate">{name}</span>
+                                </div>
+                                <div>
+                                    <Button variant="ghost" size="sm" onClick={() => setDocumentToView({ url, name })}><Eye className="mr-2 h-4 w-4" />View</Button>
+                                    <Button variant="ghost" size="icon" onClick={() => downloadFile(url, name)}><Download className="h-4 w-4" /></Button>
+                                </div>
+                            </div>
+                        )
+                    })}
+                </CardContent>
+            </Card>
+        )}
+        </>
+    )
+};
+
 
 // --- Detail Components Refactored ---
 
@@ -393,6 +435,7 @@ export default function ReportDetailsPage() {
     const { reports } = useReports();
     const { users } = useAuth();
     const [report, setReport] = useState<ReportItem | null>(null);
+    const [documentToView, setDocumentToView] = useState<DocumentToView | null>(null);
     const logoUrl = 'https://placehold.co/120x60.png';
     // Base64 for a simple 100x100 grey placeholder with a border
     const placeholderImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAMAAABHPGVmAAAAAXNSR0IB2cksfwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAB5QTFRF////bW1tgICAlZWVjo6OioqKh4eHd3d3dXV1fX19rI1EEgAAAAd0Uk5T/wD/AP8A/wD/AP8A2I/eKwAAAMdJREFUeJzt1ssRwyAMBEFUIbL//+mGSDuIJAk2eJ9kG8IuZVme5wV04sSJEydOnDhx4sSJEycuGZ1t249oeN5/b9s2D7j+4dG2fQ/Y9b+3bdu3gG1/2rZtXwG2/W/btm1fALb9adq2/QfY9pdt2/YfYNN/Jm3bnwJ2/WPaNn8N2PWXats8Auy6/2rbXAWs+sW0bS8CVn0sbcsuYNYX0rJsD/7qg6RIkuSYJEmSJClJkpEkSZIkSZIkyT8LfAFTGxgwB8s98gAAAABJRU5ErkJggg==';
@@ -662,6 +705,7 @@ export default function ReportDetailsPage() {
     const ReportComponents = details?.jobType ? reportTypeMap[details.jobType] : null;
 
     return (
+        <>
         <div className="space-y-6">
              <Card>
                 <CardHeader>
@@ -707,22 +751,26 @@ export default function ReportDetailsPage() {
                             {creator && <div><div className="font-medium text-muted-foreground">Created By</div><div>{`${creator.actorName} (${creator.actorRole})`}</div></div>}
                         </CardContent>
                     </Card>
-                    {ReportComponents && 'DetailsCard' in ReportComponents && <ReportComponents.DetailsCard details={details as any} />}
+                    {ReportComponents && 'DetailsCard' in ReportComponents && (
+                        details.jobType === 'Flash Report' 
+                        ? <FlashReportDetailsView details={details as FlashReportDetails} setDocumentToView={setDocumentToView} />
+                        : <ReportComponents.DetailsCard details={details as any} />
+                    )}
                 </div>
 
-                {ReportComponents && 'ResultsView' in ReportComponents ? (
+                {ReportComponents && 'ResultsView' in ReportComponents && report.jobType !== 'Flash Report' ? (
                     <ReportComponents.ResultsView details={details as any} />
-                ) : (
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Test Results</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div>This report type does not have a detailed result view implemented yet.</div>
-                        </CardContent>
-                    </Card>
-                )}
+                ) : null}
             </div>
         </div>
+        {documentToView && (
+            <DocumentViewerDialog
+                isOpen={!!documentToView}
+                onOpenChange={(isOpen) => !isOpen && setDocumentToView(null)}
+                documentUrl={documentToView.url}
+                documentName={documentToView.name}
+            />
+        )}
+        </>
     );
 }

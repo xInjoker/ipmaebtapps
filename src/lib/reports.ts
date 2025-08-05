@@ -71,6 +71,7 @@ export type FlashReportDetails = {
     inspectorName: string;
     locationCity: string;
     locationProvince: string;
+    documentUrls?: string[];
 };
 
 

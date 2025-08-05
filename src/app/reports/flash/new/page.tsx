@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { ArrowLeft, Calendar as CalendarIcon, Save } from 'lucide-react';
+import { ArrowLeft, Calendar as CalendarIcon, Save, Upload, File as FileIcon, X } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -20,7 +20,9 @@ import { useProjects } from '@/context/ProjectContext';
 import { useAuth } from '@/context/AuthContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useReports } from '@/context/ReportContext';
-import type { ReportItem, FlashReportDetails } from '@/lib/reports';
+import type { ReportItem, FlashReportDetails, ReportStatus } from '@/lib/reports';
+import { Separator } from '@/components/ui/separator';
+
 
 export default function NewFlashReportPage() {
     const router = useRouter();
@@ -40,6 +42,8 @@ export default function NewFlashReportPage() {
     const [inspectorName, setInspectorName] = useState('');
     const [locationCity, setLocationCity] = useState('');
     const [locationProvince, setLocationProvince] = useState('');
+    const [status, setStatus] = useState<ReportStatus>('Submitted');
+    const [documents, setDocuments] = useState<File[]>([]);
     
     const visibleProjects = useMemo(() => {
         if (isHqUser) return projects;
@@ -59,6 +63,17 @@ export default function NewFlashReportPage() {
             }
         }
     };
+    
+    const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) {
+            setDocuments(prev => [...prev, ...Array.from(e.target.files!)]);
+        }
+    }, []);
+
+    const removeDocument = useCallback((index: number) => {
+        setDocuments(prev => prev.filter((_, i) => i !== index));
+    }, []);
+
 
     const handleSave = useCallback(async () => {
         if (!reportNumber || !inspectionDate || !inspectionItem || !quantity || !user) {
@@ -70,7 +85,7 @@ export default function NewFlashReportPage() {
             return;
         }
 
-        const reportDetails: FlashReportDetails = {
+        const reportDetails: Omit<FlashReportDetails, 'documentUrls'> & { documents: File[] } = {
             jobType: 'Flash Report',
             project: project === 'Non Project' ? undefined : project,
             client,
@@ -83,17 +98,18 @@ export default function NewFlashReportPage() {
             inspectorName,
             locationCity,
             locationProvince,
+            documents: documents,
         };
 
-        const newReport: Omit<ReportItem, 'id' | 'details'> & { details: FlashReportDetails } = {
+        const newReport: Omit<ReportItem, 'id' | 'details'> & { details: typeof reportDetails } = {
             reportNumber,
             jobLocation: `${locationCity}, ${locationProvince}`,
             lineType: 'Flash Report',
             jobType: 'Flash Report',
             qtyJoint: Number(quantity),
-            status: 'Submitted',
+            status: status,
             creationDate: format(new Date(), 'yyyy-MM-dd'),
-            approvalHistory: [{ actorName: user.name, actorRole: roles.find(r => r.id === user.roleId)?.name || 'N/A', status: 'Submitted', timestamp: new Date().toISOString(), comments: 'Flash report created.' }],
+            approvalHistory: [{ actorName: user.name, actorRole: roles.find(r => r.id === user.roleId)?.name || 'N/A', status: status, timestamp: new Date().toISOString(), comments: 'Flash report created.' }],
             details: reportDetails,
         };
 
@@ -107,6 +123,7 @@ export default function NewFlashReportPage() {
     }, [
         project, client, reportNumber, inspectionDate, inspectionItem, quantity,
         itemDescription, vendorName, inspectorName, locationCity, locationProvince,
+        status, documents,
         user, addReport, toast, router, roles
     ]);
 
@@ -193,6 +210,44 @@ export default function NewFlashReportPage() {
                      <div className="space-y-2">
                         <Label htmlFor="locationProvince">Inspection Location (Province)</Label>
                         <Input id="locationProvince" value={locationProvince} onChange={e => setLocationProvince(e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="status">Status</Label>
+                        <Select value={status} onValueChange={(value: ReportStatus) => setStatus(value)}>
+                            <SelectTrigger id="status"><SelectValue placeholder="Select status" /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="Draft">Draft</SelectItem>
+                                <SelectItem value="Submitted">Submitted</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                        <Label>Attachments</Label>
+                        <div className="flex items-center justify-center w-full">
+                            <label htmlFor="document-upload" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-card hover:bg-muted">
+                                <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                    <Upload className="w-8 h-8 mb-3 text-muted-foreground" />
+                                    <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> or drag and drop</p>
+                                    <p className="text-xs text-muted-foreground">Any file type</p>
+                                </div>
+                                <Input id="document-upload" type="file" className="hidden" multiple onChange={handleFileChange} />
+                            </label>
+                        </div>
+                        {documents.length > 0 && (
+                            <div className="mt-4 space-y-2">
+                                {documents.map((file, index) => (
+                                <div key={index} className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
+                                    <div className="flex items-center gap-2 truncate">
+                                        <FileIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                        <span className="text-sm truncate">{file.name}</span>
+                                    </div>
+                                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeDocument(index)}>
+                                        <X className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </CardContent>
                 <CardFooter className="flex justify-end gap-2">
