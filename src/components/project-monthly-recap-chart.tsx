@@ -55,29 +55,29 @@ type ProjectMonthlyRecapChartProps = {
 const incomeChartConfig: ChartConfig = {
     paid: {
         label: 'Paid',
-        color: 'hsl(217 91% 60%)',
+        color: 'hsl(var(--primary))',
     },
     invoiced: {
         label: 'Invoiced',
-        color: 'hsl(217 91% 60%)',
+        color: 'hsl(var(--primary))',
     },
     pad: {
         label: 'PAD',
-        color: 'hsl(217 91% 60%)',
+        color: 'hsl(var(--primary))',
     },
     documentPreparation: {
         label: 'Doc Prep',
-        color: 'hsl(217 91% 60%)',
+        color: 'hsl(var(--primary))',
     },
 };
 
 const costChartConfig: ChartConfig = {
-    'Tenaga Ahli dan Labour Supply': { label: 'TA & LS', color: 'hsl(340 85% 65%)' }, 
-    'Operasional': { label: 'Operasional', color: 'hsl(340 85% 65%)' }, 
-    'Perjalanan Dinas': { label: 'Perdin', color: 'hsl(340 85% 65%)' }, 
-    'Fasilitas dan Interen': { label: 'Fasilitas', color: 'hsl(340 85% 65%)' },
-    'Promosi': { label: 'Promosi', color: 'hsl(340 85% 65%)' },
-    'Other': { label: 'Other', color: 'hsl(340 85% 65%)' },
+    'Tenaga Ahli dan Labour Supply': { label: 'TA & LS', color: 'hsl(var(--warning))' }, 
+    'Operasional': { label: 'Operasional', color: 'hsl(var(--warning))' }, 
+    'Perjalanan Dinas': { label: 'Perdin', color: 'hsl(var(--warning))' }, 
+    'Fasilitas dan Interen': { label: 'Fasilitas', color: 'hsl(var(--warning))' },
+    'Promosi': { label: 'Promosi', color: 'hsl(var(--warning))' },
+    'Other': { label: 'Other', color: 'hsl(var(--warning))' },
 };
 
 const chartConfig: ChartConfig = { ...incomeChartConfig, ...costChartConfig };
