@@ -34,8 +34,7 @@ import {
 } from '@/components/ui/dialog';
 import { useState, useMemo, useEffect } from 'react';
 import { Expand } from 'lucide-react';
-import { formatCurrency, formatCurrencyCompact } from '@/lib/utils';
-import { cn } from '@/lib/utils';
+import { formatCurrencyCompact } from '@/lib/utils';
 import { Separator } from './ui/separator';
 
 

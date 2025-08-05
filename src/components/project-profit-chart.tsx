@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Label, Cell } from 'recharts';
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Cell } from 'recharts';
 import {
   ChartContainer,
   ChartTooltip,
@@ -11,7 +11,7 @@ import {
 import { useMemo, useState } from 'react';
 import type { Project } from '@/lib/projects';
 import { formatCurrencyCompact } from '@/lib/utils';
-import { addMonths, format as formatDate, parse } from 'date-fns';
+import { parse, format as formatDate } from 'date-fns';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 
@@ -23,7 +23,6 @@ type ProjectProfitChartProps = {
 const chartConfig: ChartConfig = {
   profit: {
     label: 'Profit',
-    color: 'hsl(var(--chart-1))',
   },
 };
 

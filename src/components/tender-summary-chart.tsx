@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/chart';
 import { useMemo, useState } from 'react';
 import type { Tender, TenderStatus } from '@/lib/tenders';
-import { formatCurrency, formatCurrencyCompact, formatCurrencyMillions } from '@/lib/utils';
+import { formatCurrencyCompact, formatCurrencyMillions } from '@/lib/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './ui/select';
 

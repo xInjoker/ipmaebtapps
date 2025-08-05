@@ -3,14 +3,9 @@
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,7 +28,6 @@ type DashboardStats = {
 };
 
 export default function EquipmentPage() {
-  useSearchParams();
   const { branches, userHasPermission } = useAuth();
   const { equipmentList, isLoading } = useEquipment();
 

@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Cell } from 'recharts';
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Cell } from 'recharts';
 import {
   ChartContainer,
   ChartTooltip,
@@ -13,7 +13,7 @@ import {
 import { useMemo, useState } from 'react';
 import type { Tender, TenderStatus } from '@/lib/tenders';
 import type { Branch } from '@/lib/users';
-import { formatCurrency, formatCurrencyCompact, formatCurrencyMillions } from '@/lib/utils';
+import { formatCurrencyCompact, formatCurrencyMillions } from '@/lib/utils';
 import { tenderStatuses } from '@/lib/tenders';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';

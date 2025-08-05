@@ -3,13 +3,11 @@
 
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
-  CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -83,8 +81,7 @@ const allEmployeeFields = Object.keys(employeeFieldLabels) as (keyof Employee)[]
 
 export default function EmployeesPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const { employees, addEmployee, deleteEmployee, isLoading, updateEmployee } = useEmployees();
+  const { employees, deleteEmployee, isLoading, updateEmployee } = useEmployees();
   const { user, isHqUser, userHasPermission, branches } = useAuth();
   const { projects } = useProjects();
   const { toast } = useToast();
@@ -222,19 +219,6 @@ export default function EmployeesPage() {
     setIsDeleteDialogOpen(false);
     setEmployeeToDelete(null);
   }, [employeeToDelete, deleteEmployee, toast]);
-
-  const handleImport = useCallback((importedEmployees: Omit<Employee, 'id'>[]) => {
-    importedEmployees.forEach((emp) => {
-      const newId = `EMP-${Date.now()}-${Math.random()
-        .toString(36)
-        .substring(2, 7)}`;
-      // addEmployee({ ...emp, id: newId });
-    });
-    toast({
-      title: 'Import Successful',
-      description: `${importedEmployees.length} employees have been added.`,
-    });
-  }, [toast]);
 
   const handleExport = useCallback((format: 'excel' | 'pdf') => {
     const dataToExport = filteredEmployees.map((emp) => {
@@ -455,7 +439,6 @@ export default function EmployeesPage() {
                     ))
                   ) : filteredEmployees.length > 0 ? (
                     filteredEmployees.map((employee) => {
-                        const manager = employees.find(e => e.id === employee.reportingManagerId);
                         return (
                       <TableRow key={employee.id}>
                         <TableCell className="font-medium">

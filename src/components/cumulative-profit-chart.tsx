@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Label, Cell } from 'recharts';
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Cell } from 'recharts';
 import {
   ChartContainer,
   ChartTooltip,
@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/chart';
 import { useMemo, useState } from 'react';
 import type { Project } from '@/lib/projects';
-import { formatCurrencyCompact, formatCurrencyMillions } from '@/lib/utils';
+import { formatCurrencyCompact } from '@/lib/utils';
 import { parse, format as formatDate } from 'date-fns';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
@@ -121,7 +121,7 @@ export function CumulativeProfitChart({ projects }: CumulativeProfitChartProps) 
             <CartesianGrid strokeDasharray="3 3" vertical={false} />
             <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={10} />
             <YAxis
-                tickFormatter={(value) => formatCurrencyMillions(Number(value))}
+                tickFormatter={(value) => formatCurrencyCompact(Number(value))}
             />
             <ChartTooltip
               content={<ChartTooltipContent
