@@ -64,7 +64,6 @@ export function QmsReportDetailsView({ details, setDocumentToView, report }: Qms
                                     {details.startDate ? format(new Date(details.startDate), 'PPP') : 'N/A'} - {details.endDate ? format(new Date(details.endDate), 'PPP') : 'N/A'}
                                 </div>
                              </div>
-                             <div><div className="font-medium text-muted-foreground">Project</div><div>{details.project || 'N/A'}</div></div>
                             <div><div className="font-medium text-muted-foreground">Equipment/Material</div><div>{details.equipmentMaterial}</div></div>
                             <div><div className="font-medium text-muted-foreground">Inspector</div><div>{details.inspector}</div></div>
                             <div><div className="font-medium text-muted-foreground">Travel</div><div>{details.travelType}</div></div>
