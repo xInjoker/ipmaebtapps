@@ -61,6 +61,7 @@ import 'jspdf-autotable';
 import html2canvas from 'html2canvas';
 import { DashboardWidget } from '@/components/dashboard-widget';
 import { format } from 'date-fns';
+import { ProjectAiSummary } from '@/components/project-ai-summary';
 
 
 // Extend jsPDF with autoTable
@@ -617,21 +618,27 @@ export default function ProjectDetailsPage() {
             </div>
 
             <div className="space-y-4">
+                <h3 className="font-semibold text-lg">Overall Financial Health</h3>
+                <Separator />
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
+                    <div ref={chartRefs.profit}>
+                        <ProjectProfitChart project={project} />
+                    </div>
+                    <ProjectAiSummary
+                        project={project}
+                        totalCost={totalCost}
+                        totalIncome={totalIncome}
+                        progress={progress}
+                    />
+                </div>
+            </div>
+
+            <div className="space-y-4">
               <h3 className="font-semibold text-lg">Monthly Performance</h3>
               <Separator />
               <div className="grid grid-cols-1 gap-6 mt-4">
                   <div ref={chartRefs.recap}>
                     <ProjectMonthlyRecapChart data={monthlyRecapData} />
-                  </div>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <h3 className="font-semibold text-lg">Overall Financial Health</h3>
-              <Separator />
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
-                  <div ref={chartRefs.profit} className="lg:col-span-2">
-                      <ProjectProfitChart project={project} />
                   </div>
               </div>
             </div>
@@ -692,3 +699,4 @@ export default function ProjectDetailsPage() {
     </div>
   );
 }
+
