@@ -115,6 +115,7 @@ export function SidebarNav() {
         { href: '/reports/ultrasonic', label: 'Ultrasonic Test' },
         { href: '/reports/radiographic', label: 'Radiographic Test' },
         { href: '/reports/other', label: 'Other Methods' },
+        { href: '/reports/flash', label: 'Flash Report' },
       ],
       isCollapsible: true,
     },
@@ -158,7 +159,7 @@ export function SidebarNav() {
             : pathname.startsWith(item.href) && item.href !== '/reports';
 
         const areSubItemsActive =
-          item.subItems?.some((sub: { href: string }) => pathname === sub.href) ??
+          item.subItems?.some((sub: { href: string }) => pathname.startsWith(sub.href)) ??
           false;
 
         const isActive =
@@ -203,7 +204,7 @@ export function SidebarNav() {
                       <SidebarMenuSubItem key={subItem.href}>
                         <SidebarMenuSubButton
                           asChild
-                          isActive={pathname === subItem.href}
+                          isActive={pathname.startsWith(subItem.href)}
                         >
                           <Link href={subItem.href}>
                             <span>{subItem.label}</span>
