@@ -7,7 +7,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import NextImage from 'next/image';
 import { useReports } from '@/context/ReportContext';
-import { type ReportItem, type ReportDetails, RadiographicFinding, PenetrantTestReportDetails, MagneticParticleTestReportDetails, UltrasonicTestReportDetails, RadiographicTestReportDetails } from '@/lib/reports';
+import { type ReportItem, type ReportDetails, RadiographicFinding, PenetrantTestReportDetails, MagneticParticleTestReportDetails, UltrasonicTestReportDetails, RadiographicTestReportDetails, FlashReportDetails } from '@/lib/reports';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -75,6 +75,21 @@ const ImageGallery = ({ allImages }: { allImages: { url: string, jointNo: string
         </Card>
     );
 };
+
+const FlashReportDetailsView = ({ details }: { details: FlashReportDetails }) => (
+    <Card>
+        <CardHeader><CardTitle>Inspection Details</CardTitle></CardHeader>
+        <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+            <div><div className="font-medium text-muted-foreground">Inspection Item</div><div>{details.inspectionItem}</div></div>
+            <div><div className="font-medium text-muted-foreground">Quantity</div><div>{details.quantity}</div></div>
+            <div><div className="font-medium text-muted-foreground">Manufacturer/Vendor</div><div>{details.vendorName}</div></div>
+            <div><div className="font-medium text-muted-foreground">Inspector Name</div><div>{details.inspectorName}</div></div>
+            <div><div className="font-medium text-muted-foreground">Location (City)</div><div>{details.locationCity}</div></div>
+            <div><div className="font-medium text-muted-foreground">Location (Province)</div><div>{details.locationProvince}</div></div>
+            <div className="col-span-full"><div className="font-medium text-muted-foreground">Item Description</div><div className="whitespace-pre-wrap">{details.itemDescription}</div></div>
+        </CardContent>
+    </Card>
+);
 
 // --- Detail Components Refactored ---
 
@@ -363,6 +378,10 @@ const reportTypeMap = {
         DetailsCard: RadiographicTestDetailsCard,
         ResultsView: RadiographicTestResultsView,
     },
+    'Flash Report': {
+        DetailsCard: FlashReportDetailsView,
+        ResultsView: () => null, // Flash reports don't have a separate results table
+    },
 };
 
 // --- Main Page Component ---
@@ -412,8 +431,8 @@ export default function ReportDetailsPage() {
         // --- General Info Table ---
         const generalInfo = [
             ["Client", details.client, "Project", details.project],
-            ["Service Order", details.soNumber || 'N/A', "Job Location", report.jobLocation],
-            ["Date of Test", details.dateOfTest ? format(new Date(details.dateOfTest), 'PPP') : 'N/A', "Project Executor", details.projectExecutor],
+            ["Service Order", (details as any).soNumber || 'N/A', "Job Location", report.jobLocation],
+            ["Date of Test", (details as any).dateOfTest ? format(new Date((details as any).dateOfTest), 'PPP') : 'N/A', "Project Executor", (details as any).projectExecutor || 'N/A'],
         ];
         doc.autoTable({
             startY: finalY,
@@ -532,7 +551,7 @@ export default function ReportDetailsPage() {
         };
 
         // --- Image Section ---
-        const allImages = details.testResults?.flatMap((result: any) =>
+        const allImages = (details as any).testResults?.flatMap((result: any) =>
             (result.imageUrls || []).map((url: string) => ({
                 url,
                 caption: `Joint: ${result.jointNo} / Weld ID: ${result.weldId}`
@@ -630,7 +649,13 @@ export default function ReportDetailsPage() {
         );
     }
     
-    const backPath = report.jobType === 'Magnetic Particle Test' ? '/reports/magnetic' : report.jobType.split(' ')[0].toLowerCase().replace(/[^a-z]/g, '');
+    let backPath = '/reports';
+    if (report.jobType === 'Magnetic Particle Test') backPath = '/reports/magnetic';
+    else if (report.jobType === 'Penetrant Test') backPath = '/reports/penetrant';
+    else if (report.jobType === 'Ultrasonic Test') backPath = '/reports/ultrasonic';
+    else if (report.jobType === 'Radiographic Test') backPath = '/reports/radiographic';
+    else if (report.jobType === 'Flash Report') backPath = '/reports/flash';
+    
     const details = report.details;
     const creator = report.approvalHistory?.[0];
     
@@ -670,10 +695,10 @@ export default function ReportDetailsPage() {
                         <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                             {details && <>
                                 <div><div className="font-medium text-muted-foreground">Client</div><div>{details.client}</div></div>
-                                {details.soNumber && <div><div className="font-medium text-muted-foreground">Service Order</div><div>{details.soNumber}</div></div>}
-                                <div><div className="font-medium text-muted-foreground">Project Executor</div><div>{details.projectExecutor}</div></div>
-                                <div><div className="font-medium text-muted-foreground">Project</div><div>{details.project}</div></div>
-                                <div><div className="font-medium text-muted-foreground">Date of Test</div><div>{details.dateOfTest ? format(new Date(details.dateOfTest), 'PPP') : 'N/A'}</div></div>
+                                {details.jobType !== 'Flash Report' && <div><div className="font-medium text-muted-foreground">Service Order</div><div>{(details as any).soNumber || 'N/A'}</div></div>}
+                                {details.jobType !== 'Flash Report' && <div><div className="font-medium text-muted-foreground">Project Executor</div><div>{(details as any).projectExecutor}</div></div>}
+                                <div><div className="font-medium text-muted-foreground">Project</div><div>{details.project || 'N/A'}</div></div>
+                                <div><div className="font-medium text-muted-foreground">Date of Test</div><div>{(details as any).dateOfTest ? format(new Date((details as any).dateOfTest), 'PPP') : 'N/A'}</div></div>
                             </>}
                             <div><div className="font-medium text-muted-foreground">Job Location</div><div>{report.jobLocation}</div></div>
                             <div><div className="font-medium text-muted-foreground">Date of Creation</div><div>{report.creationDate ? format(new Date(report.creationDate), 'PPP') : 'N/A'}</div></div>

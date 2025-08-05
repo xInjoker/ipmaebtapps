@@ -57,6 +57,23 @@ export const coaToCategoryMap: Record<number, string> = {
     4900: 'Umum',
 };
 
+// --- Flash Report (QMS) ---
+export type FlashReportDetails = {
+    jobType: 'Flash Report';
+    project?: string;
+    client: string;
+    reportNumber: string;
+    inspectionDate: string;
+    inspectionItem: string;
+    quantity: number;
+    itemDescription: string;
+    vendorName: string;
+    inspectorName: string;
+    locationCity: string;
+    locationProvince: string;
+};
+
+
 // --- Penetrant Test (PT) ---
 export type PenetrantTestResult = {
     subjectIdentification: string;
@@ -257,7 +274,8 @@ export type ReportDetails =
     | PenetrantTestReportDetails 
     | MagneticParticleTestReportDetails 
     | UltrasonicTestReportDetails 
-    | RadiographicTestReportDetails;
+    | RadiographicTestReportDetails
+    | FlashReportDetails;
 
 
 export type ReportItem = {
@@ -265,7 +283,7 @@ export type ReportItem = {
     reportNumber: string;
     jobLocation: string;
     lineType: string;
-    jobType: 'Penetrant Test' | 'Magnetic Particle Test' | 'Ultrasonic Test' | 'Radiographic Test' | 'Other';
+    jobType: 'Penetrant Test' | 'Magnetic Particle Test' | 'Ultrasonic Test' | 'Radiographic Test' | 'Flash Report' | 'Other';
     qtyJoint: number;
     status: ReportStatus;
     details: ReportDetails | null;

@@ -1,7 +1,8 @@
 
+
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -18,12 +19,15 @@ import { Textarea } from '@/components/ui/textarea';
 import { useProjects } from '@/context/ProjectContext';
 import { useAuth } from '@/context/AuthContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useReports } from '@/context/ReportContext';
+import type { ReportItem, FlashReportDetails } from '@/lib/reports';
 
 export default function NewFlashReportPage() {
     const router = useRouter();
     const { toast } = useToast();
     const { projects } = useProjects();
-    const { user, isHqUser } = useAuth();
+    const { user, isHqUser, roles } = useAuth();
+    const { addReport } = useReports();
 
     const [project, setProject] = useState('');
     const [client, setClient] = useState('');
@@ -56,9 +60,8 @@ export default function NewFlashReportPage() {
         }
     };
 
-    const handleSave = () => {
-        // Basic validation
-        if (!reportNumber || !inspectionDate || !inspectionItem || !quantity) {
+    const handleSave = useCallback(async () => {
+        if (!reportNumber || !inspectionDate || !inspectionItem || !quantity || !user) {
             toast({
                 variant: 'destructive',
                 title: 'Missing Information',
@@ -67,26 +70,45 @@ export default function NewFlashReportPage() {
             return;
         }
 
-        console.log({
-            project,
+        const reportDetails: FlashReportDetails = {
+            jobType: 'Flash Report',
+            project: project === 'Non Project' ? undefined : project,
             client,
             reportNumber,
-            inspectionDate: inspectionDate ? format(inspectionDate, 'yyyy-MM-dd') : null,
+            inspectionDate: format(inspectionDate, 'yyyy-MM-dd'),
             inspectionItem,
-            quantity,
+            quantity: Number(quantity),
             itemDescription,
             vendorName,
             inspectorName,
             locationCity,
             locationProvince,
-        });
+        };
+
+        const newReport: Omit<ReportItem, 'id' | 'details'> & { details: FlashReportDetails } = {
+            reportNumber,
+            jobLocation: `${locationCity}, ${locationProvince}`,
+            lineType: 'Flash Report',
+            jobType: 'Flash Report',
+            qtyJoint: Number(quantity),
+            status: 'Submitted',
+            creationDate: format(new Date(), 'yyyy-MM-dd'),
+            approvalHistory: [{ actorName: user.name, actorRole: roles.find(r => r.id === user.roleId)?.name || 'N/A', status: 'Submitted', timestamp: new Date().toISOString(), comments: 'Flash report created.' }],
+            details: reportDetails,
+        };
+
+        await addReport(newReport as any); // Cast to any to bypass strict type checking, as addReport expects a union type
         
         toast({
-            title: 'Report Saved (Simulated)',
-            description: 'Flash Report data has been logged to the console.',
+            title: 'Report Saved',
+            description: 'Flash Report has been saved.',
         });
-        router.push('/reports');
-    };
+        router.push('/reports/flash');
+    }, [
+        project, client, reportNumber, inspectionDate, inspectionItem, quantity,
+        itemDescription, vendorName, inspectorName, locationCity, locationProvince,
+        user, addReport, toast, router, roles
+    ]);
 
     return (
         <div className="space-y-6">
