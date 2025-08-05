@@ -20,15 +20,9 @@ import { Camera, Upload, Signature, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { getInitials, getAvatarColor } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
-import { useEmployees } from '@/context/EmployeeContext';
-import { useInspectors } from '@/context/InspectorContext';
-import { EmployeeDetails } from '@/components/employee-details';
-import { InspectorDetails } from '@/components/inspector-details';
 
 export default function ProfilePage() {
   const { user, roles, updateUser } = useAuth();
-  const { employees } = useEmployees();
-  const { inspectors } = useInspectors();
   const { toast } = useToast();
 
   const [fullName, setFullName] = useState(user?.name || '');
@@ -37,10 +31,19 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (user) {
-      setFullName(user.name);
-      setSignature(user.signatureUrl || null);
+      if (document.activeElement !== document.getElementById('fullName')) {
+        setFullName(user.name);
+      }
+      if (!isEditing) {
+          setSignature(user.signatureUrl || null);
+      }
     }
-  }, [user]);
+  }, [user, isEditing]);
+  
+  const handleNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setFullName(e.target.value);
+    setIsEditing(true);
+  }, []);
 
   const handleSignatureUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -48,7 +51,7 @@ export default function ProfilePage() {
       const reader = new FileReader();
       reader.onloadend = () => {
         setSignature(reader.result as string);
-        setIsEditing(true); // Mark as editing when a new signature is uploaded
+        setIsEditing(true); 
       };
       reader.readAsDataURL(file);
     }
@@ -56,12 +59,12 @@ export default function ProfilePage() {
   
   const removeSignature = useCallback(() => {
       setSignature(null);
-      setIsEditing(true); // Mark as editing when signature is removed
+      setIsEditing(true);
   }, []);
 
   const handleSaveChanges = useCallback(() => {
     if (user) {
-      updateUser(user.id, { name: fullName, signatureUrl: signature || '' });
+      updateUser(user.id, { name: fullName, signatureUrl: signature || undefined });
       toast({
         title: 'Profile Updated',
         description: 'Your personal information has been saved.',
@@ -69,6 +72,14 @@ export default function ProfilePage() {
       setIsEditing(false);
     }
   }, [user, fullName, signature, updateUser, toast]);
+  
+  const handleCancel = useCallback(() => {
+    if (user) {
+        setFullName(user.name);
+        setSignature(user.signatureUrl || null);
+        setIsEditing(false);
+    }
+  }, [user]);
 
   if (!user) {
     return null; // Or a loading state
@@ -77,67 +88,46 @@ export default function ProfilePage() {
   const userRole = roles.find((r) => r.id === user.roleId);
   const avatarColor = getAvatarColor(user.name);
 
-  // --- Logic for Smart Profile ---
-  const employeeProfile = employees.find(e => e.email === user.email);
-  const inspectorProfile = inspectors.find(i => i.email === user.email);
-
-  const renderProfileDetails = () => {
-    if ((userRole?.id === 'employee' || userRole?.permissions.includes('manage-employees')) && employeeProfile) {
-      return <EmployeeDetails employee={employeeProfile} />;
-    }
-    if ((userRole?.id === 'inspector' || userRole?.permissions.includes('manage-inspectors')) && inspectorProfile) {
-      return <InspectorDetails inspector={inspectorProfile} />;
-    }
-    
-    // --- Default Profile Page for other roles ---
-    return (
+  return (
+    <div className="space-y-6">
         <Card>
             <CardHeader>
-                <CardTitle>Personal Information</CardTitle>
-                <CardDescription>
-                Update your personal details here. Click "Save Changes" to apply.
-                </CardDescription>
+                <div className="flex items-center gap-4">
+                    <Avatar className="h-16 w-16">
+                        <AvatarFallback style={{ backgroundColor: avatarColor.background, color: avatarColor.color }} className="text-2xl">
+                            {getInitials(user.name)}
+                        </AvatarFallback>
+                    </Avatar>
+                    <div>
+                        <CardTitle>My Profile</CardTitle>
+                        <CardDescription>
+                            Update your personal details here.
+                        </CardDescription>
+                    </div>
+                </div>
             </CardHeader>
             <CardContent className="space-y-4">
                 <div className="space-y-2">
-                <Label htmlFor="fullName">Full Name</Label>
-                <Input
-                    id="fullName"
-                    value={fullName}
-                    onChange={(e) => { setFullName(e.target.value); setIsEditing(true); }}
-                />
+                    <Label htmlFor="fullName">Full Name</Label>
+                    <Input id="fullName" value={fullName} onChange={handleNameChange} />
                 </div>
                 <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
-                <Input
-                    id="email"
-                    type="email"
-                    defaultValue={user.email}
-                    disabled
-                />
+                    <Label htmlFor="email">Email Address</Label>
+                    <Input id="email" type="email" value={user.email} disabled />
+                </div>
+                 <div className="space-y-2">
+                    <Label htmlFor="role">Role</Label>
+                    <Input id="role" value={userRole?.name || 'N/A'} disabled />
                 </div>
             </CardContent>
-            {(isEditing) && (
-                <CardFooter className="flex justify-end">
-                <Button onClick={handleSaveChanges}>Save Changes</Button>
-                </CardFooter>
-            )}
         </Card>
-    );
-  };
-  
-  const isDetailedProfile = (userRole?.id === 'employee' && employeeProfile) || (userRole?.id === 'inspector' && inspectorProfile);
-
-  return (
-    <div className="space-y-6">
-        {renderProfileDetails()}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
                 <CardHeader>
                     <CardTitle>Digital Signature</CardTitle>
                     <CardDescription>
-                    Upload an image of your signature.
+                    Upload an image of your signature for reports.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -167,39 +157,40 @@ export default function ProfilePage() {
                         <Input id="signature-upload" type="file" className="hidden" accept="image/png, image/jpeg" onChange={handleSignatureUpload} />
                     </label>
                 </CardContent>
-                 {(isEditing && !isDetailedProfile) && (
-                    <CardFooter className="flex justify-end">
-                        <Button onClick={handleSaveChanges}>Save Changes</Button>
-                    </CardFooter>
-                 )}
             </Card>
 
             <Card>
-            <CardHeader>
-                <CardTitle>Change Password</CardTitle>
-                <CardDescription>
-                Update your password. Make sure it's a strong one.
-                </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                <div className="space-y-2">
-                <Label htmlFor="currentPassword">Current Password</Label>
-                <Input id="currentPassword" type="password" />
-                </div>
-                <div className="space-y-2">
-                <Label htmlFor="newPassword">New Password</Label>
-                <Input id="newPassword" type="password" />
-                </div>
-                <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                <Input id="confirmPassword" type="password" />
-                </div>
-                <div className="flex justify-end">
-                <Button variant="secondary">Update Password</Button>
-                </div>
-            </CardContent>
+                <CardHeader>
+                    <CardTitle>Change Password</CardTitle>
+                    <CardDescription>
+                    Update your password. Make sure it's a strong one.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="currentPassword">Current Password</Label>
+                        <Input id="currentPassword" type="password" />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="newPassword">New Password</Label>
+                        <Input id="newPassword" type="password" />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                        <Input id="confirmPassword" type="password" />
+                    </div>
+                    <div className="flex justify-end">
+                        <Button variant="secondary">Update Password</Button>
+                    </div>
+                </CardContent>
             </Card>
         </div>
+         {isEditing && (
+            <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={handleCancel}>Cancel</Button>
+                <Button onClick={handleSaveChanges}>Save Changes</Button>
+            </div>
+         )}
     </div>
   );
 }
