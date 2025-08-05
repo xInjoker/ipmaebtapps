@@ -284,7 +284,6 @@ export default function ProjectsPage() {
                             </svg>
                             <div className="relative z-10">
                                 <CardTitle className="font-headline line-clamp-2">{project.name}</CardTitle>
-                                <CardDescription className="text-primary-foreground/90 line-clamp-2">{project.description}</CardDescription>
                             </div>
                         </CardHeader>
                         <CardContent className="flex-grow pt-6 space-y-4">
@@ -346,3 +345,4 @@ export default function ProjectsPage() {
     </div>
   );
 }
+
