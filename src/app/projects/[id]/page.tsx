@@ -587,7 +587,7 @@ export default function ProjectDetailsPage() {
           </CardContent>
         </Card>
       
-      <Tabs defaultValue="summary-charts" className="w-full">
+      <Tabs defaultValue="summary-charts" className="w-full mt-6">
         <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="summary-charts">
             <BarChartHorizontal className="mr-2 h-4 w-4" />
@@ -628,19 +628,19 @@ export default function ProjectDetailsPage() {
             </div>
 
             <div className="space-y-4">
-                <h3 className="font-semibold text-lg">Overall Financial Health</h3>
-                <Separator />
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
-                    <div ref={chartRefs.profit}>
-                        <ProjectProfitChart project={project} />
-                    </div>
-                    <ProjectAiSummary
-                        project={project}
-                        totalCost={totalCost}
-                        totalIncome={totalIncome}
-                        progress={progress}
-                    />
-                </div>
+              <h3 className="font-semibold text-lg">Overall Financial Health</h3>
+              <Separator />
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
+                  <div ref={chartRefs.profit}>
+                      <ProjectProfitChart project={project} />
+                  </div>
+                  <ProjectAiSummary
+                      project={project}
+                      totalCost={totalCost}
+                      totalIncome={totalIncome}
+                      progress={progress}
+                  />
+              </div>
             </div>
 
             <div className="space-y-4">
@@ -699,5 +699,3 @@ export default function ProjectDetailsPage() {
     </div>
   );
 }
-
-
