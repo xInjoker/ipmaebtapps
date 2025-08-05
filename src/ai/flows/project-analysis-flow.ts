@@ -42,6 +42,8 @@ const prompt = ai.definePrompt({
   output: { schema: ProjectAnalysisOutputSchema },
   prompt: `You are an expert project financial analyst. Analyze the following project data and provide a concise summary, key highlights, and actionable recommendations.
 
+Your analysis must mention the distribution of income and the top 3 highest cost categories, but should not be limited to only these aspects.
+
 Project Name: {{{name}}}
 Description: {{{description}}}
 Total Contract Value: {{{value}}}
@@ -51,7 +53,7 @@ Overall Progress: {{{progress}}}%
 Duration: {{{duration}}}
 
 Based on this data, provide:
-1.  A brief, insightful summary (one paragraph).
+1.  A brief, insightful summary (one paragraph) that includes income distribution and top cost categories.
 2.  3-4 key highlights (e.g., "Profit margin is strong", "Under budget so far").
 3.  3-4 actionable recommendations or concerns (e.g., "Cost overrun in operational category", "Accelerate invoicing for completed work").
 
@@ -70,4 +72,5 @@ const projectAnalysisFlow = ai.defineFlow(
     return output!;
   }
 );
+
 
