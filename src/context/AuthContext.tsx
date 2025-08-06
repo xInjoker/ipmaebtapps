@@ -207,7 +207,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     updateUser, updateUserRole, addRole, updateRole, deleteRole,
     userHasPermission, isHqUser, isInitializing, login, register, logout,
   }), [
-    isAuthenticated, user, users, roles, branches, 
+    isAuthenticated, user, users, roles, branches, permissions,
     updateUser, updateUserRole, addRole, updateRole, deleteRole, 
     userHasPermission, isHqUser, isInitializing, login, register, logout
   ]);
