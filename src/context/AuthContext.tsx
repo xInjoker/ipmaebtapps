@@ -59,7 +59,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
   
   const fetchData = useCallback(async () => {
-    setIsInitializing(true);
     try {
       const [usersSnap, rolesSnap, branchesSnap] = await Promise.all([
         getDocs(collection(db, 'users')),
@@ -67,9 +66,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         getDocs(collection(db, 'branches')),
       ]);
       const fetchedUsers = usersSnap.docs.map(doc => doc.data() as User);
+      const fetchedRoles = rolesSnap.docs.map(doc => doc.data() as Role);
+      const fetchedBranches = branchesSnap.docs.map(doc => doc.data() as Branch);
+
       setUsers(fetchedUsers);
-      setRoles(rolesSnap.docs.map(doc => doc.data() as Role));
-      setBranches(branchesSnap.docs.map(doc => doc.data() as Branch));
+      setRoles(fetchedRoles);
+      setBranches(fetchedBranches);
       
       const storedUserString = localStorage.getItem('user');
       if (storedUserString) {
@@ -84,8 +86,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error("Failed to fetch initial data from Firestore:", error);
       toast({ variant: 'destructive', title: 'Error', description: 'Could not connect to the database.' });
+    } finally {
+        setIsInitializing(false);
     }
-    setIsInitializing(false);
   }, [toast]);
 
   useEffect(() => {
@@ -232,3 +235,5 @@ export function useAuth() {
   }
   return context;
 }
+
+    
