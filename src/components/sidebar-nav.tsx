@@ -138,12 +138,6 @@ export function SidebarNav() {
       permission: 'manage-users',
     },
     {
-      href: '/seed-database',
-      label: 'Seed Database',
-      icon: DatabaseZap,
-      permission: 'super-admin', // Only super-admin should see this
-    },
-    {
       href: '/settings',
       label: 'Settings',
       icon: Settings,
