@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Popover, PopoverContent, PopoverTrigger, PopoverPortal } from '@/components/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Badge } from '@/components/ui/badge';
 import type { Project, ServiceOrderItem } from '@/lib/projects';
@@ -151,9 +151,7 @@ export function ProjectServiceOrderTab({ project, setProjects }: ProjectServiceO
     const dialogForm = useCallback((
         isEdit: boolean, 
         state: any, 
-        setter: (value: any) => void,
-        calendarOpenState: boolean,
-        setCalendarOpenState: (open: boolean) => void
+        setter: (value: any) => void
     ) => (
         <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
@@ -162,7 +160,7 @@ export function ProjectServiceOrderTab({ project, setProjects }: ProjectServiceO
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="date" className="text-right">Date</Label>
-                 <Popover open={calendarOpenState} onOpenChange={setCalendarOpenState}>
+                 <Popover modal={false}>
                     <PopoverTrigger asChild>
                         <Button
                             id="date"
@@ -176,19 +174,14 @@ export function ProjectServiceOrderTab({ project, setProjects }: ProjectServiceO
                             {state.date ? format(state.date, "PPP") : <span>Pick a date</span>}
                         </Button>
                     </PopoverTrigger>
-                    <PopoverPortal>
-                        <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                                mode="single"
-                                selected={state.date}
-                                onSelect={(date) => {
-                                    setter({...state, date: date});
-                                    setCalendarOpenState(false);
-                                }}
-                                initialFocus
-                            />
-                        </PopoverContent>
-                    </PopoverPortal>
+                    <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                            mode="single"
+                            selected={state.date}
+                            onSelect={(date) => setter({...state, date: date})}
+                            initialFocus
+                        />
+                    </PopoverContent>
                 </Popover>
             </div>
             <div className="grid grid-cols-4 items-start gap-4">
@@ -227,7 +220,7 @@ export function ProjectServiceOrderTab({ project, setProjects }: ProjectServiceO
                                     <DialogTitle>Add New Service Order</DialogTitle>
                                     <DialogDescription>Fill in the details for the new SO.</DialogDescription>
                                 </DialogHeader>
-                                {dialogForm(false, newItem, setNewItem, isCalendarOpen, setIsCalendarOpen)}
+                                {dialogForm(false, newItem, setNewItem)}
                                 <DialogFooter>
                                     <Button onClick={handleAddItem}>Add Service Order</Button>
                                 </DialogFooter>
@@ -302,7 +295,7 @@ export function ProjectServiceOrderTab({ project, setProjects }: ProjectServiceO
                                 <DialogTitle>Edit Service Order</DialogTitle>
                                 <DialogDescription>Update the details for this SO.</DialogDescription>
                             </DialogHeader>
-                            {dialogForm(true, itemToEdit, setItemToEdit, isCalendarOpen, setIsCalendarOpen)}
+                            {dialogForm(true, itemToEdit, setItemToEdit)}
                             <DialogFooter>
                                 <Button onClick={handleUpdateItem}>Save Changes</Button>
                             </DialogFooter>
