@@ -3,7 +3,7 @@
 'use client';
 
 import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useMemo, useCallback, useEffect } from 'react';
-import { type Project } from '@/lib/projects';
+import { type Project, initialProjects } from '@/lib/projects';
 import { getFirestore, collection, getDocs, setDoc, doc, updateDoc } from 'firebase/firestore';
 import { app } from '@/lib/firebase';
 
@@ -39,9 +39,17 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
       try {
         const querySnapshot = await getDocs(collection(db, 'projects'));
         const projectsData = querySnapshot.docs.map(doc => doc.data() as Project);
-        setProjects(projectsData);
+        if (projectsData.length > 0) {
+            setProjects(projectsData);
+        } else {
+            // If the database is empty, load the initial hardcoded data.
+            // This ensures the app is usable on first run.
+            setProjects(initialProjects);
+        }
       } catch (error) {
         console.error("Error fetching projects from Firestore: ", error);
+        // Fallback to initial data on error
+        setProjects(initialProjects);
       }
       setIsLoading(false);
     };

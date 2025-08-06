@@ -2,7 +2,7 @@
 'use client';
 
 import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useCallback, useMemo, useEffect } from 'react';
-import { type Employee } from '@/lib/employees';
+import { type Employee, initialEmployees } from '@/lib/employees';
 import type { InspectorDocument } from '@/lib/inspectors';
 import { fileToBase64 } from '@/lib/utils';
 import { getFirestore, collection, getDocs, setDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
@@ -37,9 +37,17 @@ export function EmployeeProvider({ children }: { children: ReactNode }) {
       try {
         const querySnapshot = await getDocs(collection(db, 'employees'));
         const data = querySnapshot.docs.map(doc => doc.data() as Employee);
-        setEmployees(data);
+        if (data.length > 0) {
+            setEmployees(data);
+        } else {
+            // If the database is empty, load the initial hardcoded data.
+            // This ensures the app is usable on first run.
+            setEmployees(initialEmployees.map((e, i) => ({ ...e, id: `EMP-${i + 1}` })));
+        }
       } catch (error) {
         console.error("Error fetching employees from Firestore: ", error);
+        // Fallback to initial data on error
+        setEmployees(initialEmployees.map((e, i) => ({ ...e, id: `EMP-${i + 1}` })));
       }
       setIsLoading(false);
     };
