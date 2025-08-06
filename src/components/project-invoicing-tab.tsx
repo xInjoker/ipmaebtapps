@@ -6,7 +6,7 @@ import { useState, useMemo, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal, PlusCircle, FileDown, Info } from 'lucide-react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter as UiTableFooter } from '@/components/ui/table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuPortal } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -81,7 +81,7 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
             const period = `${periodMonth} ${periodYear}`;
             const newInvoiceItem: InvoiceItem = { ...restOfInvoice, id: newId, period };
 
-            setProjects(p => ({ ...p, invoices: [...p.invoices, newInvoiceItem] }));
+            setProjects(p => ({ ...p, invoices: [...(p.invoices || []), newInvoiceItem] }));
 
             setNewInvoice({ soNumber: '', serviceCategory: '', description: '', status: 'Invoiced', periodMonth: '', periodYear: '', value: 0 });
             setIsAddInvoiceDialogOpen(false);

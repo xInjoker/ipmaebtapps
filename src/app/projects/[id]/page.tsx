@@ -94,15 +94,12 @@ export default function ProjectDetailsPage() {
   }, [projectId, getProjectById, projects]);
   
   const handleProjectUpdate = useCallback(async (updateFn: (project: Project) => Project) => {
-    setProject(currentProject => {
-        if (currentProject) {
-            const updatedProject = updateFn(currentProject);
-            updateProject(updatedProject.id, updatedProject);
-            return updatedProject;
-        }
-        return null;
-    });
-  }, [updateProject]);
+    if (project) {
+        const updatedProject = updateFn(project);
+        updateProject(updatedProject.id, updatedProject);
+        // The local state `project` will be updated via the useEffect hook listening to `projects` context changes.
+    }
+  }, [project, updateProject]);
   
   const {
     totalCost,

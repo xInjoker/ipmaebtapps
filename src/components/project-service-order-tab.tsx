@@ -31,7 +31,7 @@ export function ProjectServiceOrderTab({ project, setProjects }: ProjectServiceO
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const { toast } = useToast();
     
-    const [itemToEdit, setItemToEdit] = useState<Omit<ServiceOrderItem, 'status'> & { date?: Date } | null>(null);
+    const [itemToEdit, setItemToEdit] = useState<(Omit<ServiceOrderItem, 'status'> & { date?: Date }) | null>(null);
 
     const [newItem, setNewItem] = useState<{
         soNumber: string;
