@@ -1,6 +1,6 @@
 
 'use client';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import {
@@ -27,7 +27,7 @@ export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [branchId, setBranchId] = useState('');
-  const { register, branches } = useAuth();
+  const { register, branches, isInitializing } = useAuth();
 
   const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
@@ -81,9 +81,9 @@ export default function RegisterPage() {
           </div>
           <div className="grid gap-2">
             <Label htmlFor="branch">Office Location</Label>
-            <Select value={branchId} onValueChange={setBranchId} required>
+            <Select value={branchId} onValueChange={setBranchId} required disabled={isInitializing || branches.length === 0}>
               <SelectTrigger id="branch">
-                <SelectValue placeholder="Select an office" />
+                <SelectValue placeholder={isInitializing ? "Loading offices..." : "Select an office"} />
               </SelectTrigger>
               <SelectContent>
                 {branches.map((branch) => (
@@ -94,7 +94,7 @@ export default function RegisterPage() {
               </SelectContent>
             </Select>
           </div>
-          <Button type="submit" className="w-full">
+          <Button type="submit" className="w-full" disabled={isInitializing}>
             Create account
           </Button>
         </form>
@@ -108,5 +108,3 @@ export default function RegisterPage() {
     </Card>
   );
 }
-
-    

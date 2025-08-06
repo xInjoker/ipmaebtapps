@@ -12,12 +12,13 @@ import { initializeApp, getApps } from 'firebase-admin/app';
 
 // Import initial data
 import { initialProjects } from '@/lib/projects';
-import { initialUsers, initialRoles, initialBranches } from '@/lib/users';
+import { initialRoles, initialBranches } from '@/lib/users';
 import { initialEquipment } from '@/lib/equipment';
 import { initialInspectors } from '@/lib/inspectors';
 import { initialReports } from '@/lib/reports';
 import { initialTrips } from '@/lib/trips';
 import { initialTenders } from '@/lib/tenders';
+import { initialEmployees } from '@/lib/employees';
 
 // Initialize Firebase Admin SDK if not already initialized.
 // On App Hosting, this will use the service account associated with the backend.
@@ -58,7 +59,11 @@ export const seedDatabaseFlow = ai.defineFlow(
     
     results.branches = await seedCollection('branches', initialBranches);
     results.roles = await seedCollection('roles', initialRoles);
-    results.users = await seedCollection('users', initialUsers);
+    // Seed employees before users, as users might reference employee data conceptually
+    results.employees = await seedCollection('employees', initialEmployees);
+    // This part assumes users are created separately or manually and doesn't seed them.
+    // If you need to seed users from a file, you would add:
+    // results.users = await seedCollection('users', initialUsers);
     results.projects = await seedCollection('projects', initialProjects);
     results.equipment = await seedCollection('equipment', initialEquipment);
     results.inspectors = await seedCollection('inspectors', initialInspectors);

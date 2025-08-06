@@ -58,42 +58,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const { toast } = useToast();
   
-  const fetchData = useCallback(async () => {
-    try {
-      const [usersSnap, rolesSnap, branchesSnap] = await Promise.all([
-        getDocs(collection(db, 'users')),
-        getDocs(collection(db, 'roles')),
-        getDocs(collection(db, 'branches')),
-      ]);
-      const fetchedUsers = usersSnap.docs.map(doc => doc.data() as User);
-      const fetchedRoles = rolesSnap.docs.map(doc => doc.data() as Role);
-      const fetchedBranches = branchesSnap.docs.map(doc => doc.data() as Branch);
-
-      setUsers(fetchedUsers);
-      setRoles(fetchedRoles);
-      setBranches(fetchedBranches);
-      
-      const storedUserString = localStorage.getItem('user');
-      if (storedUserString) {
-        const storedUser = JSON.parse(storedUserString);
-        // Verify the stored user exists in the fetched users list
-        if (fetchedUsers.some(u => u.id === storedUser.id)) {
-            setUser(storedUser);
-        } else {
-            localStorage.removeItem('user');
-        }
-      }
-    } catch (error) {
-      console.error("Failed to fetch initial data from Firestore:", error);
-      toast({ variant: 'destructive', title: 'Error', description: 'Could not connect to the database.' });
-    } finally {
-        setIsInitializing(false);
-    }
-  }, [toast]);
-
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    const initializeAuth = async () => {
+      try {
+        const [usersSnap, rolesSnap, branchesSnap] = await Promise.all([
+          getDocs(collection(db, 'users')),
+          getDocs(collection(db, 'roles')),
+          getDocs(collection(db, 'branches')),
+        ]);
+        const fetchedUsers = usersSnap.docs.map(doc => doc.data() as User);
+        const fetchedRoles = rolesSnap.docs.map(doc => doc.data() as Role);
+        const fetchedBranches = branchesSnap.docs.map(doc => doc.data() as Branch);
+
+        setUsers(fetchedUsers);
+        setRoles(fetchedRoles);
+        setBranches(fetchedBranches);
+        
+        const storedUserString = localStorage.getItem('user');
+        if (storedUserString) {
+          const storedUser = JSON.parse(storedUserString);
+          if (fetchedUsers.some(u => u.id === storedUser.id)) {
+              setUser(storedUser);
+          } else {
+              localStorage.removeItem('user');
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch initial data from Firestore:", error);
+        toast({ variant: 'destructive', title: 'Error', description: 'Could not connect to the database.' });
+      } finally {
+          setIsInitializing(false);
+      }
+    };
+
+    initializeAuth();
+  }, [toast]);
 
   const login = useCallback((email: string, pass: string) => {
     const userToLogin = users.find((u) => u.email === email);
@@ -216,7 +215,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     updateUser, updateUserRole, addRole, updateRole, deleteRole,
     userHasPermission, isHqUser, isInitializing, login, register, logout,
   }), [
-    isAuthenticated, user, users, roles, branches, 
+    isAuthenticated, user, users, roles, branches, permissions,
     updateUser, updateUserRole, addRole, updateRole, deleteRole, 
     userHasPermission, isHqUser, isInitializing, login, register, logout
   ]);
@@ -235,5 +234,3 @@ export function useAuth() {
   }
   return context;
 }
-
-    
