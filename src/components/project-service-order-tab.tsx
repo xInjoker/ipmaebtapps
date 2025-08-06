@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
@@ -153,7 +152,7 @@ export function ProjectServiceOrderTab({ project, setProjects }: ProjectServiceO
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="date" className="text-right">Date</Label>
-                <Popover>
+                 <Popover>
                     <PopoverTrigger asChild>
                         <Button
                             id="date"
@@ -208,7 +207,7 @@ export function ProjectServiceOrderTab({ project, setProjects }: ProjectServiceO
                                     Add SO
                                 </Button>
                             </DialogTrigger>
-                            <DialogContent className="sm:max-w-lg">
+                             <DialogContent className="sm:max-w-lg">
                                 <DialogHeader>
                                     <DialogTitle>Add New Service Order</DialogTitle>
                                     <DialogDescription>Fill in the details for the new SO.</DialogDescription>
