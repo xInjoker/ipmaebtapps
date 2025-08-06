@@ -5,13 +5,13 @@ import { useState, useMemo, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal, PlusCircle, FileDown, Calendar as CalendarIcon } from 'lucide-react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter as UiTableFooter } from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger, PopoverPortal } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Badge } from '@/components/ui/badge';
 import type { Project, ServiceOrderItem } from '@/lib/projects';
@@ -30,7 +30,7 @@ export function ProjectServiceOrderTab({ project, setProjects }: ProjectServiceO
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const { toast } = useToast();
     
-    const [itemToEdit, setItemToEdit] = useState<(Omit<ServiceOrderItem, 'status'> & { date?: Date }) | null>(null);
+    const [itemToEdit, setItemToEdit] = useState<(Omit<ServiceOrderItem, 'date'> & { date?: Date }) | null>(null);
 
     const [newItem, setNewItem] = useState<{
         soNumber: string;
@@ -152,7 +152,7 @@ export function ProjectServiceOrderTab({ project, setProjects }: ProjectServiceO
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="date" className="text-right">Date</Label>
-                 <Popover>
+                <Popover>
                     <PopoverTrigger asChild>
                         <Button
                             id="date"
@@ -166,14 +166,16 @@ export function ProjectServiceOrderTab({ project, setProjects }: ProjectServiceO
                             {state.date ? format(state.date, "PPP") : <span>Pick a date</span>}
                         </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                        <Calendar
-                            mode="single"
-                            selected={state.date}
-                            onSelect={(date) => setter({...state, date: date})}
-                            initialFocus
-                        />
-                    </PopoverContent>
+                    <PopoverPortal>
+                        <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                                mode="single"
+                                selected={state.date}
+                                onSelect={(date) => setter({...state, date: date})}
+                                initialFocus
+                            />
+                        </PopoverContent>
+                    </PopoverPortal>
                 </Popover>
             </div>
             <div className="grid grid-cols-4 items-start gap-4">
