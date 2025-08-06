@@ -60,6 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   
   useEffect(() => {
     const initializeAuth = async () => {
+      setIsInitializing(true); // Start initializing
       try {
         const [usersSnap, rolesSnap, branchesSnap] = await Promise.all([
           getDocs(collection(db, 'users')),
@@ -74,20 +75,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setRoles(fetchedRoles);
         setBranches(fetchedBranches);
         
-        const storedUserString = localStorage.getItem('user');
-        if (storedUserString) {
-          const storedUser = JSON.parse(storedUserString);
-          if (fetchedUsers.some(u => u.id === storedUser.id)) {
-              setUser(storedUser);
-          } else {
-              localStorage.removeItem('user');
-          }
+        // Force login as superadmin for development
+        const superAdminUser = fetchedUsers.find(u => u.roleId === 'super-admin');
+        if (superAdminUser) {
+          setUser(superAdminUser);
+          localStorage.setItem('user', JSON.stringify(superAdminUser));
+        } else {
+            // Fallback if superadmin is not found (e.g., before seeding)
+            const storedUserString = localStorage.getItem('user');
+            if (storedUserString) {
+                const storedUser = JSON.parse(storedUserString);
+                if (fetchedUsers.some(u => u.id === storedUser.id)) {
+                    setUser(storedUser);
+                } else {
+                    localStorage.removeItem('user');
+                }
+            }
         }
       } catch (error) {
         console.error("Failed to fetch initial data from Firestore:", error);
         toast({ variant: 'destructive', title: 'Error', description: 'Could not connect to the database.' });
       } finally {
-          setIsInitializing(false);
+          setIsInitializing(false); // Finish initializing
       }
     };
 
