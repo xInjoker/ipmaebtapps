@@ -57,61 +57,7 @@ export type TripRequest = {
 };
 
 // This data is now only used for one-time database seeding.
-export const initialTrips: Omit<TripRequest, 'id'>[] = [
-    {
-        employeeId: 2,
-        employeeName: 'Project Manager',
-        position: 'Project Manager',
-        division: 'Cabang Jakarta',
-        project: 'Corporate Website Revamp',
-        destination: 'Surabaya',
-        destinationCompany: 'PHR',
-        purpose: 'Client Meeting with Stark Industries',
-        startDate: '2024-08-05',
-        endDate: '2024-08-07',
-        estimatedBudget: 5000000,
-        status: 'Approved',
-        approvalHistory: [
-            { actorId: 2, actorName: 'Project Manager', status: 'Pending', timestamp: new Date().toISOString() },
-            { actorId: 1, actorName: 'Super Admin', status: 'Approved', comments: 'Approved. Please proceed with booking.', timestamp: new Date().toISOString() }
-        ]
-    },
-    {
-        employeeId: 3,
-        employeeName: 'Jane Doe',
-        position: 'Project Manager',
-        division: 'Cabang Jakarta',
-        project: 'Data Analytics Platform',
-        destination: 'Balikpapan',
-        destinationCompany: 'Pertamina EP',
-        purpose: 'Site Inspection at Project Gamma',
-        startDate: '2024-08-12',
-        endDate: '2024-08-15',
-        estimatedBudget: 7500000,
-        status: 'Pending',
-        approvalHistory: [
-            { actorId: 3, actorName: 'Jane Doe', status: 'Pending', timestamp: new Date().toISOString() }
-        ]
-    },
-    {
-        employeeId: 4,
-        employeeName: 'John Smith',
-        position: 'Project Manager',
-        division: 'Cabang Surabaya',
-        project: 'Mobile App Development',
-        destination: 'Pekanbaru',
-        destinationCompany: 'PHM',
-        purpose: 'Equipment Calibration and Maintenance',
-        startDate: '2024-07-29',
-        endDate: '2024-08-02',
-        estimatedBudget: 6000000,
-        status: 'Rejected',
-        approvalHistory: [
-            { actorId: 4, actorName: 'John Smith', status: 'Pending', timestamp: new Date().toISOString() },
-            { actorId: 1, actorName: 'Super Admin', status: 'Rejected', comments: 'Budget too high. Please revise.', timestamp: new Date().toISOString() }
-        ]
-    }
-];
+export const initialTrips: Omit<TripRequest, 'id'>[] = [];
 
 export const tripStatuses: TripStatus[] = ['Draft', 'Pending', 'Approved', 'Rejected', 'Booked', 'Completed', 'Closed'];
 
