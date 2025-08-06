@@ -9,12 +9,18 @@ import * as projectAnalysisFlow from '@/ai/flows/project-analysis-flow';
 import * as seedDatabaseFlow from '@/ai/flows/seed-database-flow';
 
 const plugins: Plugin[] = [googleAI()];
+
 if (process.env.NODE_ENV === 'production') {
+  // In production, Firebase and Google Cloud plugins are needed.
+  // App Hosting automatically provides the necessary credentials.
   plugins.push(firebase(), googleCloud());
 } else {
-  // For local development, ensure Firebase plugin is initialized for seeding
+  // For local development using the emulator or a real project, 
+  // you may need to initialize Firebase differently.
+  // For the seeding script, firebase() is required to interact with Firestore.
   plugins.push(firebase());
 }
+
 
 export const ai = genkit({
   plugins,
