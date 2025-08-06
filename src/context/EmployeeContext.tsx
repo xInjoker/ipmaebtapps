@@ -1,11 +1,14 @@
 
-
 'use client';
 
-import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useCallback, useMemo } from 'react';
-import { type Employee, initialEmployees } from '@/lib/employees';
+import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useCallback, useMemo, useEffect } from 'react';
+import { type Employee } from '@/lib/employees';
 import type { InspectorDocument } from '@/lib/inspectors';
 import { fileToBase64 } from '@/lib/utils';
+import { getFirestore, collection, getDocs, setDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { app } from '@/lib/firebase';
+
+const db = getFirestore(app);
 
 type NewUploadableDocument = {
   file: File;
@@ -18,17 +21,30 @@ type EmployeeContextType = {
   isLoading: boolean;
   addEmployee: (item: Employee, newDocs: { newCvFile: File | null, newQualifications: NewUploadableDocument[], newOtherDocs: NewUploadableDocument[] }) => Promise<void>;
   updateEmployee: (id: string, item: Employee, newDocs: { newCvFile: File | null, newQualifications: NewUploadableDocument[], newOtherDocs: NewUploadableDocument[] }) => Promise<void>;
-  deleteEmployee: (id: string) => void;
+  deleteEmployee: (id: string) => Promise<void>;
   getEmployeeById: (id: string) => Employee | undefined;
 };
 
 const EmployeeContext = createContext<EmployeeContextType | undefined>(undefined);
 
 export function EmployeeProvider({ children }: { children: ReactNode }) {
-  const [employees, setEmployees] = useState<Employee[]>(
-    initialEmployees.map((e, index) => ({ ...e, id: `EMP-${String(index + 1).padStart(3, '0')}` }))
-  );
-  const [isLoading, setIsLoading] = useState(false);
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchEmployees = async () => {
+      setIsLoading(true);
+      try {
+        const querySnapshot = await getDocs(collection(db, 'employees'));
+        const data = querySnapshot.docs.map(doc => doc.data() as Employee);
+        setEmployees(data);
+      } catch (error) {
+        console.error("Error fetching employees from Firestore: ", error);
+      }
+      setIsLoading(false);
+    };
+    fetchEmployees();
+  }, []);
 
   const addEmployee = useCallback(async (
     item: Employee,
@@ -54,6 +70,7 @@ export function EmployeeProvider({ children }: { children: ReactNode }) {
     );
 
     const newItem = { ...item, cvUrl, qualifications, otherDocuments };
+    await setDoc(doc(db, 'employees', newItem.id), newItem);
     setEmployees(prev => [...prev, newItem]);
   }, []);
   
@@ -62,7 +79,6 @@ export function EmployeeProvider({ children }: { children: ReactNode }) {
     updatedItem: Employee,
     newDocs: { newCvFile: File | null, newQualifications: NewUploadableDocument[], newOtherDocs: NewUploadableDocument[] }
     ) => {
-    
     const { newCvFile, newQualifications, newOtherDocs } = newDocs;
 
     let newCvUrl = updatedItem.cvUrl;
@@ -91,11 +107,13 @@ export function EmployeeProvider({ children }: { children: ReactNode }) {
         qualifications: [...(updatedItem.qualifications || []), ...addedQualifications],
         otherDocuments: [...(updatedItem.otherDocuments || []), ...addedOtherDocuments],
     };
-
+    
+    await updateDoc(doc(db, 'employees', id), finalItem);
     setEmployees(prev => prev.map(e => e.id === id ? finalItem : e));
   }, []);
   
-  const deleteEmployee = useCallback((id: string) => {
+  const deleteEmployee = useCallback(async (id: string) => {
+    await deleteDoc(doc(db, 'employees', id));
     setEmployees(prev => prev.filter(e => e.id !== id));
   }, []);
   

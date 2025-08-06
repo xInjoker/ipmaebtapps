@@ -1,10 +1,13 @@
 
-
 'use client';
 
-import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useCallback, useMemo } from 'react';
-import { type EquipmentItem, type EquipmentDocument, initialEquipment } from '@/lib/equipment';
+import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useCallback, useMemo, useEffect } from 'react';
+import { type EquipmentItem, type EquipmentDocument } from '@/lib/equipment';
 import { fileToBase64 } from '@/lib/utils';
+import { getFirestore, collection, getDocs, setDoc, doc, updateDoc } from 'firebase/firestore';
+import { app } from '@/lib/firebase';
+
+const db = getFirestore(app);
 
 type EquipmentContextType = {
   equipmentList: EquipmentItem[];
@@ -18,11 +21,23 @@ type EquipmentContextType = {
 const EquipmentContext = createContext<EquipmentContextType | undefined>(undefined);
 
 export function EquipmentProvider({ children }: { children: ReactNode }) {
-  const [equipmentList, setEquipmentList] = useState<EquipmentItem[]>(
-      initialEquipment.map((e, index) => ({ ...e, id: `EQ-${String(index + 1).padStart(3, '0')}`}))
-  );
-  const [isLoading, setIsLoading] = useState(false);
+  const [equipmentList, setEquipmentList] = useState<EquipmentItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
+  useEffect(() => {
+    const fetchEquipment = async () => {
+      setIsLoading(true);
+      try {
+        const querySnapshot = await getDocs(collection(db, 'equipment'));
+        const data = querySnapshot.docs.map(doc => doc.data() as EquipmentItem);
+        setEquipmentList(data);
+      } catch (error) {
+        console.error("Error fetching equipment from Firestore: ", error);
+      }
+      setIsLoading(false);
+    };
+    fetchEquipment();
+  }, []);
 
   const addEquipment = useCallback(async (item: Omit<EquipmentItem, 'id' | 'imageUrls' | 'documentUrls'> & { images: File[], documents: File[] }) => {
     const newId = `EQ-${Date.now()}`;
@@ -43,6 +58,7 @@ export function EquipmentProvider({ children }: { children: ReactNode }) {
       imageUrls,
       documentUrls,
     };
+    await setDoc(doc(db, 'equipment', newId), newItem);
     setEquipmentList(prev => [...prev, newItem]);
   }, []);
   
@@ -61,7 +77,8 @@ export function EquipmentProvider({ children }: { children: ReactNode }) {
         imageUrls: [...(updatedItem.imageUrls || []), ...newImageUrls],
         documentUrls: [...(updatedItem.documentUrls || []), ...newDocumentUrls],
     };
-
+    
+    await updateDoc(doc(db, 'equipment', id), finalItem);
     setEquipmentList(prev => prev.map(item => item.id === id ? finalItem : item));
   }, []);
   

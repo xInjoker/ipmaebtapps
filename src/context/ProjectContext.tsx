@@ -1,9 +1,12 @@
 
-
 'use client';
 
 import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useMemo, useCallback, useEffect } from 'react';
-import { type Project, initialProjects } from '@/lib/projects';
+import { type Project } from '@/lib/projects';
+import { getFirestore, collection, getDocs, setDoc, doc } from 'firebase/firestore';
+import { app } from '@/lib/firebase';
+
+const db = getFirestore(app);
 
 type ProjectStats = {
   totalProjectValue: number;
@@ -16,7 +19,7 @@ type ProjectStats = {
 type ProjectContextType = {
   projects: Project[];
   setProjects: Dispatch<SetStateAction<Project[]>>; 
-  addProject: (project: Omit<Project, 'id'>) => void;
+  addProject: (project: Omit<Project, 'id'>) => Promise<void>;
   getProjectById: (id: string) => Project | undefined;
   getProjectStats: (projectList: Project[]) => ProjectStats;
   projectStats: ProjectStats;
@@ -25,13 +28,29 @@ type ProjectContextType = {
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
 
 export function ProjectProvider({ children }: { children: ReactNode }) {
-  const [projects, setProjects] = useState<Project[]>(initialProjects);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const addProject = useCallback((projectData: Omit<Project, 'id'>) => {
-      const newProject: Project = {
-          id: `PROJ-${Date.now()}`,
-          ...projectData
-      };
+  useEffect(() => {
+    const fetchProjects = async () => {
+      setIsLoading(true);
+      try {
+        const querySnapshot = await getDocs(collection(db, 'projects'));
+        const projectsData = querySnapshot.docs.map(doc => doc.data() as Project);
+        setProjects(projectsData);
+      } catch (error) {
+        console.error("Error fetching projects from Firestore: ", error);
+      }
+      setIsLoading(false);
+    };
+
+    fetchProjects();
+  }, []);
+
+  const addProject = useCallback(async (projectData: Omit<Project, 'id'>) => {
+      const newId = `PROJ-${Date.now()}`;
+      const newProject: Project = { id: newId, ...projectData };
+      await setDoc(doc(db, 'projects', newId), newProject);
       setProjects(prev => [...prev, newProject]);
   }, []);
   
@@ -51,7 +70,6 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
             .reduce((sum, exp) => sum + exp.amount, 0);
         acc.totalCost += totalCost;
 
-        // Invoiced but not yet paid
         const totalInvoicedValue = invoices
             .filter(inv => ['Invoiced', 'Re-invoiced'].includes(inv.status))
             .reduce((sum, inv) => sum + inv.value, 0);
@@ -62,7 +80,6 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
             .reduce((sum, inv) => sum + inv.value, 0);
         acc.totalPaid += totalPaidValue;
 
-        // Total income is sum of all relevant statuses
         const totalIncomeValue = invoices
             .filter(inv => ['Paid', 'Invoiced', 'PAD', 'Re-invoiced'].includes(inv.status))
             .reduce((sum, inv) => sum + inv.value, 0);

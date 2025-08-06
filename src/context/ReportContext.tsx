@@ -1,19 +1,21 @@
 
-
 'use client';
 
-import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useCallback, useMemo } from 'react';
-import { initialReports, type ReportItem, type ReportDetails, type ApprovalAction, type ReportStatus, FlashReportDetails, OtherReportDetails } from '@/lib/reports';
+import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useCallback, useMemo, useEffect } from 'react';
+import { type ReportItem, type ReportDetails, FlashReportDetails, type InspectionReportDetails } from '@/lib/reports';
 import { useProjects } from '@/context/ProjectContext'; 
 import { fileToBase64 } from '@/lib/utils';
-import { format } from 'date-fns';
+import { getFirestore, collection, getDocs, setDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { app } from '@/lib/firebase';
+
+const db = getFirestore(app);
 
 type ReportContextType = {
   reports: ReportItem[];
   setReports: Dispatch<SetStateAction<ReportItem[]>>;
   addReport: (item: Omit<ReportItem, 'id'|'details'> & { details: Omit<ReportDetails, 'testResults'|'documentUrls'> & { testResults?: any[], documents?: File[] }}) => Promise<void>;
   updateReport: (id: string, item: ReportItem) => Promise<void>;
-  deleteReport: (id: string) => void;
+  deleteReport: (id: string) => Promise<void>;
   getReportById: (id: string) => ReportItem | undefined;
   getPendingReportApprovalsForUser: (userId: number) => ReportItem[];
 };
@@ -21,8 +23,24 @@ type ReportContextType = {
 const ReportContext = createContext<ReportContextType | undefined>(undefined);
 
 export function ReportProvider({ children }: { children: ReactNode }) {
-  const [reports, setReports] = useState<ReportItem[]>(initialReports);
+  const [reports, setReports] = useState<ReportItem[]>([]);
   const { projects } = useProjects();
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchReports = async () => {
+      setIsLoading(true);
+      try {
+        const querySnapshot = await getDocs(collection(db, 'reports'));
+        const data = querySnapshot.docs.map(doc => doc.data() as ReportItem);
+        setReports(data);
+      } catch (error) {
+        console.error("Error fetching reports from Firestore: ", error);
+      }
+      setIsLoading(false);
+    };
+    fetchReports();
+  }, []);
 
   const processTestResultImages = async (testResults: any[]) => {
       return Promise.all((testResults || []).map(async result => {
@@ -40,7 +58,6 @@ export function ReportProvider({ children }: { children: ReactNode }) {
   const addReport = useCallback(async (item: Omit<ReportItem, 'id'|'details'> & { details: Omit<ReportDetails, 'testResults'|'documentUrls'> & { testResults?: any[], documents?: File[] }}) => {
     const { details, ...rest } = item;
     const processedTestResults = await processTestResultImages(details.testResults || []);
-
     let processedDetails: ReportDetails;
 
     if (details.jobType === 'Flash Report' || details.jobType === 'Inspection Report') {
@@ -55,39 +72,26 @@ export function ReportProvider({ children }: { children: ReactNode }) {
         processedDetails = { 
             ...details, 
             documentUrls: docUrls,
-            testResults: processedTestResults // ensure testResults is carried over if it exists (for future extensibility)
-        } as FlashReportDetails | OtherReportDetails;
+            testResults: processedTestResults 
+        } as FlashReportDetails | InspectionReportDetails;
     } else {
         processedDetails = { ...details, testResults: processedTestResults } as ReportDetails;
     }
 
     const newId = `REP-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
-    const newItem: ReportItem = { 
-        ...rest, 
-        id: newId, 
-        details: processedDetails,
-    };
+    const newItem: ReportItem = { ...rest, id: newId, details: processedDetails };
+    
+    await setDoc(doc(db, 'reports', newId), newItem);
     setReports(prev => [...prev, newItem]);
   }, []);
 
   const updateReport = useCallback(async (id: string, updatedItem: ReportItem) => {
-    const details = updatedItem.details as (Omit<ReportDetails, 'testResults'> & { testResults: any[] }) | null;
-    let processedDetails = null;
-
-    if (details) {
-        const processedTestResults = await processTestResultImages(details.testResults);
-        processedDetails = { ...details, testResults: processedTestResults };
-    }
-    
-    const finalItem = { 
-        ...updatedItem, 
-        details: processedDetails,
-    };
-
-    setReports(prev => prev.map(item => item.id === id ? finalItem : item));
+    await updateDoc(doc(db, 'reports', id), updatedItem);
+    setReports(prev => prev.map(item => item.id === id ? updatedItem : item));
   }, []);
   
-  const deleteReport = useCallback((id: string) => {
+  const deleteReport = useCallback(async (id: string) => {
+    await deleteDoc(doc(db, 'reports', id));
     setReports(prev => prev.filter(item => item.id !== id));
   }, []);
 
@@ -103,7 +107,7 @@ export function ReportProvider({ children }: { children: ReactNode }) {
         if (!project?.reportApprovalWorkflow || project.reportApprovalWorkflow.length === 0) return false;
 
         const approvalActions = report.approvalHistory.filter(h => ['Submitted', 'Reviewed', 'Approved'].includes(h.status));
-        const currentApprovalCount = approvalActions.length - 1; // Subtract 1 for the initial "Submitted" action
+        const currentApprovalCount = approvalActions.length - 1; 
 
         if (currentApprovalCount < 0) return false;
 

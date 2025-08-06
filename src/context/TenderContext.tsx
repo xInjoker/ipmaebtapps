@@ -1,12 +1,13 @@
 
-
 'use client';
 
-import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useMemo, useCallback } from 'react';
-import { type Tender, type TenderStatus, initialTenders } from '@/lib/tenders';
-import { formatCurrencyMillions } from '@/lib/utils';
-import { Users, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useMemo, useCallback, useEffect } from 'react';
+import { type Tender } from '@/lib/tenders';
 import { fileToBase64 } from '@/lib/utils';
+import { getFirestore, collection, getDocs, setDoc, doc, updateDoc } from 'firebase/firestore';
+import { app } from '@/lib/firebase';
+
+const db = getFirestore(app);
 
 type AddTenderData = Omit<Tender, 'id' | 'documentUrls'> & { documents: File[] };
 type UpdateTenderData = Omit<Tender, 'documentUrls'> & { newDocuments?: File[] };
@@ -23,27 +24,38 @@ type TenderContextType = {
 const TenderContext = createContext<TenderContextType | undefined>(undefined);
 
 export function TenderProvider({ children }: { children: ReactNode }) {
-  const [tenders, setTenders] = useState<Tender[]>(
-    initialTenders.map((t, index) => ({...t, id: `TND-${String(index + 1).padStart(3, '0')}`}))
-  );
-  const [isLoading, setIsLoading] = useState(false);
+  const [tenders, setTenders] = useState<Tender[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchTenders = async () => {
+      setIsLoading(true);
+      try {
+        const querySnapshot = await getDocs(collection(db, 'tenders'));
+        const data = querySnapshot.docs.map(doc => doc.data() as Tender);
+        setTenders(data);
+      } catch (error) {
+        console.error("Error fetching tenders from Firestore: ", error);
+      }
+      setIsLoading(false);
+    };
+    fetchTenders();
+  }, []);
 
   const addTender = useCallback(async (item: AddTenderData) => {
     const { documents, ...rest } = item;
     const documentUrls = await Promise.all(
         (documents || []).map(async file => {
              const base64 = await fileToBase64(file) as string;
-             // Inject filename into data URI for later retrieval
              const parts = base64.split(';base64,');
              const newMimePart = `${parts[0]};name=${encodeURIComponent(file.name)}`;
              return `${newMimePart};base64,${parts[1]}`;
         })
     );
-    const newTender = {
-        ...rest,
-        id: `TND-${Date.now()}`,
-        documentUrls,
-    };
+    const newId = `TND-${Date.now()}`;
+    const newTender = { ...rest, id: newId, documentUrls };
+    
+    await setDoc(doc(db, 'tenders', newId), newTender);
     setTenders(prev => [...prev, newTender]);
   }, []);
 
@@ -64,9 +76,10 @@ export function TenderProvider({ children }: { children: ReactNode }) {
 
     const finalItem: Tender = {
         ...rest,
-        documentUrls: [...(existingTender.documentUrls || []), ...newDocumentUrls],
+        documentUrls: [...(rest.documentUrls || []), ...newDocumentUrls],
     };
 
+    await updateDoc(doc(db, 'tenders', id), finalItem);
     setTenders(prev => prev.map(t => t.id === id ? finalItem : t));
   }, [tenders]);
 
@@ -74,7 +87,6 @@ export function TenderProvider({ children }: { children: ReactNode }) {
     return tenders.find(item => item.id === id);
   }, [tenders]);
   
-
   const contextValue = useMemo(() => ({
     tenders,
     setTenders,

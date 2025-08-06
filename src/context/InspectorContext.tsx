@@ -1,10 +1,14 @@
 
 'use client';
 
-import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useMemo, useCallback } from 'react';
-import { type Inspector, initialInspectors, type InspectorDocument } from '@/lib/inspectors';
+import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useMemo, useCallback, useEffect } from 'react';
+import { type Inspector, type InspectorDocument } from '@/lib/inspectors';
 import { getDocumentStatus, fileToBase64 } from '@/lib/utils';
 import { Users2, BadgeCheck, Clock, XCircle } from 'lucide-react';
+import { getFirestore, collection, getDocs, setDoc, doc, updateDoc } from 'firebase/firestore';
+import { app } from '@/lib/firebase';
+
+const db = getFirestore(app);
 
 type InspectorStats = {
     total: number;
@@ -27,10 +31,23 @@ type InspectorContextType = {
 const InspectorContext = createContext<InspectorContextType | undefined>(undefined);
 
 export function InspectorProvider({ children }: { children: ReactNode }) {
-  const [inspectors, setInspectors] = useState<Inspector[]>(
-    initialInspectors.map((i, index) => ({ ...i, id: `INSP-${String(index + 1).padStart(3, '0')}`}))
-  );
-  const [isLoading, setIsLoading] = useState(false);
+  const [inspectors, setInspectors] = useState<Inspector[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchInspectors = async () => {
+      setIsLoading(true);
+      try {
+        const querySnapshot = await getDocs(collection(db, 'inspectors'));
+        const data = querySnapshot.docs.map(doc => doc.data() as Inspector);
+        setInspectors(data);
+      } catch (error) {
+        console.error("Error fetching inspectors from Firestore: ", error);
+      }
+      setIsLoading(false);
+    };
+    fetchInspectors();
+  }, []);
 
   const addInspector = useCallback(async (item: Omit<Inspector, 'id'|'cvUrl'|'qualifications'|'otherDocuments'> & { cvFile: File | null; qualifications: {file: File, expirationDate?: string}[]; otherDocuments: {file: File, expirationDate?: string}[]}) => {
     const { cvFile, qualifications: newQuals, otherDocuments: newOthers, ...rest } = item;
@@ -54,6 +71,7 @@ export function InspectorProvider({ children }: { children: ReactNode }) {
     );
 
     const newItem = { ...rest, id: `INSP-${Date.now()}`, cvUrl, qualifications, otherDocuments };
+    await setDoc(doc(db, 'inspectors', newItem.id), newItem);
     setInspectors(prev => [...prev, newItem]);
   }, []);
   
@@ -86,6 +104,7 @@ export function InspectorProvider({ children }: { children: ReactNode }) {
         otherDocuments: [...updatedItem.otherDocuments, ...newOtherDocuments],
     };
 
+    await updateDoc(doc(db, 'inspectors', id), finalItem);
     setInspectors(prev => prev.map(i => i.id === id ? finalItem : i));
   }, []);
   
@@ -133,38 +152,10 @@ export function InspectorProvider({ children }: { children: ReactNode }) {
   }, [inspectors]);
 
   const widgetData = useMemo(() => [
-    {
-        title: 'Total Inspectors',
-        value: `${inspectorStats.total}`,
-        description: 'inspectors in the database',
-        icon: Users2,
-        iconColor: 'text-blue-500',
-        shapeColor: 'text-blue-500/10',
-    },
-    {
-        title: 'Total Valid Certificates',
-        value: `${inspectorStats.validCerts}`,
-        description: 'certificates are currently valid',
-        icon: BadgeCheck,
-        iconColor: 'text-green-500',
-        shapeColor: 'text-green-500/10',
-    },
-    {
-        title: 'Expiring Certificates',
-        value: `${inspectorStats.expiringSoon}`,
-        description: 'inspectors with certs expiring soon',
-        icon: Clock,
-        iconColor: 'text-amber-500',
-        shapeColor: 'text-amber-500/10',
-    },
-    {
-        title: 'Expired Certificates',
-        value: `${inspectorStats.expired}`,
-        description: 'inspectors with expired certs',
-        icon: XCircle,
-        iconColor: 'text-rose-500',
-        shapeColor: 'text-rose-500/10',
-    },
+    { title: 'Total Inspectors', value: `${inspectorStats.total}`, description: 'inspectors in the database', icon: Users2, iconColor: 'text-blue-500', shapeColor: 'text-blue-500/10' },
+    { title: 'Total Valid Certificates', value: `${inspectorStats.validCerts}`, description: 'certificates are currently valid', icon: BadgeCheck, iconColor: 'text-green-500', shapeColor: 'text-green-500/10' },
+    { title: 'Expiring Certificates', value: `${inspectorStats.expiringSoon}`, description: 'inspectors with certs expiring soon', icon: Clock, iconColor: 'text-amber-500', shapeColor: 'text-amber-500/10' },
+    { title: 'Expired Certificates', value: `${inspectorStats.expired}`, description: 'inspectors with expired certs', icon: XCircle, iconColor: 'text-rose-500', shapeColor: 'text-rose-500/10' },
   ], [inspectorStats]);
 
   const contextValue = useMemo(() => ({

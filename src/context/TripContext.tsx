@@ -1,16 +1,20 @@
 
 'use client';
 
-import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useCallback, useMemo } from 'react';
-import { type TripRequest, initialTrips } from '@/lib/trips';
+import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useCallback, useMemo, useEffect } from 'react';
+import { type TripRequest } from '@/lib/trips';
 import { useProjects } from './ProjectContext';
+import { getFirestore, collection, getDocs, setDoc, doc, updateDoc } from 'firebase/firestore';
+import { app } from '@/lib/firebase';
+
+const db = getFirestore(app);
 
 type TripContextType = {
   trips: TripRequest[];
   setTrips: Dispatch<SetStateAction<TripRequest[]>>;
   isLoading: boolean;
-  addTrip: (item: TripRequest) => void;
-  updateTrip: (id: string, item: TripRequest) => void;
+  addTrip: (item: TripRequest) => Promise<void>;
+  updateTrip: (id: string, item: TripRequest) => Promise<void>;
   getTripById: (id: string) => TripRequest | undefined;
   getPendingTripApprovalsForUser: (userId: number) => TripRequest[];
 };
@@ -18,17 +22,32 @@ type TripContextType = {
 const TripContext = createContext<TripContextType | undefined>(undefined);
 
 export function TripProvider({ children }: { children: ReactNode }) {
-  const [trips, setTrips] = useState<TripRequest[]>(
-    initialTrips.map((t, index) => ({ ...t, id: `TRIP-${String(index + 1).padStart(3, '0')}`}))
-  );
-  const [isLoading, setIsLoading] = useState(false);
+  const [trips, setTrips] = useState<TripRequest[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const { projects } = useProjects();
 
-  const addTrip = useCallback((item: TripRequest) => {
+  useEffect(() => {
+    const fetchTrips = async () => {
+      setIsLoading(true);
+      try {
+        const querySnapshot = await getDocs(collection(db, 'trips'));
+        const data = querySnapshot.docs.map(doc => doc.data() as TripRequest);
+        setTrips(data);
+      } catch (error) {
+        console.error("Error fetching trips from Firestore: ", error);
+      }
+      setIsLoading(false);
+    };
+    fetchTrips();
+  }, []);
+
+  const addTrip = useCallback(async (item: TripRequest) => {
+    await setDoc(doc(db, 'trips', item.id), item);
     setTrips(prev => [...prev, item]);
   }, []);
   
-  const updateTrip = useCallback((id: string, updatedItem: TripRequest) => {
+  const updateTrip = useCallback(async (id: string, updatedItem: TripRequest) => {
+    await updateDoc(doc(db, 'trips', id), updatedItem);
     setTrips(prev => prev.map(t => t.id === id ? updatedItem : t));
   }, []);
   
@@ -43,9 +62,7 @@ export function TripProvider({ children }: { children: ReactNode }) {
       const project = projects.find(p => p.name === trip.project);
       if (!project?.tripApprovalWorkflow || project.tripApprovalWorkflow.length === 0) return false;
 
-      // Count only 'Approved' actions, as 'Pending' is the current state
       const currentApprovalCount = trip.approvalHistory.filter(h => h.status === 'Approved').length;
-      
       const nextApproverIndex = currentApprovalCount;
 
       if (nextApproverIndex >= project.tripApprovalWorkflow.length) return false;
