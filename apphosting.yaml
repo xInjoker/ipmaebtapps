@@ -9,3 +9,11 @@ runConfig:
   # Increase this value if you'd like to automatically spin up
   # more instances in response to increased traffic.
   maxInstances: 1
+
+# Connect to a Cloud SQL instance. This will make the connection string
+# available as an environment variable.
+# https://firebase.google.com/docs/app-hosting/cloud-sql
+cloudsql:
+  # The connection name of your Cloud SQL instance, which can be found
+  # in the Cloud SQL instance overview page.
+  instance: your-project-id:your-region:your-instance-name
