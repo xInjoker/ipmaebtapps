@@ -66,14 +66,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         getDocs(collection(db, 'roles')),
         getDocs(collection(db, 'branches')),
       ]);
-      setUsers(usersSnap.docs.map(doc => doc.data() as User));
+      const fetchedUsers = usersSnap.docs.map(doc => doc.data() as User);
+      setUsers(fetchedUsers);
       setRoles(rolesSnap.docs.map(doc => doc.data() as Role));
       setBranches(branchesSnap.docs.map(doc => doc.data() as Branch));
       
       const storedUserString = localStorage.getItem('user');
       if (storedUserString) {
         const storedUser = JSON.parse(storedUserString);
-        setUser(storedUser);
+        // Verify the stored user exists in the fetched users list
+        if (fetchedUsers.some(u => u.id === storedUser.id)) {
+            setUser(storedUser);
+        } else {
+            localStorage.removeItem('user');
+        }
       }
     } catch (error) {
       console.error("Failed to fetch initial data from Firestore:", error);
@@ -207,7 +213,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     updateUser, updateUserRole, addRole, updateRole, deleteRole,
     userHasPermission, isHqUser, isInitializing, login, register, logout,
   }), [
-    isAuthenticated, user, users, roles, branches, permissions,
+    isAuthenticated, user, users, roles, branches, 
     updateUser, updateUserRole, addRole, updateRole, deleteRole, 
     userHasPermission, isHqUser, isInitializing, login, register, logout
   ]);

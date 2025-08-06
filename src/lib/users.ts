@@ -196,6 +196,7 @@ export const initialRoles: Role[] = [
   }
 ];
 
+// This data is now only used for one-time database seeding.
 export const initialUsers: User[] = [
   { id: 1, name: 'Super Admin', email: 'superuser@example.com', password: 'password123', roleId: 'super-admin', branchId: 'kantor-pusat', avatarUrl: '', signatureUrl: '' },
   { id: 2, name: 'Jane Smith', email: 'jane.smith@example.com', password: 'password123', roleId: 'project-manager', branchId: 'surabaya', avatarUrl: '', signatureUrl: '' },
