@@ -5,7 +5,7 @@ import {firebase} from '@genkit-ai/firebase/plugin';
 import {googleCloud} from '@genkit-ai/google-cloud';
 
 // Import flows so that they are registered with Genkit.
-import * as projectAnalysisFlow from '@/ai/flows/project-analysis-flow';
+// import * as projectAnalysisFlow from '@/ai/flows/project-analysis-flow';
 
 
 const plugins: Plugin[] = [googleAI()];
