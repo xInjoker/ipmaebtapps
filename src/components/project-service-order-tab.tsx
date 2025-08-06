@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
@@ -30,7 +31,6 @@ type ProjectServiceOrderTabProps = {
 export function ProjectServiceOrderTab({ project, setProjects }: ProjectServiceOrderTabProps) {
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-    const [isCalendarOpen, setIsCalendarOpen] = useState(false);
     const { toast } = useToast();
     
     const [itemToEdit, setItemToEdit] = useState<(Omit<ServiceOrderItem, 'date'> & { date?: Date }) | null>(null);
@@ -57,11 +57,6 @@ export function ProjectServiceOrderTab({ project, setProjects }: ProjectServiceO
                 return acc;
             }, {} as Record<string, number>);
     }, [project.invoices]);
-
-    const serviceOrderMap = useMemo(() => {
-        return new Map(project.serviceOrders.map(so => [so.soNumber, so]));
-    }, [project.serviceOrders]);
-
 
     const handleAddItem = useCallback(() => {
         if (newItem.soNumber && newItem.description && newItem.date && newItem.value > 0) {
