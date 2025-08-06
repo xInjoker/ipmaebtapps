@@ -89,7 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = useCallback((email: string, pass: string) => {
     const userToLogin = users.find((u) => u.email === email);
 
-    if (userToLogin && pass) { 
+    if (userToLogin && userToLogin.password === pass) { 
       localStorage.setItem('user', JSON.stringify(userToLogin));
       setUser(userToLogin);
       router.push('/');
@@ -113,7 +113,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const newId = users.length > 0 ? Math.max(...users.map((u) => u.id)) + 1 : 1;
-    const newUser: User = { id: newId, name, email, roleId: 'staff', branchId, avatarUrl: '' };
+    const newUser: User = { id: newId, name, email, password: pass, roleId: 'staff', branchId, avatarUrl: '' };
 
     try {
         await setDoc(doc(db, 'users', String(newId)), newUser);
