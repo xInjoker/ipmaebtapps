@@ -17,6 +17,9 @@ import {
   type Permission,
   permissions,
   type Branch,
+  initialUsers,
+  initialRoles,
+  initialBranches,
 } from '@/lib/users';
 import { useToast } from '@/hooks/use-toast';
 import { getFirestore, collection, doc, getDocs, setDoc, updateDoc } from 'firebase/firestore';
@@ -51,64 +54,44 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [users, setUsers] = useState<User[]>([]);
-  const [roles, setRoles] = useState<Role[]>([]);
-  const [branches, setBranches] = useState<Branch[]>([]);
+  const [users, setUsers] = useState<User[]>(initialUsers);
+  const [roles, setRoles] = useState<Role[]>(initialRoles);
+  const [branches, setBranches] = useState<Branch[]>(initialBranches);
   const [isInitializing, setIsInitializing] = useState(true);
   const router = useRouter();
   const { toast } = useToast();
   
   useEffect(() => {
-    const initializeAuth = async () => {
-      setIsInitializing(true); // Start initializing
-      try {
-        const [usersSnap, rolesSnap, branchesSnap] = await Promise.all([
-          getDocs(collection(db, 'users')),
-          getDocs(collection(db, 'roles')),
-          getDocs(collection(db, 'branches')),
-        ]);
-        const fetchedUsers = usersSnap.docs.map(doc => doc.data() as User);
-        const fetchedRoles = rolesSnap.docs.map(doc => doc.data() as Role);
-        const fetchedBranches = branchesSnap.docs.map(doc => doc.data() as Branch);
-
-        setUsers(fetchedUsers);
-        setRoles(fetchedRoles);
-        setBranches(fetchedBranches);
-        
-        // Force login as superadmin for development
-        const superAdminUser = fetchedUsers.find(u => u.roleId === 'super-admin');
-        if (superAdminUser) {
-          setUser(superAdminUser);
-          localStorage.setItem('user', JSON.stringify(superAdminUser));
-        } else {
-            // Fallback if superadmin is not found (e.g., before seeding)
-            const storedUserString = localStorage.getItem('user');
-            if (storedUserString) {
-                const storedUser = JSON.parse(storedUserString);
-                if (fetchedUsers.some(u => u.id === storedUser.id)) {
-                    setUser(storedUser);
-                } else {
-                    localStorage.removeItem('user');
-                }
+    // This effect now only checks for a logged-in user in localStorage.
+    // It no longer fetches from Firestore, avoiding the race condition on an empty DB.
+    setIsInitializing(true);
+    try {
+        const storedUserString = localStorage.getItem('user');
+        if (storedUserString) {
+            const storedUser = JSON.parse(storedUserString);
+            // We use the initialUsers list for validation here as the DB might be empty.
+            if (initialUsers.some(u => u.id === storedUser.id)) {
+                setUser(storedUser);
+            } else {
+                localStorage.removeItem('user');
             }
         }
-      } catch (error) {
-        console.error("Failed to fetch initial data from Firestore:", error);
-        toast({ variant: 'destructive', title: 'Error', description: 'Could not connect to the database.' });
-      } finally {
-          setIsInitializing(false); // Finish initializing
-      }
-    };
-
-    initializeAuth();
-  }, [toast]);
+    } catch (error) {
+        console.error("Error reading from localStorage", error);
+        localStorage.removeItem('user');
+    } finally {
+        setIsInitializing(false);
+    }
+  }, []);
 
   const login = useCallback((email: string, pass: string) => {
-    const userToLogin = users.find((u) => u.email === email);
+    // Use the hardcoded initialUsers for login check.
+    const userToLogin = initialUsers.find((u) => u.email === email);
 
     if (userToLogin && userToLogin.password === pass) { 
       localStorage.setItem('user', JSON.stringify(userToLogin));
       setUser(userToLogin);
+      setUsers(initialUsers); // Ensure users state is populated
       router.push('/');
     } else {
       toast({
@@ -117,13 +100,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         description: 'Invalid email or password.',
       });
     }
-  }, [users, router, toast]);
+  }, [router, toast]);
 
   const register = useCallback(async (name: string, email: string, pass: string, branchId: string) => {
      if (!branchId) {
       toast({ variant: 'destructive', title: 'Registration Failed', description: 'Please select an office location.' });
       return;
     }
+    // Check against the current state of users (which may be updated from DB later)
     if (users.some((u) => u.email === email)) {
       toast({ variant: 'destructive', title: 'Registration Failed', description: 'A user with this email already exists.' });
       return;
@@ -134,7 +118,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     try {
         await setDoc(doc(db, 'users', String(newId)), newUser);
-        setUsers(prev => [...prev, newUser]);
+        const updatedUsers = [...users, newUser];
+        setUsers(updatedUsers);
         localStorage.setItem('user', JSON.stringify(newUser));
         setUser(newUser);
         router.push('/');
@@ -224,7 +209,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     updateUser, updateUserRole, addRole, updateRole, deleteRole,
     userHasPermission, isHqUser, isInitializing, login, register, logout,
   }), [
-    isAuthenticated, user, users, roles, branches, permissions,
+    isAuthenticated, user, users, roles, branches,
     updateUser, updateUserRole, addRole, updateRole, deleteRole, 
     userHasPermission, isHqUser, isInitializing, login, register, logout
   ]);

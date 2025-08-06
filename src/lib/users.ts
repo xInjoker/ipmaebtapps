@@ -195,3 +195,15 @@ export const initialRoles: Role[] = [
     isEditable: true,
   }
 ];
+
+export const initialUsers: User[] = [
+  { id: 1, name: 'Super Admin', email: 'superuser@example.com', password: 'password123', roleId: 'super-admin', branchId: 'kantor-pusat', avatarUrl: '' },
+  { id: 2, name: 'Project Manager', email: 'manager@example.com', password: 'password123', roleId: 'project-manager', branchId: 'jakarta', avatarUrl: '' },
+  { id: 3, name: 'Project Admin', email: 'admin@example.com', password: 'password123', roleId: 'project-admin', branchId: 'surabaya', avatarUrl: '', assignedProjectIds: [1] },
+  { id: 4, name: 'Inspector User', email: 'inspector@example.com', password: 'password123', roleId: 'inspector', branchId: 'pekanbaru', avatarUrl: '' },
+  { id: 5, name: 'Staff User', email: 'staff@example.com', password: 'password123', roleId: 'staff', branchId: 'balikpapan', avatarUrl: '' },
+  { id: 6, name: 'Employee User', email: 'employee@example.com', password: 'password123', roleId: 'employee', branchId: 'bandung', avatarUrl: '' },
+  { id: 7, name: 'Tender Admin', email: 'tender@example.com', password: 'password123', roleId: 'tender-admin', branchId: 'kantor-pusat', avatarUrl: '' },
+  { id: 8, name: 'QAQC Client', email: 'qaqc@client.com', password: 'password123', roleId: 'client-qaqc', branchId: 'kantor-pusat', avatarUrl: '' },
+  { id: 9, name: 'Rep Client', email: 'rep@client.com', password: 'password123', roleId: 'client-rep', branchId: 'kantor-pusat', avatarUrl: '' },
+];
