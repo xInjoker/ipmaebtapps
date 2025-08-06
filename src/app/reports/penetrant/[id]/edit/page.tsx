@@ -4,7 +4,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
-import * as NextImage from 'next/image';
+import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -365,7 +365,6 @@ export default function EditPenetrantTestPage() {
     if (!originalReport) {
         return <div className="flex h-screen items-center justify-center">Loading report...</div>;
     }
-    const Image = NextImage.default;
 
   return (
     <div className="space-y-6">
@@ -960,14 +959,14 @@ export default function EditPenetrantTestPage() {
             <div>
                 {currentStep > 0 && (
                      <Button variant="outline" onClick={prev}>
-                        <ChevronLeft className="h-4 w-4 mr-2" /> Previous
+                        <ChevronLeft className="mr-2 h-4 w-4" /> Previous
                     </Button>
                 )}
             </div>
             <div>
                  {currentStep < steps.length - 1 && (
                     <Button onClick={next}>
-                        Next <ChevronRight className="h-4 w-4 ml-2" />
+                        Next <ChevronRight className="ml-2 h-4 w-4" />
                     </Button>
                 )}
                  {currentStep === steps.length - 1 && (

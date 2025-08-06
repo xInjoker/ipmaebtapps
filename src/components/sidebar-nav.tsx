@@ -24,7 +24,6 @@ import {
   SidebarMenuItem,
   SidebarMenuSub,
   SidebarMenuSubButton,
-  SidebarMenuSubItem,
   useSidebar,
 } from '@/components/ui/sidebar';
 import { useProjects } from '@/context/ProjectContext';
@@ -156,17 +155,14 @@ export function SidebarNav() {
         const isMainActive =
           item.href === '/'
             ? pathname === '/'
-            : pathname.startsWith(item.href) && item.href !== '/reports';
+            : pathname === item.href; // Exact match for parent link
 
         const areSubItemsActive =
           item.subItems?.some((sub: { href: string }) => pathname.startsWith(sub.href)) ??
           false;
 
         const isActive =
-          areSubItemsActive ||
-          (item.href === '/reports'
-            ? pathname.startsWith('/reports')
-            : isMainActive);
+          (item.href === '/projects' || item.href === '/reports') ? pathname.startsWith(item.href) : isMainActive;
         
         const Icon = item.icon;
 
