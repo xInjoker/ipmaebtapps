@@ -17,6 +17,7 @@ import {
   FileText,
   ChevronRight,
   ClipboardCheck,
+  DatabaseZap, // Added for seeding
 } from 'lucide-react';
 import {
   SidebarMenu,
@@ -137,6 +138,12 @@ export function SidebarNav() {
       permission: 'manage-users',
     },
     {
+      href: '/seed-database',
+      label: 'Seed Database',
+      icon: DatabaseZap,
+      permission: 'super-admin', // Only super-admin should see this
+    },
+    {
       href: '/settings',
       label: 'Settings',
       icon: Settings,
@@ -155,14 +162,9 @@ export function SidebarNav() {
         const isMainActive =
           item.href === '/'
             ? pathname === '/'
-            : pathname === item.href; // Exact match for parent link
+            : pathname.startsWith(item.href);
 
-        const areSubItemsActive =
-          item.subItems?.some((sub: { href: string }) => pathname.startsWith(sub.href)) ??
-          false;
-
-        const isActive =
-          (item.href === '/projects' || item.href === '/reports') ? pathname.startsWith(item.href) : isMainActive;
+        const isActive = isMainActive;
         
         const Icon = item.icon;
 
@@ -197,7 +199,7 @@ export function SidebarNav() {
                 <CollapsibleContent asChild>
                   <SidebarMenuSub>
                     {item.subItems.map((subItem) => (
-                      <SidebarMenuSubItem key={subItem.href}>
+                      <SidebarMenuItem key={subItem.href}>
                         <SidebarMenuSubButton
                           asChild
                           isActive={pathname.startsWith(subItem.href)}
@@ -206,7 +208,7 @@ export function SidebarNav() {
                             <span>{subItem.label}</span>
                           </Link>
                         </SidebarMenuSubButton>
-                      </SidebarMenuSubItem>
+                      </SidebarMenuItem>
                     ))}
                   </SidebarMenuSub>
                 </CollapsibleContent>
