@@ -1,9 +1,10 @@
 
+
 'use client';
 
 import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useMemo, useCallback, useEffect } from 'react';
 import { type Project } from '@/lib/projects';
-import { getFirestore, collection, getDocs, setDoc, doc } from 'firebase/firestore';
+import { getFirestore, collection, getDocs, setDoc, doc, updateDoc } from 'firebase/firestore';
 import { app } from '@/lib/firebase';
 
 const db = getFirestore(app);
@@ -20,6 +21,7 @@ type ProjectContextType = {
   projects: Project[];
   setProjects: Dispatch<SetStateAction<Project[]>>; 
   addProject: (project: Omit<Project, 'id'>) => Promise<void>;
+  updateProject: (id: string, data: Partial<Project>) => Promise<void>;
   getProjectById: (id: string) => Project | undefined;
   getProjectStats: (projectList: Project[]) => ProjectStats;
   projectStats: ProjectStats;
@@ -52,6 +54,16 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
       const newProject: Project = { id: newId, ...projectData };
       await setDoc(doc(db, 'projects', newId), newProject);
       setProjects(prev => [...prev, newProject]);
+  }, []);
+
+  const updateProject = useCallback(async (id: string, data: Partial<Project>) => {
+    try {
+        const projectDocRef = doc(db, 'projects', id);
+        await updateDoc(projectDocRef, data);
+        setProjects(prev => prev.map(p => p.id === id ? { ...p, ...data } : p));
+    } catch (error) {
+        console.error("Error updating project in Firestore: ", error);
+    }
   }, []);
   
   const getProjectById = useCallback((id: string) => {
@@ -95,10 +107,11 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     projects,
     setProjects,
     addProject,
+    updateProject,
     getProjectById,
     getProjectStats,
     projectStats,
-  }), [projects, addProject, getProjectById, getProjectStats, projectStats]);
+  }), [projects, addProject, updateProject, getProjectById, getProjectStats, projectStats]);
 
   return (
     <ProjectContext.Provider value={contextValue}>

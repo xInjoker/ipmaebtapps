@@ -73,7 +73,7 @@ interface jsPDFWithAutoTable extends jsPDF {
 export default function ProjectDetailsPage() {
   const params = useParams();
   const projectId = params.id as string;
-  const { getProjectById, setProjects, getProjectStats } = useProjects();
+  const { getProjectById, updateProject, projects, getProjectStats } = useProjects();
   const { users, userHasPermission } = useAuth();
   
   const [project, setProject] = useState<Project | null>(null);
@@ -91,24 +91,18 @@ export default function ProjectDetailsPage() {
     if (fetchedProject) {
         setProject(fetchedProject);
     }
-  }, [projectId, getProjectById]);
-
-  useEffect(() => {
-    if (project) {
-      setProjects(currentProjects => 
-        currentProjects.map(p => p.id === project.id ? project : p)
-      );
-    }
-  }, [project, setProjects]);
+  }, [projectId, getProjectById, projects]);
   
-  const handleProjectUpdate = useCallback((updateFn: (project: Project) => Project) => {
+  const handleProjectUpdate = useCallback(async (updateFn: (project: Project) => Project) => {
     setProject(currentProject => {
         if (currentProject) {
-            return updateFn(currentProject);
+            const updatedProject = updateFn(currentProject);
+            updateProject(updatedProject.id, updatedProject);
+            return updatedProject;
         }
         return null;
     });
-  }, []);
+  }, [updateProject]);
   
   const {
     totalCost,
