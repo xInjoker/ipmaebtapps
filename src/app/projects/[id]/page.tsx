@@ -142,11 +142,16 @@ export default function ProjectDetailsPage() {
   const summaryWidgets = useMemo(() => {
     const budgetUtilization = totalBudget > 0 ? (totalCost / totalBudget) * 100 : 0;
     const totalSubmittedInvoices = totalInvoiced + totalPaid;
+    const profitPercentage = project?.value ? (profit / project.value) * 100 : 0;
+    const profitDescription = profit >= 0 
+        ? `Currently profitable by ${profitPercentage.toFixed(1)}%`
+        : `Currently at a loss by ${Math.abs(profitPercentage).toFixed(1)}%`;
+        
     return [
       {
         title: 'Project Profit/Loss',
         value: formatCurrency(profit),
-        description: profit >= 0 ? 'Currently profitable' : 'Currently at a loss',
+        description: profitDescription,
         icon: profit >= 0 ? TrendingUp : TrendingDown,
         iconColor: profit >= 0 ? 'text-green-500' : 'text-rose-500',
         shapeColor: profit >= 0 ? 'text-green-500/10' : 'text-rose-500/10',
@@ -168,7 +173,7 @@ export default function ProjectDetailsPage() {
         shapeColor: 'text-amber-500/10',
       }
     ];
-  }, [profit, totalCost, totalBudget, totalInvoiced, totalPaid]);
+  }, [profit, totalCost, totalBudget, totalInvoiced, totalPaid, project?.value]);
 
   const handlePrint = useCallback(async () => {
     if (!project) return;
