@@ -1,5 +1,4 @@
 
-
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 import { isPast, differenceInDays } from "date-fns";
@@ -188,8 +187,21 @@ export function fileToBase64(file: File): Promise<string | ArrayBuffer | null> {
 
 export function getFileNameFromDataUrl(dataUrl: string): string | null {
     if (typeof dataUrl !== 'string') return null;
-    // This is a common but non-standard way to embed a filename in a data URI.
-    // Let's keep it for now as it seems to be used for downloading.
+    
+    // Check if it's a Firebase Storage URL
+    if (dataUrl.startsWith('https://firebasestorage.googleapis.com')) {
+        try {
+            const url = new URL(dataUrl);
+            const pathSegments = url.pathname.split('/');
+            const encodedFileName = pathSegments[pathSegments.length - 1];
+            return decodeURIComponent(encodedFileName);
+        } catch (e) {
+            console.error("Could not parse Firebase Storage URL", e);
+            return 'document';
+        }
+    }
+
+    // Fallback for old data URI format
     const match = dataUrl.match(/^data:.*;name=([^;]+);/);
     if (match && match[1]) {
         try {
@@ -199,6 +211,5 @@ export function getFileNameFromDataUrl(dataUrl: string): string | null {
             return 'document';
         }
     }
-    // If the name is not embedded, we can't extract it.
     return null;
 }

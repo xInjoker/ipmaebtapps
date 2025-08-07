@@ -3,7 +3,7 @@
 
 import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useCallback, useMemo, useEffect } from 'react';
 import { type EquipmentItem, type EquipmentDocument } from '@/lib/equipment';
-import { fileToBase64 } from '@/lib/utils';
+import { uploadFile } from '@/lib/storage';
 import { getFirestore, collection, getDocs, setDoc, doc, updateDoc } from 'firebase/firestore';
 import { app } from '@/lib/firebase';
 
@@ -43,12 +43,14 @@ export function EquipmentProvider({ children }: { children: ReactNode }) {
     const newId = `EQ-${Date.now()}`;
     const { images, documents, ...rest } = item;
 
-    const imageUrls = await Promise.all(images.map(file => fileToBase64(file) as Promise<string>));
+    const imageUrls = await Promise.all(
+        images.map(file => uploadFile(file, `equipment/${newId}/${file.name}`))
+    );
 
     const documentUrls: EquipmentDocument[] = await Promise.all(
         documents.map(async file => ({
             name: file.name,
-            url: await fileToBase64(file) as string,
+            url: await uploadFile(file, `equipment/${newId}/docs/${file.name}`),
         }))
     );
     
@@ -63,12 +65,14 @@ export function EquipmentProvider({ children }: { children: ReactNode }) {
   }, []);
   
   const updateEquipment = useCallback(async (id: string, updatedItem: EquipmentItem, newFiles: {newImages?: File[], newDocuments?: File[]}) => {
-    const newImageUrls = await Promise.all((newFiles.newImages || []).map(file => fileToBase64(file) as Promise<string>));
+    const newImageUrls = await Promise.all(
+      (newFiles.newImages || []).map(file => uploadFile(file, `equipment/${id}/${file.name}`))
+    );
     
     const newDocumentUrls: EquipmentDocument[] = await Promise.all(
         (newFiles.newDocuments || []).map(async file => ({
             name: file.name,
-            url: await fileToBase64(file) as string,
+            url: await uploadFile(file, `equipment/${id}/docs/${file.name}`),
         }))
     );
 
