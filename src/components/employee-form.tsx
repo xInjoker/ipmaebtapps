@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useForm, Controller } from 'react-hook-form';
@@ -38,7 +37,7 @@ import type { InspectorDocument } from '@/lib/inspectors';
 
 const employeeSchema = z.object({
   // Step 1: Work & Project
-  reportingManagerId: z.string().optional(),
+  reportingManagerId: z.string().optional().nullable(),
   position: z.string().optional(),
   workUnit: z.string().optional(),
   workUnitName: z.string().optional(),
@@ -259,6 +258,7 @@ export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
                             <Select onValueChange={(v) => form.setValue('reportingManagerId', v)} value={form.watch('reportingManagerId') || ''}>
                                 <SelectTrigger><SelectValue placeholder="Select a manager..."/></SelectTrigger>
                                 <SelectContent>
+                                    <SelectItem value={null as any}>None</SelectItem>
                                     {employees.filter(e => e.id !== employee?.id).map(mgr => (
                                         <SelectItem key={mgr.id} value={mgr.id}>{mgr.name}</SelectItem>
                                     ))}
