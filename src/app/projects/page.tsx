@@ -84,44 +84,51 @@ export default function ProjectsPage() {
     }, 0);
   }, [visibleProjects]);
 
-  const widgetData = [
-    {
-      title: 'Total Project Value',
-      value: formatCurrencyMillions(totalProjectValue),
-      description: `Across ${visibleProjects.length} projects`,
-      icon: CircleDollarSign,
-      iconColor: 'text-blue-500',
-      shapeColor: 'text-blue-500/10',
-    },
-    {
-      title: 'Total Income',
-      value: formatCurrencyMillions(totalIncome),
-      description: totalProjectValue > 0 
-        ? `${((totalIncome / totalProjectValue) * 100).toFixed(1)}% of total project value`
-        : 'Total income generated to date',
-      icon: Landmark,
-      iconColor: 'text-green-500',
-      shapeColor: 'text-green-500/10',
-    },
-    {
-      title: 'Total Cost',
-      value: formatCurrencyMillions(totalCost),
-      description: totalBudget > 0 
-        ? `${((totalCost / totalBudget) * 100).toFixed(1)}% of budget used` 
-        : 'Total costs realized across all projects',
-      icon: Wallet,
-      iconColor: 'text-amber-500',
-      shapeColor: 'text-amber-500/10',
-    },
-    {
-      title: 'Profit / Loss',
-      value: formatCurrencyMillions(profit),
-      description: profit >= 0 ? 'Currently profitable' : 'Currently at a loss',
-      icon: profit >= 0 ? TrendingUp : TrendingDown,
-      iconColor: profit >= 0 ? 'text-green-500' : 'text-rose-500',
-      shapeColor: profit >= 0 ? 'text-green-500/10' : 'text-rose-500/10',
-    },
-  ];
+  const widgetData = useMemo(() => {
+    const profitPercentage = totalProjectValue > 0 ? (profit / totalProjectValue) * 100 : 0;
+    const profitDescription = profit >= 0
+      ? `Currently profitable by ${profitPercentage.toFixed(1)}%`
+      : `Currently at a loss by ${Math.abs(profitPercentage).toFixed(1)}%`;
+
+    return [
+      {
+        title: 'Total Project Value',
+        value: formatCurrencyMillions(totalProjectValue),
+        description: `Across ${visibleProjects.length} projects`,
+        icon: CircleDollarSign,
+        iconColor: 'text-blue-500',
+        shapeColor: 'text-blue-500/10',
+      },
+      {
+        title: 'Total Income',
+        value: formatCurrencyMillions(totalIncome),
+        description: totalProjectValue > 0
+          ? `${((totalIncome / totalProjectValue) * 100).toFixed(1)}% of total project value`
+          : 'Total income generated to date',
+        icon: Landmark,
+        iconColor: 'text-green-500',
+        shapeColor: 'text-green-500/10',
+      },
+      {
+        title: 'Total Cost',
+        value: formatCurrencyMillions(totalCost),
+        description: totalBudget > 0
+          ? `${((totalCost / totalBudget) * 100).toFixed(1)}% of budget used`
+          : 'Total costs realized across all projects',
+        icon: Wallet,
+        iconColor: 'text-amber-500',
+        shapeColor: 'text-amber-500/10',
+      },
+      {
+        title: 'Profit / Loss',
+        value: formatCurrencyMillions(profit),
+        description: profitDescription,
+        icon: profit >= 0 ? TrendingUp : TrendingDown,
+        iconColor: profit >= 0 ? 'text-green-500' : 'text-rose-500',
+        shapeColor: profit >= 0 ? 'text-green-500/10' : 'text-rose-500/10',
+      },
+    ];
+  }, [totalProjectValue, totalIncome, totalCost, totalBudget, profit, visibleProjects.length]);
 
   const handleClearFilters = useCallback(() => {
     setSearchTerm('');
