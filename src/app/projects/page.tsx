@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
@@ -92,7 +93,7 @@ export default function ProjectsPage() {
   }, [visibleProjects]);
 
   const widgetData = useMemo(() => {
-    const profitPercentage = totalProjectValue > 0 ? (profit / totalProjectValue) * 100 : 0;
+    const profitPercentage = totalIncome > 0 ? (profit / totalIncome) * 100 : 0;
     const profitDescription = profit >= 0
       ? `Currently profitable by ${profitPercentage.toFixed(1)}%`
       : `Currently at a loss by ${Math.abs(profitPercentage).toFixed(1)}%`;
