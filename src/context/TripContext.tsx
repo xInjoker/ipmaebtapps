@@ -4,7 +4,7 @@
 import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useCallback, useMemo, useEffect } from 'react';
 import { type TripRequest } from '@/lib/trips';
 import { useProjects } from './ProjectContext';
-import { getFirestore, collection, getDocs, setDoc, doc, updateDoc } from 'firebase/firestore';
+import { getFirestore, collection, getDocs, setDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { app } from '@/lib/firebase';
 
 const db = getFirestore(app);
@@ -15,6 +15,7 @@ type TripContextType = {
   isLoading: boolean;
   addTrip: (item: TripRequest) => Promise<void>;
   updateTrip: (id: string, item: TripRequest) => Promise<void>;
+  deleteTrip: (id: string) => Promise<void>;
   getTripById: (id: string) => TripRequest | undefined;
   getPendingTripApprovalsForUser: (userId: number) => TripRequest[];
 };
@@ -50,6 +51,11 @@ export function TripProvider({ children }: { children: ReactNode }) {
     await updateDoc(doc(db, 'trips', id), updatedItem);
     setTrips(prev => prev.map(t => t.id === id ? updatedItem : t));
   }, []);
+
+  const deleteTrip = useCallback(async (id: string) => {
+    await deleteDoc(doc(db, 'trips', id));
+    setTrips(prev => prev.filter(item => item.id !== id));
+  }, []);
   
   const getTripById = useCallback((id: string) => {
     return trips.find(item => item.id === id);
@@ -78,9 +84,10 @@ export function TripProvider({ children }: { children: ReactNode }) {
     isLoading,
     addTrip,
     updateTrip,
+    deleteTrip,
     getTripById,
     getPendingTripApprovalsForUser,
-  }), [trips, isLoading, addTrip, updateTrip, getTripById, getPendingTripApprovalsForUser]);
+  }), [trips, isLoading, addTrip, updateTrip, deleteTrip, getTripById, getPendingTripApprovalsForUser]);
 
   return (
     <TripContext.Provider value={contextValue}>

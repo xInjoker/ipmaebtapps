@@ -5,7 +5,7 @@ import { createContext, useState, useContext, ReactNode, Dispatch, SetStateActio
 import { type Inspector, type InspectorDocument } from '@/lib/inspectors';
 import { getDocumentStatus, fileToBase64 } from '@/lib/utils';
 import { Users2, BadgeCheck, Clock, XCircle } from 'lucide-react';
-import { getFirestore, collection, getDocs, setDoc, doc, updateDoc } from 'firebase/firestore';
+import { getFirestore, collection, getDocs, setDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { app } from '@/lib/firebase';
 
 const db = getFirestore(app);
@@ -23,6 +23,7 @@ type InspectorContextType = {
   isLoading: boolean;
   addInspector: (item: Omit<Inspector, 'id'|'cvUrl'|'qualifications'|'otherDocuments'> & { cvFile: File | null; qualifications: {file: File, expirationDate?: string}[]; otherDocuments: {file: File, expirationDate?: string}[]}) => Promise<void>;
   updateInspector: (id: string, item: Inspector, newFiles: { newCvFile?: File | null, newQualifications?: {file: File, expirationDate?: string}[], newOtherDocs?: {file: File, expirationDate?: string}[] }) => Promise<void>;
+  deleteInspector: (id: string) => Promise<void>;
   getInspectorById: (id: string) => Inspector | undefined;
   inspectorStats: InspectorStats;
   widgetData: { title: string; value: string; description: string; icon: React.ElementType; iconColor: string; shapeColor: string; }[];
@@ -107,6 +108,11 @@ export function InspectorProvider({ children }: { children: ReactNode }) {
     await updateDoc(doc(db, 'inspectors', id), finalItem);
     setInspectors(prev => prev.map(i => i.id === id ? finalItem : i));
   }, []);
+
+  const deleteInspector = useCallback(async (id: string) => {
+    await deleteDoc(doc(db, 'inspectors', id));
+    setInspectors(prev => prev.filter(item => item.id !== id));
+  }, []);
   
   const getInspectorById = useCallback((id:string) => {
     return inspectors.find(item => item.id === id);
@@ -164,10 +170,11 @@ export function InspectorProvider({ children }: { children: ReactNode }) {
     isLoading,
     addInspector,
     updateInspector,
+    deleteInspector,
     getInspectorById,
     inspectorStats,
     widgetData,
-  }), [inspectors, isLoading, addInspector, updateInspector, getInspectorById, inspectorStats, widgetData]);
+  }), [inspectors, isLoading, addInspector, updateInspector, deleteInspector, getInspectorById, inspectorStats, widgetData]);
 
   return (
     <InspectorContext.Provider value={contextValue}>

@@ -15,12 +15,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { PlusCircle, X, Search, Wrench, CheckCircle, BadgeCheck, XCircle } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useEquipment } from '@/context/EquipmentContext';
-import { equipmentTypes, equipmentStatuses } from '@/lib/equipment';
+import { equipmentTypes, equipmentStatuses, type EquipmentItem } from '@/lib/equipment';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EquipmentCard } from '@/components/equipment-card';
 import { getCalibrationStatus } from '@/lib/utils';
 import { HeaderCard } from '@/components/header-card';
 import { DashboardWidget } from '@/components/dashboard-widget';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
 
 type DashboardStats = {
     total: number;
@@ -31,12 +33,15 @@ type DashboardStats = {
 
 export default function EquipmentPage() {
   const { branches, userHasPermission } = useAuth();
-  const { equipmentList, isLoading } = useEquipment();
+  const { equipmentList, isLoading, deleteEquipment } = useEquipment();
+  const { toast } = useToast();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
   const [branchFilter, setBranchFilter] = useState('all');
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<EquipmentItem | null>(null);
   
   const [dashboardStats, setDashboardStats] = useState<DashboardStats>({
     total: 0,
@@ -130,7 +135,25 @@ export default function EquipmentPage() {
     setBranchFilter('all');
   }, []);
 
+  const handleDeleteRequest = useCallback((item: EquipmentItem) => {
+    setItemToDelete(item);
+    setIsDeleteDialogOpen(true);
+  }, []);
+
+  const handleConfirmDelete = () => {
+    if (itemToDelete) {
+      deleteEquipment(itemToDelete.id);
+      toast({
+        title: 'Equipment Deleted',
+        description: `${itemToDelete.name} has been removed.`,
+      });
+      setIsDeleteDialogOpen(false);
+      setItemToDelete(null);
+    }
+  };
+
   return (
+    <>
     <div className="space-y-6">
       <HeaderCard
         title="Equipment Management"
@@ -226,7 +249,7 @@ export default function EquipmentPage() {
        ) : filteredEquipment.length > 0 ? (
          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {filteredEquipment.map((item) => (
-              <EquipmentCard key={item.id} item={item} branchMap={branchMap} />
+              <EquipmentCard key={item.id} item={item} branchMap={branchMap} onDelete={() => handleDeleteRequest(item)} />
           ))}
         </div>
        ) : (
@@ -238,5 +261,20 @@ export default function EquipmentPage() {
         </Card>
        )}
     </div>
+     <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the equipment "{itemToDelete?.name}".
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setItemToDelete(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

@@ -3,7 +3,7 @@
 
 import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useCallback, useMemo, useEffect } from 'react';
 import { type EquipmentItem, type EquipmentDocument } from '@/lib/equipment';
-import { getFirestore, collection, getDocs, setDoc, doc, updateDoc } from 'firebase/firestore';
+import { getFirestore, collection, getDocs, setDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { app } from '@/lib/firebase';
 import { uploadFile } from '@/lib/storage';
 
@@ -15,6 +15,7 @@ type EquipmentContextType = {
   isLoading: boolean;
   addEquipment: (item: Omit<EquipmentItem, 'id' | 'imageUrls' | 'documentUrls'> & { images: File[], documents: File[] }) => Promise<void>;
   updateEquipment: (id: string, item: EquipmentItem, newFiles: {newImages?: File[], newDocuments?: File[]}) => Promise<void>;
+  deleteEquipment: (id: string) => Promise<void>;
   getEquipmentById: (id: string) => EquipmentItem | undefined;
 };
 
@@ -80,7 +81,7 @@ export function EquipmentProvider({ children }: { children: ReactNode }) {
   
     // 3. Combine existing data from updatedItemData with new file URLs
     const finalItem: EquipmentItem = {
-      ...updatedItemData, // Use the passed-in form data as the base
+      ...updatedItemData,
       imageUrls: [...(updatedItemData.imageUrls || []), ...newImageUrls],
       documentUrls: [...(updatedItemData.documentUrls || []), ...newDocumentUrls],
     };
@@ -88,6 +89,11 @@ export function EquipmentProvider({ children }: { children: ReactNode }) {
     // 4. Update Firestore and local state
     await updateDoc(doc(db, 'equipment', id), finalItem);
     setEquipmentList(prev => prev.map(item => item.id === id ? finalItem : item));
+  }, []);
+
+  const deleteEquipment = useCallback(async (id: string) => {
+    await deleteDoc(doc(db, 'equipment', id));
+    setEquipmentList(prev => prev.filter(item => item.id !== id));
   }, []);
   
   const getEquipmentById = useCallback((id: string) => {
@@ -100,8 +106,9 @@ export function EquipmentProvider({ children }: { children: ReactNode }) {
     isLoading,
     addEquipment,
     updateEquipment,
+    deleteEquipment,
     getEquipmentById,
-  }), [equipmentList, isLoading, addEquipment, updateEquipment, getEquipmentById]);
+  }), [equipmentList, isLoading, addEquipment, updateEquipment, deleteEquipment, getEquipmentById]);
 
   return (
     <EquipmentContext.Provider value={contextValue}>

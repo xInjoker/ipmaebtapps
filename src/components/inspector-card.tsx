@@ -7,11 +7,14 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Mail, MapPin, Award } from 'lucide-react';
+import { Mail, MapPin, Award, MoreHorizontal, Trash2 } from 'lucide-react';
 import { type Inspector } from '@/lib/inspectors';
 import { getInitials, getAvatarColor, formatQualificationName, getDocumentStatus, type DocumentStatus } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 import { Skeleton } from './ui/skeleton';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { useAuth } from '@/context/AuthContext';
+
 
 type QualificationWithStatus = {
   name: string;
@@ -22,9 +25,11 @@ interface InspectorCardProps {
     inspector: Inspector & { type?: 'Inspector' | 'Employee' };
     branchMap: Record<string, string>;
     personnelType?: 'Inspector' | 'Employee';
+    onDelete: () => void;
 }
 
-export function InspectorCard({ inspector, branchMap, personnelType }: InspectorCardProps) {
+export function InspectorCard({ inspector, branchMap, personnelType, onDelete }: InspectorCardProps) {
+  const { user } = useAuth();
   const avatarColor = getAvatarColor(inspector.name);
   const [qualificationStatuses, setQualificationStatuses] = useState<QualificationWithStatus[]>([]);
 
@@ -41,30 +46,54 @@ export function InspectorCard({ inspector, branchMap, personnelType }: Inspector
   return (
     <Card className="flex flex-col">
       <CardHeader>
-        <div className="flex items-center gap-4">
-          <Avatar className="h-16 w-16">
-            {inspector.avatarUrl ? (
-              <AvatarImage src={inspector.avatarUrl} alt={inspector.name} />
-            ) : null}
-            <AvatarFallback
-              className="text-2xl"
-              style={{
-                backgroundColor: avatarColor.background,
-                color: avatarColor.color,
-              }}
-            >
-              {getInitials(inspector.name)}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1">
-            <Link href={linkTo} className="hover:underline">
-              <CardTitle className="font-headline text-lg">{inspector.name}</CardTitle>
-            </Link>
-            <CardDescription className="flex items-center gap-2">
-                <span>{inspector.position}</span>
-                {personnelType && <Badge variant={personnelType === 'Inspector' ? 'info' : 'secondary'}>{personnelType}</Badge>}
-            </CardDescription>
-          </div>
+        <div className="flex items-start justify-between gap-4">
+            <div className="flex items-center gap-4 flex-1 min-w-0">
+                <Avatar className="h-16 w-16">
+                    {inspector.avatarUrl ? (
+                    <AvatarImage src={inspector.avatarUrl} alt={inspector.name} />
+                    ) : null}
+                    <AvatarFallback
+                    className="text-2xl"
+                    style={{
+                        backgroundColor: avatarColor.background,
+                        color: avatarColor.color,
+                    }}
+                    >
+                    {getInitials(inspector.name)}
+                    </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                    <Link href={linkTo} className="hover:underline">
+                    <CardTitle className="font-headline text-lg truncate">{inspector.name}</CardTitle>
+                    </Link>
+                    <CardDescription className="flex items-center gap-2">
+                        <span className="truncate">{inspector.position}</span>
+                        {personnelType && <Badge variant={personnelType === 'Inspector' ? 'info' : 'secondary'}>{personnelType}</Badge>}
+                    </CardDescription>
+                </div>
+            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="h-8 w-8 p-0 flex-shrink-0">
+                  <span className="sr-only">Open menu</span>
+                  <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                  <DropdownMenuItem asChild>
+                      <Link href={linkTo}>View Details</Link>
+                  </DropdownMenuItem>
+                  {user?.roleId === 'super-admin' && (
+                      <>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem className="text-destructive" onSelect={onDelete}>
+                              <Trash2 className="mr-2 h-4 w-4"/>
+                              Delete
+                          </DropdownMenuItem>
+                      </>
+                  )}
+              </DropdownMenuContent>
+            </DropdownMenu>
         </div>
       </CardHeader>
       <CardContent className="space-y-4 text-sm flex-grow">

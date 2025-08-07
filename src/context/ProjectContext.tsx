@@ -1,10 +1,9 @@
 
-
 'use client';
 
 import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useMemo, useCallback, useEffect } from 'react';
 import { type Project, initialProjects } from '@/lib/projects';
-import { getFirestore, collection, getDocs, setDoc, doc, updateDoc } from 'firebase/firestore';
+import { getFirestore, collection, getDocs, setDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { app } from '@/lib/firebase';
 
 const db = getFirestore(app);
@@ -22,6 +21,7 @@ type ProjectContextType = {
   setProjects: Dispatch<SetStateAction<Project[]>>; 
   addProject: (project: Omit<Project, 'id'>) => Promise<void>;
   updateProject: (id: string, data: Partial<Project>) => Promise<void>;
+  deleteProject: (id: string) => Promise<void>;
   getProjectById: (id: string) => Project | undefined;
   getProjectStats: (projectList: Project[]) => ProjectStats;
   projectStats: ProjectStats;
@@ -73,6 +73,11 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
         console.error("Error updating project in Firestore: ", error);
     }
   }, []);
+
+  const deleteProject = useCallback(async (id: string) => {
+    await deleteDoc(doc(db, 'projects', id));
+    setProjects(prev => prev.filter(item => item.id !== id));
+  }, []);
   
   const getProjectById = useCallback((id: string) => {
     return projects.find(project => project.id.toString() === id);
@@ -116,10 +121,11 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     setProjects,
     addProject,
     updateProject,
+    deleteProject,
     getProjectById,
     getProjectStats,
     projectStats,
-  }), [projects, addProject, updateProject, getProjectById, getProjectStats, projectStats]);
+  }), [projects, addProject, updateProject, deleteProject, getProjectById, getProjectStats, projectStats]);
 
   return (
     <ProjectContext.Provider value={contextValue}>

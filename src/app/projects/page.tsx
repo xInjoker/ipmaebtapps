@@ -20,7 +20,7 @@ import {
     SelectValue,
   } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { PlusCircle, CircleDollarSign, Wallet, TrendingUp, Landmark, Search, X, BarChartBig, List, TrendingDown } from 'lucide-react';
+import { PlusCircle, CircleDollarSign, Wallet, TrendingUp, Landmark, Search, X, BarChartBig, List, TrendingDown, Trash2 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { cn, formatCurrency, formatCurrencyMillions } from '@/lib/utils';
 import { useProjects } from '@/context/ProjectContext';
@@ -34,15 +34,22 @@ import { CumulativeCostPieChart } from '@/components/cumulative-cost-pie-chart';
 import { CumulativeIncomePieChart } from '@/components/cumulative-income-pie-chart';
 import { ProjectMonthlyRecapChart } from '@/components/project-monthly-recap-chart';
 import { useSearchParams } from 'next/navigation';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
+import type { Project } from '@/lib/projects';
+
 
 export default function ProjectsPage() {
-  const { projects, getProjectStats } = useProjects();
+  const { projects, getProjectStats, deleteProject } = useProjects();
   const { user, isHqUser, branches, userHasPermission } = useAuth();
   const initialFilterSet = useRef(false);
   const searchParams = useSearchParams();
+  const { toast } = useToast();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [branchFilter, setBranchFilter] = useState('all');
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<Project | null>(null);
   
   const defaultTab = searchParams.get('tab') || 'summary';
 
@@ -137,6 +144,23 @@ export default function ProjectsPage() {
     }
   }, [isHqUser]);
 
+  const handleDeleteRequest = useCallback((item: Project) => {
+    setItemToDelete(item);
+    setIsDeleteDialogOpen(true);
+  }, []);
+
+  const handleConfirmDelete = () => {
+    if (itemToDelete) {
+      deleteProject(itemToDelete.id);
+      toast({
+        title: 'Project Deleted',
+        description: `${itemToDelete.name} has been removed.`,
+      });
+      setIsDeleteDialogOpen(false);
+      setItemToDelete(null);
+    }
+  };
+
   const monthlyRecapData = useMemo(() => {
     if (!visibleProjects) return [];
   
@@ -210,6 +234,7 @@ export default function ProjectsPage() {
 
 
   return (
+    <>
     <div className="space-y-6">
       <HeaderCard
         title="Projects"
@@ -339,9 +364,17 @@ export default function ProjectsPage() {
                                 </div>
                                 <Progress value={progress} className="h-3 w-full" />
                             </div>
-                            <Button variant="outline" className="w-full mt-2" asChild>
-                                <Link href={`/projects/${project.id}`}>View Details</Link>
-                            </Button>
+                            <div className="w-full flex items-center gap-2 mt-2">
+                                <Button variant="outline" className="w-full" asChild>
+                                    <Link href={`/projects/${project.id}`}>View Details</Link>
+                                </Button>
+                                {user?.roleId === 'super-admin' && (
+                                    <Button variant="destructive" size="icon" onClick={() => handleDeleteRequest(project)}>
+                                        <Trash2 className="h-4 w-4" />
+                                        <span className="sr-only">Delete Project</span>
+                                    </Button>
+                                )}
+                            </div>
                         </CardFooter>
                     </Card>
                     );
@@ -356,5 +389,20 @@ export default function ProjectsPage() {
         </TabsContent>
       </Tabs>
     </div>
+    <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the project "{itemToDelete?.name}".
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setItemToDelete(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 }

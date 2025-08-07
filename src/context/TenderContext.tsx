@@ -4,7 +4,7 @@
 import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useMemo, useCallback, useEffect } from 'react';
 import { type Tender } from '@/lib/tenders';
 import { fileToBase64 } from '@/lib/utils';
-import { getFirestore, collection, getDocs, setDoc, doc, updateDoc } from 'firebase/firestore';
+import { getFirestore, collection, getDocs, setDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { app } from '@/lib/firebase';
 
 const db = getFirestore(app);
@@ -18,6 +18,7 @@ type TenderContextType = {
   isLoading: boolean;
   addTender: (item: AddTenderData) => Promise<void>;
   updateTender: (id: string, item: UpdateTenderData) => Promise<void>;
+  deleteTender: (id: string) => Promise<void>;
   getTenderById: (id: string) => Tender | undefined;
 };
 
@@ -83,6 +84,11 @@ export function TenderProvider({ children }: { children: ReactNode }) {
     setTenders(prev => prev.map(t => t.id === id ? finalItem : t));
   }, [tenders]);
 
+  const deleteTender = useCallback(async (id: string) => {
+    await deleteDoc(doc(db, 'tenders', id));
+    setTenders(prev => prev.filter(item => item.id !== id));
+  }, []);
+
   const getTenderById = useCallback((id: string) => {
     return tenders.find(item => item.id === id);
   }, [tenders]);
@@ -93,8 +99,9 @@ export function TenderProvider({ children }: { children: ReactNode }) {
     isLoading,
     addTender,
     updateTender,
+    deleteTender,
     getTenderById,
-  }), [tenders, isLoading, addTender, updateTender, getTenderById]);
+  }), [tenders, isLoading, addTender, updateTender, deleteTender, getTenderById]);
 
   return (
     <TenderContext.Provider value={contextValue}>

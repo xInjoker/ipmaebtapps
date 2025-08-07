@@ -17,14 +17,17 @@ import { HeaderCard } from '@/components/header-card';
 import { DashboardWidget } from '@/components/dashboard-widget';
 import { useEmployees } from '@/context/EmployeeContext';
 import { type Inspector } from '@/lib/inspectors';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
 
 type CombinedPersonnel = Inspector & { type: 'Inspector' | 'Employee' };
 
 export default function InspectorsPage() {
-  const { inspectors, widgetData, isLoading: isInspectorsLoading } = useInspectors();
+  const { inspectors, widgetData, isLoading: isInspectorsLoading, deleteInspector } = useInspectors();
   const { employees, isLoading: isEmployeesLoading } = useEmployees();
   const { branches, userHasPermission } = useAuth();
   const [isClient, setIsClient] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     setIsClient(true);
@@ -34,6 +37,8 @@ export default function InspectorsPage() {
   const [qualificationFilter, setQualificationFilter] = useState('all');
   const [branchFilter, setBranchFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<Inspector | null>(null);
 
   const branchMap = useMemo(() => {
     return branches.reduce((acc, branch) => {
@@ -115,9 +120,27 @@ export default function InspectorsPage() {
     setStatusFilter('all');
   }, []);
 
+  const handleDeleteRequest = useCallback((item: Inspector) => {
+    setItemToDelete(item);
+    setIsDeleteDialogOpen(true);
+  }, []);
+
+  const handleConfirmDelete = () => {
+    if (itemToDelete) {
+      deleteInspector(itemToDelete.id);
+      toast({
+        title: 'Inspector Deleted',
+        description: `${itemToDelete.name} has been removed.`,
+      });
+      setIsDeleteDialogOpen(false);
+      setItemToDelete(null);
+    }
+  };
+
   const isLoading = isInspectorsLoading || isEmployeesLoading;
 
   return (
+    <>
     <div className="space-y-6">
       <HeaderCard
         title="Inspector Database"
@@ -217,7 +240,7 @@ export default function InspectorsPage() {
       ) : filteredPersonnel.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredPersonnel.map((person) => (
-            <InspectorCard key={person.id} inspector={person} branchMap={branchMap} personnelType={person.type} />
+            <InspectorCard key={person.id} inspector={person} branchMap={branchMap} personnelType={person.type} onDelete={() => handleDeleteRequest(person)} />
           ))}
         </div>
       ) : (
@@ -227,5 +250,20 @@ export default function InspectorsPage() {
         </div>
       )}
     </div>
+    <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the inspector "{itemToDelete?.name}".
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setItemToDelete(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 }

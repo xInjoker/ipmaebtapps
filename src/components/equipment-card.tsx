@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -15,17 +14,17 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { MoreHorizontal } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { MoreHorizontal, Trash2 } from 'lucide-react';
 import { type EquipmentItem } from '@/lib/equipment';
 import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/context/AuthContext';
 import { getCalibrationStatus, type CalibrationStatus } from '@/lib/utils';
 
-export function EquipmentCard({ item, branchMap }: { item: EquipmentItem; branchMap: Record<string, string> }) {
+export function EquipmentCard({ item, branchMap, onDelete }: { item: EquipmentItem; branchMap: Record<string, string>, onDelete: () => void }) {
   const [calibration, setCalibration] = useState<CalibrationStatus | null>(null);
-  const { userHasPermission } = useAuth();
+  const { user, userHasPermission } = useAuth();
   const Image = NextImage.default;
 
   useEffect(() => {
@@ -44,7 +43,7 @@ export function EquipmentCard({ item, branchMap }: { item: EquipmentItem; branch
             <CardDescription>{item.type} &bull; {item.serialNumber}</CardDescription>
           </Link>
         </div>
-        {userHasPermission('manage-equipment') && (
+        
             <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="h-8 w-8 p-0 flex-shrink-0">
@@ -53,14 +52,24 @@ export function EquipmentCard({ item, branchMap }: { item: EquipmentItem; branch
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-                <DropdownMenuItem asChild>
-                <Link href={`/equipment/${item.id}/edit`}>
-                    Edit
-                </Link>
-                </DropdownMenuItem>
+                 {userHasPermission('manage-equipment') && (
+                    <DropdownMenuItem asChild>
+                    <Link href={`/equipment/${item.id}/edit`}>
+                        Edit
+                    </Link>
+                    </DropdownMenuItem>
+                 )}
+                 {user?.roleId === 'super-admin' && (
+                    <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem className="text-destructive" onSelect={onDelete}>
+                            <Trash2 className="mr-2 h-4 w-4"/>
+                            Delete
+                        </DropdownMenuItem>
+                    </>
+                 )}
             </DropdownMenuContent>
             </DropdownMenu>
-        )}
       </CardHeader>
       <CardContent className="space-y-4 flex-grow">
         <Link href={`/equipment/${item.id}`}>

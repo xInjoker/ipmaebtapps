@@ -46,6 +46,7 @@ import {
   CheckCircle,
   XCircle,
   Download,
+  Trash2,
 } from 'lucide-react';
 import { useTenders } from '@/context/TenderContext';
 import { type Tender, type TenderStatus, tenderStatuses, regionalOptions, tenderFieldLabels } from '@/lib/tenders';
@@ -70,15 +71,18 @@ import { HeaderCard } from '@/components/header-card';
 import { DashboardWidget } from '@/components/dashboard-widget';
 import * as XLSX from 'xlsx';
 import { TenderExportDialog } from '@/components/tender-export-dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
 
 const allTenderFields = Object.keys(tenderFieldLabels) as (keyof Tender)[];
 
 export default function TendersPage() {
   useSearchParams();
-  const { tenders, updateTender } = useTenders();
+  const { tenders, updateTender, deleteTender } = useTenders();
   const { user, isHqUser, branches, userHasPermission } = useAuth();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const initialFilterSet = useRef(false);
+  const { toast } = useToast();
 
   // Filter states
   const [searchTerm, setSearchTerm] = useState('');
@@ -89,6 +93,8 @@ export default function TendersPage() {
   const [exportFields, setExportFields] = useState<(keyof Tender)[]>([
     'tenderNumber', 'title', 'client', 'status', 'submissionDate', 'bidPrice'
   ]);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<Tender | null>(null);
   
   useEffect(() => {
     if (user && !isHqUser && !initialFilterSet.current) {
@@ -258,6 +264,23 @@ export default function TendersPage() {
     }
   }, [isHqUser]);
 
+  const handleDeleteRequest = useCallback((item: Tender) => {
+    setItemToDelete(item);
+    setIsDeleteDialogOpen(true);
+  }, []);
+
+  const handleConfirmDelete = () => {
+    if (itemToDelete) {
+      deleteTender(itemToDelete.id);
+      toast({
+        title: 'Tender Deleted',
+        description: `${itemToDelete.title} has been removed.`,
+      });
+      setIsDeleteDialogOpen(false);
+      setItemToDelete(null);
+    }
+  };
+
   const handleExport = useCallback(() => {
     const dataToExport = filteredTenders.map((tender) => {
       const selectedData: Partial<Tender> = {};
@@ -338,12 +361,12 @@ export default function TendersPage() {
                     placeholder="Search by title, client, or number..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-8 bg-background/90 text-foreground focus:bg-background"
+                    className="w-full pl-8"
                 />
             </div>
             <div className="flex flex-wrap items-center gap-2">
                  <Select value={regionFilter} onValueChange={setRegionFilter} disabled={!isHqUser}>
-                    <SelectTrigger className="w-full sm:w-[180px] bg-background/90 text-foreground focus:bg-background">
+                    <SelectTrigger className="w-full sm:w-[180px]">
                         <SelectValue placeholder="Filter by region" />
                     </SelectTrigger>
                     <SelectContent>
@@ -352,7 +375,7 @@ export default function TendersPage() {
                     </SelectContent>
                 </Select>
                 <Select value={branchFilter} onValueChange={setBranchFilter} disabled={!isHqUser && !!user?.branchId}>
-                    <SelectTrigger className="w-full sm:w-[180px] bg-background/90 text-foreground focus:bg-background">
+                    <SelectTrigger className="w-full sm:w-[180px]">
                         <SelectValue placeholder="Filter by branch" />
                     </SelectTrigger>
                     <SelectContent>
@@ -361,7 +384,7 @@ export default function TendersPage() {
                     </SelectContent>
                 </Select>
                 <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
-                    <SelectTrigger className="w-full sm:w-[180px] bg-background/90 text-foreground focus:bg-background">
+                    <SelectTrigger className="w-full sm:w-[180px]">
                         <SelectValue placeholder="Filter by status" />
                     </SelectTrigger>
                     <SelectContent>
@@ -369,7 +392,7 @@ export default function TendersPage() {
                         {tenderStatuses.map(status => <SelectItem key={status} value={status}>{status}</SelectItem>)}
                     </SelectContent>
                 </Select>
-                <Button variant="ghost" onClick={handleClearFilters} className="w-full sm:w-auto text-primary-foreground hover:text-primary-foreground hover:bg-white/20">
+                <Button variant="ghost" onClick={handleClearFilters} className="w-full sm:w-auto">
                     <X className="mr-2 h-4 w-4" /> Clear
                 </Button>
             </div>
@@ -474,6 +497,15 @@ export default function TendersPage() {
                                                 </DropdownMenuSubContent>
                                                 </DropdownMenuPortal>
                                             </DropdownMenuSub>
+                                        </>
+                                    )}
+                                    {user?.roleId === 'super-admin' && (
+                                        <>
+                                            <DropdownMenuSeparator />
+                                            <DropdownMenuItem className="text-destructive" onSelect={() => handleDeleteRequest(tender)}>
+                                                <Trash2 className="mr-2 h-4 w-4" />
+                                                Delete
+                                            </DropdownMenuItem>
                                         </>
                                     )}
                                     </DropdownMenuContent>
@@ -593,6 +625,20 @@ export default function TendersPage() {
         allFields={allTenderFields}
         defaultSelectedFields={exportFields}
     />
+     <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the tender "{itemToDelete?.title}".
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setItemToDelete(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+    </AlertDialog>
     </>
   );
 }
