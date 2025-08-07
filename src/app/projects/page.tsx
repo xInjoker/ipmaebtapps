@@ -370,8 +370,8 @@ export default function ProjectsPage() {
                                     <Link href={`/projects/${project.id}`}>View Details</Link>
                                 </Button>
                                 {user?.roleId === 'super-admin' && (
-                                    <Button variant="destructive" size="icon" onClick={() => handleDeleteRequest(project)}>
-                                        <Trash2 className="h-4 w-4" />
+                                    <Button variant="ghost" size="icon" onClick={() => handleDeleteRequest(project)}>
+                                        <Trash2 className="h-4 w-4 text-destructive" />
                                         <span className="sr-only">Delete Project</span>
                                     </Button>
                                 )}
