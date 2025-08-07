@@ -63,12 +63,14 @@ export function InspectorCard({ inspector, branchMap, personnelType, onDelete }:
                     </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
-                    <Link href={linkTo} className="hover:underline">
-                    <CardTitle className="font-headline text-lg truncate">{inspector.name}</CardTitle>
-                    </Link>
-                    <CardDescription className="flex items-center gap-2">
+                    <div className="flex justify-between items-start">
+                        <Link href={linkTo} className="hover:underline flex-1 min-w-0">
+                            <CardTitle className="font-headline text-lg truncate">{inspector.name}</CardTitle>
+                        </Link>
+                        {personnelType && <Badge variant={personnelType === 'Inspector' ? 'blue' : 'green'} className="ml-2">{personnelType}</Badge>}
+                    </div>
+                    <CardDescription>
                         <span className="truncate">{inspector.position}</span>
-                        {personnelType && <Badge variant={personnelType === 'Inspector' ? 'info' : 'secondary'}>{personnelType}</Badge>}
                     </CardDescription>
                 </div>
             </div>
