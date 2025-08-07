@@ -14,7 +14,7 @@ type EquipmentContextType = {
   setEquipmentList: Dispatch<SetStateAction<EquipmentItem[]>>;
   isLoading: boolean;
   addEquipment: (item: Omit<EquipmentItem, 'id' | 'imageUrls' | 'documentUrls'> & { images: File[], documents: File[] }) => Promise<void>;
-  updateEquipment: (id: string, item: EquipmentItem, newFiles: {newImages?: File[], newDocuments?: File[], newPersonnelCerts?: File[]}) => Promise<void>;
+  updateEquipment: (id: string, item: EquipmentItem, newFiles: {newImages?: File[], newDocuments?: File[]}) => Promise<void>;
   getEquipmentById: (id: string) => EquipmentItem | undefined;
 };
 
