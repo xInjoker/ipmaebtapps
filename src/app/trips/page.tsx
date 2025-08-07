@@ -45,6 +45,7 @@ import { format } from 'date-fns';
 import { DashboardWidget } from '@/components/dashboard-widget';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
+import { HeaderCard } from '@/components/header-card';
 
 const getStatusVariant = (status: TripStatus) => {
   switch (status) {
