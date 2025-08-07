@@ -54,11 +54,11 @@ type ProjectMonthlyRecapChartProps = {
 const incomeChartConfig: ChartConfig = {
     paid: {
         label: 'Paid',
-        color: 'hsl(var(--primary))',
+        color: 'hsl(var(--chart-1))',
     },
     invoiced: {
         label: 'Invoiced',
-        color: 'hsl(var(--primary))',
+        color: 'hsl(var(--chart-2))',
     },
     pad: {
         label: 'PAD',
@@ -71,12 +71,17 @@ const incomeChartConfig: ChartConfig = {
 };
 
 const costChartConfig: ChartConfig = {
-    'Tenaga Ahli dan Labour Supply': { label: 'TA & LS', color: 'hsl(var(--warning))' }, 
-    'Operasional': { label: 'Operasional', color: 'hsl(var(--warning))' }, 
-    'Perjalanan Dinas': { label: 'Perdin', color: 'hsl(var(--warning))' }, 
-    'Fasilitas dan Interen': { label: 'Fasilitas', color: 'hsl(var(--warning))' },
-    'Promosi': { label: 'Promosi', color: 'hsl(var(--warning))' },
-    'Other': { label: 'Other', color: 'hsl(var(--warning))' },
+    'PT dan PTT': { label: 'PT & PTT', color: 'hsl(var(--chart-5))' },
+    'PTT Project': { label: 'PTT Project', color: 'hsl(var(--chart-6))' },
+    'Tenaga Ahli dan Labour Supply': { label: 'TA & LS', color: 'hsl(var(--chart-7))' },
+    'Perjalanan Dinas': { label: 'Perdin', color: 'hsl(var(--chart-8))' },
+    'Operasional': { label: 'Operasional', color: 'hsl(var(--chart-9))' },
+    'Fasilitas dan Interen': { label: 'Fasilitas & Interen', color: 'hsl(var(--chart-10))' },
+    'Amortisasi': { label: 'Amortisasi', color: 'hsl(var(--destructive))' },
+    'Kantor dan Diklat': { label: 'Kantor & Diklat', color: 'hsl(var(--warning))' },
+    'Promosi': { label: 'Promosi', color: 'hsl(var(--indigo))' },
+    'Umum': { label: 'Umum', color: 'hsl(var(--secondary-foreground))' },
+    'Other': { label: 'Other', color: 'hsl(var(--muted-foreground))' },
 };
 
 const chartConfig: ChartConfig = { ...incomeChartConfig, ...costChartConfig };
@@ -208,10 +213,11 @@ export function ProjectMonthlyRecapChart({
   }, [data, selectedYear]);
   
   const simplifiedLegendPayload = [
-    { value: 'Income', type: 'square', id: 'income', color: 'hsl(var(--primary))' },
+    { value: 'Paid', type: 'square', id: 'paid', color: 'hsl(var(--chart-1))' },
+    { value: 'Invoiced', type: 'square', id: 'invoiced', color: 'hsl(var(--chart-2))' },
     { value: 'PAD', type: 'square', id: 'pad', color: 'hsl(var(--chart-3))' },
     { value: 'Doc Prep', type: 'square', id: 'docprep', color: 'hsl(var(--success))' },
-    { value: 'Cost', type: 'square', id: 'cost', color: 'hsl(var(--warning))' },
+    { value: 'Cost', type: 'square', id: 'cost', color: 'hsl(var(--chart-5))' },
   ];
 
   const chartData = filteredData.slice(-6);
