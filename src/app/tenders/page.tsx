@@ -123,7 +123,7 @@ export default function TendersPage() {
                             tender.tenderNumber.toLowerCase().includes(searchTerm.toLowerCase());
         
         const regionMatch = regionFilter === 'all' || tender.regional === regionFilter;
-        const branchMatch = branchFilter === 'all' || tender.branchId === branchMatch;
+        const branchMatch = branchFilter === 'all' || tender.branchId === branchFilter;
         const statusMatch = statusFilter === 'all' || tender.status === statusFilter;
 
         // Non-HQ users should only see tenders from their branch/region
