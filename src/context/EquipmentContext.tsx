@@ -69,7 +69,7 @@ export function EquipmentProvider({ children }: { children: ReactNode }) {
     const newImageUrls = await Promise.all(
       (newFiles.newImages || []).map(file => uploadFile(file, `equipment/${id}/${file.name}`))
     );
-
+  
     // 2. Upload new documents and get their URLs and names
     const newDocumentUrls: EquipmentDocument[] = await Promise.all(
       (newFiles.newDocuments || []).map(async file => ({
@@ -77,14 +77,14 @@ export function EquipmentProvider({ children }: { children: ReactNode }) {
         url: await uploadFile(file, `equipment/${id}/docs/${file.name}`),
       }))
     );
-    
-    // 3. Combine existing data with new data
+  
+    // 3. Combine existing data from updatedItemData with new file URLs
     const finalItem: EquipmentItem = {
-      ...updatedItemData,
+      ...updatedItemData, // Use the passed-in form data as the base
       imageUrls: [...(updatedItemData.imageUrls || []), ...newImageUrls],
       documentUrls: [...(updatedItemData.documentUrls || []), ...newDocumentUrls],
     };
-
+  
     // 4. Update Firestore and local state
     await updateDoc(doc(db, 'equipment', id), finalItem);
     setEquipmentList(prev => prev.map(item => item.id === id ? finalItem : item));
