@@ -213,7 +213,7 @@ export default function InspectorsPage() {
       </Card>
 
       {isLoading && combinedPersonnel.length === 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
           {[...Array(4)].map((_, i) => (
              <Card key={i}>
                 <CardHeader>
@@ -238,7 +238,7 @@ export default function InspectorsPage() {
           ))}
         </div>
       ) : filteredPersonnel.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
           {filteredPersonnel.map((person) => (
             <InspectorCard key={person.id} inspector={person} branchMap={branchMap} personnelType={person.type} onDelete={() => handleDeleteRequest(person)} />
           ))}
