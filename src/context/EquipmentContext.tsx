@@ -3,9 +3,9 @@
 
 import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useCallback, useMemo, useEffect } from 'react';
 import { type EquipmentItem, type EquipmentDocument } from '@/lib/equipment';
-import { uploadFile } from '@/lib/storage';
 import { getFirestore, collection, getDocs, setDoc, doc, updateDoc } from 'firebase/firestore';
 import { app } from '@/lib/firebase';
+import { uploadFile } from '@/lib/storage';
 
 const db = getFirestore(app);
 
@@ -64,24 +64,28 @@ export function EquipmentProvider({ children }: { children: ReactNode }) {
     setEquipmentList(prev => [...prev, newItem]);
   }, []);
   
-  const updateEquipment = useCallback(async (id: string, updatedItem: EquipmentItem, newFiles: {newImages?: File[], newDocuments?: File[]}) => {
+  const updateEquipment = useCallback(async (id: string, updatedItemData: EquipmentItem, newFiles: { newImages?: File[], newDocuments?: File[] }) => {
+    // 1. Upload new images and get their URLs
     const newImageUrls = await Promise.all(
       (newFiles.newImages || []).map(file => uploadFile(file, `equipment/${id}/${file.name}`))
     );
-    
-    const newDocumentUrls: EquipmentDocument[] = await Promise.all(
-        (newFiles.newDocuments || []).map(async file => ({
-            name: file.name,
-            url: await uploadFile(file, `equipment/${id}/docs/${file.name}`),
-        }))
-    );
 
-    const finalItem = {
-        ...updatedItem,
-        imageUrls: [...(updatedItem.imageUrls || []), ...newImageUrls],
-        documentUrls: [...(updatedItem.documentUrls || []), ...newDocumentUrls],
-    };
+    // 2. Upload new documents and get their URLs and names
+    const newDocumentUrls: EquipmentDocument[] = await Promise.all(
+      (newFiles.newDocuments || []).map(async file => ({
+        name: file.name,
+        url: await uploadFile(file, `equipment/${id}/docs/${file.name}`),
+      }))
+    );
     
+    // 3. Combine existing data with new data
+    const finalItem: EquipmentItem = {
+      ...updatedItemData,
+      imageUrls: [...(updatedItemData.imageUrls || []), ...newImageUrls],
+      documentUrls: [...(updatedItemData.documentUrls || []), ...newDocumentUrls],
+    };
+
+    // 4. Update Firestore and local state
     await updateDoc(doc(db, 'equipment', id), finalItem);
     setEquipmentList(prev => prev.map(item => item.id === id ? finalItem : item));
   }, []);
