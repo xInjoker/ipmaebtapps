@@ -21,7 +21,7 @@ type EmployeeContextType = {
   employees: Employee[];
   setEmployees: Dispatch<SetStateAction<Employee[]>>;
   isLoading: boolean;
-  addEmployee: (item: Employee, newDocs: { newCvFile: File | null, newQualifications: NewUploadableDocument[], newOtherDocs: NewUploadableDocument[] }) => Promise<void>;
+  addEmployee: (item: Partial<Omit<Employee, 'id'>>, newDocs: { newCvFile: File | null, newQualifications: NewUploadableDocument[], newOtherDocs: NewUploadableDocument[] }) => Promise<void>;
   updateEmployee: (id: string, item: Employee, newDocs: { newCvFile: File | null, newQualifications: NewUploadableDocument[], newOtherDocs: NewUploadableDocument[] }) => Promise<void>;
   deleteEmployee: (id: string) => Promise<void>;
   getEmployeeById: (id: string) => Employee | undefined;
@@ -57,11 +57,11 @@ export function EmployeeProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const addEmployee = useCallback(async (
-    item: Employee,
+    item: Partial<Omit<Employee, 'id'>>,
     newDocs: { newCvFile: File | null, newQualifications: NewUploadableDocument[], newOtherDocs: NewUploadableDocument[] }
   ) => {
     const { newCvFile, newQualifications, newOtherDocs } = newDocs;
-    const newId = item.id || `EMP-${Date.now()}`;
+    const newId = `EMP-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
 
     const cvUrl = newCvFile ? await uploadFile(newCvFile, `employees/${newId}/cv/${newCvFile.name}`) : undefined;
     
@@ -80,7 +80,7 @@ export function EmployeeProvider({ children }: { children: ReactNode }) {
         }))
     );
 
-    const newItem = { ...item, id: newId, cvUrl, qualifications, otherDocuments };
+    const newItem: Employee = { ...item, id: newId, cvUrl, qualifications, otherDocuments } as Employee;
     
     // Sanitize object before sending to Firestore
     const sanitizedItem = JSON.parse(JSON.stringify(newItem, (key, value) => 

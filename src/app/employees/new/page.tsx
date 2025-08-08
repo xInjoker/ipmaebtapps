@@ -20,7 +20,7 @@ export default function NewEmployeePage() {
   const { toast } = useToast();
 
   const handleSave = useCallback(async (
-    data: Employee,
+    data: Omit<Employee, 'id'>, // Data from form won't have an ID
     newDocs: { newCvFile: File | null, newQualifications: NewUploadableDocument[], newOtherDocs: NewUploadableDocument[] }
   ) => {
     await addEmployee(data, newDocs);
@@ -28,5 +28,5 @@ export default function NewEmployeePage() {
     setTimeout(() => router.push('/employees'), 500);
   }, [addEmployee, router, toast]);
 
-  return <EmployeeForm onSave={handleSave} />;
+  return <EmployeeForm onSave={handleSave as any} />;
 }
