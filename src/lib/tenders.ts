@@ -4,6 +4,7 @@ import { type Project, portfolios, subPortfolios, servicesBySubPortfolio, type S
 
 export type TenderStatus = 'Aanwijzing' | 'Bidding' | 'Evaluation' | 'Awarded' | 'Lost' | 'Cancelled' | 'Prequalification';
 export type Regional = 'Kantor Pusat' | 'Regional Barat' | 'Regional Timur';
+export type LostCause = 'Administration' | 'Technical' | 'Bid Price' | 'Other';
 
 
 export type Tender = {
@@ -26,12 +27,14 @@ export type Tender = {
   serviceCode?: string;
   serviceName?: string;
   documentUrls?: string[];
+  lostCause?: LostCause;
 };
 
 export const tenderStatuses: TenderStatus[] = ['Aanwijzing', 'Bidding', 'Evaluation', 'Awarded', 'Lost', 'Cancelled', 'Prequalification'];
 export const regionalOptions: Regional[] = ['Kantor Pusat', 'Regional Barat', 'Regional Timur'];
 export const subPortfolioOptions: (typeof subPortfolios)[number][] = [...subPortfolios];
 export const serviceOptions: string[] = ['NDT Services', 'Professional Services', 'Certification Services'];
+export const lostCauseOptions: LostCause[] = ['Administration', 'Technical', 'Bid Price', 'Other'];
 
 export const tenderFieldLabels: Record<keyof Tender, string> = {
     id: 'Tender ID',
@@ -53,7 +56,9 @@ export const tenderFieldLabels: Record<keyof Tender, string> = {
     serviceCode: 'Service Code',
     serviceName: 'Service Name',
     documentUrls: 'Documents',
+    lostCause: 'Lost Cause',
 };
 
 // This data is now only used for one-time database seeding.
 export const initialTenders: Omit<Tender, 'id'>[] = [];
+

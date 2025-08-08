@@ -6,7 +6,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useTenders, type Tender } from '@/context/TenderContext';
-import { tenderStatuses, regionalOptions, serviceOptions, type TenderStatus, type Regional } from '@/lib/tenders';
+import { tenderStatuses, regionalOptions, serviceOptions, type TenderStatus, type Regional, lostCauseOptions, type LostCause } from '@/lib/tenders';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -111,9 +111,10 @@ export default function EditTenderPage() {
                 ...tender,
                 submissionDate: format(new Date(tender.submissionDate), 'yyyy-MM-dd'),
                 newDocuments,
+                lostCause: tender.status === 'Lost' ? tender.lostCause : undefined,
             };
 
-            await updateTender(tender.id, updatedTenderData);
+            await updateTender(tender.id, updatedTenderData as any);
             toast({ title: 'Tender Updated', description: `Successfully updated tender ${tender.tenderNumber}.` });
             router.push(`/tenders/${tender.id}`);
         } catch (error) {
@@ -245,6 +246,15 @@ export default function EditTenderPage() {
                                     <SelectTrigger id="status"><SelectValue placeholder="Select status" /></SelectTrigger>
                                     <SelectContent>
                                         {tenderStatuses.map(status => <SelectItem key={status} value={status}>{status}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="lostCause">Lost Cause</Label>
+                                <Select value={tender.lostCause} onValueChange={(value: LostCause) => setTender({ ...tender, lostCause: value })} disabled={tender.status !== 'Lost'}>
+                                    <SelectTrigger id="lostCause"><SelectValue placeholder="Select cause" /></SelectTrigger>
+                                    <SelectContent>
+                                        {lostCauseOptions.map(cause => <SelectItem key={cause} value={cause}>{cause}</SelectItem>)}
                                     </SelectContent>
                                 </Select>
                             </div>

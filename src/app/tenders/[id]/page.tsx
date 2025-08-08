@@ -32,6 +32,7 @@ import {
   Download,
   Paperclip,
   Eye,
+  AlertTriangle,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '@/context/AuthContext';
@@ -202,6 +203,7 @@ export default function TenderDetailsPage() {
                             <DetailItem icon={Calendar} label="Submission Date" value={format(new Date(tender.submissionDate), 'PPP')} iconColor={iconColors[colorIndex++ % iconColors.length]} />
                             <DetailItem icon={CircleDollarSign} label="Owner Estimate Price" value={formatCurrency(tender.ownerEstimatePrice || 0)} iconColor={iconColors[colorIndex++ % iconColors.length]} />
                             <DetailItem icon={CircleDollarSign} label="Bid Price" value={formatCurrency(tender.bidPrice)} iconColor={iconColors[colorIndex++ % iconColors.length]} />
+                             {tender.status === 'Lost' && <DetailItem icon={AlertTriangle} label="Lost Cause" value={tender.lostCause} iconColor={'hsl(var(--destructive))'} />}
                         </div>
                     </div>
                 </CardContent>
