@@ -104,7 +104,10 @@ export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
   const { branches } = useAuth();
   const { employees } = useEmployees();
   const { projects } = useProjects();
-  const [generatedId, setGeneratedId] = useState('');
+  const { employeeId, generatedId } = useMemo(() => {
+    const id = employee?.id || `EMP-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+    return { employeeId: id, generatedId: id };
+  }, [employee]);
 
   const [newCvFile, setNewCvFile] = useState<File | null>(null);
   const [newQualifications, setNewQualifications] = useState<NewUploadableDocument[]>([]);
@@ -123,13 +126,6 @@ export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
     if (!watchedWorkUnit) return [];
     return projects.filter(p => p.branchId === watchedWorkUnit);
   }, [projects, watchedWorkUnit]);
-
-  useEffect(() => {
-    if (!employee) {
-      const newId = `EMP-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
-      setGeneratedId(newId);
-    }
-  }, [employee]);
 
   useEffect(() => {
     if (watchedProjectName) {
@@ -155,6 +151,7 @@ export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
     if (employee) {
       form.reset({
         ...employee,
+        reportingManagerId: employee.reportingManagerId || '',
         dateOfBirth: employee.dateOfBirth ? new Date(employee.dateOfBirth) : undefined,
         contractStartDate: employee.contractStartDate ? new Date(employee.contractStartDate) : undefined,
         contractEndDate: employee.contractEndDate ? new Date(employee.contractEndDate) : undefined,
@@ -170,13 +167,13 @@ export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
     const finalData: Employee = {
       ...employee,
       ...data,
-      id: employee?.id || generatedId,
+      id: employeeId,
       dateOfBirth: data.dateOfBirth ? format(data.dateOfBirth, 'yyyy-MM-dd') : undefined,
       contractStartDate: data.contractStartDate ? format(data.contractStartDate, 'yyyy-MM-dd') : undefined,
       contractEndDate: data.contractEndDate ? format(data.contractEndDate, 'yyyy-MM-dd') : undefined,
     };
     onSave(finalData, { newCvFile, newQualifications, newOtherDocs });
-  }, [employee, generatedId, onSave, newCvFile, newQualifications, newOtherDocs]);
+  }, [employee, employeeId, onSave, newCvFile, newQualifications, newOtherDocs]);
 
   const handleReview = useCallback(async () => {
     const isValid = await form.trigger();
@@ -258,7 +255,7 @@ export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
                             <Select onValueChange={(v) => form.setValue('reportingManagerId', v)} value={form.watch('reportingManagerId') || ''}>
                                 <SelectTrigger><SelectValue placeholder="Select a manager..."/></SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value={null as any}>None</SelectItem>
+                                    <SelectItem value={''}>None</SelectItem>
                                     {employees.filter(e => e.id !== employee?.id).map(mgr => (
                                         <SelectItem key={mgr.id} value={mgr.id}>{mgr.name}</SelectItem>
                                     ))}
@@ -325,7 +322,7 @@ export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
                 )}
                 {currentStep === 1 && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2"><Label>Employee ID</Label><Input value={employee?.id || generatedId} readOnly /></div>
+                        <div className="space-y-2"><Label>Employee ID</Label><Input value={employeeId} readOnly /></div>
                         <div className="space-y-2"><Label>Full Name</Label><Input {...form.register('name')} /></div>
                         <div className="space-y-2"><Label>National ID (KTP)</Label><Input {...form.register('nationalId')} /></div>
                         <div className="space-y-2"><Label>Place of Birth</Label><Input {...form.register('placeOfBirth')} /></div>
@@ -529,7 +526,7 @@ export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
                         <div>
                             <h3 className="font-semibold mb-2 text-lg border-b pb-1">Personal Details</h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2 text-sm mt-2">
-                                <p><span className="font-medium text-muted-foreground">{employeeFieldLabels.id}:</span> {employee?.id || generatedId}</p>
+                                <p><span className="font-medium text-muted-foreground">{employeeFieldLabels.id}:</span> {employeeId}</p>
                                 <p><span className="font-medium text-muted-foreground">{employeeFieldLabels.name}:</span> {formData.name || 'N/A'}</p>
                                 <p><span className="font-medium text-muted-foreground">{employeeFieldLabels.nationalId}:</span> {formData.nationalId || 'N/A'}</p>
                                 <p><span className="font-medium text-muted-foreground">{employeeFieldLabels.placeOfBirth}:</span> {formData.placeOfBirth || 'N/A'}</p>
