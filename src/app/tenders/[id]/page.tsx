@@ -180,9 +180,6 @@ export default function TenderDetailsPage() {
                             <DetailItem icon={User} label="Principal" value={tender.principal} iconColor={iconColors[colorIndex++ % iconColors.length]} />
                             <DetailItem icon={List} label="Service Name" value={tender.serviceName} iconColor={iconColors[colorIndex++ % iconColors.length]} />
                             <DetailItem icon={Briefcase} label="Services (Legacy)" value={tender.services} iconColor={iconColors[colorIndex++ % iconColors.length]} />
-                            <div className="md:col-span-2">
-                                <DetailItem icon={FileText} label="Description" value={tender.description} iconColor={iconColors[colorIndex++ % iconColors.length]} />
-                            </div>
                         </div>
                     </div>
                     <Separator/>
@@ -204,6 +201,9 @@ export default function TenderDetailsPage() {
                             <DetailItem icon={CircleDollarSign} label="Owner Estimate Price" value={formatCurrency(tender.ownerEstimatePrice || 0)} iconColor={iconColors[colorIndex++ % iconColors.length]} />
                             <DetailItem icon={CircleDollarSign} label="Bid Price" value={formatCurrency(tender.bidPrice)} iconColor={iconColors[colorIndex++ % iconColors.length]} />
                              {tender.status === 'Lost' && <DetailItem icon={AlertTriangle} label="Lost Cause" value={tender.lostCause} iconColor={'hsl(var(--destructive))'} />}
+                            <div className="md:col-span-2">
+                                <DetailItem icon={FileText} label="Description" value={tender.description} iconColor={iconColors[colorIndex++ % iconColors.length]} />
+                            </div>
                         </div>
                     </div>
                 </CardContent>
