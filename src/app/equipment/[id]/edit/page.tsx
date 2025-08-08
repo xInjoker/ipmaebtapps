@@ -22,7 +22,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { ArrowLeft, Calendar as CalendarIcon, Save, Upload, File as FileIcon, X, PlusCircle } from 'lucide-react';
+import { ArrowLeft, Calendar as CalendarIcon, Loader2, Save, Upload, File as FileIcon, X, PlusCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn, getAvatarColor, getInitials, fileToBase64 } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -44,6 +44,7 @@ export default function EditEquipmentPage() {
   const [newImages, setNewImages] = useState<{file: File, url: string}[]>([]);
   const [newDocuments, setNewDocuments] = useState<File[]>([]);
   const [isPersonnelPopoverOpen, setIsPersonnelPopoverOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (equipmentId) {
@@ -151,18 +152,24 @@ export default function EditEquipmentPage() {
       });
       return;
     }
+    setIsSaving(true);
+    try {
+        await updateEquipment(equipment.id, equipment, {
+            newImages: newImages.map(i => i.file),
+            newDocuments: newDocuments,
+        });
+        
+        toast({
+            title: 'Equipment Updated',
+            description: `Successfully updated ${equipment.name}.`,
+        });
 
-    await updateEquipment(equipment.id, equipment, {
-        newImages: newImages.map(i => i.file),
-        newDocuments: newDocuments,
-    });
-    
-    toast({
-        title: 'Equipment Updated',
-        description: `Successfully updated ${equipment.name}.`,
-    });
-
-    router.push(`/equipment/${equipment.id}`);
+        router.push(`/equipment/${equipment.id}`);
+    } catch (error) {
+        toast({ variant: 'destructive', title: 'Update Failed', description: 'Could not save equipment changes.'});
+    } finally {
+        setIsSaving(false);
+    }
   }, [equipment, newImages, newDocuments, router, toast, updateEquipment]);
 
   if (!equipment) {
@@ -436,8 +443,8 @@ export default function EditEquipmentPage() {
             <Button variant="outline" asChild>
                 <Link href="/equipment">Cancel</Link>
             </Button>
-            <Button onClick={handleSave}>
-                <Save className="mr-2 h-4 w-4" />
+            <Button onClick={handleSave} disabled={isSaving}>
+                {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                 Save Changes
             </Button>
         </CardFooter>

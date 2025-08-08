@@ -16,7 +16,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { ArrowLeft, Calendar as CalendarIcon, Save, ChevronsUpDown, Check, Upload, File as FileIcon, X } from 'lucide-react';
+import { ArrowLeft, Calendar as CalendarIcon, Loader2, Save, ChevronsUpDown, Check, Upload, File as FileIcon, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { Textarea } from '@/components/ui/textarea';
@@ -38,6 +38,7 @@ export default function EditTenderPage() {
     const [tender, setTender] = useState<Tender | null>(null);
     const [newDocuments, setNewDocuments] = useState<File[]>([]);
     const [isServicesPopoverOpen, setIsServicesPopoverOpen] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
     
     useEffect(() => {
         if (tenderId) {
@@ -104,16 +105,22 @@ export default function EditTenderPage() {
             toast({ variant: 'destructive', title: 'Missing Information', description: 'Please fill out all required fields.' });
             return;
         }
+        setIsSaving(true);
+        try {
+            const updatedTenderData = {
+                ...tender,
+                submissionDate: format(new Date(tender.submissionDate), 'yyyy-MM-dd'),
+                newDocuments,
+            };
 
-        const updatedTenderData = {
-            ...tender,
-            submissionDate: format(new Date(tender.submissionDate), 'yyyy-MM-dd'),
-            newDocuments,
-        };
-
-        await updateTender(tender.id, updatedTenderData);
-        toast({ title: 'Tender Updated', description: `Successfully updated tender ${tender.tenderNumber}.` });
-        router.push(`/tenders/${tender.id}`);
+            await updateTender(tender.id, updatedTenderData);
+            toast({ title: 'Tender Updated', description: `Successfully updated tender ${tender.tenderNumber}.` });
+            router.push(`/tenders/${tender.id}`);
+        } catch (error) {
+            toast({ variant: 'destructive', title: 'Update Failed', description: 'Could not save tender changes.' });
+        } finally {
+            setIsSaving(false);
+        }
     }, [tender, newDocuments, router, toast, updateTender]);
     
     if (!tender) {
@@ -386,8 +393,8 @@ export default function EditTenderPage() {
                     <Button variant="outline" asChild>
                         <Link href="/tenders">Cancel</Link>
                     </Button>
-                    <Button onClick={handleSave}>
-                        <Save className="mr-2 h-4 w-4" />
+                    <Button onClick={handleSave} disabled={isSaving}>
+                        {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                         Save Changes
                     </Button>
                 </CardFooter>
@@ -395,5 +402,4 @@ export default function EditTenderPage() {
         </div>
     );
 }
-
     

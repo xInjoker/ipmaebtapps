@@ -21,7 +21,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { ArrowLeft, Calendar as CalendarIcon, Save, Upload, File as FileIcon, X, Image as ImageIcon, PlusCircle } from 'lucide-react';
+import { ArrowLeft, Calendar as CalendarIcon, Loader2, Save, Upload, File as FileIcon, X, Image as ImageIcon, PlusCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn, getAvatarColor, getInitials } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -37,6 +37,7 @@ export default function NewEquipmentPage() {
   const { inspectors } = useInspectors();
   const { addEquipment } = useEquipment();
   const { toast } = useToast();
+  const [isSaving, setIsSaving] = useState(false);
 
   const [images, setImages] = useState<{file: File, url: string}[]>([]);
   const [documents, setDocuments] = useState<File[]>([]);
@@ -127,26 +128,33 @@ export default function NewEquipmentPage() {
       });
       return;
     }
+    setIsSaving(true);
+    try {
+        await addEquipment({
+          name: newEquipment.name,
+          serialNumber: newEquipment.serialNumber,
+          type: newEquipment.type as EquipmentType,
+          owningBranchId: newEquipment.owningBranchId,
+          currentLocation: newEquipment.currentLocation,
+          calibrationDueDate: newEquipment.calibrationDueDate,
+          status: newEquipment.status,
+          assignedPersonnelIds: newEquipment.assignedPersonnelIds,
+          images: images.map(img => img.file),
+          documents: documents,
+        });
+        
+        toast({
+            title: 'Equipment Added',
+            description: `Successfully added ${newEquipment.name}.`,
+        });
 
-    await addEquipment({
-      name: newEquipment.name,
-      serialNumber: newEquipment.serialNumber,
-      type: newEquipment.type as EquipmentType,
-      owningBranchId: newEquipment.owningBranchId,
-      currentLocation: newEquipment.currentLocation,
-      calibrationDueDate: newEquipment.calibrationDueDate,
-      status: newEquipment.status,
-      assignedPersonnelIds: newEquipment.assignedPersonnelIds,
-      images: images.map(img => img.file),
-      documents: documents,
-    });
-    
-    toast({
-        title: 'Equipment Added',
-        description: `Successfully added ${newEquipment.name}.`,
-    });
+        setTimeout(() => router.push('/equipment'), 500);
+    } catch (error) {
+        toast({ variant: 'destructive', title: 'Save Failed', description: 'Could not add the new equipment.' });
+    } finally {
+        setIsSaving(false);
+    }
 
-    setTimeout(() => router.push('/equipment'), 500);
   }, [newEquipment, images, documents, addEquipment, toast, router]);
 
   const calibrationDate = newEquipment.calibrationDueDate ? new Date(newEquipment.calibrationDueDate) : undefined;
@@ -379,8 +387,8 @@ export default function NewEquipmentPage() {
             <Button variant="outline" asChild>
                 <Link href="/equipment">Cancel</Link>
             </Button>
-            <Button onClick={handleSave}>
-                <Save className="mr-2 h-4 w-4" />
+            <Button onClick={handleSave} disabled={isSaving}>
+                {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                 Save Equipment
             </Button>
         </CardFooter>

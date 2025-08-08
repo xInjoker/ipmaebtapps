@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { ArrowLeft, Calendar as CalendarIcon, ChevronLeft, ChevronRight, File as FileIcon, Upload, X } from 'lucide-react';
+import { ArrowLeft, Calendar as CalendarIcon, ChevronLeft, ChevronRight, File as FileIcon, Loader2, Upload, X } from 'lucide-react';
 import { Textarea } from './ui/textarea';
 import { cn, getFileNameFromDataUrl } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -87,6 +87,7 @@ type EmployeeFormData = z.infer<typeof employeeSchema>;
 interface EmployeeFormProps {
   employee?: Employee | null;
   onSave: (data: Employee, newDocs: { newCvFile: File | null, newQualifications: NewUploadableDocument[], newOtherDocs: NewUploadableDocument[] }) => void;
+  isLoading: boolean;
 }
 
 const steps = [
@@ -98,15 +99,15 @@ const steps = [
   { id: 6, name: 'Documents' },
 ];
 
-export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
+export function EmployeeForm({ employee, onSave, isLoading }: EmployeeFormProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const { branches } = useAuth();
   const { employees } = useEmployees();
   const { projects } = useProjects();
-  const { employeeId, generatedId } = useMemo(() => {
-    const id = employee?.id || `EMP-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
-    return { employeeId: id, generatedId: id };
+  const { employeeId } = useMemo(() => {
+    const id = employee?.id || '';
+    return { employeeId: id };
   }, [employee]);
 
   const [newCvFile, setNewCvFile] = useState<File | null>(null);
@@ -171,7 +172,7 @@ export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
       dateOfBirth: data.dateOfBirth ? format(data.dateOfBirth, 'yyyy-MM-dd') : undefined,
       contractStartDate: data.contractStartDate ? format(data.contractStartDate, 'yyyy-MM-dd') : undefined,
       contractEndDate: data.contractEndDate ? format(data.contractEndDate, 'yyyy-MM-dd') : undefined,
-    };
+    } as Employee;
     onSave(finalData, { newCvFile, newQualifications, newOtherDocs });
   }, [employee, employeeId, onSave, newCvFile, newQualifications, newOtherDocs]);
 
@@ -494,7 +495,10 @@ export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
                         Next <ChevronRight className="ml-2 h-4 w-4"/>
                     </Button>
                 ) : (
-                    <Button type="button" onClick={handleReview}>Review Employee</Button>
+                    <Button type="button" onClick={handleReview} disabled={isLoading}>
+                      {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
+                      Review & Save
+                    </Button>
                 )}
             </CardFooter>
         </Card>
@@ -581,7 +585,10 @@ export function EmployeeForm({ employee, onSave }: EmployeeFormProps) {
                 </ScrollArea>
                 <AlertDialogFooter>
                     <AlertDialogCancel>Go Back & Edit</AlertDialogCancel>
-                    <AlertDialogAction onClick={form.handleSubmit(onSubmit)}>Confirm & Save</AlertDialogAction>
+                    <AlertDialogAction onClick={form.handleSubmit(onSubmit)} disabled={isLoading}>
+                      {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
+                      Confirm & Save
+                    </AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>

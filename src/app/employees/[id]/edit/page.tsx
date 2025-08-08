@@ -22,6 +22,7 @@ export default function EditEmployeePage() {
   const { toast } = useToast();
   
   const [employee, setEmployee] = useState<Employee | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (employeeId) {
@@ -44,9 +45,16 @@ export default function EditEmployeePage() {
     newDocs: { newCvFile: File | null, newQualifications: NewUploadableDocument[], newOtherDocs: NewUploadableDocument[] }
     ) => {
     if (employee) {
-      await updateEmployee(employee.id, data, newDocs);
-      toast({ title: 'Employee Updated', description: `${data.name}'s details have been updated.` });
-      router.push('/employees');
+      setIsSaving(true);
+      try {
+        await updateEmployee(employee.id, data, newDocs);
+        toast({ title: 'Employee Updated', description: `${data.name}'s details have been updated.` });
+        router.push('/employees');
+      } catch (error) {
+        toast({ variant: 'destructive', title: 'Update Failed', description: 'Could not save changes.' });
+      } finally {
+        setIsSaving(false);
+      }
     }
   }, [employee, router, toast, updateEmployee]);
 
@@ -54,5 +62,5 @@ export default function EditEmployeePage() {
     return <div>Loading...</div>;
   }
 
-  return <EmployeeForm employee={employee} onSave={handleSave} />;
+  return <EmployeeForm employee={employee} onSave={handleSave} isLoading={isSaving} />;
 }
