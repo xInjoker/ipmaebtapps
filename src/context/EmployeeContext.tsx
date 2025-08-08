@@ -81,8 +81,14 @@ export function EmployeeProvider({ children }: { children: ReactNode }) {
     );
 
     const newItem = { ...item, id: newId, cvUrl, qualifications, otherDocuments };
-    await setDoc(doc(db, 'employees', newId), newItem);
-    setEmployees(prev => [...prev, newItem]);
+    
+    // Sanitize object before sending to Firestore
+    const sanitizedItem = JSON.parse(JSON.stringify(newItem, (key, value) => 
+        value === undefined ? null : value
+    ));
+
+    await setDoc(doc(db, 'employees', newId), sanitizedItem);
+    setEmployees(prev => [...prev, sanitizedItem]);
   }, []);
   
   const updateEmployee = useCallback(async (
@@ -112,15 +118,20 @@ export function EmployeeProvider({ children }: { children: ReactNode }) {
         }))
     );
 
-    const finalItem = {
+    const finalItem: Employee = {
         ...updatedItem,
         cvUrl: newCvUrl,
         qualifications: [...(updatedItem.qualifications || []), ...addedQualifications],
         otherDocuments: [...(updatedItem.otherDocuments || []), ...addedOtherDocuments],
     };
     
-    await updateDoc(doc(db, 'employees', id), finalItem);
-    setEmployees(prev => prev.map(e => e.id === id ? finalItem : e));
+    // Sanitize object before sending to Firestore
+    const sanitizedItem = JSON.parse(JSON.stringify(finalItem, (key, value) => 
+        value === undefined ? null : value
+    ));
+
+    await updateDoc(doc(db, 'employees', id), sanitizedItem);
+    setEmployees(prev => prev.map(e => e.id === id ? sanitizedItem : e));
   }, []);
   
   const deleteEmployee = useCallback(async (id: string) => {

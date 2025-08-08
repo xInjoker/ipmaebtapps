@@ -74,8 +74,13 @@ export function InspectorProvider({ children }: { children: ReactNode }) {
     );
 
     const newItem = { ...rest, id: newId, cvUrl, qualifications, otherDocuments };
-    await setDoc(doc(db, 'inspectors', newItem.id), newItem);
-    setInspectors(prev => [...prev, newItem]);
+    
+    const sanitizedItem = JSON.parse(JSON.stringify(newItem, (key, value) => 
+        value === undefined ? null : value
+    ));
+
+    await setDoc(doc(db, 'inspectors', newItem.id), sanitizedItem);
+    setInspectors(prev => [...prev, sanitizedItem]);
   }, []);
   
   const updateInspector = useCallback(async (id: string, updatedItem: Inspector, newFiles: { newCvFile?: File | null, newQualifications?: {file: File, expirationDate?: string}[], newOtherDocs?: {file: File, expirationDate?: string}[] }) => {
@@ -107,8 +112,12 @@ export function InspectorProvider({ children }: { children: ReactNode }) {
         otherDocuments: [...updatedItem.otherDocuments, ...newOtherDocuments],
     };
 
-    await updateDoc(doc(db, 'inspectors', id), finalItem);
-    setInspectors(prev => prev.map(i => i.id === id ? finalItem : i));
+    const sanitizedItem = JSON.parse(JSON.stringify(finalItem, (key, value) => 
+        value === undefined ? null : value
+    ));
+
+    await updateDoc(doc(db, 'inspectors', id), sanitizedItem);
+    setInspectors(prev => prev.map(i => i.id === id ? sanitizedItem : i));
   }, []);
 
   const deleteInspector = useCallback(async (id: string) => {
