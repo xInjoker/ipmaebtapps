@@ -6,11 +6,14 @@ import { type Tender } from '@/lib/tenders';
 import { fileToBase64 } from '@/lib/utils';
 import { getFirestore, collection, getDocs, setDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { app } from '@/lib/firebase';
+import { uploadFile } from '@/lib/storage';
+
 
 const db = getFirestore(app);
 
 type AddTenderData = Omit<Tender, 'id' | 'documentUrls'> & { documents: File[] };
-type UpdateTenderData = Omit<Tender, 'documentUrls'> & { newDocuments?: File[] };
+type UpdateTenderData = Omit<Tender, 'documentUrls'> & { newDocuments?: File[] } & { documentUrls?: string[] };
+
 
 type TenderContextType = {
   tenders: Tender[];
@@ -44,16 +47,12 @@ export function TenderProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const addTender = useCallback(async (item: AddTenderData) => {
+    const newId = `TND-${Date.now()}`;
     const { documents, ...rest } = item;
     const documentUrls = await Promise.all(
-        (documents || []).map(async file => {
-             const base64 = await fileToBase64(file) as string;
-             const parts = base64.split(';base64,');
-             const newMimePart = `${parts[0]};name=${encodeURIComponent(file.name)}`;
-             return `${newMimePart};base64,${parts[1]}`;
-        })
+        (documents || []).map(file => uploadFile(file, `tenders/${newId}/${file.name}`))
     );
-    const newId = `TND-${Date.now()}`;
+    
     const newTender = { ...rest, id: newId, documentUrls };
     
     await setDoc(doc(db, 'tenders', newId), newTender);
@@ -67,16 +66,11 @@ export function TenderProvider({ children }: { children: ReactNode }) {
     if (!existingTender) return;
 
     const newDocumentUrls = await Promise.all(
-        (newDocuments || []).map(async file => {
-             const base64 = await fileToBase64(file) as string;
-             const parts = base64.split(';base64,');
-             const newMimePart = `${parts[0]};name=${encodeURIComponent(file.name)}`;
-             return `${newMimePart};base64,${parts[1]}`;
-        })
+        (newDocuments || []).map(file => uploadFile(file, `tenders/${id}/${file.name}`))
     );
 
     const finalItem: Tender = {
-        ...rest,
+        ...(rest as Tender),
         documentUrls: [...(rest.documentUrls || []), ...newDocumentUrls],
     };
 

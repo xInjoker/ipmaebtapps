@@ -7,6 +7,8 @@ import type { InspectorDocument } from '@/lib/inspectors';
 import { fileToBase64 } from '@/lib/utils';
 import { getFirestore, collection, getDocs, setDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { app } from '@/lib/firebase';
+import { uploadFile } from '@/lib/storage';
+
 
 const db = getFirestore(app);
 
@@ -59,13 +61,14 @@ export function EmployeeProvider({ children }: { children: ReactNode }) {
     newDocs: { newCvFile: File | null, newQualifications: NewUploadableDocument[], newOtherDocs: NewUploadableDocument[] }
   ) => {
     const { newCvFile, newQualifications, newOtherDocs } = newDocs;
+    const newId = item.id || `EMP-${Date.now()}`;
 
-    const cvUrl = newCvFile ? await fileToBase64(newCvFile) as string : undefined;
+    const cvUrl = newCvFile ? await uploadFile(newCvFile, `employees/${newId}/cv/${newCvFile.name}`) : undefined;
     
     const qualifications: InspectorDocument[] = await Promise.all(
         newQualifications.map(async doc => ({
             name: doc.file.name,
-            url: await fileToBase64(doc.file) as string,
+            url: await uploadFile(doc.file, `employees/${newId}/qualifications/${doc.file.name}`),
             expirationDate: doc.expirationDate,
         }))
     );
@@ -73,12 +76,12 @@ export function EmployeeProvider({ children }: { children: ReactNode }) {
     const otherDocuments: InspectorDocument[] = await Promise.all(
         newOtherDocs.map(async doc => ({
             name: doc.file.name,
-            url: await fileToBase64(doc.file) as string,
+            url: await uploadFile(doc.file, `employees/${newId}/other/${doc.file.name}`),
         }))
     );
 
-    const newItem = { ...item, cvUrl, qualifications, otherDocuments };
-    await setDoc(doc(db, 'employees', newItem.id), newItem);
+    const newItem = { ...item, id: newId, cvUrl, qualifications, otherDocuments };
+    await setDoc(doc(db, 'employees', newId), newItem);
     setEmployees(prev => [...prev, newItem]);
   }, []);
   
@@ -91,13 +94,13 @@ export function EmployeeProvider({ children }: { children: ReactNode }) {
 
     let newCvUrl = updatedItem.cvUrl;
     if (newCvFile) {
-        newCvUrl = await fileToBase64(newCvFile) as string;
+        newCvUrl = await uploadFile(newCvFile, `employees/${id}/cv/${newCvFile.name}`);
     }
 
     const addedQualifications: InspectorDocument[] = await Promise.all(
         (newQualifications || []).map(async doc => ({
             name: doc.file.name,
-            url: await fileToBase64(doc.file) as string,
+            url: await uploadFile(doc.file, `employees/${id}/qualifications/${doc.file.name}`),
             expirationDate: doc.expirationDate,
         }))
     );
@@ -105,7 +108,7 @@ export function EmployeeProvider({ children }: { children: ReactNode }) {
     const addedOtherDocuments: InspectorDocument[] = await Promise.all(
         (newOtherDocs || []).map(async doc => ({
             name: doc.file.name,
-            url: await fileToBase64(doc.file) as string,
+            url: await uploadFile(doc.file, `employees/${id}/other/${doc.file.name}`),
         }))
     );
 

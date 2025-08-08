@@ -192,11 +192,18 @@ export function getFileNameFromDataUrl(dataUrl: string): string | null {
     if (dataUrl.startsWith('https://firebasestorage.googleapis.com')) {
         try {
             const url = new URL(dataUrl);
-            const pathSegments = url.pathname.split('/');
-            const encodedFileName = pathSegments[pathSegments.length - 1];
-            return decodeURIComponent(encodedFileName);
+            // The pathname is like /v0/b/bucket-name/o/path%2Fto%2Ffile.jpg
+            const pathName = decodeURIComponent(url.pathname);
+            const fileName = pathName.substring(pathName.lastIndexOf('/') + 1);
+            return fileName;
         } catch (e) {
             console.error("Could not parse Firebase Storage URL", e);
+            // Fallback for cases where URL parsing might fail
+            const lastSlashIndex = dataUrl.lastIndexOf('%2F');
+            const tokenIndex = dataUrl.indexOf('?');
+            if(lastSlashIndex !== -1 && tokenIndex !== -1) {
+                return decodeURIComponent(dataUrl.substring(lastSlashIndex + 3, tokenIndex));
+            }
             return 'document';
         }
     }
@@ -211,5 +218,5 @@ export function getFileNameFromDataUrl(dataUrl: string): string | null {
             return 'document';
         }
     }
-    return null;
+    return 'document';
 }

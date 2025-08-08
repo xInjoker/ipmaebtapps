@@ -18,15 +18,18 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Camera, Upload, Signature, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { getInitials, getAvatarColor } from '@/lib/utils';
+import { getInitials, getAvatarColor, fileToBase64 } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { uploadFile } from '@/lib/storage';
 
 export default function ProfilePage() {
   const { user, roles, updateUser } = useAuth();
   const { toast } = useToast();
 
   const [fullName, setFullName] = useState(user?.name || '');
-  const [signature, setSignature] = useState<string | null>(user?.signatureUrl || null);
+  const [signatureUrl, setSignatureUrl] = useState<string | null>(user?.signatureUrl || null);
+  const [newSignatureFile, setNewSignatureFile] = useState<File | null>(null);
+  const [signaturePreview, setSignaturePreview] = useState<string | null>(user?.signatureUrl || null);
   const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
@@ -35,7 +38,8 @@ export default function ProfilePage() {
         setFullName(user.name);
       }
       if (!isEditing) {
-          setSignature(user.signatureUrl || null);
+          setSignatureUrl(user.signatureUrl || null);
+          setSignaturePreview(user.signatureUrl || null);
       }
     }
   }, [user, isEditing]);
@@ -45,38 +49,49 @@ export default function ProfilePage() {
     setIsEditing(true);
   }, []);
 
-  const handleSignatureUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSignatureUpload = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setSignature(reader.result as string);
-        setIsEditing(true); 
-      };
-      reader.readAsDataURL(file);
+      setNewSignatureFile(file);
+      const previewUrl = await fileToBase64(file) as string;
+      setSignaturePreview(previewUrl);
+      setIsEditing(true); 
     }
   }, []);
   
   const removeSignature = useCallback(() => {
-      setSignature(null);
+      setSignatureUrl(null);
+      setNewSignatureFile(null);
+      setSignaturePreview(null);
       setIsEditing(true);
   }, []);
 
-  const handleSaveChanges = useCallback(() => {
+  const handleSaveChanges = useCallback(async () => {
     if (user) {
-      updateUser(user.id, { name: fullName, signatureUrl: signature || undefined });
-      toast({
-        title: 'Profile Updated',
-        description: 'Your personal information has been saved.',
-      });
-      setIsEditing(false);
+        let finalSignatureUrl = signatureUrl;
+
+        if (newSignatureFile) {
+            finalSignatureUrl = await uploadFile(newSignatureFile, `signatures/${user.id}/${newSignatureFile.name}`);
+        } else if (signatureUrl === null) {
+            finalSignatureUrl = undefined; // Explicitly remove it
+        }
+
+        updateUser(user.id, { name: fullName, signatureUrl: finalSignatureUrl });
+        toast({
+            title: 'Profile Updated',
+            description: 'Your personal information has been saved.',
+        });
+        setNewSignatureFile(null);
+        setIsEditing(false);
     }
-  }, [user, fullName, signature, updateUser, toast]);
+  }, [user, fullName, signatureUrl, newSignatureFile, updateUser, toast]);
   
   const handleCancel = useCallback(() => {
     if (user) {
         setFullName(user.name);
-        setSignature(user.signatureUrl || null);
+        setSignatureUrl(user.signatureUrl || null);
+        setSignaturePreview(user.signatureUrl || null);
+        setNewSignatureFile(null);
         setIsEditing(false);
     }
   }, [user]);
@@ -132,9 +147,9 @@ export default function ProfilePage() {
                 </CardHeader>
                 <CardContent>
                     <div className="flex h-40 w-full items-center justify-center rounded-md border-2 border-dashed">
-                    {signature ? (
+                    {signaturePreview ? (
                         <div className="relative group">
-                            <Image src={signature} alt="User signature" width={200} height={100} className="max-h-32 w-auto object-contain" />
+                            <Image src={signaturePreview} alt="User signature" width={200} height={100} className="max-h-32 w-auto object-contain" />
                             <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                 <Button variant="destructive" size="icon" className="h-8 w-8" onClick={removeSignature}>
                                     <X className="h-4 w-4" />

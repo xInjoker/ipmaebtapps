@@ -18,9 +18,9 @@ export async function uploadFile(file: File, path: string): Promise<string> {
     const downloadURL = await getDownloadURL(snapshot.ref);
     return downloadURL;
   } catch (error) {
-    console.error("Error uploading file:", error);
+    console.error(`Error uploading file to ${path}:`, error);
     // Depending on your error handling strategy, you might want to re-throw the error
     // or return a specific error message or a default URL.
-    throw new Error("File upload failed.");
+    throw new Error(`File upload failed for path: ${path}`);
   }
 }

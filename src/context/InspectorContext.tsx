@@ -7,6 +7,7 @@ import { getDocumentStatus, fileToBase64 } from '@/lib/utils';
 import { Users2, BadgeCheck, Clock, XCircle } from 'lucide-react';
 import { getFirestore, collection, getDocs, setDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { app } from '@/lib/firebase';
+import { uploadFile } from '@/lib/storage';
 
 const db = getFirestore(app);
 
@@ -52,13 +53,14 @@ export function InspectorProvider({ children }: { children: ReactNode }) {
 
   const addInspector = useCallback(async (item: Omit<Inspector, 'id'|'cvUrl'|'qualifications'|'otherDocuments'> & { cvFile: File | null; qualifications: {file: File, expirationDate?: string}[]; otherDocuments: {file: File, expirationDate?: string}[]}) => {
     const { cvFile, qualifications: newQuals, otherDocuments: newOthers, ...rest } = item;
+    const newId = `INSP-${Date.now()}`;
     
-    const cvUrl = cvFile ? await fileToBase64(cvFile) as string : '';
+    const cvUrl = cvFile ? await uploadFile(cvFile, `inspectors/${newId}/cv/${cvFile.name}`) : '';
     
     const qualifications: InspectorDocument[] = await Promise.all(
         newQuals.map(async doc => ({
             name: doc.file.name,
-            url: await fileToBase64(doc.file) as string,
+            url: await uploadFile(doc.file, `inspectors/${newId}/qualifications/${doc.file.name}`),
             expirationDate: doc.expirationDate,
         }))
     );
@@ -66,12 +68,12 @@ export function InspectorProvider({ children }: { children: ReactNode }) {
     const otherDocuments: InspectorDocument[] = await Promise.all(
         newOthers.map(async doc => ({
             name: doc.file.name,
-            url: await fileToBase64(doc.file) as string,
+            url: await uploadFile(doc.file, `inspectors/${newId}/other/${doc.file.name}`),
             expirationDate: doc.expirationDate,
         }))
     );
 
-    const newItem = { ...rest, id: `INSP-${Date.now()}`, cvUrl, qualifications, otherDocuments };
+    const newItem = { ...rest, id: newId, cvUrl, qualifications, otherDocuments };
     await setDoc(doc(db, 'inspectors', newItem.id), newItem);
     setInspectors(prev => [...prev, newItem]);
   }, []);
@@ -79,13 +81,13 @@ export function InspectorProvider({ children }: { children: ReactNode }) {
   const updateInspector = useCallback(async (id: string, updatedItem: Inspector, newFiles: { newCvFile?: File | null, newQualifications?: {file: File, expirationDate?: string}[], newOtherDocs?: {file: File, expirationDate?: string}[] }) => {
     let newCvUrl = updatedItem.cvUrl;
     if (newFiles.newCvFile) {
-        newCvUrl = await fileToBase64(newFiles.newCvFile) as string;
+        newCvUrl = await uploadFile(newFiles.newCvFile, `inspectors/${id}/cv/${newFiles.newCvFile.name}`);
     }
 
     const newQualifications: InspectorDocument[] = await Promise.all(
         (newFiles.newQualifications || []).map(async doc => ({
             name: doc.file.name,
-            url: await fileToBase64(doc.file) as string,
+            url: await uploadFile(doc.file, `inspectors/${id}/qualifications/${doc.file.name}`),
             expirationDate: doc.expirationDate,
         }))
     );
@@ -93,7 +95,7 @@ export function InspectorProvider({ children }: { children: ReactNode }) {
     const newOtherDocuments: InspectorDocument[] = await Promise.all(
         (newFiles.newOtherDocs || []).map(async doc => ({
             name: doc.file.name,
-            url: await fileToBase64(doc.file) as string,
+            url: await uploadFile(doc.file, `inspectors/${id}/other/${doc.file.name}`),
             expirationDate: doc.expirationDate,
         }))
     );

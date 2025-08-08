@@ -7,6 +7,7 @@ import { useProjects } from '@/context/ProjectContext';
 import { fileToBase64 } from '@/lib/utils';
 import { getFirestore, collection, getDocs, setDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { app } from '@/lib/firebase';
+import { uploadFile } from '@/lib/storage';
 
 const db = getFirestore(app);
 
@@ -42,11 +43,11 @@ export function ReportProvider({ children }: { children: ReactNode }) {
     fetchReports();
   }, []);
 
-  const processTestResultImages = async (testResults: any[]) => {
-      return Promise.all((testResults || []).map(async result => {
+  const processTestResultImages = async (reportId: string, testResults: any[]) => {
+      return Promise.all((testResults || []).map(async (result, index) => {
           if (result.images && result.images.length > 0) {
               const imageUrls = await Promise.all(
-                  result.images.map((file: File) => fileToBase64(file) as Promise<string>)
+                  result.images.map((file: File) => uploadFile(file, `reports/${reportId}/results/${result.jointNo || index}/${file.name}`))
               );
               const { images, ...rest } = result;
               return { ...rest, imageUrls: [...(result.imageUrls || []), ...imageUrls] };
@@ -56,18 +57,14 @@ export function ReportProvider({ children }: { children: ReactNode }) {
   };
 
   const addReport = useCallback(async (item: Omit<ReportItem, 'id'|'details'> & { details: Omit<ReportDetails, 'testResults'|'documentUrls'> & { testResults?: any[], documents?: File[] }}) => {
+    const newId = `REP-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
     const { details, ...rest } = item;
-    const processedTestResults = await processTestResultImages(details.testResults || []);
+    const processedTestResults = await processTestResultImages(newId, details.testResults || []);
     let processedDetails: ReportDetails;
 
     if (details.jobType === 'Flash Report' || details.jobType === 'Inspection Report') {
         const docUrls = await Promise.all(
-            (details.documents || []).map(async file => {
-                const base64 = await fileToBase64(file) as string;
-                const parts = base64.split(';base64,');
-                const newMimePart = `${parts[0]};name=${encodeURIComponent(file.name)}`;
-                return `${newMimePart};base64,${parts[1]}`;
-            })
+            (details.documents || []).map(file => uploadFile(file, `reports/${newId}/qms/${file.name}`))
         );
         processedDetails = { 
             ...details, 
@@ -78,7 +75,6 @@ export function ReportProvider({ children }: { children: ReactNode }) {
         processedDetails = { ...details, testResults: processedTestResults } as ReportDetails;
     }
 
-    const newId = `REP-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
     const newItem: ReportItem = { ...rest, id: newId, details: processedDetails };
     
     await setDoc(doc(db, 'reports', newId), newItem);
