@@ -8,6 +8,7 @@ import { fileToBase64 } from '@/lib/utils';
 import { getFirestore, collection, getDocs, setDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { app } from '@/lib/firebase';
 import { uploadFile } from '@/lib/storage';
+import { useAuth } from './AuthContext';
 
 const db = getFirestore(app);
 
@@ -27,8 +28,14 @@ export function ReportProvider({ children }: { children: ReactNode }) {
   const [reports, setReports] = useState<ReportItem[]>([]);
   const { projects } = useProjects();
   const [isLoading, setIsLoading] = useState(true);
+  const { user, isInitializing } = useAuth();
 
   useEffect(() => {
+    if (isInitializing || !user) {
+        setIsLoading(true);
+        return;
+    };
+
     const fetchReports = async () => {
       setIsLoading(true);
       try {
@@ -42,7 +49,7 @@ export function ReportProvider({ children }: { children: ReactNode }) {
       }
     };
     fetchReports();
-  }, []);
+  }, [user, isInitializing]);
 
   const processTestResultImages = async (reportId: string, testResults: any[]) => {
       return Promise.all((testResults || []).map(async (result, index) => {

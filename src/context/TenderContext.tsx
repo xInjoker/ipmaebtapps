@@ -7,6 +7,7 @@ import { fileToBase64 } from '@/lib/utils';
 import { getFirestore, collection, getDocs, setDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { app } from '@/lib/firebase';
 import { uploadFile } from '@/lib/storage';
+import { useAuth } from './AuthContext';
 
 
 const db = getFirestore(app);
@@ -30,8 +31,14 @@ const TenderContext = createContext<TenderContextType | undefined>(undefined);
 export function TenderProvider({ children }: { children: ReactNode }) {
   const [tenders, setTenders] = useState<Tender[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { user, isInitializing } = useAuth();
 
   useEffect(() => {
+    if (isInitializing || !user) {
+        setIsLoading(true);
+        return;
+    };
+    
     const fetchTenders = async () => {
       setIsLoading(true);
       try {
@@ -45,7 +52,7 @@ export function TenderProvider({ children }: { children: ReactNode }) {
       }
     };
     fetchTenders();
-  }, []);
+  }, [user, isInitializing]);
 
   const addTender = useCallback(async (item: AddTenderData) => {
     const newId = `TND-${Date.now()}`;

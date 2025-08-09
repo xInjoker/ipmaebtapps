@@ -5,6 +5,7 @@ import { createContext, useState, useContext, ReactNode, Dispatch, SetStateActio
 import { type Project, initialProjects } from '@/lib/projects';
 import { getFirestore, collection, getDocs, setDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { app } from '@/lib/firebase';
+import { useAuth } from './AuthContext';
 
 const db = getFirestore(app);
 
@@ -32,33 +33,29 @@ const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
 export function ProjectProvider({ children }: { children: ReactNode }) {
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { user, isInitializing } = useAuth();
 
   useEffect(() => {
+    if (isInitializing || !user) {
+        setIsLoading(true);
+        return;
+    };
+    
     const fetchProjects = async () => {
       setIsLoading(true);
       try {
         const querySnapshot = await getDocs(collection(db, 'projects'));
         const projectsData = querySnapshot.docs.map(doc => doc.data() as Project);
-        if (projectsData.length > 0) {
-            setProjects(projectsData);
-        } else {
-            // If the database is empty, load the initial hardcoded data.
-            // This is useful for first-time setup or demos.
-            // You might want to remove this for a production-only environment.
-            console.warn("No projects found in Firestore, falling back to initial data.");
-            setProjects(initialProjects);
-        }
+        setProjects(projectsData);
       } catch (error) {
         console.error("Error fetching projects from Firestore: ", error);
-        // Fallback to initial data on error
-        setProjects(initialProjects);
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchProjects();
-  }, []);
+  }, [user, isInitializing]);
 
   const addProject = useCallback(async (projectData: Omit<Project, 'id'>) => {
       const newId = `PROJ-${Date.now()}`;

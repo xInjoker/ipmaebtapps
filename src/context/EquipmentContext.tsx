@@ -6,6 +6,7 @@ import { type EquipmentItem, type EquipmentDocument } from '@/lib/equipment';
 import { getFirestore, collection, getDocs, setDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { app } from '@/lib/firebase';
 import { uploadFile } from '@/lib/storage';
+import { useAuth } from './AuthContext';
 
 const db = getFirestore(app);
 
@@ -24,8 +25,14 @@ const EquipmentContext = createContext<EquipmentContextType | undefined>(undefin
 export function EquipmentProvider({ children }: { children: ReactNode }) {
   const [equipmentList, setEquipmentList] = useState<EquipmentItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { user, isInitializing } = useAuth();
 
   useEffect(() => {
+    if (isInitializing || !user) {
+        setIsLoading(true);
+        return;
+    };
+
     const fetchEquipment = async () => {
       setIsLoading(true);
       try {
@@ -38,7 +45,7 @@ export function EquipmentProvider({ children }: { children: ReactNode }) {
       setIsLoading(false);
     };
     fetchEquipment();
-  }, []);
+  }, [user, isInitializing]);
 
   const addEquipment = useCallback(async (item: Omit<EquipmentItem, 'id' | 'imageUrls' | 'documentUrls'> & { images: File[], documents: File[] }) => {
     const newId = `EQ-${Date.now()}`;

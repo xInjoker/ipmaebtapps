@@ -6,6 +6,7 @@ import { type TripRequest } from '@/lib/trips';
 import { useProjects } from './ProjectContext';
 import { getFirestore, collection, getDocs, setDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { app } from '@/lib/firebase';
+import { useAuth } from './AuthContext';
 
 const db = getFirestore(app);
 
@@ -26,8 +27,14 @@ export function TripProvider({ children }: { children: ReactNode }) {
   const [trips, setTrips] = useState<TripRequest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { projects } = useProjects();
+  const { user, isInitializing } = useAuth();
 
   useEffect(() => {
+    if (isInitializing || !user) {
+        setIsLoading(true);
+        return;
+    };
+
     const fetchTrips = async () => {
       setIsLoading(true);
       try {
@@ -41,7 +48,7 @@ export function TripProvider({ children }: { children: ReactNode }) {
       }
     };
     fetchTrips();
-  }, []);
+  }, [user, isInitializing]);
 
   const addTrip = useCallback(async (item: TripRequest) => {
     await setDoc(doc(db, 'trips', item.id), item);

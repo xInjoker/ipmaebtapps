@@ -8,6 +8,7 @@ import { Users2, BadgeCheck, Clock, XCircle } from 'lucide-react';
 import { getFirestore, collection, getDocs, setDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { app } from '@/lib/firebase';
 import { uploadFile } from '@/lib/storage';
+import { useAuth } from './AuthContext';
 
 const db = getFirestore(app);
 
@@ -35,8 +36,14 @@ const InspectorContext = createContext<InspectorContextType | undefined>(undefin
 export function InspectorProvider({ children }: { children: ReactNode }) {
   const [inspectors, setInspectors] = useState<Inspector[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { user, isInitializing } = useAuth();
 
   useEffect(() => {
+    if (isInitializing || !user) {
+        setIsLoading(true);
+        return;
+    };
+    
     const fetchInspectors = async () => {
       setIsLoading(true);
       try {
@@ -50,7 +57,7 @@ export function InspectorProvider({ children }: { children: ReactNode }) {
       }
     };
     fetchInspectors();
-  }, []);
+  }, [user, isInitializing]);
 
   const addInspector = useCallback(async (item: Omit<Inspector, 'id'|'cvUrl'|'qualifications'|'otherDocuments'> & { cvFile: File | null; qualifications: {file: File, expirationDate?: string}[]; otherDocuments: {file: File, expirationDate?: string}[]}) => {
     const { cvFile, qualifications: newQuals, otherDocuments: newOthers, ...rest } = item;

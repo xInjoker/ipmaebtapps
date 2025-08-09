@@ -8,6 +8,7 @@ import { fileToBase64 } from '@/lib/utils';
 import { getFirestore, collection, getDocs, setDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { app } from '@/lib/firebase';
 import { uploadFile } from '@/lib/storage';
+import { useAuth } from './AuthContext';
 
 
 const db = getFirestore(app);
@@ -32,22 +33,20 @@ const EmployeeContext = createContext<EmployeeContextType | undefined>(undefined
 export function EmployeeProvider({ children }: { children: ReactNode }) {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { user, isInitializing } = useAuth();
 
   useEffect(() => {
+    if (isInitializing || !user) {
+        setIsLoading(true);
+        return;
+    };
+    
     const fetchEmployees = async () => {
       setIsLoading(true);
       try {
         const querySnapshot = await getDocs(collection(db, 'employees'));
         const data = querySnapshot.docs.map(doc => doc.data() as Employee);
-        if (data.length > 0) {
-            setEmployees(data);
-        } else {
-            // If the database is empty, load the initial hardcoded data.
-            // This is useful for first-time setup or demos.
-            // You might want to remove this for a production-only environment.
-            console.warn("No employees found in Firestore, falling back to initial data.");
-            setEmployees(initialEmployees.map((e, i) => ({ ...e, id: `EMP-${i + 1}` })));
-        }
+        setEmployees(data);
       } catch (error) {
         console.error("Error fetching employees from Firestore: ", error);
         // Fallback to initial data on error
@@ -57,7 +56,7 @@ export function EmployeeProvider({ children }: { children: ReactNode }) {
       }
     };
     fetchEmployees();
-  }, []);
+  }, [user, isInitializing]);
 
   const addEmployee = useCallback(async (
     item: Partial<Omit<Employee, 'id'>>,
