@@ -22,32 +22,31 @@ export function ProjectAiSummary({ project, totalCost, totalIncome, progress }: 
   const { toast } = useToast();
 
   const handleGenerateAnalysis = useCallback(async () => {
-    setIsLoading(true);
-    setAnalysis(null);
-
-    const analysisInput: ProjectAnalysisInput = {
-      name: project.name,
-      description: project.description,
-      value: project.value,
-      totalCost,
-      totalIncome,
-      progress,
-      duration: project.duration,
-    };
-
-    try {
-      const result = await analyzeProject(analysisInput);
-      setAnalysis(result);
-    } catch (error) {
-      console.error("Failed to generate project analysis:", error);
-      toast({
-        variant: 'destructive',
-        title: 'Analysis Failed',
-        description: 'Could not generate the AI summary. Please try again.',
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    // Feature is disabled for now. Do nothing.
+    // setIsLoading(true);
+    // setAnalysis(null);
+    // const analysisInput: ProjectAnalysisInput = {
+    //   name: project.name,
+    //   description: project.description,
+    //   value: project.value,
+    //   totalCost,
+    //   totalIncome,
+    //   progress,
+    //   duration: project.duration,
+    // };
+    // try {
+    //   const result = await analyzeProject(analysisInput);
+    //   setAnalysis(result);
+    // } catch (error) {
+    //   console.error("Failed to generate project analysis:", error);
+    //   toast({
+    //     variant: 'destructive',
+    //     title: 'Analysis Failed',
+    //     description: 'Could not generate the AI summary. Please try again.',
+    //   });
+    // } finally {
+    //   setIsLoading(false);
+    // }
   }, [project, totalCost, totalIncome, progress, toast]);
   
   const renderContent = () => {

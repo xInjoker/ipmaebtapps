@@ -61,7 +61,7 @@ import 'jspdf-autotable';
 import html2canvas from 'html2canvas';
 import { DashboardWidget } from '@/components/dashboard-widget';
 import { format } from 'date-fns';
-// import { ProjectAiSummary } from '@/components/project-ai-summary';
+import { ProjectAiSummary } from '@/components/project-ai-summary';
 
 
 // Extend jsPDF with autoTable
@@ -621,12 +621,12 @@ export default function ProjectDetailsPage() {
                   <div ref={chartRefs.profit}>
                       <ProjectProfitChart project={project} />
                   </div>
-                  {/* <ProjectAiSummary
+                  <ProjectAiSummary
                       project={project}
                       totalCost={totalCost}
                       totalIncome={totalIncome}
                       progress={progress}
-                  /> */}
+                  />
               </div>
             </div>
 
