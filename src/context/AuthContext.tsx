@@ -28,7 +28,6 @@ import { app } from '@/lib/firebase';
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-// Helper function moved outside the component to break dependency cycle
 const checkUserPermission = (
   user: User | null,
   roles: Role[],
@@ -92,10 +91,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setRoles(initialRoles);
     });
 
+    let userUnsub: Unsubscribe | null = null;
+    let usersUnsub: Unsubscribe | null = null;
+    
     // This listener handles all auth state changes.
     const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
-        let userUnsub: Unsubscribe = () => {};
-        let usersUnsub: Unsubscribe = () => {};
+        // Clean up previous listeners before setting new ones
+        if (userUnsub) userUnsub();
+        if (usersUnsub) usersUnsub();
 
         if (firebaseUser) {
             const userDocRef = doc(db, 'users', firebaseUser.uid);
@@ -105,7 +108,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     const userData = docSnap.data() as User;
                     setUser(userData);
                     
-                    // Now that we have the user and their permissions, fetch all users if allowed
+                    // Now that we have the user, fetch all users if allowed
                     if (checkUserPermission(userData, roles, 'manage-users')) {
                          usersUnsub = onSnapshot(collection(db, "users"), (snapshot) => {
                             const usersData = snapshot.docs.map(doc => doc.data() as User);
@@ -114,13 +117,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                              console.error("Failed to fetch all users:", error);
                         });
                     } else {
-                        setUsers([userData]); // Only show current user
+                        // Regular users only see themselves
+                        setUsers([userData]); 
                     }
+                    setIsInitializing(false);
                 } else {
                     console.warn("User document not found in Firestore. Logging out.");
                     signOut(auth);
+                    setIsInitializing(false);
                 }
-                 setIsInitializing(false);
             }, (error) => {
                 console.error("Error listening to user document:", error);
                 signOut(auth);
@@ -131,19 +136,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setUsers([]);
             setIsInitializing(false);
         }
-        
-        return () => {
-            userUnsub();
-            usersUnsub();
-        }
     });
 
     return () => {
         unsubscribeAuth();
         unsubBranches();
         unsubRoles();
+        if (userUnsub) userUnsub();
+        if (usersUnsub) usersUnsub();
     };
-  }, [roles]); // Depend on roles to re-evaluate permissions when roles change.
+  }, [roles]); // Rerun when roles are loaded to check permissions correctly
 
   const login = useCallback(async (email: string, pass: string) => {
     try {
@@ -172,9 +174,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             uid: firebaseUser.uid,
             name,
             email,
-            roleId: 'employee', // Default role
+            roleId: 'employee',
             branchId,
             avatarUrl: '',
+            isAdmin: false,
         };
 
         await setDoc(doc(db, "users", firebaseUser.uid), newUserProfile);
@@ -203,14 +206,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const updateUser = useCallback(async (uid: string, data: Partial<User>) => {
     try {
         await updateDoc(doc(db, 'users', uid), data);
-        setUsers(prev => prev.map(u => u.uid === uid ? { ...u, ...data } : u));
-        if (user?.uid === uid) {
-            setUser(prev => prev ? { ...prev, ...data } : null);
-        }
     } catch(error) {
+        console.error("Failed to update user:", error);
         toast({ variant: 'destructive', title: 'Update Failed', description: 'Could not save user changes.' });
     }
-  }, [toast, user]);
+  }, [toast]);
 
   const addRole = useCallback(async (roleData: { name: string; permissions: Permission[] }) => {
     const newRoleRef = doc(collection(db, 'roles'));
