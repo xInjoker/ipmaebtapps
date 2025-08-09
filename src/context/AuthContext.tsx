@@ -28,6 +28,7 @@ import { app } from '@/lib/firebase';
 const db = getFirestore(app);
 const auth = getAuth(app);
 
+// This function is now a pure helper function outside the component.
 const checkUserPermission = (
   user: User | null,
   roles: Role[],
