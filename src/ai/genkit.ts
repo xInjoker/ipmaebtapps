@@ -1,8 +1,7 @@
-
 import { genkit, Plugin } from 'genkit';
 import { googleAI } from '@genkit-ai/googleai';
-// Use the correct import for Firebase integration
-import firebasePlugin from '@genkit-ai/firebase';
+// Use named import instead of default import
+import { firebase } from '@genkit-ai/firebase'; // Corrected import
 import { googleCloud } from '@genkit-ai/google-cloud';
 
 // Import flows so that they are registered with Genkit.
@@ -11,17 +10,18 @@ import { googleCloud } from '@genkit-ai/google-cloud';
 const plugins: Plugin[] = [googleAI()];
 
 if (process.env.NODE_ENV === 'production') {
-  // Use the imported firebasePlugin directly
+  // In production, Firebase and Google Cloud plugins are needed.
+  // App Hosting automatically provides the necessary credentials.
   plugins.push(
-    firebasePlugin({
+    firebase({
       projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID
     }),
     googleCloud()
   );
 } else {
-  // For local development
+  // For local development using the emulator or a real project
   plugins.push(
-    firebasePlugin({
+    firebase({
       projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
       emulators: {
         firestore: process.env.FIRESTORE_EMULATOR_HOST 
