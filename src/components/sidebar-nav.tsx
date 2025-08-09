@@ -17,7 +17,7 @@ import {
   FileText,
   ChevronRight,
   ClipboardCheck,
-  DatabaseZap, // Added for seeding
+  DatabaseZap,
 } from 'lucide-react';
 import {
   SidebarMenu,
@@ -142,6 +142,12 @@ export function SidebarNav() {
       label: 'Settings',
       icon: Settings,
       permission: 'view-settings',
+    },
+    {
+      href: '/seed-database',
+      label: 'Seed Database',
+      icon: DatabaseZap,
+      permission: 'super-admin', // Only for super-admin
     },
     { href: '/profile', label: 'Profile', icon: User, permission: 'view-profile' },
   ];

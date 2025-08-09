@@ -22,7 +22,7 @@ import {
   initialBranches,
 } from '@/lib/users';
 import { useToast } from '@/hooks/use-toast';
-import { getFirestore, collection, doc, getDocs, setDoc, updateDoc, onSnapshot } from 'firebase/firestore';
+import { getFirestore, collection, doc, getDocs, setDoc, updateDoc, onSnapshot, deleteDoc } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, type User as FirebaseUser } from 'firebase/auth';
 import { app } from '@/lib/firebase'; 
 
@@ -66,34 +66,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     setIsInitializing(true);
     
-    // Set up listeners for real-time updates
     const unsubRoles = onSnapshot(collection(db, "roles"), (snapshot) => {
         const rolesData = snapshot.docs.map(doc => doc.data() as Role);
-        setRoles(rolesData.length > 0 ? rolesData : initialRoles);
+        setRoles(rolesData);
     });
 
     const unsubUsers = onSnapshot(collection(db, "users"), (snapshot) => {
         const usersData = snapshot.docs.map(doc => doc.data() as User);
-        setUsers(usersData.length > 0 ? usersData : initialUsers);
+        setUsers(usersData);
     });
 
     const unsubBranches = onSnapshot(collection(db, "branches"), (snapshot) => {
         const branchesData = snapshot.docs.map(doc => doc.data() as Branch);
-        setBranches(branchesData.length > 0 ? branchesData : initialBranches);
+        setBranches(branchesData);
     });
 
     const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
         if (firebaseUser) {
-            // Find the corresponding user profile in our `users` collection
-            const userProfile = (await getDocs(collection(db, "users"))).docs
-                .map(doc => doc.data() as User)
-                .find(u => u.email === firebaseUser.email);
-            
+            const userProfile = users.find(u => u.email === firebaseUser.email);
             if (userProfile) {
                 setUser(userProfile);
-            } else {
-                // This case might happen if a user exists in Auth but not Firestore
-                setUser(null); 
+            } else if (users.length > 0) { // check if users have been loaded
+                // This can happen on first load race condition. Let's try to find again.
+                const allUsers = (await getDocs(collection(db, "users"))).docs.map(doc => doc.data() as User);
+                const profile = allUsers.find(u => u.email === firebaseUser.email);
+                setUser(profile || null);
             }
         } else {
             setUser(null);
@@ -101,19 +98,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setIsInitializing(false);
     });
 
-    // Cleanup function
     return () => {
         unsubRoles();
         unsubUsers();
         unsubBranches();
         unsubscribeAuth();
     };
-  }, []);
+  }, [users]); // Depend on users to re-run auth check when users are loaded
 
   const login = useCallback(async (email: string, pass: string) => {
     try {
         await signInWithEmailAndPassword(auth, email, pass);
-        // onAuthStateChanged will handle setting the user state
         router.push('/');
     } catch (error) {
         toast({
@@ -141,10 +136,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const newId = users.length > 0 ? Math.max(...users.map((u) => u.id)) + 1 : 1;
         const newUser: User = { id: newId, name, email, roleId: 'staff', branchId, avatarUrl: '' };
 
-        // We use the Firebase UID as the document ID in Firestore for security
-        await setDoc(doc(db, 'users', firebaseUser.uid), newUser);
+        await setDoc(doc(db, 'users', String(newUser.id)), newUser);
         
-        // The onAuthStateChanged listener will handle setting the user state.
         router.push('/');
     } catch (error) {
         console.error("Registration error:", error);
@@ -155,7 +148,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(async () => {
     try {
         await signOut(auth);
-        // onAuthStateChanged will handle setting the user state to null
         router.push('/login');
     } catch (error) {
         console.error("Logout error:", error);
@@ -164,22 +156,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [router, toast]);
 
   const updateUser = useCallback(async (userId: number, data: Partial<User>) => {
-    // Note: Finding the document by a field other than the ID is not ideal.
-    // This should be refactored to use the Firebase UID as the primary key.
-    const userToUpdate = users.find(u => u.id === userId);
-    if (!userToUpdate) return;
-    
     try {
-        // This is a placeholder for finding the correct Firestore document.
-        // A real implementation would query by 'id' field if not using UID as doc ID.
-        // For now, this won't work without knowing the Firestore document ID.
-        console.warn("updateUser requires a proper Firestore query to find the document to update.");
-        // await updateDoc(doc(db, 'users', String(userId)), data);
+        await updateDoc(doc(db, 'users', String(userId)), data);
     } catch(error) {
         console.error("Error updating user:", error);
         toast({ variant: 'destructive', title: 'Update Failed', description: 'Could not save user changes.' });
     }
-  }, [users, toast]);
+  }, [toast]);
 
   const updateUserRole = useCallback((userId: number, newRoleId: string) => {
     updateUser(userId, { roleId: newRoleId });
@@ -210,9 +193,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [toast]);
 
   const deleteRole = useCallback(async (roleId: string) => {
-    // Implement Firestore delete logic here if needed
-    console.warn("Firestore delete for roles not implemented yet.");
-  }, []);
+    try {
+        await deleteDoc(doc(db, 'roles', roleId));
+    } catch(error) {
+         console.error("Error deleting role:", error);
+        toast({ variant: 'destructive', title: 'Error', description: 'Could not delete role.' });
+    }
+  }, [toast]);
 
   const userHasPermission = useCallback(
     (permission: Permission): boolean => {
