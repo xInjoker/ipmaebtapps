@@ -129,22 +129,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       toast({ variant: 'destructive', title: 'Registration Failed', description: 'Please select an office location.' });
       return;
     }
-    const existingUsersSnapshot = await getDocs(collection(db, 'users'));
-    const existingUsers = existingUsersSnapshot.docs.map(doc => doc.data() as User);
-    if (existingUsers.some((u) => u.email === email)) {
-      toast({ variant: 'destructive', title: 'Registration Failed', description: 'A user with this email already exists.' });
-      return;
-    }
-
+    
     try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
-        const newId = existingUsers.length > 0 ? Math.max(...existingUsers.map((u) => u.id)) + 1 : 1;
-        const newUser: User = { id: newId, name, email, roleId: 'staff', branchId, avatarUrl: '' };
-        await setDoc(doc(db, 'users', String(newUser.id)), newUser);
+        // We assume the user record already exists in the 'users' collection from seeding.
+        // This process simply creates the Firebase Auth entry to enable login.
+        // If the user doesn't exist, they would need to be assigned a role by an admin.
         router.push('/');
-    } catch (error) {
+    } catch (error: any) {
         console.error("Registration error:", error);
-        toast({ variant: 'destructive', title: 'Registration Failed', description: 'Could not create your account.' });
+        if (error.code === 'auth/email-already-in-use') {
+             toast({ variant: 'destructive', title: 'Registration Failed', description: 'This email is already registered for login.' });
+        } else {
+             toast({ variant: 'destructive', title: 'Registration Failed', description: 'Could not create your account.' });
+        }
     }
   }, [router, toast]);
 
