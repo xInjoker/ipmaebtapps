@@ -1,7 +1,7 @@
 
 import { genkit, Plugin } from 'genkit';
 import { googleAI } from '@genkit-ai/googleai';
-import { firebase } from '@genkit-ai/firebase';
+// import { firebase } from '@genkit-ai/firebase';
 import { googleCloud } from '@genkit-ai/google-cloud';
 
 // Import flows so that they are registered with Genkit.
@@ -9,6 +9,7 @@ import { googleCloud } from '@genkit-ai/google-cloud';
 
 const plugins: Plugin[] = [googleAI()];
 
+/*
 if (process.env.NODE_ENV === 'production') {
   // In production, Firebase and Google Cloud plugins are needed.
   plugins.push(
@@ -30,6 +31,7 @@ if (process.env.NODE_ENV === 'production') {
     })
   );
 }
+*/
 
 export const ai = genkit({
   plugins,
