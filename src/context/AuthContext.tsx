@@ -22,7 +22,7 @@ import {
   initialBranches,
 } from '@/lib/users';
 import { useToast } from '@/hooks/use-toast';
-import { getFirestore, collection, doc, getDocs, setDoc, updateDoc, onSnapshot, deleteDoc } from 'firebase/firestore';
+import { getFirestore, collection, doc, getDocs, setDoc, updateDoc, onSnapshot, deleteDoc, Unsubscribe } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, type User as FirebaseUser } from 'firebase/auth';
 import { app } from '@/lib/firebase'; 
 
@@ -65,46 +65,51 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   
   useEffect(() => {
     setIsInitializing(true);
-    
-    const unsubRoles = onSnapshot(collection(db, "roles"), (snapshot) => {
-        const rolesData = snapshot.docs.map(doc => doc.data() as Role);
-        setRoles(rolesData);
-    });
-
-    const unsubUsers = onSnapshot(collection(db, "users"), (snapshot) => {
-        const usersData = snapshot.docs.map(doc => doc.data() as User);
-        setUsers(usersData);
-    });
-
-    const unsubBranches = onSnapshot(collection(db, "branches"), (snapshot) => {
-        const branchesData = snapshot.docs.map(doc => doc.data() as Branch);
-        setBranches(branchesData);
-    });
+    let unsubscribers: Unsubscribe[] = [];
 
     const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
+        // First, clear any existing listeners to prevent leaks on re-authentication
+        unsubscribers.forEach(unsub => unsub());
+        unsubscribers = [];
+
         if (firebaseUser) {
-            const userProfile = users.find(u => u.email === firebaseUser.email);
-            if (userProfile) {
-                setUser(userProfile);
-            } else if (users.length > 0) { // check if users have been loaded
-                // This can happen on first load race condition. Let's try to find again.
-                const allUsers = (await getDocs(collection(db, "users"))).docs.map(doc => doc.data() as User);
-                const profile = allUsers.find(u => u.email === firebaseUser.email);
-                setUser(profile || null);
-            }
+            // Set up listeners only AFTER we have an authenticated user
+            const unsubRoles = onSnapshot(collection(db, "roles"), (snapshot) => {
+                const rolesData = snapshot.docs.map(doc => doc.data() as Role);
+                setRoles(rolesData);
+            });
+            unsubscribers.push(unsubRoles);
+
+            const unsubBranches = onSnapshot(collection(db, "branches"), (snapshot) => {
+                const branchesData = snapshot.docs.map(doc => doc.data() as Branch);
+                setBranches(branchesData);
+            });
+            unsubscribers.push(unsubBranches);
+
+            // Users listener needs to be separate to find the current user profile
+            const unsubUsers = onSnapshot(collection(db, "users"), (snapshot) => {
+                const usersData = snapshot.docs.map(doc => doc.data() as User);
+                setUsers(usersData);
+                const userProfile = usersData.find(u => u.email === firebaseUser.email);
+                setUser(userProfile || null);
+            });
+            unsubscribers.push(unsubUsers);
+            
         } else {
+            // No user, reset state
             setUser(null);
+            setUsers([]);
+            setRoles([]);
+            setBranches([]);
         }
         setIsInitializing(false);
     });
 
     return () => {
-        unsubRoles();
-        unsubUsers();
-        unsubBranches();
         unsubscribeAuth();
+        unsubscribers.forEach(unsub => unsub());
     };
-  }, [users]); // Depend on users to re-run auth check when users are loaded
+  }, []);
 
   const login = useCallback(async (email: string, pass: string) => {
     try {
@@ -124,26 +129,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       toast({ variant: 'destructive', title: 'Registration Failed', description: 'Please select an office location.' });
       return;
     }
-    if (users.some((u) => u.email === email)) {
+    const existingUsersSnapshot = await getDocs(collection(db, 'users'));
+    const existingUsers = existingUsersSnapshot.docs.map(doc => doc.data() as User);
+    if (existingUsers.some((u) => u.email === email)) {
       toast({ variant: 'destructive', title: 'Registration Failed', description: 'A user with this email already exists.' });
       return;
     }
 
     try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
-        const firebaseUser = userCredential.user;
-
-        const newId = users.length > 0 ? Math.max(...users.map((u) => u.id)) + 1 : 1;
+        const newId = existingUsers.length > 0 ? Math.max(...existingUsers.map((u) => u.id)) + 1 : 1;
         const newUser: User = { id: newId, name, email, roleId: 'staff', branchId, avatarUrl: '' };
-
         await setDoc(doc(db, 'users', String(newUser.id)), newUser);
-        
         router.push('/');
     } catch (error) {
         console.error("Registration error:", error);
         toast({ variant: 'destructive', title: 'Registration Failed', description: 'Could not create your account.' });
     }
-  }, [users, router, toast]);
+  }, [router, toast]);
 
   const logout = useCallback(async () => {
     try {
