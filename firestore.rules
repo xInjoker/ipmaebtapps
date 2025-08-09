@@ -1,34 +1,57 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Helper function to check for admin role
-    function isAdmin() {
-      // Check for a custom claim 'isAdmin' on the user's auth token.
-      // This must be set via a backend process (e.g., Cloud Function).
-      return request.auth.token.isAdmin == true;
+
+    function isSuperAdmin() {
+      // Check the user's role from their user document in Firestore.
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.roleId == 'super-admin';
     }
 
-    // Users can create their own user document, and can only read/update their own.
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Users can manage their own document, and super-admins can read/list all users.
     match /users/{userId} {
-      allow read, update: if request.auth != null && request.auth.uid == userId;
-      allow create: if request.auth != null && request.auth.uid == userId;
+      allow read, update: if request.auth.uid == userId || isSuperAdmin();
+      allow create: if request.auth.uid == userId; // Allows a user to create their own profile on signup
+      allow list: if isSuperAdmin(); // Allows super-admins to get all users for the management page
     }
 
-    // Allow all authenticated users to read roles
-    match /roles/{roleId} {
-      allow read: if request.auth != null;
-      allow write: if isAdmin();
-    }
-
-    // Allow all users (authenticated or not) to read branches for the sign-up page
+    // Branches are publicly readable for the registration page dropdown.
     match /branches/{branchId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if isSuperAdmin(); // Only admins can modify branches
     }
 
-    // Allow admin to manage all other collections, but deny by default for others
-    match /{document=**} {
-      allow read, write: if isAdmin();
+    // Roles are publicly readable to populate UI elements correctly.
+    match /roles/{roleId} {
+      allow read: if true;
+      allow write: if isSuperAdmin(); // Only admins can modify roles
+    }
+
+    // General authenticated access for main data collections.
+    // These can be made more granular later if needed.
+    match /projects/{projectId} {
+      allow read, write: if isAuthenticated();
+    }
+    match /tenders/{tenderId} {
+      allow read, write: if isAuthenticated();
+    }
+    match /trips/{tripId} {
+      allow read, write: if isAuthenticated();
+    }
+    match /reports/{reportId} {
+      allow read, write: if isAuthenticated();
+    }
+    match /equipment/{equipmentId} {
+      allow read, write: if isAuthenticated();
+    }
+     match /employees/{employeeId} {
+      allow read, write: if isAuthenticated();
+    }
+     match /inspectors/{inspectorId} {
+      allow read, write: if isAuthenticated();
     }
   }
 }
