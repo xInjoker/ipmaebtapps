@@ -75,14 +75,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
   
   useEffect(() => {
-    // Public collections can be fetched immediately.
+    // Public collections can be fetched immediately, as rules allow it.
     const unsubBranches = onSnapshot(collection(db, "branches"), (snapshot) => {
         const branchesData = snapshot.docs.map(doc => doc.data() as Branch);
-        if (branchesData.length > 0) {
-          setBranches(branchesData);
-        } else {
-          setBranches(initialBranches);
-        }
+        setBranches(branchesData.length > 0 ? branchesData : initialBranches);
     }, (error) => {
         console.error("Failed to fetch branches:", error);
         setBranches(initialBranches);
@@ -90,26 +86,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const unsubRoles = onSnapshot(collection(db, "roles"), (snapshot) => {
         const rolesData = snapshot.docs.map(doc => doc.data() as Role);
-        if (rolesData.length > 0) {
-            setRoles(rolesData);
-        } else {
-            setRoles(initialRoles);
-        }
+        setRoles(rolesData.length > 0 ? rolesData : initialRoles);
     });
 
     // This listener handles all auth state changes.
     const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
+        let userUnsub: Unsubscribe = () => {};
+        let usersUnsub: Unsubscribe = () => {};
+
         if (firebaseUser) {
             const userDocRef = doc(db, 'users', firebaseUser.uid);
             
-            const unsubUser = onSnapshot(userDocRef, (docSnap) => {
+            userUnsub = onSnapshot(userDocRef, (docSnap) => {
                 if (docSnap.exists()) {
                     const userData = docSnap.data() as User;
                     setUser(userData);
                     
-                    // Conditionally fetch all users based on permission
+                    // Now that we have the user and their permissions, fetch all users if allowed
                     if (checkUserPermission(userData, roles, 'manage-users')) {
-                         onSnapshot(collection(db, "users"), (snapshot) => {
+                         usersUnsub = onSnapshot(collection(db, "users"), (snapshot) => {
                             const usersData = snapshot.docs.map(doc => doc.data() as User);
                             setUsers(usersData);
                         });
@@ -126,11 +121,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 signOut(auth);
                 setIsInitializing(false);
             });
-            return () => unsubUser();
         } else {
             setUser(null);
             setUsers([]);
             setIsInitializing(false);
+        }
+        
+        return () => {
+            userUnsub();
+            usersUnsub();
         }
     });
 
@@ -139,7 +138,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         unsubBranches();
         unsubRoles();
     };
-  }, [roles]);
+  }, [roles]); // Depend on roles to re-evaluate permissions when roles change.
 
   const login = useCallback(async (email: string, pass: string) => {
     try {
