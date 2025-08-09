@@ -1,57 +1,22 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    function isSuperAdmin() {
-      // Check the user's role from their user document in Firestore.
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.roleId == 'super-admin';
-    }
-
-    function isAuthenticated() {
-      return request.auth != null;
-    }
-    
-    // Users can manage their own document, and super-admins can read/list all users.
-    match /users/{userId} {
-      allow read, update: if request.auth.uid == userId || isSuperAdmin();
-      allow create: if request.auth.uid == userId; // Allows a user to create their own profile on signup
-      allow list: if isSuperAdmin(); // Allows super-admins to get all users for the management page
-    }
-
-    // Branches are publicly readable for the registration page dropdown.
+    // Allow public read on branches for the sign-up page
     match /branches/{branchId} {
       allow read: if true;
-      allow write: if isSuperAdmin(); // Only admins can modify branches
+      allow write: if request.auth != null; // Only authenticated users can write
     }
 
-    // Roles are publicly readable to populate UI elements correctly.
+    // Allow public read on roles for the sign-up page
     match /roles/{roleId} {
       allow read: if true;
-      allow write: if isSuperAdmin(); // Only admins can modify roles
+      allow write: if request.auth != null; // Only authenticated users can write
     }
 
-    // General authenticated access for main data collections.
-    // These can be made more granular later if needed.
-    match /projects/{projectId} {
-      allow read, write: if isAuthenticated();
-    }
-    match /tenders/{tenderId} {
-      allow read, write: if isAuthenticated();
-    }
-    match /trips/{tripId} {
-      allow read, write: if isAuthenticated();
-    }
-    match /reports/{reportId} {
-      allow read, write: if isAuthenticated();
-    }
-    match /equipment/{equipmentId} {
-      allow read, write: if isAuthenticated();
-    }
-     match /employees/{employeeId} {
-      allow read, write: if isAuthenticated();
-    }
-     match /inspectors/{inspectorId} {
-      allow read, write: if isAuthenticated();
+    // Default catch-all for any other collection.
+    // Requires a user to be authenticated to read or write.
+    match /{document=**} {
+      allow read, write: if request.auth != null;
     }
   }
 }
