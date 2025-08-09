@@ -67,9 +67,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsInitializing(true);
     let unsubscribers: Unsubscribe[] = [];
 
+    // Fetch branches immediately, as it's needed for registration
+    const unsubBranches = onSnapshot(collection(db, "branches"), (snapshot) => {
+        const branchesData = snapshot.docs.map(doc => doc.data() as Branch);
+        setBranches(branchesData);
+    }, (error) => {
+        console.error("Failed to fetch branches:", error);
+        setBranches([]); // Ensure it's an empty array on error
+    });
+    unsubscribers.push(unsubBranches);
+
     const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
-        unsubscribers.forEach(unsub => unsub());
-        unsubscribers = [];
+        // Clean up user-specific listeners
+        unsubscribers.filter(unsub => unsub !== unsubBranches).forEach(unsub => unsub());
+        unsubscribers = [unsubBranches]; // Keep the branches listener
 
         if (firebaseUser) {
             const unsubRoles = onSnapshot(collection(db, "roles"), (snapshot) => {
@@ -77,12 +88,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 setRoles(rolesData);
             });
             unsubscribers.push(unsubRoles);
-
-            const unsubBranches = onSnapshot(collection(db, "branches"), (snapshot) => {
-                const branchesData = snapshot.docs.map(doc => doc.data() as Branch);
-                setBranches(branchesData);
-            });
-            unsubscribers.push(unsubBranches);
 
             const unsubUsers = onSnapshot(collection(db, "users"), (snapshot) => {
                 const usersData = snapshot.docs.map(doc => doc.data() as User);
@@ -96,7 +101,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setUser(null);
             setUsers([]);
             setRoles([]);
-            setBranches([]);
         }
         setIsInitializing(false);
     });
@@ -129,20 +133,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
         
-        // After creating the auth user, check if a profile already exists in Firestore.
         const existingUser = users.find(u => u.email === email);
         if (existingUser) {
-          // If a seeded user exists, just link the auth account to it by ensuring the name is up-to-date.
-          // In a real-world scenario, you might do more here, but for this app, this is sufficient.
           await updateDoc(doc(db, 'users', String(existingUser.id)), { name: name, branchId: branchId });
         } else {
-          // If it's a completely new user not in our seeded list.
-          const newUserId = Date.now(); // Simple ID generation
+          const newUserId = Date.now();
           const newUserProfile: User = {
             id: newUserId,
             name: name,
             email: email,
-            roleId: 'employee', // Default role for new sign-ups
+            roleId: 'employee',
             branchId: branchId,
             avatarUrl: '',
           };
