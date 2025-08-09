@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import {
@@ -207,6 +208,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [router, toast]);
 
   const updateUser = useCallback(async (uid: string, data: Partial<User>) => {
+    if (!uid) {
+        console.error("updateUser called with invalid UID.");
+        return;
+    }
     try {
         await updateDoc(doc(db, 'users', uid), data);
     } catch(error) {
