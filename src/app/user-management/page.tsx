@@ -484,7 +484,7 @@ export default function UserManagementPage() {
                   </TableHeader>
                   <TableBody>
                     {roles.map((role) => (
-                      <TableRow key={role.id}>
+                      <TableRow key={`${role.id}-${role.name}`}>
                         <TableCell className="font-medium">
                           {role.name}
                         </TableCell>
