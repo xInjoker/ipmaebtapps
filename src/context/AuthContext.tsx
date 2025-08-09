@@ -68,12 +68,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let unsubscribers: Unsubscribe[] = [];
 
     const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
-        // First, clear any existing listeners to prevent leaks on re-authentication
         unsubscribers.forEach(unsub => unsub());
         unsubscribers = [];
 
         if (firebaseUser) {
-            // Set up listeners only AFTER we have an authenticated user
             const unsubRoles = onSnapshot(collection(db, "roles"), (snapshot) => {
                 const rolesData = snapshot.docs.map(doc => doc.data() as Role);
                 setRoles(rolesData);
@@ -86,7 +84,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             });
             unsubscribers.push(unsubBranches);
 
-            // Users listener needs to be separate to find the current user profile
             const unsubUsers = onSnapshot(collection(db, "users"), (snapshot) => {
                 const usersData = snapshot.docs.map(doc => doc.data() as User);
                 setUsers(usersData);
@@ -96,7 +93,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             unsubscribers.push(unsubUsers);
             
         } else {
-            // No user, reset state
             setUser(null);
             setUsers([]);
             setRoles([]);
@@ -132,19 +128,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
-        // We assume the user record already exists in the 'users' collection from seeding.
-        // This process simply creates the Firebase Auth entry to enable login.
-        // If the user doesn't exist, they would need to be assigned a role by an admin.
+        
+        // After creating the auth user, check if a profile already exists in Firestore.
+        const existingUser = users.find(u => u.email === email);
+        if (existingUser) {
+          // If a seeded user exists, just link the auth account to it by ensuring the name is up-to-date.
+          // In a real-world scenario, you might do more here, but for this app, this is sufficient.
+          await updateDoc(doc(db, 'users', String(existingUser.id)), { name: name, branchId: branchId });
+        } else {
+          // If it's a completely new user not in our seeded list.
+          const newUserId = Date.now(); // Simple ID generation
+          const newUserProfile: User = {
+            id: newUserId,
+            name: name,
+            email: email,
+            roleId: 'employee', // Default role for new sign-ups
+            branchId: branchId,
+            avatarUrl: '',
+          };
+          await setDoc(doc(db, "users", String(newUserId)), newUserProfile);
+        }
+
         router.push('/');
     } catch (error: any) {
         console.error("Registration error:", error);
         if (error.code === 'auth/email-already-in-use') {
-             toast({ variant: 'destructive', title: 'Registration Failed', description: 'This email is already registered for login.' });
+             toast({ variant: 'destructive', title: 'Registration Failed', description: 'This email is already registered. Please log in.' });
         } else {
              toast({ variant: 'destructive', title: 'Registration Failed', description: 'Could not create your account.' });
         }
     }
-  }, [router, toast]);
+  }, [router, toast, users]);
 
   const logout = useCallback(async () => {
     try {
