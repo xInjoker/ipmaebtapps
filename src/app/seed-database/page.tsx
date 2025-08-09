@@ -47,7 +47,7 @@ export default function SeedDatabasePage() {
             Seed Firestore Database
           </CardTitle>
           <CardDescription>
-            Populate your Firestore database with initial data for users, roles, and branches.
+            Populate your Firestore database with initial data for roles and branches.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -56,7 +56,7 @@ export default function SeedDatabasePage() {
                 <div className="space-y-1">
                     <h4 className="font-semibold text-destructive">Warning: Overwrites Data</h4>
                     <p className="text-sm text-destructive/80">
-                        Running this action will overwrite any existing documents in the 'users', 'roles', and 'branches' collections with the initial dataset. This action cannot be undone.
+                        Running this action will overwrite any existing documents in the 'roles' and 'branches' collections with the initial dataset. This action cannot be undone.
                     </p>
                 </div>
             </div>

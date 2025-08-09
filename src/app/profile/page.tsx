@@ -71,12 +71,12 @@ export default function ProfilePage() {
         let finalSignatureUrl = signatureUrl;
 
         if (newSignatureFile) {
-            finalSignatureUrl = await uploadFile(newSignatureFile, `signatures/${user.id}/${newSignatureFile.name}`);
+            finalSignatureUrl = await uploadFile(newSignatureFile, `signatures/${user.uid}/${newSignatureFile.name}`);
         } else if (signatureUrl === null) {
             finalSignatureUrl = undefined; // Explicitly remove it
         }
 
-        updateUser(user.id, { name: fullName, signatureUrl: finalSignatureUrl });
+        updateUser(user.uid, { name: fullName, signatureUrl: finalSignatureUrl });
         toast({
             title: 'Profile Updated',
             description: 'Your personal information has been saved.',

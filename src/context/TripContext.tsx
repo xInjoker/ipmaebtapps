@@ -18,7 +18,7 @@ type TripContextType = {
   updateTrip: (id: string, item: TripRequest) => Promise<void>;
   deleteTrip: (id: string) => Promise<void>;
   getTripById: (id: string) => TripRequest | undefined;
-  getPendingTripApprovalsForUser: (userId: number) => TripRequest[];
+  getPendingTripApprovalsForUser: (userId: string) => TripRequest[];
 };
 
 const TripContext = createContext<TripContextType | undefined>(undefined);
@@ -69,7 +69,7 @@ export function TripProvider({ children }: { children: ReactNode }) {
     return trips.find(item => item.id === id);
   }, [trips]);
   
-  const getPendingTripApprovalsForUser = useCallback((userId: number) => {
+  const getPendingTripApprovalsForUser = useCallback((userId: string) => {
     return trips.filter(trip => {
       if (trip.status !== 'Pending') return false;
 
@@ -82,7 +82,7 @@ export function TripProvider({ children }: { children: ReactNode }) {
       if (nextApproverIndex >= project.tripApprovalWorkflow.length) return false;
 
       const nextApprover = project.tripApprovalWorkflow[nextApproverIndex];
-      return nextApprover.approverId === userId.toString();
+      return nextApprover.approverId === userId;
     });
   }, [trips, projects]);
 

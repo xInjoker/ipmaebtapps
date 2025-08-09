@@ -1,8 +1,8 @@
 
 import {genkit, Plugin} from 'genkit';
 import {googleAI} from '@genkit-ai/googleai';
-// import { firebase } from '@genkit-ai/firebase';
-// import {googleCloud} from '@genkit-ai/google-cloud';
+import {firebase} from '@genkit-ai/firebase';
+import {googleCloud} from '@genkit-ai/google-cloud';
 
 // Import flows so that they are registered with Genkit.
 // import * as projectAnalysisFlow from '@/ai/flows/project-analysis-flow';
@@ -10,16 +10,16 @@ import {googleAI} from '@genkit-ai/googleai';
 
 const plugins: Plugin[] = [googleAI()];
 
-// if (process.env.NODE_ENV === 'production') {
-//   // In production, Firebase and Google Cloud plugins are needed.
-//   // App Hosting automatically provides the necessary credentials.
-//   plugins.push(firebase(), googleCloud());
-// } else {
-//   // For local development using the emulator or a real project, 
-//   // you may need to initialize Firebase differently.
-//   // For the seeding script, firebase() is required to interact with Firestore.
-//   plugins.push(firebase());
-// }
+if (process.env.NODE_ENV === 'production') {
+  // In production, Firebase and Google Cloud plugins are needed.
+  // App Hosting automatically provides the necessary credentials.
+  plugins.push(firebase(), googleCloud());
+} else {
+  // For local development using the emulator or a real project, 
+  // you may need to initialize Firebase differently.
+  // For the seeding script, firebase() is required to interact with Firestore.
+  plugins.push(firebase());
+}
 
 
 export const ai = genkit({

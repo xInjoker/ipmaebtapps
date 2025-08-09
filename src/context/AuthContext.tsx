@@ -17,9 +17,8 @@ import {
   type Permission,
   permissions,
   type Branch,
-  initialUsers,
-  initialRoles,
   initialBranches,
+  initialRoles,
 } from '@/lib/users';
 import { useToast } from '@/hooks/use-toast';
 import { getFirestore, collection, doc, getDocs, setDoc, updateDoc, onSnapshot, deleteDoc, Unsubscribe, getDoc } from 'firebase/firestore';
@@ -29,6 +28,19 @@ import { app } from '@/lib/firebase';
 const db = getFirestore(app);
 const auth = getAuth(app);
 
+// Helper function moved outside the component to break dependency cycle
+const checkUserPermission = (
+  user: User | null,
+  roles: Role[],
+  permission: Permission
+): boolean => {
+  if (!user) return false;
+  const userRole = roles.find((r) => r.id === user.roleId);
+  if (!userRole) return false;
+  if (userRole.id === 'super-admin') return true;
+  return userRole.permissions.includes(permission);
+};
+
 type AuthContextType = {
   isAuthenticated: boolean;
   user: User | null;
@@ -36,8 +48,7 @@ type AuthContextType = {
   roles: Role[];
   branches: Branch[];
   permissions: readonly Permission[];
-  updateUser: (userId: number, data: Partial<User>) => Promise<void>;
-  updateUserRole: (userId: number, newRoleId: string) => void;
+  updateUser: (uid: string, data: Partial<User>) => Promise<void>;
   addRole: (roleData: { name: string; permissions: Permission[] }) => void;
   updateRole: (
     roleId: string,
@@ -64,76 +75,77 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
   
   useEffect(() => {
-    setIsInitializing(true);
-    let unsubscribers: Unsubscribe[] = [];
-
-    // Fetch branches immediately, as it's needed for registration and is public.
+    // Public collections can be fetched immediately.
     const unsubBranches = onSnapshot(collection(db, "branches"), (snapshot) => {
         const branchesData = snapshot.docs.map(doc => doc.data() as Branch);
-        setBranches(branchesData);
+        if (branchesData.length > 0) {
+          setBranches(branchesData);
+        } else {
+          setBranches(initialBranches);
+        }
     }, (error) => {
         console.error("Failed to fetch branches:", error);
-        setBranches([]);
+        setBranches(initialBranches);
     });
 
+    const unsubRoles = onSnapshot(collection(db, "roles"), (snapshot) => {
+        const rolesData = snapshot.docs.map(doc => doc.data() as Role);
+        if (rolesData.length > 0) {
+            setRoles(rolesData);
+        } else {
+            setRoles(initialRoles);
+        }
+    });
+
+    // This listener handles all auth state changes.
     const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
-        // Clean up previous listeners
-        unsubscribers.forEach(unsub => unsub());
-        unsubscribers = [];
-        
         if (firebaseUser) {
-             try {
-                // First, fetch the user's own profile document.
-                // The new security rules allow this specific read.
-                const userDocRef = doc(db, 'users', firebaseUser.uid);
-                const userDocSnap = await getDoc(userDocRef);
-
-                if (userDocSnap.exists()) {
-                    const userProfile = userDocSnap.data() as User;
-                    setUser(userProfile);
-
-                    // Now that we have a valid user profile and role, we can listen to other collections.
-                    const unsubRoles = onSnapshot(collection(db, "roles"), (snapshot) => {
-                        const rolesData = snapshot.docs.map(doc => doc.data() as Role);
-                        setRoles(rolesData);
-                    });
-                    unsubscribers.push(unsubRoles);
-
-                    const unsubUsers = onSnapshot(collection(db, "users"), (snapshot) => {
-                        const usersData = snapshot.docs.map(doc => doc.data() as User);
-                        setUsers(usersData);
-                    });
-                    unsubscribers.push(unsubUsers);
+            const userDocRef = doc(db, 'users', firebaseUser.uid);
+            
+            const unsubUser = onSnapshot(userDocRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    const userData = docSnap.data() as User;
+                    setUser(userData);
+                    
+                    // Conditionally fetch all users based on permission
+                    if (checkUserPermission(userData, roles, 'manage-users')) {
+                         onSnapshot(collection(db, "users"), (snapshot) => {
+                            const usersData = snapshot.docs.map(doc => doc.data() as User);
+                            setUsers(usersData);
+                        });
+                    } else {
+                        setUsers([userData]); // Only show current user
+                    }
                 } else {
-                     // This case happens if a user exists in Auth but not Firestore. Log them out.
                     console.warn("User document not found in Firestore. Logging out.");
-                    await signOut(auth);
-                    setUser(null);
+                    signOut(auth);
                 }
-            } catch (error) {
-                console.error("Error fetching user data after auth change:", error);
-                setUser(null);
-            }
+                 setIsInitializing(false);
+            }, (error) => {
+                console.error("Error listening to user document:", error);
+                signOut(auth);
+                setIsInitializing(false);
+            });
+            return () => unsubUser();
         } else {
             setUser(null);
             setUsers([]);
-            setRoles([]);
+            setIsInitializing(false);
         }
-        setIsInitializing(false);
     });
 
     return () => {
         unsubscribeAuth();
         unsubBranches();
-        unsubscribers.forEach(unsub => unsub());
+        unsubRoles();
     };
-  }, []);
+  }, [roles]);
 
   const login = useCallback(async (email: string, pass: string) => {
     try {
         await signInWithEmailAndPassword(auth, email, pass);
         router.push('/');
-    } catch (error) {
+    } catch (error: any) {
         toast({
             variant: 'destructive',
             title: 'Login Failed',
@@ -143,88 +155,70 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [router, toast]);
 
   const register = useCallback(async (name: string, email: string, pass: string, branchId: string) => {
-     if (!branchId) {
-      toast({ variant: 'destructive', title: 'Registration Failed', description: 'Please select an office location.' });
-      return;
+    if (!branchId) {
+        toast({ variant: 'destructive', title: 'Registration Failed', description: 'Please select an office location.' });
+        return;
     }
     
     try {
         const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
         const firebaseUser = userCredential.user;
         
-        const existingUser = users.find(u => u.email === email);
-        
-        if (existingUser) {
-            // This case is unlikely if registration is only for new users, but handles it.
-            await updateDoc(doc(db, 'users', firebaseUser.uid), { name: name, branchId: branchId });
-        } else {
-            const newUserProfile: User = {
-                id: Date.now(), // This might need a better unique ID strategy
-                name: name,
-                email: email,
-                roleId: 'employee', // Default role for new sign-ups
-                branchId: branchId,
-                avatarUrl: '',
-            };
-            // Use the Firebase Auth UID as the document ID for direct lookup
-            await setDoc(doc(db, "users", firebaseUser.uid), newUserProfile);
-        }
+        const newUserProfile: User = {
+            uid: firebaseUser.uid,
+            name,
+            email,
+            roleId: 'employee', // Default role
+            branchId,
+            avatarUrl: '',
+        };
 
+        await setDoc(doc(db, "users", firebaseUser.uid), newUserProfile);
         router.push('/');
+
     } catch (error: any) {
-        console.error("Registration error:", error);
+        let description = 'An unknown error occurred.';
         if (error.code === 'auth/email-already-in-use') {
-             toast({ variant: 'destructive', title: 'Registration Failed', description: 'This email is already registered. Please log in.' });
-        } else {
-             toast({ variant: 'destructive', title: 'Registration Failed', description: 'Could not create your account.' });
+            description = 'This email is already registered. Please log in.';
+        } else if (error.code === 'auth/weak-password') {
+            description = 'The password is too weak. Please use at least 6 characters.';
         }
+        toast({ variant: 'destructive', title: 'Registration Failed', description });
     }
-  }, [router, toast, users]);
+  }, [router, toast]);
 
   const logout = useCallback(async () => {
     try {
         await signOut(auth);
         router.push('/login');
     } catch (error) {
-        console.error("Logout error:", error);
         toast({ variant: 'destructive', title: 'Logout Failed', description: 'There was an issue signing out.' });
     }
   }, [router, toast]);
 
-  const updateUser = useCallback(async (userId: number, data: Partial<User>) => {
-    const userToUpdate = users.find(u => u.id === userId);
-    if (!userToUpdate) return;
-    
-    // Find the corresponding auth user to get their UID for the doc path
-    // This is a simplification; a real app would need a more robust way to map your internal ID to the auth UID.
-    // For now, we'll assume we can find it, but this is brittle.
-    // A better approach would be to store the auth UID in your user documents.
+  const updateUser = useCallback(async (uid: string, data: Partial<User>) => {
     try {
-        // This part is problematic as we don't have the UID.
-        // Let's assume for now we can't update user docs from here without the UID.
-        // This function will need a refactor to pass the auth UID.
-        console.warn("User update is limited without mapping internal ID to auth UID.");
+        await updateDoc(doc(db, 'users', uid), data);
+        setUsers(prev => prev.map(u => u.uid === uid ? { ...u, ...data } : u));
+        if (user?.uid === uid) {
+            setUser(prev => prev ? { ...prev, ...data } : null);
+        }
     } catch(error) {
-        console.error("Error updating user:", error);
         toast({ variant: 'destructive', title: 'Update Failed', description: 'Could not save user changes.' });
     }
-  }, [toast, users]);
-
-  const updateUserRole = useCallback((userId: number, newRoleId: string) => {
-    updateUser(userId, { roleId: newRoleId });
-  }, [updateUser]);
+  }, [toast, user]);
 
   const addRole = useCallback(async (roleData: { name: string; permissions: Permission[] }) => {
+    const newRoleRef = doc(collection(db, 'roles'));
     const newRole: Role = {
-      id: `custom-role-${Date.now()}`,
+      id: newRoleRef.id,
       name: roleData.name,
       permissions: roleData.permissions,
       isEditable: true,
     };
     try {
-        await setDoc(doc(db, 'roles', newRole.id), newRole);
+        await setDoc(newRoleRef, newRole);
     } catch (error) {
-        console.error("Error adding role:", error);
         toast({ variant: 'destructive', title: 'Error', description: 'Could not add new role.' });
     }
   }, [toast]);
@@ -233,40 +227,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
         await updateDoc(doc(db, 'roles', roleId), roleData);
     } catch (error) {
-        console.error("Error updating role:", error);
         toast({ variant: 'destructive', title: 'Error', description: 'Could not update role.' });
     }
   }, [toast]);
 
   const deleteRole = useCallback(async (roleId: string) => {
+    if (users.some(u => u.roleId === roleId)) {
+      toast({ variant: 'destructive', title: 'Cannot Delete Role', description: 'This role is still assigned to one or more users.' });
+      return;
+    }
     try {
         await deleteDoc(doc(db, 'roles', roleId));
     } catch(error) {
-         console.error("Error deleting role:", error);
         toast({ variant: 'destructive', title: 'Error', description: 'Could not delete role.' });
     }
-  }, [toast]);
+  }, [toast, users]);
 
   const userHasPermission = useCallback(
     (permission: Permission): boolean => {
-      if (!user) return false;
-      const userRole = roles.find((r) => r.id === user.roleId);
-      if (!userRole) return false;
-      if (userRole.id === 'super-admin') return true;
-      return userRole.permissions.includes(permission);
-    }, [user, roles]
+      return checkUserPermission(user, roles, permission);
+    },
+    [user, roles]
   );
-
+  
   const isAuthenticated = !isInitializing && !!user;
   const isHqUser = user?.branchId === 'kantor-pusat';
 
   const contextValue = useMemo(() => ({
     isAuthenticated, user, users, roles, branches, permissions,
-    updateUser, updateUserRole, addRole, updateRole, deleteRole,
+    updateUser, addRole, updateRole, deleteRole,
     userHasPermission, isHqUser, isInitializing, login, register, logout,
   }), [
     isAuthenticated, user, users, roles, branches,
-    updateUser, updateUserRole, addRole, updateRole, deleteRole, 
+    updateUser, addRole, updateRole, deleteRole, 
     userHasPermission, isHqUser, isInitializing, login, register, logout
   ]);
 

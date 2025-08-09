@@ -38,12 +38,12 @@ export default function ApprovalsPage() {
 
     const pendingTrips = useMemo(() => {
         if (!user) return [];
-        return getPendingTripApprovalsForUser(user.id).map(trip => ({ ...trip, type: 'trip' as const }));
+        return getPendingTripApprovalsForUser(user.uid).map(trip => ({ ...trip, type: 'trip' as const }));
     }, [user, getPendingTripApprovalsForUser, trips]);
     
     const pendingReports = useMemo(() => {
         if (!user) return [];
-        return getPendingReportApprovalsForUser(user.id).map(report => ({ ...report, type: 'report' as const }));
+        return getPendingReportApprovalsForUser(user.uid).map(report => ({ ...report, type: 'report' as const }));
     }, [user, getPendingReportApprovalsForUser, reports]);
 
 
@@ -103,10 +103,10 @@ export default function ApprovalsPage() {
             updateTrip(selectedItem.id, updatedTrip as TripRequest);
 
             // Notify requester
-            const requester = users.find(u => u.id === selectedItem.employeeId);
+            const requester = users.find(u => u.uid === selectedItem.employeeId);
             if(requester) {
                 addNotification({
-                    userId: requester.id,
+                    userId: requester.uid,
                     title: `Trip Request ${newStatus}`,
                     description: `Your trip to ${selectedItem.destination} has been ${newStatus}.`,
                     link: `/trips/${selectedItem.id}/summary`,
@@ -135,7 +135,7 @@ export default function ApprovalsPage() {
             const requester = users.find(u => u.name === creatorName);
             if(requester) {
                 addNotification({
-                    userId: requester.id,
+                    userId: requester.uid,
                     title: `Report ${newStatus}`,
                     description: `Your report ${selectedItem.reportNumber} has been ${newStatus}.`,
                     link: `/reports/${selectedItem.id}`,

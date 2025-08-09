@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
@@ -90,7 +89,7 @@ export default function NewTripPage() {
     
     const newTrip: TripRequest = {
         id: `TRIP-${Date.now()}`,
-        employeeId: user.id,
+        employeeId: user.uid,
         employeeName: user.name,
         position: formData.position,
         division: formData.division,
@@ -103,7 +102,7 @@ export default function NewTripPage() {
         estimatedBudget: 0, 
         status: 'Draft',
         approvalHistory: [
-            { actorId: user.id, actorName: user.name, status: 'Draft', timestamp: new Date().toISOString(), comments: "Trip request created." }
+            { actorId: user.uid, actorName: user.name, status: 'Draft', timestamp: new Date().toISOString(), comments: "Trip request created." }
         ]
     };
     

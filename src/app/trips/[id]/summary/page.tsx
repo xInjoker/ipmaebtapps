@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -135,7 +134,7 @@ export default function TripSummaryPage() {
             approvalHistory: [
                 ...trip.approvalHistory,
                 {
-                    actorId: user.id,
+                    actorId: user.uid,
                     actorName: user.name,
                     status: 'Pending' as const,
                     comments: "Submitted for approval",
@@ -147,10 +146,10 @@ export default function TripSummaryPage() {
         updateTrip(trip.id, updatedTrip);
 
         // Notify the first approver
-        const firstApprover = users.find(u => u.id.toString() === workflow[0].approverId);
+        const firstApprover = users.find(u => u.uid === workflow[0].approverId);
         if (firstApprover) {
             addNotification({
-                userId: firstApprover.id,
+                userId: firstApprover.uid as any,
                 title: 'New Trip Request',
                 description: `${user.name} has requested a business trip to ${trip.destination}.`,
                 link: `/approvals`
@@ -212,7 +211,7 @@ export default function TripSummaryPage() {
         const signatureRows = [];
         for (const h of trip.approvalHistory) {
             if (h.status === 'Approved' || h.status === 'Pending') {
-                const approver = users.find(u => u.id === h.actorId);
+                const approver = users.find(u => u.uid === h.actorId);
                 let signatureContent: any = '';
 
                 if (approver?.signatureUrl) {
@@ -403,7 +402,7 @@ export default function TripSummaryPage() {
                         <CardContent>
                            <ol className="relative border-s border-gray-200 dark:border-gray-700 ml-2">                  
                                 {(tripProject?.tripApprovalWorkflow || []).map((stage, index) => {
-                                    const approver = users.find(u => u.id.toString() === stage.approverId);
+                                    const approver = users.find(u => u.uid === stage.approverId);
                                     const isLast = index === (tripProject?.tripApprovalWorkflow.length || 0) - 1;
                                     return (
                                         <li key={stage.stage} className={cn(!isLast && "mb-6", "ms-6")}>            

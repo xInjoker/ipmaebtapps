@@ -6,8 +6,8 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { getFirestore, collection, doc, setDoc, writeBatch } from 'firebase/firestore';
-import { initialUsers, initialRoles, initialBranches } from '@/lib/users';
+import { getFirestore, writeBatch, doc } from 'firebase/firestore';
+import { initialRoles, initialBranches } from '@/lib/users';
 import { app } from '@/lib/firebase';
 
 const db = getFirestore(app);
@@ -28,13 +28,6 @@ export const seedDatabaseFlow = ai.defineFlow(
       batch.set(roleRef, role);
     });
     console.log(`${initialRoles.length} roles added to batch.`);
-
-    // Seed Users
-    initialUsers.forEach((user) => {
-      const userRef = doc(db, 'users', String(user.id));
-      batch.set(userRef, user);
-    });
-    console.log(`${initialUsers.length} users added to batch.`);
     
     // Seed Branches
     initialBranches.forEach((branch) => {
@@ -45,7 +38,7 @@ export const seedDatabaseFlow = ai.defineFlow(
 
     try {
       await batch.commit();
-      const successMessage = 'Successfully seeded users, roles, and branches collections.';
+      const successMessage = 'Successfully seeded roles and branches collections.';
       console.log(successMessage);
       return successMessage;
     } catch (error) {

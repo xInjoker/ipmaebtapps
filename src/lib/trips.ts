@@ -1,6 +1,6 @@
 
 
-import type { ApprovalStage } from './data';
+import type { ApprovalStage } from './projects';
 
 export type TripStatus = 'Draft' | 'Pending' | 'Approved' | 'Rejected' | 'Booked' | 'Completed' | 'Closed';
 
@@ -26,7 +26,7 @@ export type Allowance = {
 };
 
 export type TripApprovalAction = {
-    actorId: number;
+    actorId: string;
     actorName: string;
     status: TripStatus;
     comments?: string;
@@ -35,7 +35,7 @@ export type TripApprovalAction = {
 
 export type TripRequest = {
     id: string;
-    employeeId: number;
+    employeeId: string; // Firebase UID
     employeeName: string;
     destination: string;
     destinationCompany?: string;
@@ -49,11 +49,6 @@ export type TripRequest = {
     position?: string;
     division?: string;
     allowance?: Allowance;
-    // This will be superseded by the workflow on the project
-    approvers?: {
-        managerId: string;
-        financeId: string;
-    }
 };
 
 // This data is now only used for one-time database seeding.
