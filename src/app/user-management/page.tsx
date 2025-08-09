@@ -174,10 +174,10 @@ function ProjectAssignmentDialog({
 }: {
     userToAssign: User | null;
     onOpenChange: (open: boolean) => void;
-    onSave: (userId: number, projectIds: number[]) => void;
+    onSave: (userId: string, projectIds: string[]) => void;
 }) {
     const { projects } = useProjects();
-    const [assignedProjects, setAssignedProjects] = useState<Set<number>>(new Set());
+    const [assignedProjects, setAssignedProjects] = useState<Set<string>>(new Set());
 
     useEffect(() => {
         if (userToAssign) {
@@ -185,7 +185,7 @@ function ProjectAssignmentDialog({
         }
     }, [userToAssign]);
 
-    const handleProjectToggle = useCallback((projectId: number) => {
+    const handleProjectToggle = useCallback((projectId: string) => {
         setAssignedProjects(prev => {
             const newSet = new Set(prev);
             if (newSet.has(projectId)) {
@@ -199,7 +199,7 @@ function ProjectAssignmentDialog({
 
     const handleSave = useCallback(() => {
         if (userToAssign) {
-            onSave(userToAssign.id, Array.from(assignedProjects));
+            onSave(userToAssign.uid, Array.from(assignedProjects));
             onOpenChange(false);
         }
     }, [userToAssign, onSave, onOpenChange, assignedProjects]);
@@ -268,23 +268,23 @@ export default function UserManagementPage() {
   }, [users, managedUsers]);
 
   const handleUserChange = useCallback((
-    userId: number,
+    userId: string,
     field: keyof User,
     value: any
   ) => {
     setManagedUsers((currentUsers) =>
-      currentUsers.map((u) => (u.id === userId ? { ...u, [field]: value } : u))
+      currentUsers.map((u) => (u.uid === userId ? { ...u, [field]: value } : u))
     );
   }, []);
 
   const handleSaveChanges = useCallback(() => {
     managedUsers.forEach((mu) => {
-      const originalUser = users.find((u) => u.id === mu.id);
+      const originalUser = users.find((u) => u.uid === mu.uid);
       if (
         originalUser &&
         JSON.stringify(originalUser) !== JSON.stringify(mu)
       ) {
-        updateUser(mu.id, mu);
+        updateUser(mu.uid, mu);
       }
     });
     toast({
@@ -354,7 +354,7 @@ export default function UserManagementPage() {
                       );
                       const avatarColor = getAvatarColor(managedUser.name);
                       return (
-                        <TableRow key={managedUser.id}>
+                        <TableRow key={managedUser.uid}>
                           <TableCell>
                             <div className="flex items-center gap-3">
                               <Avatar className="h-9 w-9">
@@ -384,12 +384,12 @@ export default function UserManagementPage() {
                               value={managedUser.roleId}
                               onValueChange={(value: string) =>
                                 handleUserChange(
-                                  managedUser.id,
+                                  managedUser.uid,
                                   'roleId',
                                   value
                                 )
                               }
-                              disabled={managedUser.id === user.id}
+                              disabled={managedUser.uid === user.uid}
                             >
                               <SelectTrigger className="w-[180px]">
                                 <SelectValue placeholder="Change role" />
@@ -408,12 +408,12 @@ export default function UserManagementPage() {
                               value={managedUser.branchId}
                               onValueChange={(value: string) =>
                                 handleUserChange(
-                                  managedUser.id,
+                                  managedUser.uid,
                                   'branchId',
                                   value
                                 )
                               }
-                              disabled={managedUser.id === user.id}
+                              disabled={managedUser.uid === user.uid}
                             >
                               <SelectTrigger className="w-[180px]">
                                 <SelectValue placeholder="Change branch" />

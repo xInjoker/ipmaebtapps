@@ -87,6 +87,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const unsubRoles = onSnapshot(collection(db, "roles"), (snapshot) => {
         const rolesData = snapshot.docs.map(doc => doc.data() as Role);
         setRoles(rolesData.length > 0 ? rolesData : initialRoles);
+    }, (error) => {
+        console.error("Failed to fetch roles:", error);
+        setRoles(initialRoles);
     });
 
     // This listener handles all auth state changes.
@@ -107,6 +110,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                          usersUnsub = onSnapshot(collection(db, "users"), (snapshot) => {
                             const usersData = snapshot.docs.map(doc => doc.data() as User);
                             setUsers(usersData);
+                        }, (error) => {
+                             console.error("Failed to fetch all users:", error);
                         });
                     } else {
                         setUsers([userData]); // Only show current user
