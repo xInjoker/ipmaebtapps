@@ -35,7 +35,8 @@ export function TenderProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (isInitializing || !user) {
-        setIsLoading(true);
+        setIsLoading(false); // Set loading to false if not authenticated
+        setTenders([]); // Clear data if not authenticated
         return;
     };
     
