@@ -177,7 +177,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             roleId: 'employee',
             branchId,
             avatarUrl: '',
-            isAdmin: false,
+            assignedProjectIds: [],
         };
 
         await setDoc(doc(db, "users", firebaseUser.uid), newUserProfile);
