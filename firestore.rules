@@ -1,22 +1,29 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Allow public read on branches for the sign-up page
+    // Public read access for non-sensitive data needed for sign-up and basic app function.
     match /branches/{branchId} {
       allow read: if true;
       allow write: if request.auth != null; // Only authenticated users can write
     }
 
-    // Allow public read on roles for the sign-up page
     match /roles/{roleId} {
       allow read: if true;
       allow write: if request.auth != null; // Only authenticated users can write
     }
 
-    // Default catch-all for any other collection.
-    // Requires a user to be authenticated to read or write.
+    // Secure all other collections to authenticated users.
+    // This provides a secure baseline, preventing unauthenticated access.
+    // More granular rules can be added per-collection if needed later.
     match /{document=**} {
       allow read, write: if request.auth != null;
+    }
+
+    // Specific rule for user creation during registration
+    match /users/{userId} {
+      allow read, update, delete: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null; // Allow any authenticated user to create a user profile (for registration)
+      allow list: if request.auth != null; // Allow authenticated users to list users
     }
   }
 }
