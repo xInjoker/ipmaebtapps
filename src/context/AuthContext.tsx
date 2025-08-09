@@ -90,13 +90,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.error("Failed to fetch roles:", error);
         setRoles(initialRoles);
     });
+    
+    return () => {
+      unsubBranches();
+      unsubRoles();
+    };
+  }, []);
 
+  useEffect(() => {
     let userUnsub: Unsubscribe | null = null;
     let usersUnsub: Unsubscribe | null = null;
     
-    // This listener handles all auth state changes.
     const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
-        // Clean up previous listeners before setting new ones
         if (userUnsub) userUnsub();
         if (usersUnsub) usersUnsub();
 
@@ -108,7 +113,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     const userData = docSnap.data() as User;
                     setUser(userData);
                     
-                    // Now that we have the user, fetch all users if allowed
                     if (checkUserPermission(userData, roles, 'manage-users')) {
                          usersUnsub = onSnapshot(collection(db, "users"), (snapshot) => {
                             const usersData = snapshot.docs.map(doc => doc.data() as User);
@@ -117,7 +121,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                              console.error("Failed to fetch all users:", error);
                         });
                     } else {
-                        // Regular users only see themselves
                         setUsers([userData]); 
                     }
                     setIsInitializing(false);
@@ -140,12 +143,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => {
         unsubscribeAuth();
-        unsubBranches();
-        unsubRoles();
         if (userUnsub) userUnsub();
         if (usersUnsub) usersUnsub();
     };
-  }, [roles]); // Rerun when roles are loaded to check permissions correctly
+  }, [roles]);
 
   const login = useCallback(async (email: string, pass: string) => {
     try {
