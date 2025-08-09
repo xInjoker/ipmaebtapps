@@ -36,8 +36,9 @@ export function TripProvider({ children }: { children: ReactNode }) {
         setTrips(data);
       } catch (error) {
         console.error("Error fetching trips from Firestore: ", error);
+      } finally {
+          setIsLoading(false);
       }
-      setIsLoading(false);
     };
     fetchTrips();
   }, []);

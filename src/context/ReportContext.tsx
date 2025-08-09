@@ -37,8 +37,9 @@ export function ReportProvider({ children }: { children: ReactNode }) {
         setReports(data);
       } catch (error) {
         console.error("Error fetching reports from Firestore: ", error);
+      } finally {
+          setIsLoading(false);
       }
-      setIsLoading(false);
     };
     fetchReports();
   }, []);

@@ -43,15 +43,18 @@ export function EmployeeProvider({ children }: { children: ReactNode }) {
             setEmployees(data);
         } else {
             // If the database is empty, load the initial hardcoded data.
-            // This ensures the app is usable on first run.
+            // This is useful for first-time setup or demos.
+            // You might want to remove this for a production-only environment.
+            console.warn("No employees found in Firestore, falling back to initial data.");
             setEmployees(initialEmployees.map((e, i) => ({ ...e, id: `EMP-${i + 1}` })));
         }
       } catch (error) {
         console.error("Error fetching employees from Firestore: ", error);
         // Fallback to initial data on error
         setEmployees(initialEmployees.map((e, i) => ({ ...e, id: `EMP-${i + 1}` })));
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
     fetchEmployees();
   }, []);

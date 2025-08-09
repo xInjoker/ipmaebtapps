@@ -43,15 +43,18 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
             setProjects(projectsData);
         } else {
             // If the database is empty, load the initial hardcoded data.
-            // This ensures the app is usable on first run.
+            // This is useful for first-time setup or demos.
+            // You might want to remove this for a production-only environment.
+            console.warn("No projects found in Firestore, falling back to initial data.");
             setProjects(initialProjects);
         }
       } catch (error) {
         console.error("Error fetching projects from Firestore: ", error);
         // Fallback to initial data on error
         setProjects(initialProjects);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
 
     fetchProjects();

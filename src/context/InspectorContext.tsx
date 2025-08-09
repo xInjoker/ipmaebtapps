@@ -45,8 +45,9 @@ export function InspectorProvider({ children }: { children: ReactNode }) {
         setInspectors(data);
       } catch (error) {
         console.error("Error fetching inspectors from Firestore: ", error);
+      } finally {
+          setIsLoading(false);
       }
-      setIsLoading(false);
     };
     fetchInspectors();
   }, []);

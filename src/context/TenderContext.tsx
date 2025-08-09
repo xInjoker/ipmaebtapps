@@ -40,8 +40,9 @@ export function TenderProvider({ children }: { children: ReactNode }) {
         setTenders(data);
       } catch (error) {
         console.error("Error fetching tenders from Firestore: ", error);
+      } finally {
+          setIsLoading(false);
       }
-      setIsLoading(false);
     };
     fetchTenders();
   }, []);

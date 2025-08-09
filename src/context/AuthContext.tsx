@@ -54,44 +54,61 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [users, setUsers] = useState<User[]>(initialUsers);
-  const [roles, setRoles] = useState<Role[]>(initialRoles);
-  const [branches, setBranches] = useState<Branch[]>(initialBranches);
+  const [users, setUsers] = useState<User[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [branches, setBranches] = useState<Branch[]>([]);
   const [isInitializing, setIsInitializing] = useState(true);
   const router = useRouter();
   const { toast } = useToast();
   
   useEffect(() => {
-    // This effect now only checks for a logged-in user in localStorage.
-    // It no longer fetches from Firestore, avoiding the race condition on an empty DB.
-    setIsInitializing(true);
-    try {
-        const storedUserString = localStorage.getItem('user');
-        if (storedUserString) {
-            const storedUser = JSON.parse(storedUserString);
-            // We use the initialUsers list for validation here as the DB might be empty.
-            if (initialUsers.some(u => u.id === storedUser.id)) {
-                setUser(storedUser);
-            } else {
-                localStorage.removeItem('user');
+    const fetchData = async () => {
+        setIsInitializing(true);
+        try {
+            // Fetch roles, users, and branches from Firestore
+            const rolesSnapshot = await getDocs(collection(db, 'roles'));
+            const rolesData = rolesSnapshot.docs.map(doc => doc.data() as Role);
+            setRoles(rolesData.length > 0 ? rolesData : initialRoles);
+
+            const usersSnapshot = await getDocs(collection(db, 'users'));
+            const usersData = usersSnapshot.docs.map(doc => doc.data() as User);
+            setUsers(usersData.length > 0 ? usersData : initialUsers);
+
+            const branchesSnapshot = await getDocs(collection(db, 'branches'));
+            const branchesData = branchesSnapshot.docs.map(doc => doc.data() as Branch);
+            setBranches(branchesData.length > 0 ? branchesData : initialBranches);
+            
+            // Check for logged-in user in localStorage
+            const storedUserString = localStorage.getItem('user');
+            if (storedUserString) {
+                const storedUser = JSON.parse(storedUserString);
+                // Validate against the fetched user data
+                const userExists = (usersData.length > 0 ? usersData : initialUsers).some(u => u.id === storedUser.id);
+                if (userExists) {
+                    setUser(storedUser);
+                } else {
+                    localStorage.removeItem('user');
+                }
             }
+        } catch (error) {
+            console.error("Error fetching initial auth data from Firestore: ", error);
+            // Fallback to initial data if Firestore is not accessible
+            setUsers(initialUsers);
+            setRoles(initialRoles);
+            setBranches(initialBranches);
+        } finally {
+            setIsInitializing(false);
         }
-    } catch (error) {
-        console.error("Error reading from localStorage", error);
-        localStorage.removeItem('user');
-    } finally {
-        setIsInitializing(false);
-    }
+    };
+    fetchData();
   }, []);
 
   const login = useCallback((email: string, pass: string) => {
-    // Use the hardcoded initialUsers for login check.
-    const userToLogin = initialUsers.find((u) => u.email === email);
+    const userToLogin = users.find((u) => u.email === email);
 
     if (userToLogin && userToLogin.password === pass) { 
       localStorage.setItem('user', JSON.stringify(userToLogin));
       setUser(userToLogin);
-      setUsers(initialUsers); // Ensure users state is populated
       router.push('/');
     } else {
       toast({
@@ -100,14 +117,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         description: 'Invalid email or password.',
       });
     }
-  }, [router, toast]);
+  }, [router, toast, users]);
 
   const register = useCallback(async (name: string, email: string, pass: string, branchId: string) => {
      if (!branchId) {
       toast({ variant: 'destructive', title: 'Registration Failed', description: 'Please select an office location.' });
       return;
     }
-    // Check against the current state of users (which may be updated from DB later)
     if (users.some((u) => u.email === email)) {
       toast({ variant: 'destructive', title: 'Registration Failed', description: 'A user with this email already exists.' });
       return;
