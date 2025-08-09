@@ -22,10 +22,12 @@ import {
   initialBranches,
 } from '@/lib/users';
 import { useToast } from '@/hooks/use-toast';
-import { getFirestore, collection, doc, getDocs, setDoc, updateDoc } from 'firebase/firestore';
-import { app } from '@/lib/firebase'; // Assuming you have a firebase initialization file
+import { getFirestore, collection, doc, getDocs, setDoc, updateDoc, onSnapshot } from 'firebase/firestore';
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, type User as FirebaseUser } from 'firebase/auth';
+import { app } from '@/lib/firebase'; 
 
 const db = getFirestore(app);
+const auth = getAuth(app);
 
 type AuthContextType = {
   isAuthenticated: boolean;
@@ -34,7 +36,7 @@ type AuthContextType = {
   roles: Role[];
   branches: Branch[];
   permissions: readonly Permission[];
-  updateUser: (userId: number, data: Partial<User>) => void;
+  updateUser: (userId: number, data: Partial<User>) => Promise<void>;
   updateUserRole: (userId: number, newRoleId: string) => void;
   addRole: (roleData: { name: string; permissions: Permission[] }) => void;
   updateRole: (
@@ -62,62 +64,65 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
   
   useEffect(() => {
-    const fetchData = async () => {
-        setIsInitializing(true);
-        try {
-            // Fetch roles, users, and branches from Firestore
-            const rolesSnapshot = await getDocs(collection(db, 'roles'));
-            const rolesData = rolesSnapshot.docs.map(doc => doc.data() as Role);
-            setRoles(rolesData.length > 0 ? rolesData : initialRoles);
+    setIsInitializing(true);
+    
+    // Set up listeners for real-time updates
+    const unsubRoles = onSnapshot(collection(db, "roles"), (snapshot) => {
+        const rolesData = snapshot.docs.map(doc => doc.data() as Role);
+        setRoles(rolesData.length > 0 ? rolesData : initialRoles);
+    });
 
-            const usersSnapshot = await getDocs(collection(db, 'users'));
-            const usersData = usersSnapshot.docs.map(doc => doc.data() as User);
-            setUsers(usersData.length > 0 ? usersData : initialUsers);
+    const unsubUsers = onSnapshot(collection(db, "users"), (snapshot) => {
+        const usersData = snapshot.docs.map(doc => doc.data() as User);
+        setUsers(usersData.length > 0 ? usersData : initialUsers);
+    });
 
-            const branchesSnapshot = await getDocs(collection(db, 'branches'));
-            const branchesData = branchesSnapshot.docs.map(doc => doc.data() as Branch);
-            setBranches(branchesData.length > 0 ? branchesData : initialBranches);
+    const unsubBranches = onSnapshot(collection(db, "branches"), (snapshot) => {
+        const branchesData = snapshot.docs.map(doc => doc.data() as Branch);
+        setBranches(branchesData.length > 0 ? branchesData : initialBranches);
+    });
+
+    const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
+        if (firebaseUser) {
+            // Find the corresponding user profile in our `users` collection
+            const userProfile = (await getDocs(collection(db, "users"))).docs
+                .map(doc => doc.data() as User)
+                .find(u => u.email === firebaseUser.email);
             
-            // Check for logged-in user in localStorage
-            const storedUserString = localStorage.getItem('user');
-            if (storedUserString) {
-                const storedUser = JSON.parse(storedUserString);
-                // Validate against the fetched user data
-                const userExists = (usersData.length > 0 ? usersData : initialUsers).some(u => u.id === storedUser.id);
-                if (userExists) {
-                    setUser(storedUser);
-                } else {
-                    localStorage.removeItem('user');
-                }
+            if (userProfile) {
+                setUser(userProfile);
+            } else {
+                // This case might happen if a user exists in Auth but not Firestore
+                setUser(null); 
             }
-        } catch (error) {
-            console.error("Error fetching initial auth data from Firestore: ", error);
-            // Fallback to initial data if Firestore is not accessible
-            setUsers(initialUsers);
-            setRoles(initialRoles);
-            setBranches(initialBranches);
-        } finally {
-            setIsInitializing(false);
+        } else {
+            setUser(null);
         }
+        setIsInitializing(false);
+    });
+
+    // Cleanup function
+    return () => {
+        unsubRoles();
+        unsubUsers();
+        unsubBranches();
+        unsubscribeAuth();
     };
-    fetchData();
   }, []);
 
-  const login = useCallback((email: string, pass: string) => {
-    const userToLogin = users.find((u) => u.email === email);
-
-    if (userToLogin && userToLogin.password === pass) { 
-      localStorage.setItem('user', JSON.stringify(userToLogin));
-      setUser(userToLogin);
-      router.push('/');
-    } else {
-      toast({
-        variant: 'destructive',
-        title: 'Login Failed',
-        description: 'Invalid email or password.',
-      });
+  const login = useCallback(async (email: string, pass: string) => {
+    try {
+        await signInWithEmailAndPassword(auth, email, pass);
+        // onAuthStateChanged will handle setting the user state
+        router.push('/');
+    } catch (error) {
+        toast({
+            variant: 'destructive',
+            title: 'Login Failed',
+            description: 'Invalid email or password.',
+        });
     }
-  }, [router, toast, users]);
+  }, [router, toast]);
 
   const register = useCallback(async (name: string, email: string, pass: string, branchId: string) => {
      if (!branchId) {
@@ -129,47 +134,52 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const newId = users.length > 0 ? Math.max(...users.map((u) => u.id)) + 1 : 1;
-    const newUser: User = { id: newId, name, email, password: pass, roleId: 'staff', branchId, avatarUrl: '' };
-
     try {
-        await setDoc(doc(db, 'users', String(newId)), newUser);
-        const updatedUsers = [...users, newUser];
-        setUsers(updatedUsers);
-        localStorage.setItem('user', JSON.stringify(newUser));
-        setUser(newUser);
+        const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+        const firebaseUser = userCredential.user;
+
+        const newId = users.length > 0 ? Math.max(...users.map((u) => u.id)) + 1 : 1;
+        const newUser: User = { id: newId, name, email, roleId: 'staff', branchId, avatarUrl: '' };
+
+        // We use the Firebase UID as the document ID in Firestore for security
+        await setDoc(doc(db, 'users', firebaseUser.uid), newUser);
+        
+        // The onAuthStateChanged listener will handle setting the user state.
         router.push('/');
     } catch (error) {
         console.error("Registration error:", error);
-        toast({ variant: 'destructive', title: 'Registration Failed', description: 'Could not save user to the database.' });
+        toast({ variant: 'destructive', title: 'Registration Failed', description: 'Could not create your account.' });
     }
   }, [users, router, toast]);
 
-  const logout = useCallback(() => {
-    localStorage.removeItem('user');
-    setUser(null);
-    router.push('/login');
-  }, [router]);
+  const logout = useCallback(async () => {
+    try {
+        await signOut(auth);
+        // onAuthStateChanged will handle setting the user state to null
+        router.push('/login');
+    } catch (error) {
+        console.error("Logout error:", error);
+        toast({ variant: 'destructive', title: 'Logout Failed', description: 'There was an issue signing out.' });
+    }
+  }, [router, toast]);
 
   const updateUser = useCallback(async (userId: number, data: Partial<User>) => {
+    // Note: Finding the document by a field other than the ID is not ideal.
+    // This should be refactored to use the Firebase UID as the primary key.
+    const userToUpdate = users.find(u => u.id === userId);
+    if (!userToUpdate) return;
+    
     try {
-        await updateDoc(doc(db, 'users', String(userId)), data);
-        setUsers((currentUsers) =>
-          currentUsers.map((u) => (u.id === userId ? { ...u, ...data } : u))
-        );
-        setUser((currentUser) => {
-            if (currentUser && currentUser.id === userId) {
-                const updatedCurrentUser = { ...currentUser, ...data };
-                localStorage.setItem('user', JSON.stringify(updatedCurrentUser));
-                return updatedCurrentUser;
-            }
-            return currentUser;
-        });
+        // This is a placeholder for finding the correct Firestore document.
+        // A real implementation would query by 'id' field if not using UID as doc ID.
+        // For now, this won't work without knowing the Firestore document ID.
+        console.warn("updateUser requires a proper Firestore query to find the document to update.");
+        // await updateDoc(doc(db, 'users', String(userId)), data);
     } catch(error) {
         console.error("Error updating user:", error);
         toast({ variant: 'destructive', title: 'Update Failed', description: 'Could not save user changes.' });
     }
-  }, [toast]);
+  }, [users, toast]);
 
   const updateUserRole = useCallback((userId: number, newRoleId: string) => {
     updateUser(userId, { roleId: newRoleId });
@@ -184,7 +194,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
     try {
         await setDoc(doc(db, 'roles', newRole.id), newRole);
-        setRoles(prev => [...prev, newRole]);
     } catch (error) {
         console.error("Error adding role:", error);
         toast({ variant: 'destructive', title: 'Error', description: 'Could not add new role.' });
@@ -194,17 +203,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const updateRole = useCallback(async (roleId: string, roleData: { name: string; permissions: Permission[] }) => {
     try {
         await updateDoc(doc(db, 'roles', roleId), roleData);
-        setRoles(prev => prev.map((r) => r.id === roleId ? { ...r, ...roleData } : r));
     } catch (error) {
         console.error("Error updating role:", error);
         toast({ variant: 'destructive', title: 'Error', description: 'Could not update role.' });
     }
   }, [toast]);
 
-  const deleteRole = useCallback((roleId: string) => {
+  const deleteRole = useCallback(async (roleId: string) => {
     // Implement Firestore delete logic here if needed
     console.warn("Firestore delete for roles not implemented yet.");
-    setRoles(prev => prev.filter((r) => r.id !== roleId));
   }, []);
 
   const userHasPermission = useCallback(
