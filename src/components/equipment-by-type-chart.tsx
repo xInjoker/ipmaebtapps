@@ -31,10 +31,12 @@ export const EquipmentByTypeChart = React.memo(function EquipmentByTypeChart({ e
             return acc;
         }, {} as Record<EquipmentType, number>);
         
-        return Object.entries(typeCounts).map(([name, count]) => ({
-          name,
-          count,
-        }));
+        return Object.entries(typeCounts)
+          .map(([name, count]) => ({
+            name,
+            count,
+          }))
+          .sort((a, b) => b.count - a.count);
     }, [equipment]);
 
     return (
