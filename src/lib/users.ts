@@ -31,6 +31,7 @@ export const permissions = [
   'create-tenders',
   'edit-tenders',
   'delete-tenders',
+  'view-projects',
 ] as const;
 
 export type Permission = (typeof permissions)[number];
@@ -117,6 +118,7 @@ export const initialRoles: Role[] = [
     permissions: [
       'view-dashboard',
       'manage-projects',
+      'view-projects',
       'view-equipment',
       'manage-equipment',
       'view-inspector',
@@ -138,6 +140,7 @@ export const initialRoles: Role[] = [
     permissions: [
       'view-dashboard',
       'manage-projects',
+      'view-projects',
       'view-equipment',
       'manage-equipment',
       'view-inspector',
