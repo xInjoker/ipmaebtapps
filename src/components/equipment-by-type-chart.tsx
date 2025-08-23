@@ -18,19 +18,10 @@ type EquipmentByTypeChartProps = {
 };
 
 const chartConfig: ChartConfig = {
-  count: { label: 'Count' },
-  'Dimensional & Layout': { label: "Dimensional", color: 'hsl(var(--chart-1))' },
-  'NDT - Conventional': { label: "NDT Conv.", color: 'hsl(var(--chart-2))' },
-  'NDT - Advanced': { label: "NDT Adv.", color: 'hsl(var(--chart-3))' },
-  'Painting & Coating Inspection': { label: "Coating", color: 'hsl(var(--chart-4))' },
-  'Electrical Measurement': { label: "Electrical", color: 'hsl(var(--chart-5))' },
-  'Environmental & Safety': { label: "HSE", color: 'hsl(var(--chart-1))' },
-  'Geolocation & Surveying': { label: "Surveying", color: 'hsl(var(--chart-2))' },
-  'Pressure & Flow': { label: "Pressure/Flow", color: 'hsl(var(--chart-3))' },
-  'Temperature & Humidity': { label: "Temp/Humidity", color: 'hsl(var(--chart-4))' },
-  'Vibration & Condition Monitoring': { label: "Vibration", color: 'hsl(var(--chart-5))' },
-  'Lifting & Rigging': { label: "Lifting", color: 'hsl(var(--indigo))' },
-  'Other': { label: "Other", color: 'hsl(var(--muted))' },
+  count: { 
+    label: 'Count',
+    color: 'hsl(var(--chart-2))'
+  },
 };
 
 export const EquipmentByTypeChart = React.memo(function EquipmentByTypeChart({ equipment }: EquipmentByTypeChartProps) {
@@ -43,7 +34,6 @@ export const EquipmentByTypeChart = React.memo(function EquipmentByTypeChart({ e
         return Object.entries(typeCounts).map(([name, count]) => ({
           name,
           count,
-          fill: chartConfig[name as keyof typeof chartConfig]?.color || 'hsl(var(--muted))'
         }));
     }, [equipment]);
 
@@ -70,11 +60,7 @@ export const EquipmentByTypeChart = React.memo(function EquipmentByTypeChart({ e
                             cursor={false}
                             content={<ChartTooltipContent hideLabel />}
                         />
-                        <Bar dataKey="count" radius={4}>
-                            {chartData.map((entry) => (
-                                <Cell key={`cell-${entry.name}`} fill={entry.fill} />
-                            ))}
-                        </Bar>
+                        <Bar dataKey="count" fill="var(--color-count)" radius={4} />
                     </BarChart>
                 </ChartContainer>
             </CardContent>
