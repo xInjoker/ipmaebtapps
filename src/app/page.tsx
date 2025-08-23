@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import {
@@ -38,7 +37,6 @@ import { type Inspector, type InspectorDocument } from '@/lib/inspectors';
 import { useEmployees } from '@/context/EmployeeContext';
 import { InspectorCountByBranchChart } from '@/components/inspector-count-by-branch-chart';
 import { InspectorCertificateStatusChart } from '@/components/inspector-certificate-status-chart';
-import { EquipmentStatusChart } from '@/components/equipment-status-chart';
 import { EquipmentByTypeChart } from '@/components/equipment-by-type-chart';
 import { EquipmentCalibrationByBranchChart } from '@/components/equipment-calibration-by-branch-chart';
 import { CumulativeIncomePieChart } from '@/components/cumulative-income-pie-chart';
@@ -421,7 +419,6 @@ export default function DashboardPage() {
             </div>
              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <EquipmentByTypeChart equipment={equipmentList} />
-                <EquipmentStatusChart equipment={equipmentList} />
             </div>
         </TabsContent>
       </Tabs>
