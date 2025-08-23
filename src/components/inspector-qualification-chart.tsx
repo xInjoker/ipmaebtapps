@@ -22,7 +22,7 @@ type InspectorQualificationChartProps = {
 const chartConfig: ChartConfig = {
   count: {
     label: 'Count',
-    color: 'hsl(var(--chart-1))',
+    color: 'hsl(var(--chart-2))',
   },
 };
 
