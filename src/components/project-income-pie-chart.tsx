@@ -36,7 +36,7 @@ const chartConfig = {
     label: 'Paid',
     color: 'hsl(var(--chart-1))',
   },
-  Invoiced: {
+  'Invoiced': {
     label: 'Invoiced',
     color: 'hsl(var(--chart-2))',
   },
@@ -44,11 +44,15 @@ const chartConfig = {
     label: 'Re-invoiced',
     color: 'hsl(var(--chart-3))'
   },
-  PAD: {
+  'PAD': {
     label: 'PAD',
     color: 'hsl(var(--chart-4))'
   },
-  Cancel: {
+  'Document Preparation': {
+    label: 'Doc Prep',
+    color: 'hsl(var(--chart-5))',
+  },
+  'Cancel': {
       label: 'Cancelled',
       color: 'hsl(var(--destructive))',
   }
