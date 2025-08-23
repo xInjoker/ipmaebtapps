@@ -9,6 +9,7 @@ import { type Inspector } from '@/lib/inspectors';
 import { type Branch } from '@/lib/users';
 import { getDocumentStatus, formatQualificationName } from '@/lib/utils';
 import { cn } from '@/lib/utils';
+import { Separator } from './ui/separator';
 
 type CombinedPersonnel = Inspector & { type: 'Inspector' | 'Employee' };
 
@@ -17,17 +18,21 @@ type HeatmapProps = {
   branches: Branch[];
 };
 
+type HeatmapCellData = {
+    count: number;
+    valid: number;
+    expiring: number;
+    expired: number;
+};
+
 type HeatmapData = {
   qualification: string;
-  [branchId: string]: {
-    count: number;
-    status: 'green' | 'yellow' | 'red';
-  } | string;
+  [branchId: string]: HeatmapCellData | string;
 };
 
 export function InspectorQualificationHeatmap({ inspectors, branches }: HeatmapProps) {
   const { heatmapData, relevantQualifications, relevantBranches } = useMemo(() => {
-    const data: Record<string, { [branchId: string]: { count: number; statuses: ('green' | 'yellow' | 'red')[] } }> = {};
+    const data: Record<string, { [branchId: string]: HeatmapCellData }> = {};
     const qualifications = new Set<string>();
     const branchSet = new Set<string>();
 
@@ -49,14 +54,21 @@ export function InspectorQualificationHeatmap({ inspectors, branches }: HeatmapP
                 data[qual] = {};
             }
             if (!data[qual][inspector.branchId]) {
-                data[qual][inspector.branchId] = { count: 0, statuses: [] };
+                data[qual][inspector.branchId] = { count: 0, valid: 0, expiring: 0, expired: 0 };
             }
 
             data[qual][inspector.branchId].count++;
             
             const cert = inspector.qualifications.find(q => formatQualificationName(q.name) === qual);
             const status = getDocumentStatus(cert?.expirationDate);
-            data[qual][inspector.branchId].statuses.push(status.variant as 'green' | 'yellow' | 'red');
+
+            if (status.variant === 'destructive') {
+                data[qual][inspector.branchId].expired++;
+            } else if (status.variant === 'yellow') {
+                data[qual][inspector.branchId].expiring++;
+            } else {
+                data[qual][inspector.branchId].valid++;
+            }
         });
     });
 
@@ -67,16 +79,7 @@ export function InspectorQualificationHeatmap({ inspectors, branches }: HeatmapP
         finalBranches.forEach(branch => {
             const cellData = data[qual]?.[branch.id];
             if (cellData) {
-                let finalStatus: 'green' | 'yellow' | 'red' = 'green';
-                if (cellData.statuses.includes('red')) {
-                    finalStatus = 'red';
-                } else if (cellData.statuses.includes('yellow')) {
-                    finalStatus = 'yellow';
-                }
-                row[branch.id] = {
-                    count: cellData.count,
-                    status: finalStatus,
-                };
+                row[branch.id] = cellData;
             }
         });
         return row;
@@ -85,13 +88,11 @@ export function InspectorQualificationHeatmap({ inspectors, branches }: HeatmapP
     return { heatmapData: finalData, relevantQualifications: Array.from(qualifications).sort(), relevantBranches: finalBranches };
   }, [inspectors, branches]);
 
-  const getStatusColor = (status: 'green' | 'yellow' | 'red' | undefined) => {
-    switch (status) {
-        case 'green': return 'bg-green-500/80';
-        case 'yellow': return 'bg-yellow-500/80';
-        case 'red': return 'bg-red-500/80';
-        default: return 'bg-muted/30';
-    }
+  const getStatusColor = (cell: HeatmapCellData | undefined) => {
+    if (!cell || cell.count === 0) return 'bg-muted/30';
+    if (cell.expired > 0) return 'bg-red-500/80';
+    if (cell.expiring > 0) return 'bg-yellow-500/80';
+    return 'bg-green-500/80';
   };
 
 
@@ -119,27 +120,38 @@ export function InspectorQualificationHeatmap({ inspectors, branches }: HeatmapP
                 <TableRow key={row.qualification}>
                   <TableCell className="sticky left-0 bg-background z-10 font-medium">{row.qualification}</TableCell>
                   {relevantBranches.map(branch => {
-                    const cell = row[branch.id];
-                    if (typeof cell === 'object' && cell !== null) {
-                      return (
-                        <TableCell key={branch.id} className="text-center p-1">
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                 <div className={cn("flex items-center justify-center w-full h-10 rounded-md text-white font-bold text-lg", getStatusColor(cell.status))}>
-                                    {cell.count > 0 ? cell.count : ''}
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>{cell.count} inspector(s)</p>
-                                <p>Status: <span className="capitalize font-semibold">{cell.status}</span></p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </TableCell>
-                      );
+                    const cell = row[branch.id] as HeatmapCellData | undefined;
+                    const total = cell ? cell.count : 0;
+                    
+                    if (total === 0) {
+                      return <TableCell key={branch.id} className="text-center p-1"><div className="w-full h-10 bg-muted/30 rounded-md"></div></TableCell>;
                     }
-                    return <TableCell key={branch.id} className="text-center p-1"><div className="w-full h-10 bg-muted/30 rounded-md"></div></TableCell>;
+                    
+                    return (
+                      <TableCell key={branch.id} className="text-center p-1">
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                               <div className={cn("flex items-center justify-center w-full h-10 rounded-md text-white font-bold text-lg", getStatusColor(cell))}>
+                                  {total > 0 ? total : ''}
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="font-bold">{branch.name}</p>
+                              <p>Total Inspectors: {total}</p>
+                              {cell && (
+                                <>
+                                    <Separator className="my-1"/>
+                                    <p>Valid: {cell.valid}</p>
+                                    <p>Expiring Soon: {cell.expiring}</p>
+                                    <p>Expired: {cell.expired}</p>
+                                </>
+                              )}
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </TableCell>
+                    );
                   })}
                 </TableRow>
               ))}
