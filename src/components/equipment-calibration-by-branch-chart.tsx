@@ -11,7 +11,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 import { cn } from "@/lib/utils";
-import { CheckCircle, Clock, XCircle } from 'lucide-react';
 import { Separator } from "./ui/separator";
 
 type EquipmentCalibrationByBranchChartProps = {
@@ -73,6 +72,16 @@ export const EquipmentCalibrationByBranchChart = React.memo(function EquipmentCa
 
     return { heatmapData: finalData, relevantBranches: finalBranches };
   }, [equipment, branches]);
+  
+  const getStatusColor = (cell: HeatmapCellData | undefined): string => {
+    if (!cell || (cell.valid === 0 && cell.expiring === 0 && cell.expired === 0)) {
+        return 'bg-muted/30';
+    }
+    if (cell.expired > 0) return 'bg-red-500/80';
+    if (cell.expiring > 0) return 'bg-yellow-500/80';
+    return 'bg-green-500/80';
+  }
+
 
   return (
     <Card className="col-span-full">
@@ -99,42 +108,33 @@ export const EquipmentCalibrationByBranchChart = React.memo(function EquipmentCa
                   <TableCell className="sticky left-0 bg-background z-10 font-medium">{row.type}</TableCell>
                   {relevantBranches.map(branch => {
                     const cell = row[branch.id] as HeatmapCellData | undefined;
-                    if (cell) {
-                        const total = cell.valid + cell.expiring + cell.expired;
-                        if (total === 0) {
-                             return <TableCell key={branch.id} className="text-center p-1"><div className="w-full h-10 bg-muted/30 rounded-md"></div></TableCell>;
-                        }
-                      return (
-                        <TableCell key={branch.id} className="text-center p-1">
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                 <div className="flex items-center justify-center w-full h-10 rounded-md gap-1.5 sm:gap-2">
-                                    <span className={cn("flex items-center gap-1 font-bold", cell.valid > 0 ? "text-green-600" : "text-gray-400")}>
-                                        <CheckCircle className="h-4 w-4"/> {cell.valid}
-                                    </span>
-                                    <span className={cn("flex items-center gap-1 font-bold", cell.expiring > 0 ? "text-yellow-600" : "text-gray-400")}>
-                                        <Clock className="h-4 w-4"/> {cell.expiring}
-                                    </span>
-                                     <span className={cn("flex items-center gap-1 font-bold", cell.expired > 0 ? "text-red-600" : "text-gray-400")}>
-                                        <XCircle className="h-4 w-4"/> {cell.expired}
-                                    </span>
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p className="font-bold">{branch.name}</p>
-                                <p>Total Equipment: {total}</p>
-                                <Separator className="my-1"/>
-                                <p>Valid: {cell.valid}</p>
-                                <p>Expiring Soon: {cell.expiring}</p>
-                                <p>Expired: {cell.expired}</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </TableCell>
-                      );
+                    const total = cell ? cell.valid + cell.expiring + cell.expired : 0;
+                    
+                    if (total === 0) {
+                      return <TableCell key={branch.id} className="text-center p-1"><div className="w-full h-10 bg-muted/30 rounded-md"></div></TableCell>;
                     }
-                    return <TableCell key={branch.id} className="text-center p-1"><div className="w-full h-10 bg-muted/30 rounded-md"></div></TableCell>;
+
+                    return (
+                      <TableCell key={branch.id} className="text-center p-1">
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                               <div className={cn("flex items-center justify-center w-full h-10 rounded-md text-white font-bold text-lg", getStatusColor(cell))}>
+                                  {total > 0 ? total : ''}
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="font-bold">{branch.name}</p>
+                              <p>Total Equipment: {total}</p>
+                              <Separator className="my-1"/>
+                              <p>Valid: {cell?.valid}</p>
+                              <p>Expiring Soon: {cell?.expiring}</p>
+                              <p>Expired: {cell?.expired}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </TableCell>
+                    );
                   })}
                 </TableRow>
               ))}
