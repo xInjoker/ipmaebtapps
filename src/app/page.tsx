@@ -49,12 +49,24 @@ type CombinedPersonnel = Inspector & { type: 'Inspector' | 'Employee' };
 
 
 export default function DashboardPage() {
-  const { user, branches } = useAuth();
+  const { user, branches, isHqUser } = useAuth();
   const { projects, getProjectStats } = useProjects();
   const { tenders } = useTenders();
   const { inspectorStats } = useInspectors();
   const { equipmentList } = useEquipment();
   const { employees } = useEmployees();
+
+  // --- Filter data based on user branch ---
+  const visibleProjects = useMemo(() => {
+    if (isHqUser || !user?.branchId) return projects;
+    return projects.filter(p => p.branchId === user.branchId);
+  }, [projects, user, isHqUser]);
+
+  const visibleTenders = useMemo(() => {
+    if (isHqUser || !user?.branchId) return tenders;
+    return tenders.filter(t => t.branchId === user.branchId);
+  }, [tenders, user, isHqUser]);
+
 
   // --- Combined Personnel for Inspector Tab ---
   const combinedPersonnel: CombinedPersonnel[] = useMemo(() => {
@@ -94,7 +106,7 @@ export default function DashboardPage() {
   // --- Tender Segment Calculations ---
   const tenderStats = useMemo(() => {
     const currentYear = new Date().getFullYear();
-    const tendersToProcess = tenders.filter(t => new Date(t.submissionDate).getFullYear() === currentYear);
+    const tendersToProcess = visibleTenders.filter(t => new Date(t.submissionDate).getFullYear() === currentYear);
     
     const initialStats = { count: 0, value: 0 };
     const statusMetrics = tendersToProcess.reduce((acc, tender) => {
@@ -135,7 +147,7 @@ export default function DashboardPage() {
         topAwarded,
         ytdTenders: tendersToProcess,
     };
-  }, [tenders]);
+  }, [visibleTenders]);
   
   const tenderWidgets = useMemo(() => {
       return [
@@ -178,16 +190,16 @@ export default function DashboardPage() {
   // --- Project Segment Calculations (YTD) ---
   const projectsYTD = useMemo(() => {
     const currentYear = new Date().getFullYear().toString();
-    return projects.map(p => ({
+    return visibleProjects.map(p => ({
         ...p,
         invoices: (p.invoices || []).filter(i => i.period.endsWith(currentYear)),
         costs: (p.costs || []).filter(c => c.period.endsWith(currentYear)),
     }));
-  }, [projects]);
+  }, [visibleProjects]);
   
   const projectStats = useMemo(() => {
     const stats = getProjectStats(projectsYTD);
-    const atRiskCount = projects.filter(p => {
+    const atRiskCount = visibleProjects.filter(p => {
         const projectStats = getProjectStats([p]);
         if (projectStats.totalCost === 0) return false;
         
@@ -206,13 +218,13 @@ export default function DashboardPage() {
       totalPAD,
       outstandingCash: stats.totalInvoiced,
       atRiskCount,
-      lowestMarginProjects: projects.map(p => {
+      lowestMarginProjects: visibleProjects.map(p => {
           const s = getProjectStats([p]);
           const margin = s.totalIncome > 0 ? ((s.totalIncome - s.totalCost) / s.totalIncome) * 100 : 0;
           return { name: p.name, id: p.id, margin: margin, contractExecutor: p.contractExecutor };
       }).filter(p => p.margin < 10).sort((a, b) => a.margin - b.margin).slice(0, 5),
     };
-  }, [projects, projectsYTD, getProjectStats]);
+  }, [visibleProjects, projectsYTD, getProjectStats]);
   
   const overallProfit = projectStats.totalIncome - projectStats.totalCost;
   const overallProfitPercentage = projectStats.totalIncome > 0 ? (overallProfit / projectStats.totalIncome) * 100 : 0;
