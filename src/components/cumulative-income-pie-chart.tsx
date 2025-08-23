@@ -48,6 +48,10 @@ const chartConfig = {
     label: 'PAD',
     color: 'hsl(var(--chart-4))'
   },
+  'Document Preparation': {
+    label: 'Doc Prep',
+    color: 'hsl(var(--chart-5))',
+  },
   'Cancel': {
       label: 'Cancelled',
       color: 'hsl(var(--destructive))',
