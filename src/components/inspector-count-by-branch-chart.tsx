@@ -23,7 +23,7 @@ type InspectorCountByBranchChartProps = {
 const chartConfig: ChartConfig = {
   count: {
     label: 'Inspectors',
-    color: 'hsl(var(--chart-1))',
+    color: 'hsl(var(--primary))',
   },
 };
 
