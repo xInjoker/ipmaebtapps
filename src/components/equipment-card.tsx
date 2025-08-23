@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import * as NextImage from 'next/image';
 import Link from 'next/link';
 import {
@@ -22,7 +22,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/context/AuthContext';
 import { getCalibrationStatus, type CalibrationStatus } from '@/lib/utils';
 
-export function EquipmentCard({ item, branchMap, onDelete }: { item: EquipmentItem; branchMap: Record<string, string>, onDelete: () => void }) {
+export const EquipmentCard = memo(function EquipmentCard({ item, branchMap, onDelete }: { item: EquipmentItem; branchMap: Record<string, string>, onDelete: () => void }) {
   const [calibration, setCalibration] = useState<CalibrationStatus | null>(null);
   const { user, userHasPermission } = useAuth();
   const Image = NextImage.default;
@@ -119,4 +119,4 @@ export function EquipmentCard({ item, branchMap, onDelete }: { item: EquipmentIt
       </CardFooter>
     </Card>
   );
-}
+});

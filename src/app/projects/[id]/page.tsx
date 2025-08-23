@@ -33,6 +33,9 @@ import {
   TrendingDown,
   Percent,
   Edit,
+  FileText,
+  Download,
+  Eye,
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
@@ -46,7 +49,7 @@ import { useProjects } from '@/context/ProjectContext';
 import { ProjectMonthlyRecapChart } from '@/components/project-monthly-recap-chart';
 import { ProjectInvoicingTab } from '@/components/project-invoicing-tab';
 import { ProjectCostTab } from '@/components/project-cost-tab';
-import { formatCurrency, formatCurrencyMillions } from '@/lib/utils';
+import { formatCurrency, formatCurrencyMillions, getFileNameFromDataUrl } from '@/lib/utils';
 import { ProjectBudgetExpenditureChart } from '@/components/project-budget-expenditure-chart';
 import { ProjectServiceOrderChart } from '@/components/project-service-order-chart';
 import { ApprovalWorkflowManager } from '@/components/project-approval-workflow';
@@ -62,11 +65,17 @@ import html2canvas from 'html2canvas';
 import { DashboardWidget } from '@/components/dashboard-widget';
 import { format } from 'date-fns';
 import { ProjectAiSummary } from '@/components/project-ai-summary';
+import { DocumentViewerDialog } from '@/components/document-viewer-dialog';
 
 
 // Extend jsPDF with autoTable
 interface jsPDFWithAutoTable extends jsPDF {
   autoTable: (options: any) => jsPDF;
+}
+
+type DocumentToView = {
+    url: string;
+    name: string;
 }
 
 
@@ -77,6 +86,7 @@ export default function ProjectDetailsPage() {
   const { users, userHasPermission } = useAuth();
   
   const [project, setProject] = useState<Project | null>(null);
+  const [documentToView, setDocumentToView] = useState<DocumentToView | null>(null);
   const chartRefs = {
     incomePie: useRef<HTMLDivElement>(null),
     costPie: useRef<HTMLDivElement>(null),
@@ -96,8 +106,8 @@ export default function ProjectDetailsPage() {
   const handleProjectUpdate = useCallback(async (updateFn: (project: Project) => Project) => {
     if (project) {
         const updatedProject = updateFn(project);
-        updateProject(updatedProject.id, updatedProject);
-        // The local state `project` will be updated via the useEffect hook listening to `projects` context changes.
+        // Assuming updateProject handles both local and remote updates
+        await updateProject(updatedProject.id, updatedProject);
     }
   }, [project, updateProject]);
   
@@ -380,6 +390,15 @@ export default function ProjectDetailsPage() {
     }
   }, [project, handleProjectUpdate]);
 
+  const downloadDocument = (url: string, defaultName: string) => {
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = getFileNameFromDataUrl(url) || defaultName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
 
   if (!project) {
     return (
@@ -406,6 +425,7 @@ export default function ProjectDetailsPage() {
   let colorIndex = 0;
 
   return (
+    <>
     <div className="space-y-6">
       <Card className="relative overflow-hidden bg-gradient-to-br from-primary to-primary/80 text-primary-foreground">
         <svg
@@ -575,10 +595,14 @@ export default function ProjectDetailsPage() {
         </Card>
       
       <Tabs defaultValue="summary-charts" className="w-full mt-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="summary-charts">
             <BarChartHorizontal className="mr-2 h-4 w-4" />
-            Summary Charts
+            Summary
+          </TabsTrigger>
+          <TabsTrigger value="documents">
+            <FileText className="mr-2 h-4 w-4" />
+            Documents
           </TabsTrigger>
           <TabsTrigger value="service-orders">
             <ClipboardList className="mr-2 h-4 w-4" />
@@ -586,15 +610,15 @@ export default function ProjectDetailsPage() {
           </TabsTrigger>
           <TabsTrigger value="invoices">
             <Receipt className="mr-2 h-4 w-4" />
-            Invoicing Progress
+            Invoicing
           </TabsTrigger>
           <TabsTrigger value="cost">
             <Wallet className="mr-2 h-4 w-4" />
-            Cost Management
+            Cost
           </TabsTrigger>
           <TabsTrigger value="approval-settings">
             <UserCog className="mr-2 h-4 w-4" />
-            Approval Settings
+            Approval
           </TabsTrigger>
         </TabsList>
         <TabsContent value="summary-charts" className="space-y-6">
@@ -656,6 +680,51 @@ export default function ProjectDetailsPage() {
               </div>
             </div>
         </TabsContent>
+        <TabsContent value="documents">
+            <Card>
+                <CardHeader><CardTitle>Project Documents</CardTitle></CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                        <h4 className="font-semibold">Contract Document</h4>
+                        {project.contractUrl ? (
+                            <div className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
+                                <span className="text-sm truncate">{getFileNameFromDataUrl(project.contractUrl)}</span>
+                                <div>
+                                    <Button variant="ghost" size="sm" onClick={() => setDocumentToView({ url: project.contractUrl!, name: getFileNameFromDataUrl(project.contractUrl!)! })}><Eye className="mr-2 h-4 w-4" />View</Button>
+                                    <Button variant="ghost" size="icon" onClick={() => downloadDocument(project.contractUrl!, 'contract')}><Download className="h-4 w-4" /></Button>
+                                </div>
+                            </div>
+                        ) : <p className="text-sm text-muted-foreground">No contract document uploaded.</p>}
+                    </div>
+                     <div className="space-y-2">
+                        <h4 className="font-semibold">RAB Document</h4>
+                        {project.rabUrl ? (
+                            <div className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
+                                <span className="text-sm truncate">{getFileNameFromDataUrl(project.rabUrl)}</span>
+                                <div>
+                                    <Button variant="ghost" size="sm" onClick={() => setDocumentToView({ url: project.rabUrl!, name: getFileNameFromDataUrl(project.rabUrl!)! })}><Eye className="mr-2 h-4 w-4" />View</Button>
+                                    <Button variant="ghost" size="icon" onClick={() => downloadDocument(project.rabUrl!, 'rab')}><Download className="h-4 w-4" /></Button>
+                                </div>
+                            </div>
+                        ) : <p className="text-sm text-muted-foreground">No RAB document uploaded.</p>}
+                    </div>
+                    <div className="space-y-2">
+                        <h4 className="font-semibold">Other Documents</h4>
+                        {(project.otherDocumentUrls && project.otherDocumentUrls.length > 0) ? (
+                            project.otherDocumentUrls.map((doc, index) => (
+                                <div key={index} className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
+                                    <span className="text-sm truncate">{doc.name}</span>
+                                    <div>
+                                        <Button variant="ghost" size="sm" onClick={() => setDocumentToView(doc)}><Eye className="mr-2 h-4 w-4" />View</Button>
+                                        <Button variant="ghost" size="icon" onClick={() => downloadDocument(doc.url, doc.name)}><Download className="h-4 w-4" /></Button>
+                                    </div>
+                                </div>
+                            ))
+                        ) : <p className="text-sm text-muted-foreground">No other documents uploaded.</p>}
+                    </div>
+                </CardContent>
+            </Card>
+        </TabsContent>
         <TabsContent value="service-orders">
           <ProjectServiceOrderTab project={project} setProjects={handleProjectUpdate} />
         </TabsContent>
@@ -684,5 +753,14 @@ export default function ProjectDetailsPage() {
       </Tabs>
       
     </div>
+     {documentToView && (
+        <DocumentViewerDialog
+            isOpen={!!documentToView}
+            onOpenChange={(isOpen) => !isOpen && setDocumentToView(null)}
+            documentUrl={documentToView.url}
+            documentName={documentToView.name}
+        />
+    )}
+    </>
   );
 }

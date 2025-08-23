@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -7,14 +8,12 @@ import { useProjects } from '@/context/ProjectContext';
 import { useToast } from '@/hooks/use-toast';
 import type { Project } from '@/lib/projects';
 import { ProjectForm } from '@/components/project-form';
-import { useAuth } from '@/context/AuthContext';
 
 export default function EditProjectPage() {
   const router = useRouter();
   const params = useParams();
   const projectId = params.id as string;
   const { getProjectById, updateProject } = useProjects();
-  const { branches } = useAuth();
   const { toast } = useToast();
 
   const [project, setProject] = useState<Project | null>(null);
@@ -30,24 +29,12 @@ export default function EditProjectPage() {
     }
   }, [projectId, getProjectById, router, toast]);
 
-  const handleSave = useCallback(async (projectData: Partial<Project>, period: string, duration: string, contractStartDate?: string, contractEndDate?: string) => {
+  const handleSave = useCallback(async (projectData: Partial<Project>, newDocs: { contractFile: File | null, rabFile: File | null, otherFiles: File[] }) => {
     if (!project) return;
     setIsLoading(true);
 
-    const executorName = branches.find(b => b.id === projectData.contractExecutor)?.name;
-
-    const updatedData = {
-        ...project,
-        ...projectData,
-        period,
-        duration,
-        contractStartDate,
-        contractEndDate,
-        contractExecutor: executorName || project.contractExecutor,
-    };
-
     try {
-        await updateProject(project.id, updatedData);
+        await updateProject(project.id, projectData, newDocs);
         toast({ title: 'Project Updated', description: `Successfully updated "${project.name}".` });
         router.push(`/projects/${project.id}`);
     } catch (error) {
@@ -60,11 +47,11 @@ export default function EditProjectPage() {
     } finally {
         setIsLoading(false);
     }
-  }, [project, updateProject, branches, router, toast]);
+  }, [project, updateProject, router, toast]);
   
   if (!project) {
     return <div>Loading...</div>;
   }
 
-  return <ProjectForm project={project} onSave={handleSave} isLoading={isLoading} />;
+  return <ProjectForm project={project} onSave={handleSave as any} isLoading={isLoading} />;
 }

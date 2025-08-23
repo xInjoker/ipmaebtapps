@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -167,6 +166,7 @@ export default function EditPenetrantTestPage() {
         roundIndication: '',
         result: 'Accept',
         images: [],
+        imageUrls: [],
     });
 
     const [newTestResultImagePreviews, setNewTestResultImagePreviews] = useState<string[]>([]);
@@ -221,10 +221,6 @@ export default function EditPenetrantTestPage() {
     }, [params.id, getReportById, router, toast, reports]);
 
     useEffect(() => {
-        if (!newTestResult.images || newTestResult.images.length === 0) {
-            setNewTestResultImagePreviews([]);
-            return;
-        }
         const objectUrls = newTestResult.images.map(file => URL.createObjectURL(file));
         setNewTestResultImagePreviews(objectUrls);
 
@@ -289,17 +285,12 @@ export default function EditPenetrantTestPage() {
             return;
         }
 
-        const newResultWithUrls = {
-            ...newTestResult,
-            imageUrls: newTestResult.images.map(file => URL.createObjectURL(file)),
-        };
-
         setFormData(prev => ({
             ...prev,
-            testResults: [...prev.testResults, newResultWithUrls]
+            testResults: [...prev.testResults, newTestResult]
         }));
 
-        setNewTestResult({ subjectIdentification: '', jointNo: '', weldId: '', diameter: '', thickness: '', linearIndication: '', roundIndication: '', result: 'Accept', images: [] });
+        setNewTestResult({ subjectIdentification: '', jointNo: '', weldId: '', diameter: '', thickness: '', linearIndication: '', roundIndication: '', result: 'Accept', images: [], imageUrls: [] });
     };
     
     const handleNewResultImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -352,7 +343,7 @@ export default function EditPenetrantTestPage() {
             details: reportDetails,
         };
     
-        updateReport(originalReport.id, updatedReport);
+        updateReport(originalReport.id, updatedReport, { testResults: formData.testResults });
     
         toast({
             title: 'Report Updated',
@@ -959,14 +950,14 @@ export default function EditPenetrantTestPage() {
             <div>
                 {currentStep > 0 && (
                      <Button variant="outline" onClick={prev}>
-                        <ChevronLeft className="h-4 w-4 mr-2" /> Previous
+                        <ChevronLeft className="mr-2 h-4 w-4" /> Previous
                     </Button>
                 )}
             </div>
             <div>
                  {currentStep < steps.length - 1 && (
                     <Button onClick={next}>
-                        Next <ChevronRight className="h-4 w-4 ml-2" />
+                        Next <ChevronRight className="ml-2 h-4 w-4" />
                     </Button>
                 )}
                  {currentStep === steps.length - 1 && (

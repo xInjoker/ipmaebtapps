@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Beaker, Magnet, Waves, Radio, FileText, ArrowRight, PlusCircle, Zap, ClipboardCheck } from 'lucide-react';
+import { Beaker, Magnet, Waves, Radio, ArrowRight, PlusCircle, Zap, ClipboardCheck } from 'lucide-react';
 import { HeaderCard } from '@/components/header-card';
 
 const reportTypes = [

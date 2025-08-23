@@ -2,7 +2,7 @@
 'use client';
 
 import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useCallback, useMemo, useEffect } from 'react';
-import { type TripRequest } from '@/lib/trips';
+import { type TripRequest, type TripStatus } from '@/lib/trips';
 import { useProjects } from './ProjectContext';
 import { getFirestore, collection, getDocs, setDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { app } from '@/lib/firebase';

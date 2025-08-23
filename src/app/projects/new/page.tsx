@@ -1,9 +1,10 @@
 
+
 'use client';
 
 import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { type Project } from '@/lib/projects';
+import { type Project, type ProjectDocument } from '@/lib/projects';
 import { useProjects } from '@/context/ProjectContext';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -16,7 +17,7 @@ export default function NewProjectPage() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleAddProject = useCallback(async (projectData: Partial<Project>, period: string, duration: string, contractStartDate?: string, contractEndDate?: string) => {
+  const handleAddProject = useCallback(async (projectData: Partial<Project>, newDocs: { contractFile: File | null, rabFile: File | null, otherFiles: File[] }) => {
     setIsLoading(true);
     
     const assignedBranchId = isHqUser ? projectData.contractExecutor : user?.branchId;
@@ -28,8 +29,8 @@ export default function NewProjectPage() {
       !projectData.client ||
       !assignedBranchId ||
       !projectData.value || projectData.value <= 0 ||
-      !contractStartDate ||
-      !contractEndDate
+      !projectData.contractStartDate ||
+      !projectData.contractEndDate
     ) {
       toast({
         variant: 'destructive',
@@ -54,21 +55,18 @@ export default function NewProjectPage() {
         return;
     }
 
-    const projectToAdd: Omit<Project, 'id'> = {
+    const projectToAdd = {
       ...projectData,
       branchId: assignedBranchId,
       contractExecutor: executorName,
-      period,
-      duration,
-      contractStartDate,
-      contractEndDate,
       serviceOrders: [],
       invoices: [],
       budgets: {},
       costs: [],
       tripApprovalWorkflow: [],
       reportApprovalWorkflow: [],
-    } as Omit<Project, 'id'>; // Cast to assert all required fields are present
+      ...newDocs,
+    } as Omit<Project, 'id'> & { contractFile: File | null, rabFile: File | null, otherFiles: File[] }; // Cast to assert all required fields are present
 
     try {
         await addProject(projectToAdd);
@@ -89,5 +87,5 @@ export default function NewProjectPage() {
     }
   }, [addProject, branches, isHqUser, router, toast, user]);
 
-  return <ProjectForm onSave={handleAddProject} isLoading={isLoading} />;
+  return <ProjectForm onSave={handleAddProject as any} isLoading={isLoading} />;
 }

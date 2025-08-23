@@ -16,7 +16,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { ArrowLeft, Calendar as CalendarIcon, Loader2, Save, ChevronsUpDown, Check, Upload, File as FileIcon, X } from 'lucide-react';
+import { ArrowLeft, Calendar as CalendarIcon, Loader2, Save, ChevronsUpDown, Check, Upload, File as FileIcon, X, ChevronDownIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { Textarea } from '@/components/ui/textarea';
@@ -242,23 +242,21 @@ export default function NewTenderPage() {
                                 <Popover>
                                     <PopoverTrigger asChild>
                                         <Button
-                                            id="submissionDate"
-                                            variant={"outline"}
-                                            className={cn(
-                                                "w-full justify-start text-left font-normal",
-                                                !newTender.submissionDate && "text-muted-foreground"
-                                            )}
+                                        variant="outline"
+                                        id="date"
+                                        className="w-full justify-between font-normal"
                                         >
-                                            <CalendarIcon className="mr-2 h-4 w-4" />
-                                            {newTender.submissionDate ? format(newTender.submissionDate, "PPP") : <span>Pick a date</span>}
+                                        {newTender.submissionDate ? newTender.submissionDate.toLocaleDateString() : "Select date"}
+                                        <ChevronDownIcon />
                                         </Button>
                                     </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0">
+                                    <PopoverContent className="w-auto overflow-hidden p-0" align="start">
                                         <Calendar
-                                            mode="single"
-                                            selected={newTender.submissionDate}
-                                            onSelect={(date) => setNewTender({ ...newTender, submissionDate: date })}
-                                            initialFocus
+                                        mode="single"
+                                        selected={newTender.submissionDate}
+                                        onSelect={(date) =>
+                                            setNewTender({ ...newTender, submissionDate: date })
+                                        }
                                         />
                                     </PopoverContent>
                                 </Popover>

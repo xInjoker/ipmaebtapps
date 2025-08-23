@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -28,7 +28,7 @@ interface InspectorCardProps {
     onDelete: () => void;
 }
 
-export function InspectorCard({ inspector, branchMap, personnelType, onDelete }: InspectorCardProps) {
+export const InspectorCard = memo(function InspectorCard({ inspector, branchMap, personnelType, onDelete }: InspectorCardProps) {
   const { user } = useAuth();
   const avatarColor = getAvatarColor(inspector.name);
   const [qualificationStatuses, setQualificationStatuses] = useState<QualificationWithStatus[]>([]);
@@ -130,4 +130,4 @@ export function InspectorCard({ inspector, branchMap, personnelType, onDelete }:
       </CardFooter>
     </Card>
   );
-}
+});

@@ -1,11 +1,13 @@
 
+
 'use client';
 
 import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useMemo, useCallback, useEffect } from 'react';
-import { type Project, initialProjects } from '@/lib/projects';
+import { type Project, type ProjectDocument } from '@/lib/projects';
 import { getFirestore, collection, getDocs, setDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { app } from '@/lib/firebase';
 import { useAuth } from './AuthContext';
+import { uploadFile } from '@/lib/storage';
 
 const db = getFirestore(app);
 
@@ -17,11 +19,17 @@ type ProjectStats = {
   totalIncome: number; // Paid + Invoiced + PAD + Re-invoiced
 };
 
+type NewDocs = {
+  contractFile: File | null;
+  rabFile: File | null;
+  otherFiles: File[];
+};
+
 type ProjectContextType = {
   projects: Project[];
   setProjects: Dispatch<SetStateAction<Project[]>>; 
-  addProject: (project: Omit<Project, 'id'>) => Promise<void>;
-  updateProject: (id: string, data: Partial<Project>) => Promise<void>;
+  addProject: (project: Omit<Project, 'id'> & NewDocs) => Promise<void>;
+  updateProject: (id: string, data: Partial<Project>, newDocs?: NewDocs) => Promise<void>;
   deleteProject: (id: string) => Promise<void>;
   getProjectById: (id: string) => Project | undefined;
   getProjectStats: (projectList: Project[]) => ProjectStats;
@@ -57,18 +65,56 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     fetchProjects();
   }, [user, isInitializing]);
 
-  const addProject = useCallback(async (projectData: Omit<Project, 'id'>) => {
+  const addProject = useCallback(async (projectData: Omit<Project, 'id'> & NewDocs) => {
+      const { contractFile, rabFile, otherFiles, ...restOfProjectData } = projectData;
       const newId = `PROJ-${Date.now()}`;
-      const newProject: Project = { id: newId, ...projectData };
+      
+      const contractUrl = contractFile ? await uploadFile(contractFile, `projects/${newId}/contract/${contractFile.name}`) : undefined;
+      const rabUrl = rabFile ? await uploadFile(rabFile, `projects/${newId}/rab/${rabFile.name}`) : undefined;
+      
+      const otherDocumentUrls: ProjectDocument[] = await Promise.all(
+        otherFiles.map(async file => ({
+            name: file.name,
+            url: await uploadFile(file, `projects/${newId}/other/${file.name}`),
+        }))
+      );
+
+      const newProject: Project = { 
+        id: newId, 
+        ...restOfProjectData,
+        contractUrl,
+        rabUrl,
+        otherDocumentUrls,
+      };
+
       await setDoc(doc(db, 'projects', newId), newProject);
       setProjects(prev => [...prev, newProject]);
   }, []);
 
-  const updateProject = useCallback(async (id: string, data: Partial<Project>) => {
+  const updateProject = useCallback(async (id: string, data: Partial<Project>, newDocs: NewDocs = { contractFile: null, rabFile: null, otherFiles: [] }) => {
     try {
+        const { contractFile, rabFile, otherFiles } = newDocs;
+        const updateData: Partial<Project> = { ...data };
+
+        if (contractFile) {
+            updateData.contractUrl = await uploadFile(contractFile, `projects/${id}/contract/${contractFile.name}`);
+        }
+        if (rabFile) {
+            updateData.rabUrl = await uploadFile(rabFile, `projects/${id}/rab/${rabFile.name}`);
+        }
+        if (otherFiles.length > 0) {
+            const newOtherUrls = await Promise.all(
+                otherFiles.map(async file => ({
+                    name: file.name,
+                    url: await uploadFile(file, `projects/${id}/other/${file.name}`),
+                }))
+            );
+            updateData.otherDocumentUrls = [...(data.otherDocumentUrls || []), ...newOtherUrls];
+        }
+
         const projectDocRef = doc(db, 'projects', id);
-        await updateDoc(projectDocRef, data);
-        setProjects(prev => prev.map(p => p.id === id ? { ...p, ...data } : p));
+        await updateDoc(projectDocRef, updateData);
+        setProjects(prev => prev.map(p => p.id === id ? { ...p, ...updateData } as Project : p));
     } catch (error) {
         console.error("Error updating project in Firestore: ", error);
     }

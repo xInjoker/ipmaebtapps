@@ -17,7 +17,6 @@ import {
   FileText,
   ChevronRight,
   ClipboardCheck,
-  DatabaseZap,
 } from 'lucide-react';
 import {
   SidebarMenu,
@@ -143,18 +142,17 @@ export function SidebarNav() {
       icon: Settings,
       permission: 'view-settings',
     },
-    {
-      href: '/seed-database',
-      label: 'Seed Database',
-      icon: DatabaseZap,
-      permission: 'super-admin', // Only for super-admin
-    },
     { href: '/profile', label: 'Profile', icon: User, permission: 'view-profile' },
   ];
 
-  const accessibleMenuItems = menuItems.filter((item) =>
-    userHasPermission(item.permission)
-  );
+  const accessibleMenuItems = useMemo(() => {
+    if (user?.status === 'Pending Approval') {
+      return menuItems.filter(item => 
+        item.label === 'Dashboard' || item.label === 'Settings' || item.label === 'Profile'
+      );
+    }
+    return menuItems.filter((item) => userHasPermission(item.permission));
+  }, [user, userHasPermission]);
 
   return (
     <SidebarMenu>

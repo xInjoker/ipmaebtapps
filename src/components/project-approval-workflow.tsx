@@ -74,7 +74,7 @@ export function ApprovalWorkflowManager({
         {workflow.length > 0 ? (
           <div className="space-y-3">
             {workflow.map((stage) => {
-              const approver = users.find(u => u.id.toString() === stage.approverId);
+              const approver = users.find(u => u.uid === stage.approverId);
               return (
                 <div key={stage.stage} className="flex items-center justify-between gap-4 rounded-md border p-3">
                     <div className="flex items-center gap-4">
@@ -91,7 +91,7 @@ export function ApprovalWorkflowManager({
                             </SelectTrigger>
                             <SelectContent>
                                 {users.map(user => (
-                                    <SelectItem key={user.id} value={user.id.toString()}>
+                                    <SelectItem key={user.uid} value={user.uid}>
                                         {user.name}
                                     </SelectItem>
                                 ))}
@@ -120,7 +120,7 @@ export function ApprovalWorkflowManager({
                     </SelectTrigger>
                     <SelectContent>
                         {users.map(user => (
-                            <SelectItem key={user.id} value={user.id.toString()}>
+                            <SelectItem key={user.uid} value={user.uid}>
                                 {user.name}
                             </SelectItem>
                         ))}

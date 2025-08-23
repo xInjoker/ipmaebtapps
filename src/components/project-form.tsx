@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
@@ -27,15 +28,16 @@ import {
 } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Textarea } from '@/components/ui/textarea';
-import { Calendar as CalendarIcon, Save, Loader2, ArrowLeft } from 'lucide-react';
+import { Calendar as CalendarIcon, Save, Loader2, ArrowLeft, Upload, File as FileIcon, X } from 'lucide-react';
 import { DateRange } from 'react-day-picker';
 import { format, differenceInMonths, parse } from 'date-fns';
-import { cn } from '@/lib/utils';
+import { cn, getFileNameFromDataUrl } from '@/lib/utils';
 import {
   type Project,
   portfolios,
   subPortfolios,
   servicesBySubPortfolio,
+  type ProjectDocument,
 } from '@/lib/projects';
 import { useAuth } from '@/context/AuthContext';
 import { Separator } from '@/components/ui/separator';
@@ -44,20 +46,24 @@ import Link from 'next/link';
 
 interface ProjectFormProps {
   project?: Project | null;
-  onSave: (projectData: Partial<Project>, period: string, duration: string, contractStartDate?: string, contractEndDate?: string) => Promise<void>;
+  onSave: (projectData: Partial<Project>, newDocs: { contractFile: File | null, rabFile: File | null, otherFiles: File[] }) => Promise<void>;
   isLoading: boolean;
 }
 
 export function ProjectForm({ project, onSave, isLoading }: ProjectFormProps) {
   const { user, isHqUser, branches } = useAuth();
   const [formData, setFormData] = useState<Partial<Project>>({});
+  
+  const [contractFile, setContractFile] = useState<File | null>(null);
+  const [rabFile, setRabFile] = useState<File | null>(null);
+  const [otherFiles, setOtherFiles] = useState<File[]>([]);
+
   const [date, setDate] = useState<DateRange | undefined>(undefined);
 
   useEffect(() => {
     if (project) {
         setFormData({
             ...project,
-            // value needs to be a number, but might be stored otherwise.
             value: typeof project.value === 'number' ? project.value : 0,
         });
         if (project.contractStartDate && project.contractEndDate) {
@@ -117,12 +123,48 @@ export function ProjectForm({ project, onSave, isLoading }: ProjectFormProps) {
   const handleCurrencyChange = useCallback((value: number) => {
       setFormData(prev => ({...prev, value}));
   }, []);
+  
+  const handleFileChange = useCallback((setter: React.Dispatch<React.SetStateAction<File | null>>, e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setter(e.target.files[0] || null);
+    }
+  }, []);
+  
+  const handleMultipleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+        setOtherFiles(prev => [...prev, ...Array.from(e.target.files!)]);
+    }
+  }, []);
+  
+  const removeOtherFile = useCallback((index: number) => {
+    setOtherFiles(prev => prev.filter((_, i) => i !== index));
+  }, []);
+
+  const removeExistingDocument = (docType: 'contract' | 'rab' | 'other', urlToRemove: string) => {
+    setFormData(prev => {
+        if (!prev) return null;
+        if (docType === 'contract') return { ...prev, contractUrl: undefined };
+        if (docType === 'rab') return { ...prev, rabUrl: undefined };
+        if (docType === 'other') {
+            return {
+                ...prev,
+                otherDocumentUrls: (prev.otherDocumentUrls || []).filter(doc => doc.url !== urlToRemove),
+            };
+        }
+        return prev;
+    });
+  };
 
   const handleSubmit = useCallback(() => {
-    const contractStartDate = date?.from ? format(date.from, 'yyyy-MM-dd') : undefined;
-    const contractEndDate = date?.to ? format(date.to, 'yyyy-MM-dd') : undefined;
-    onSave(formData, period, duration, contractStartDate, contractEndDate);
-  }, [formData, onSave, date, period, duration]);
+    const finalFormData: Partial<Project> = {
+        ...formData,
+        period,
+        duration,
+        contractStartDate: date?.from ? format(date.from, 'yyyy-MM-dd') : undefined,
+        contractEndDate: date?.to ? format(date.to, 'yyyy-MM-dd') : undefined,
+    };
+    onSave(finalFormData, { contractFile, rabFile, otherFiles });
+  }, [formData, onSave, date, period, duration, contractFile, rabFile, otherFiles]);
 
   const executorBranchName = useMemo(() => {
       if(isHqUser) {
@@ -245,6 +287,86 @@ export function ProjectForm({ project, onSave, isLoading }: ProjectFormProps) {
                     onValueChange={handleCurrencyChange}
                     placeholder="Contract value"
                 />
+                </div>
+            </div>
+        </div>
+         <div className="space-y-4">
+            <h3 className="font-semibold text-lg">Documents</h3>
+            <Separator />
+            <div className="grid gap-6 md:grid-cols-2">
+                <div className="space-y-2">
+                    <Label htmlFor="contract-upload">Contract Document</Label>
+                    <div className="flex items-center justify-center w-full">
+                        <label htmlFor="contract-upload" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-card hover:bg-muted">
+                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                <Upload className="w-8 h-8 mb-3 text-muted-foreground" />
+                                <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span></p>
+                            </div>
+                            <Input id="contract-upload" type="file" className="hidden" onChange={(e) => handleFileChange(setContractFile, e)} />
+                        </label>
+                    </div>
+                    {contractFile && (
+                        <div className="mt-2 flex items-center justify-between p-2 rounded-md border bg-muted/50">
+                            <div className="flex items-center gap-2 truncate"><FileIcon className="h-4 w-4" /><span className="text-sm truncate">{contractFile.name}</span></div>
+                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setContractFile(null)}><X className="h-4 w-4" /></Button>
+                        </div>
+                    )}
+                    {formData.contractUrl && !contractFile && (
+                        <div className="mt-2 flex items-center justify-between p-2 rounded-md border bg-muted/50">
+                            <div className="flex items-center gap-2 truncate"><FileIcon className="h-4 w-4" /><span className="text-sm truncate">{getFileNameFromDataUrl(formData.contractUrl)}</span></div>
+                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeExistingDocument('contract', formData.contractUrl!)}><X className="h-4 w-4" /></Button>
+                        </div>
+                    )}
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="rab-upload">RAB Document</Label>
+                    <div className="flex items-center justify-center w-full">
+                        <label htmlFor="rab-upload" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-card hover:bg-muted">
+                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                <Upload className="w-8 h-8 mb-3 text-muted-foreground" />
+                                <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span></p>
+                            </div>
+                            <Input id="rab-upload" type="file" className="hidden" onChange={(e) => handleFileChange(setRabFile, e)} />
+                        </label>
+                    </div>
+                    {rabFile && (
+                        <div className="mt-2 flex items-center justify-between p-2 rounded-md border bg-muted/50">
+                            <div className="flex items-center gap-2 truncate"><FileIcon className="h-4 w-4" /><span className="text-sm truncate">{rabFile.name}</span></div>
+                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setRabFile(null)}><X className="h-4 w-4" /></Button>
+                        </div>
+                    )}
+                     {formData.rabUrl && !rabFile && (
+                        <div className="mt-2 flex items-center justify-between p-2 rounded-md border bg-muted/50">
+                            <div className="flex items-center gap-2 truncate"><FileIcon className="h-4 w-4" /><span className="text-sm truncate">{getFileNameFromDataUrl(formData.rabUrl)}</span></div>
+                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeExistingDocument('rab', formData.rabUrl!)}><X className="h-4 w-4" /></Button>
+                        </div>
+                    )}
+                </div>
+                <div className="md:col-span-2 space-y-2">
+                    <Label htmlFor="other-docs-upload">Other Supporting Documents</Label>
+                    <div className="flex items-center justify-center w-full">
+                        <label htmlFor="other-docs-upload" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-card hover:bg-muted">
+                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                <Upload className="w-8 h-8 mb-3 text-muted-foreground" />
+                                <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span></p>
+                            </div>
+                            <Input id="other-docs-upload" type="file" className="hidden" multiple onChange={handleMultipleFileChange} />
+                        </label>
+                    </div>
+                     <div className="mt-4 space-y-2">
+                        {formData.otherDocumentUrls?.map((doc, index) => (
+                             <div key={index} className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
+                                <div className="flex items-center gap-2 truncate"><FileIcon className="h-4 w-4" /><span className="text-sm truncate">{doc.name}</span></div>
+                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeExistingDocument('other', doc.url)}><X className="h-4 w-4" /></Button>
+                            </div>
+                        ))}
+                        {otherFiles.map((file, index) => (
+                            <div key={index} className="flex items-center justify-between p-2 rounded-md border bg-muted/50">
+                                <div className="flex items-center gap-2 truncate"><FileIcon className="h-4 w-4" /><span className="text-sm truncate">{file.name}</span></div>
+                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeOtherFile(index)}><X className="h-4 w-4" /></Button>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
         </div>

@@ -22,6 +22,7 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import type { UserOptions, CellHookData } from 'jspdf-autotable';
 import { useNotifications } from '@/context/NotificationContext';
+import type { TripApprovalAction } from '@/lib/trips';
 
 // Extend jsPDF with autoTable
 interface jsPDFWithAutoTable extends jsPDF {
@@ -38,7 +39,6 @@ export default function TripSummaryPage() {
     const { user, users } = useAuth();
     const { projects } = useProjects();
     const { addNotification } = useNotifications();
-    const logoUrl = 'https://placehold.co/120x60.png';
     
     const trip = getTripById(tripId);
 
@@ -127,20 +127,19 @@ export default function TripSummaryPage() {
             });
             return;
         }
+        
+        const newHistoryAction: TripApprovalAction = {
+            actorId: user.uid,
+            actorName: user.name,
+            status: 'Submitted',
+            comments: "Submitted for approval",
+            timestamp: new Date().toISOString()
+        };
 
         const updatedTrip = {
             ...trip,
             status: 'Pending' as const,
-            approvalHistory: [
-                ...trip.approvalHistory,
-                {
-                    actorId: user.uid,
-                    actorName: user.name,
-                    status: 'Pending' as const,
-                    comments: "Submitted for approval",
-                    timestamp: new Date().toISOString()
-                }
-            ]
+            approvalHistory: [...trip.approvalHistory, newHistoryAction]
         };
 
         updateTrip(trip.id, updatedTrip);
@@ -149,7 +148,7 @@ export default function TripSummaryPage() {
         const firstApprover = users.find(u => u.uid === workflow[0].approverId);
         if (firstApprover) {
             addNotification({
-                userId: firstApprover.uid as any,
+                userId: firstApprover.uid,
                 title: 'New Trip Request',
                 description: `${user.name} has requested a business trip to ${trip.destination}.`,
                 link: `/approvals`
@@ -163,19 +162,19 @@ export default function TripSummaryPage() {
     const handlePrint = useCallback(async () => {
         if (!trip) return;
         const doc = new jsPDF() as jsPDFWithAutoTable;
+        
+        const placeholderImage = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
         const pageWidth = doc.internal.pageSize.getWidth();
         const pageMargin = 14;
 
-        // Header
-        doc.addImage(logoUrl, 'PNG', pageWidth - pageMargin - 30, 15, 30, 15);
+        doc.addImage(placeholderImage, 'PNG', pageWidth - pageMargin - 30, 15, 30, 15);
+        
         doc.setFontSize(18);
         doc.text('Business Trip Request', pageMargin, 22, { align: 'left' });
         doc.setFontSize(12);
         doc.text(`Request ID: ${trip.id}`, pageMargin, 30, { align: 'left' });
         doc.text(`Status: ${trip.status}`, pageMargin, 38, { align: 'left' });
 
-
-        // Trip Details
         const tripDetails = [
             ['Employee', trip.employeeName],
             ['Position', trip.position || 'N/A'],
@@ -192,7 +191,6 @@ export default function TripSummaryPage() {
             headStyles: { fillColor: [41, 128, 185] },
         });
 
-        // Allowance Details
         const allowanceBody = [
             ...mealItems.map(item => [item.name, item.qty, item.unit, formatCurrency(item.rate), formatCurrency(item.total)]),
             ...transportItems.map(item => [item.name, item.qty, item.unit, formatCurrency(item.rate), formatCurrency(item.total)]),
@@ -207,50 +205,8 @@ export default function TripSummaryPage() {
             startY: (doc as any).lastAutoTable.finalY + 10,
         });
 
-        // Signature Section
-        const signatureRows = [];
-        for (const h of trip.approvalHistory) {
-            if (h.status === 'Approved' || h.status === 'Pending') {
-                const approver = users.find(u => u.uid === h.actorId);
-                let signatureContent: any = '';
-
-                if (approver?.signatureUrl) {
-                    try {
-                        const img = new Image();
-                        img.crossOrigin = 'Anonymous';
-                        const imgPromise = new Promise((resolve, reject) => {
-                            img.onload = () => resolve(true);
-                            img.onerror = (err) => reject(err);
-                        });
-                        img.src = approver.signatureUrl;
-                        await imgPromise;
-                        signatureContent = { image: img, width: 40, height: 15 };
-                    } catch (error) {
-                        console.error("Error loading signature image:", error);
-                        signatureContent = { content: '(Signature not available)', styles: { fontSize: 7 } };
-                    }
-                }
-                
-                signatureRows.push([
-                    { content: `${h.actorName}\n\n\n\n___________________\n(${h.status} on ${format(new Date(h.timestamp), 'PPP')})`, styles: { halign: 'center', minCellHeight: 40 } },
-                    { content: signatureContent, styles: { halign: 'center', valign: 'middle', minCellHeight: 40 } },
-                ]);
-            }
-        }
-        
-        if (signatureRows.length > 0) {
-            doc.autoTable({
-                head: [['Approver', 'Signature']],
-                body: signatureRows,
-                startY: (doc as any).lastAutoTable.finalY + 15,
-                theme: 'grid',
-                tableWidth: 'wrap'
-            });
-        }
-
-
         doc.save(`TripRequest-${trip.id}.pdf`);
-    }, [trip, logoUrl, mealItems, transportItems, totalAllowance, users]);
+    }, [trip, mealItems, transportItems, totalAllowance, users]);
 
     if (!trip) {
         return (
@@ -430,3 +386,5 @@ export default function TripSummaryPage() {
         </div>
     );
 }
+
+    

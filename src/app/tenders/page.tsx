@@ -269,7 +269,7 @@ export default function TendersPage() {
     setIsDeleteDialogOpen(true);
   }, []);
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = useCallback(() => {
     if (itemToDelete) {
       deleteTender(itemToDelete.id);
       toast({
@@ -279,7 +279,7 @@ export default function TendersPage() {
       setIsDeleteDialogOpen(false);
       setItemToDelete(null);
     }
-  };
+  }, [itemToDelete, deleteTender, toast]);
 
   const handleExport = useCallback(() => {
     const dataToExport = filteredTenders.map((tender) => {

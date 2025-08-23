@@ -36,6 +36,7 @@ import {
   type Permission,
   permissions,
   formatPermissionName,
+  UserStatus,
 } from '@/lib/users';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -307,6 +308,14 @@ export default function UserManagementPage() {
     setIsRoleDialogOpen(true);
   }, []);
 
+  const handleDeleteRole = useCallback((roleId: string) => {
+    deleteRole(roleId);
+    toast({
+        title: 'Role Deleted',
+        description: 'The role has been successfully deleted.',
+    })
+  }, [deleteRole, toast]);
+
   useEffect(() => {
     if (!userHasPermission('manage-users')) {
       router.push('/');
@@ -342,6 +351,7 @@ export default function UserManagementPage() {
                       <TableHead>Role</TableHead>
                       <TableHead>Branch</TableHead>
                       <TableHead>Assigned Projects</TableHead>
+                      <TableHead>Status</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -439,6 +449,30 @@ export default function UserManagementPage() {
                                 <span className="text-muted-foreground text-sm">N/A</span>
                             )}
                           </TableCell>
+                           <TableCell>
+                            <Select
+                                value={managedUser.status}
+                                onValueChange={(value: UserStatus) =>
+                                handleUserChange(managedUser.uid, 'status', value)
+                                }
+                            >
+                                <SelectTrigger className="w-[180px]">
+                                <SelectValue placeholder="Change status" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                <SelectItem value="Active">
+                                    <div className="flex items-center gap-2">
+                                    <span className="h-2 w-2 rounded-full bg-green-500"></span> Active
+                                    </div>
+                                </SelectItem>
+                                <SelectItem value="Pending Approval">
+                                    <div className="flex items-center gap-2">
+                                    <span className="h-2 w-2 rounded-full bg-yellow-500"></span> Pending
+                                    </div>
+                                </SelectItem>
+                                </SelectContent>
+                            </Select>
+                            </TableCell>
                         </TableRow>
                       );
                     })}
@@ -484,7 +518,7 @@ export default function UserManagementPage() {
                   </TableHeader>
                   <TableBody>
                     {roles.map((role) => (
-                      <TableRow key={`${role.id}-${role.name}`}>
+                      <TableRow key={role.id}>
                         <TableCell className="font-medium">
                           {role.name}
                         </TableCell>
@@ -520,7 +554,7 @@ export default function UserManagementPage() {
                             variant="ghost"
                             size="icon"
                             disabled={!role.isEditable}
-                            onClick={() => deleteRole(role.id)}
+                            onClick={() => handleDeleteRole(role.id)}
                           >
                             <Trash2 className="h-4 w-4 text-destructive" />
                             <span className="sr-only">Delete Role</span>

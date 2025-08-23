@@ -16,10 +16,10 @@ type ReportContextType = {
   reports: ReportItem[];
   setReports: Dispatch<SetStateAction<ReportItem[]>>;
   addReport: (item: Omit<ReportItem, 'id'|'details'> & { details: Omit<ReportDetails, 'testResults'|'documentUrls'> & { testResults?: any[], documents?: File[] }}) => Promise<void>;
-  updateReport: (id: string, item: ReportItem) => Promise<void>;
+  updateReport: (id: string, item: ReportItem, newFiles?: { testResults?: any[] }) => Promise<void>;
   deleteReport: (id: string) => Promise<void>;
   getReportById: (id: string) => ReportItem | undefined;
-  getPendingReportApprovalsForUser: (userId: number) => ReportItem[];
+  getPendingReportApprovalsForUser: (userId: string) => ReportItem[];
 };
 
 const ReportContext = createContext<ReportContextType | undefined>(undefined);
@@ -53,14 +53,16 @@ export function ReportProvider({ children }: { children: ReactNode }) {
 
   const processTestResultImages = async (reportId: string, testResults: any[]) => {
       return Promise.all((testResults || []).map(async (result, index) => {
-          if (result.images && result.images.length > 0) {
-              const imageUrls = await Promise.all(
-                  result.images.map((file: File) => uploadFile(file, `reports/${reportId}/results/${result.jointNo || index}/${file.name}`))
-              );
-              const { images, ...rest } = result;
-              return { ...rest, imageUrls: [...(result.imageUrls || []), ...imageUrls] };
-          }
-          return result;
+          const newImageFiles: File[] = result.images || [];
+          const existingImageUrls: string[] = (result.imageUrls || []).filter((url: any) => typeof url === 'string' && !url.startsWith('blob:'));
+          
+          const uploadedImageUrls = await Promise.all(
+              newImageFiles.map(file => uploadFile(file, `reports/${reportId}/results/${result.jointNo || index}/${file.name}`))
+          );
+          
+          const { images, ...rest } = result;
+          
+          return { ...rest, imageUrls: [...existingImageUrls, ...uploadedImageUrls] };
       }));
   };
 
@@ -89,9 +91,18 @@ export function ReportProvider({ children }: { children: ReactNode }) {
     setReports(prev => [...prev, newItem]);
   }, []);
 
-  const updateReport = useCallback(async (id: string, updatedItem: ReportItem) => {
-    await updateDoc(doc(db, 'reports', id), updatedItem);
-    setReports(prev => prev.map(item => item.id === id ? updatedItem : item));
+  const updateReport = useCallback(async (id: string, updatedItem: ReportItem, newFiles?: { testResults?: any[] }) => {
+    let finalDetails = updatedItem.details;
+
+    if (newFiles?.testResults && finalDetails) {
+        const processedTestResults = await processTestResultImages(id, newFiles.testResults);
+        finalDetails = { ...finalDetails, testResults: processedTestResults };
+    }
+    
+    const finalItem = { ...updatedItem, details: finalDetails };
+
+    await updateDoc(doc(db, 'reports', id), finalItem);
+    setReports(prev => prev.map(item => item.id === id ? finalItem : item));
   }, []);
   
   const deleteReport = useCallback(async (id: string) => {
@@ -103,7 +114,7 @@ export function ReportProvider({ children }: { children: ReactNode }) {
     return reports.find(item => item.id === id);
   }, [reports]);
 
-  const getPendingReportApprovalsForUser = useCallback((userId: number) => {
+  const getPendingReportApprovalsForUser = useCallback((userId: string) => {
     return reports.filter(report => {
         if (report.status !== 'Submitted' && report.status !== 'Reviewed') return false;
         

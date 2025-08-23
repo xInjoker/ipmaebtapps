@@ -24,7 +24,7 @@ import {
   ChartConfig,
 } from '@/components/ui/chart';
 import { Bar, BarChart, CartesianGrid, XAxis, Pie, PieChart, Cell } from 'recharts';
-import { TrendingUp, CircleDollarSign, ListTodo, Receipt, Wrench, ClipboardEdit, Plane, FileText } from 'lucide-react';
+import { TrendingUp, CircleDollarSign, ListTodo, Receipt, Wrench, ClipboardEdit, Plane, FileText, GanttChart, Clock } from 'lucide-react';
 import { useMemo } from 'react';
 import { useProjects } from '@/context/ProjectContext';
 import { useAuth } from '@/context/AuthContext';
@@ -197,8 +197,8 @@ export default function DashboardPage() {
 
     // Default widgets for other roles (Inspectors, Staff, etc.)
     return otherUserWidgets.map((widget, index) => (
-      <Link key={index} href={widget.href}>
-        <DashboardWidget title={widget.title} value="" description={widget.description} icon={widget.icon} iconColor={widget.iconColor} shapeColor={widget.shapeColor} />
+      <Link key={index} href={widget.href} className="hover:shadow-lg transition-shadow rounded-lg">
+        <DashboardWidget title={widget.title} description={widget.description} icon={widget.icon} iconColor={widget.iconColor} shapeColor={widget.shapeColor} />
       </Link>
     ));
   };
@@ -210,92 +210,114 @@ export default function DashboardPage() {
         title={`Welcome, ${user?.name}`}
         description={welcomeDescription}
       />
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {renderWidgets()}
-      </div>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="lg:col-span-4">
-          <CardHeader>
-            <CardTitle className="font-headline">Monthly Invoicing</CardTitle>
-            <CardDescription>
-              A summary of invoices created and paid each month.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pl-2">
-            <ChartContainer config={chartConfig} className="h-[300px] w-full">
-              <BarChart data={monthlyInvoicingData} accessibilityLayer>
-                <CartesianGrid vertical={false} />
-                <XAxis
-                  dataKey="month"
-                  tickLine={false}
-                  tickMargin={10}
-                  axisLine={false}
-                  tickFormatter={(value) => value.slice(0, 3)}
-                />
-                <ChartTooltip
-                  cursor={false}
-                  content={<ChartTooltipContent 
-                    indicator="dot"
-                    valueFormatter={formatCurrency}
-                  />}
-                />
-                <Bar dataKey="invoiced" fill="var(--color-invoiced)" radius={4} />
-                <Bar dataKey="paid" fill="var(--color-paid)" radius={4} />
-              </BarChart>
-            </ChartContainer>
-          </CardContent>
+
+      {user?.status === 'Pending Approval' ? (
+        <Card className="text-center py-12">
+            <CardHeader>
+                <GanttChart className="mx-auto h-12 w-12 text-primary" />
+                <CardTitle className="text-2xl font-headline mt-4">
+                Account Pending Approval
+                </CardTitle>
+                <CardDescription>
+                Your account is currently waiting for an administrator's approval.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <p className="text-sm text-muted-foreground">
+                    You have limited access to the application. Please check back later.
+                </p>
+            </CardContent>
         </Card>
-        <Card className="lg:col-span-3">
-          <CardHeader>
-            <CardTitle className="font-headline">Cost Realization Breakdown</CardTitle>
-            <CardDescription>Breakdown of all project costs by category.</CardDescription>
-          </CardHeader>
-          <CardContent>
-             <ChartContainer config={{}} className="h-[300px] w-full">
-                 <PieChart>
-                    <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
-                    <Pie data={costBreakdownData} dataKey="value" nameKey="name" innerRadius={80} outerRadius={120} startAngle={90} endAngle={450}>
-                         {costBreakdownData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                    </Pie>
-                </PieChart>
-             </ChartContainer>
-          </CardContent>
-        </Card>
-      </div>
-      <Card>
-        <CardHeader>
-          <CardTitle className="font-headline">Upcoming Tasks</CardTitle>
-          <CardDescription>
-            A list of important tasks and deadlines.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Task</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Due Date</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {upcomingTasks.map((task) => (
-                <TableRow key={task.task}>
-                  <TableCell className="font-medium">{task.task}</TableCell>
-                  <TableCell>
-                    <Badge variant={task.status === 'In Progress' ? 'default' : 'secondary'}>
-                      {task.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">{task.dueDate}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+      ) : (
+        <>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                {renderWidgets()}
+            </div>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+                <Card className="lg:col-span-4">
+                <CardHeader>
+                    <CardTitle className="font-headline">Monthly Invoicing</CardTitle>
+                    <CardDescription>
+                    A summary of invoices created and paid each month.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="pl-2">
+                    <ChartContainer config={chartConfig} className="h-[300px] w-full">
+                    <BarChart data={monthlyInvoicingData} accessibilityLayer>
+                        <CartesianGrid vertical={false} />
+                        <XAxis
+                        dataKey="month"
+                        tickLine={false}
+                        tickMargin={10}
+                        axisLine={false}
+                        tickFormatter={(value) => value.slice(0, 3)}
+                        />
+                        <ChartTooltip
+                        cursor={false}
+                        content={<ChartTooltipContent 
+                            indicator="dot"
+                            valueFormatter={formatCurrency}
+                        />}
+                        />
+                        <Bar dataKey="invoiced" fill="var(--color-invoiced)" radius={4} />
+                        <Bar dataKey="paid" fill="var(--color-paid)" radius={4} />
+                    </BarChart>
+                    </ChartContainer>
+                </CardContent>
+                </Card>
+                <Card className="lg:col-span-3">
+                <CardHeader>
+                    <CardTitle className="font-headline">Cost Realization Breakdown</CardTitle>
+                    <CardDescription>Breakdown of all project costs by category.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <ChartContainer config={{}} className="h-[300px] w-full">
+                        <PieChart>
+                            <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
+                            <Pie data={costBreakdownData} dataKey="value" nameKey="name" innerRadius={80} outerRadius={120} startAngle={90} endAngle={450}>
+                                {costBreakdownData.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={entry.color} />
+                                ))}
+                            </Pie>
+                        </PieChart>
+                    </ChartContainer>
+                </CardContent>
+                </Card>
+            </div>
+            <Card>
+                <CardHeader>
+                <CardTitle className="font-headline">Upcoming Tasks</CardTitle>
+                <CardDescription>
+                    A list of important tasks and deadlines.
+                </CardDescription>
+                </CardHeader>
+                <CardContent>
+                <Table>
+                    <TableHeader>
+                    <TableRow>
+                        <TableHead>Task</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Due Date</TableHead>
+                    </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                    {upcomingTasks.map((task) => (
+                        <TableRow key={task.task}>
+                        <TableCell className="font-medium">{task.task}</TableCell>
+                        <TableCell>
+                            <Badge variant={task.status === 'In Progress' ? 'default' : 'secondary'}>
+                            {task.status}
+                            </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">{task.dueDate}</TableCell>
+                        </TableRow>
+                    ))}
+                    </TableBody>
+                </Table>
+                </CardContent>
+            </Card>
+        </>
+      )}
     </div>
   );
 }

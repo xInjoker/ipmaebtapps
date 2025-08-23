@@ -1,0 +1,32 @@
+
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Default to denying all access
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+    
+    // Allow any authenticated user to read all files
+    match /{allPaths=**} {
+        allow read: if request.auth != null;
+    }
+    
+    // Allow users to write their own signature
+    match /signatures/{userId}/{fileName} {
+        allow write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Allow authenticated users to write to the projects folder
+    match /projects/{projectId}/{allPaths=**} {
+      allow write: if request.auth != null;
+    }
+    
+    // Allow authenticated users to write to other paths (e.g., reports, equipment)
+    // This is a broad rule and can be tightened later.
+    match /{otherPaths}/{allFiles=**} {
+      allow write: if request.auth != null && otherPaths != 'signatures' && otherPaths != 'projects';
+    }
+  }
+}

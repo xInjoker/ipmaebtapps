@@ -60,6 +60,11 @@ export type ApprovalStage = {
   approverId: string | null;
 };
 
+export type ProjectDocument = {
+    name: string;
+    url: string;
+};
+
 export type Project = {
   id: string; 
   contractNumber: string;
@@ -84,6 +89,9 @@ export type Project = {
   serviceName?: string;
   tripApprovalWorkflow: ApprovalStage[];
   reportApprovalWorkflow: ApprovalStage[];
+  contractUrl?: string;
+  rabUrl?: string;
+  otherDocumentUrls?: ProjectDocument[];
 };
 
 

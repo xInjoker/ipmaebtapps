@@ -3,6 +3,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import React from 'react';
 
 type DashboardWidgetProps = {
   title: string;
@@ -13,7 +14,7 @@ type DashboardWidgetProps = {
   shapeColor: string;
 };
 
-export function DashboardWidget({
+export const DashboardWidget = React.memo(function DashboardWidget({
   title,
   value,
   description,
@@ -22,7 +23,7 @@ export function DashboardWidget({
   shapeColor,
 }: DashboardWidgetProps) {
   return (
-    <Card className="relative overflow-hidden">
+    <Card className="relative overflow-hidden h-full">
       <svg
         className={`absolute -top-1 -right-1 h-24 w-24 ${shapeColor}`}
         fill="currentColor"
@@ -39,11 +40,17 @@ export function DashboardWidget({
         <Icon className={`h-8 w-8 ${iconColor}`} />
       </CardHeader>
       <CardContent className="z-10 relative">
-        {value && <div className="text-xl font-bold font-headline sm:text-lg md:text-xl lg:text-2xl mt-1">{value}</div>}
-        <p className={cn("text-sm font-bold", iconColor)}>
+        {value ? (
+           <>
+            <div className="text-xl font-bold font-headline sm:text-lg md:text-xl lg:text-2xl mt-1">{value}</div>
+            <p className="text-xs text-muted-foreground">{description}</p>
+          </>
+        ) : (
+          <p className={cn("text-sm text-muted-foreground", iconColor)}>
             {description}
-        </p>
+          </p>
+        )}
       </CardContent>
     </Card>
   );
-}
+});

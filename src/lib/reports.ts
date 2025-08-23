@@ -72,6 +72,7 @@ export type FlashReportDetails = {
     locationCity: string;
     locationProvince: string;
     documentUrls?: string[];
+    testResults?: any[]; // For compatibility
 };
 
 // --- Inspection Report (QMS) ---
@@ -91,6 +92,7 @@ export type InspectionReportDetails = {
     locationProvince: string;
     result: 'Accept' | 'Reject';
     documentUrls?: string[];
+    testResults?: any[]; // For compatibility
 };
 
 

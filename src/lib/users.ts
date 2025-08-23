@@ -37,6 +37,8 @@ export type Role = {
   isEditable: boolean;
 };
 
+export type UserStatus = 'Active' | 'Pending Approval';
+
 export type User = {
   uid: string;
   name: string;
@@ -45,7 +47,8 @@ export type User = {
   branchId: string;
   avatarUrl: string;
   signatureUrl?: string;
-  assignedProjectIds?: number[];
+  assignedProjectIds?: string[];
+  status: UserStatus;
 };
 
 export type Branch = {

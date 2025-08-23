@@ -23,7 +23,7 @@ export function AppWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
 
-  const isPublicPath = pathname === '/login' || pathname === '/register';
+  const isPublicPath = pathname === '/login' || pathname === '/register' || pathname === '/pending-approval';
 
   useEffect(() => {
     if (isInitializing) {
@@ -32,7 +32,7 @@ export function AppWrapper({ children }: { children: React.ReactNode }) {
     if (!isAuthenticated && !isPublicPath) {
       router.push('/login');
     }
-  }, [isAuthenticated, isInitializing, isPublicPath, router]);
+  }, [isAuthenticated, isInitializing, isPublicPath, user, router]);
 
   if (isInitializing || (!isAuthenticated && !isPublicPath)) {
     return (

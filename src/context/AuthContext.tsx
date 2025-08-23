@@ -23,8 +23,10 @@ import {
 } from '@/lib/users';
 import { useToast } from '@/hooks/use-toast';
 import { getFirestore, collection, doc, getDocs, setDoc, updateDoc, onSnapshot, deleteDoc, Unsubscribe, getDoc } from 'firebase/firestore';
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, type User as FirebaseUser } from 'firebase/auth';
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, type User as FirebaseUser, EmailAuthProvider, reauthenticateWithCredential, updatePassword as firebaseUpdatePassword } from 'firebase/auth';
 import { app } from '@/lib/firebase'; 
+import { uploadFile } from '@/lib/storage';
+
 
 const db = getFirestore(app);
 const auth = getAuth(app);
@@ -49,7 +51,8 @@ type AuthContextType = {
   roles: Role[];
   branches: Branch[];
   permissions: readonly Permission[];
-  updateUser: (uid: string, data: Partial<User>) => Promise<void>;
+  updateUser: (uid: string, data: Partial<User>, newSignatureFile?: File | null) => Promise<void>;
+  updatePassword: (currentPass: string, newPass: string) => Promise<void>;
   addRole: (roleData: { name: string; permissions: Permission[] }) => void;
   updateRole: (
     roleId: string,
@@ -181,7 +184,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             branchId,
             avatarUrl: '',
             assignedProjectIds: [],
-            isAdmin: false, 
+            status: 'Pending Approval',
         };
 
         await setDoc(doc(db, "users", firebaseUser.uid), newUserProfile);
@@ -207,18 +210,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [router, toast]);
 
-  const updateUser = useCallback(async (uid: string, data: Partial<User>) => {
+  const updateUser = useCallback(async (uid: string, data: Partial<User>, newSignatureFile?: File | null) => {
     if (!uid) {
         console.error("updateUser called with invalid UID.");
         return;
     }
+
+    const updateData: Partial<User> = { ...data };
+
+    if (newSignatureFile) {
+        const signatureUrl = await uploadFile(newSignatureFile, `signatures/${uid}/${newSignatureFile.name}`);
+        updateData.signatureUrl = signatureUrl;
+    } else if (data.signatureUrl === '') {
+        // Handle removal of signature
+        updateData.signatureUrl = '';
+    }
+
     try {
-        await updateDoc(doc(db, 'users', uid), data);
+        await updateDoc(doc(db, 'users', uid), updateData);
     } catch(error) {
         console.error("Failed to update user:", error);
         toast({ variant: 'destructive', title: 'Update Failed', description: 'Could not save user changes.' });
     }
   }, [toast]);
+  
+  const updatePassword = useCallback(async (currentPass: string, newPass: string) => {
+    const firebaseUser = auth.currentUser;
+    if (!firebaseUser || !firebaseUser.email) {
+        throw new Error("No user is currently signed in.");
+    }
+    const credential = EmailAuthProvider.credential(firebaseUser.email, currentPass);
+    try {
+        await reauthenticateWithCredential(firebaseUser, credential);
+        await firebaseUpdatePassword(firebaseUser, newPass);
+    } catch (error: any) {
+        console.error("Password update failed:", error);
+        if (error.code === 'auth/wrong-password') {
+            throw new Error("The current password you entered is incorrect.");
+        }
+        throw new Error("Failed to update password. Please try again later.");
+    }
+  }, []);
 
   const addRole = useCallback(async (roleData: { name: string; permissions: Permission[] }) => {
     const newRoleRef = doc(collection(db, 'roles'));
@@ -267,11 +299,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const contextValue = useMemo(() => ({
     isAuthenticated, user, users, roles, branches, permissions,
-    updateUser, addRole, updateRole, deleteRole,
+    updateUser, updatePassword, addRole, updateRole, deleteRole,
     userHasPermission, isHqUser, isInitializing, login, register, logout,
   }), [
     isAuthenticated, user, users, roles, branches,
-    updateUser, addRole, updateRole, deleteRole, 
+    updateUser, updatePassword, addRole, updateRole, deleteRole, 
     userHasPermission, isHqUser, isInitializing, login, register, logout
   ]);
 

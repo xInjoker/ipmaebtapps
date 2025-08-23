@@ -28,7 +28,7 @@ export type Allowance = {
 export type TripApprovalAction = {
     actorId: string;
     actorName: string;
-    status: TripStatus;
+    status: TripStatus | 'Submitted'; // Adding submitted for clarity
     comments?: string;
     timestamp: string; // ISO Date String
 }
