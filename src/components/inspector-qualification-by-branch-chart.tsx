@@ -33,7 +33,7 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>)
     if (active && payload && payload.length) {
         const data = payload[0].payload;
         const qualifications = data.qualifications || {};
-        const qualificationEntries = Object.entries(qualifications).filter(([, count]) => count > 0);
+        const qualificationEntries = Object.entries(qualifications).filter(([, count]) => Number(count) > 0);
 
         return (
             <div className="min-w-[12rem] rounded-lg border bg-background p-2 text-sm shadow-sm">
@@ -44,7 +44,7 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>)
                     {qualificationEntries.map(([qual, count]) => (
                          <div key={qual} className="flex items-center justify-between">
                             <span className="text-muted-foreground">{qual}</span>
-                            <span className="font-bold">{count}</span>
+                            <span className="font-bold">{Number(count)}</span>
                         </div>
                     ))}
                 </div>
