@@ -12,6 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 import { cn } from "@/lib/utils";
 import { CheckCircle, Clock, XCircle } from 'lucide-react';
+import { Separator } from "./ui/separator";
 
 type EquipmentCalibrationByBranchChartProps = {
   equipment: EquipmentItem[];
