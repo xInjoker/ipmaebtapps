@@ -34,7 +34,7 @@ export function AppWrapper({ children }: { children: React.ReactNode }) {
     }
   }, [isAuthenticated, isInitializing, isPublicPath, user, router]);
 
-  if (isInitializing || (!isAuthenticated && !isPublicPath)) {
+  if ((isInitializing || !user) && !isPublicPath) {
     return (
       <div className="flex h-screen items-center justify-center">
         <Loader className="h-8 w-8 animate-spin" />
