@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -20,15 +20,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { ArrowLeft, Calendar as CalendarIcon, Loader2, Save, Upload, File as FileIcon, X, Image as ImageIcon, PlusCircle } from 'lucide-react';
+import { ArrowLeft, Loader2, Save, Upload, File as FileIcon, X, Image as ImageIcon, PlusCircle } from 'lucide-react';
 import { format } from 'date-fns';
-import { cn, getAvatarColor, getInitials } from '@/lib/utils';
+import { getAvatarColor, getInitials } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { useInspectors } from '@/context/InspectorContext';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { fileToBase64 } from '@/lib/utils';
+import { DatePicker } from '@/components/ui/date-picker';
 
 
 export default function NewEquipmentPage() {
@@ -148,9 +148,13 @@ export default function NewEquipmentPage() {
             description: `Successfully added ${newEquipment.name}.`,
         });
 
-        setTimeout(() => router.push('/equipment'), 500);
+        router.push('/equipment');
     } catch (error) {
-        toast({ variant: 'destructive', title: 'Save Failed', description: 'Could not add the new equipment.' });
+        if (error instanceof Error) {
+          toast({ variant: 'destructive', title: 'Save Failed', description: error.message });
+        } else {
+          toast({ variant: 'destructive', title: 'Save Failed', description: 'Could not add the new equipment.' });
+        }
     } finally {
         setIsSaving(false);
     }
@@ -209,29 +213,10 @@ export default function NewEquipmentPage() {
             </div>
             <div className="space-y-2">
                 <Label htmlFor="calibrationDate">Calibration Due Date</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                      <Button
-                          id="calibrationDate"
-                          variant={"outline"}
-                          className={cn(
-                              "w-full justify-start text-left font-normal",
-                              !calibrationDate && "text-muted-foreground"
-                          )}
-                      >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {calibrationDate ? format(calibrationDate, "PPP") : <span>Pick a date</span>}
-                      </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                      <Calendar
-                          mode="single"
-                          selected={calibrationDate}
-                          onSelect={(date) => setNewEquipment({...newEquipment, calibrationDueDate: date ? format(date, 'yyyy-MM-dd') : ''})}
-                          initialFocus
-                      />
-                  </PopoverContent>
-                </Popover>
+                <DatePicker 
+                    value={calibrationDate} 
+                    onChange={(date) => setNewEquipment({...newEquipment, calibrationDueDate: date ? format(date, 'yyyy-MM-dd') : ''})} 
+                />
             </div>
             <div className="space-y-2">
                 <Label htmlFor="status">Status</Label>
@@ -243,8 +228,13 @@ export default function NewEquipmentPage() {
                 </Select>
             </div>
             <div className="space-y-2 md:col-span-2">
-                <Label>Authorized Personnel</Label>
+                <Label>Authorized Personnel (Optional)</Label>
                 <div className="space-y-2">
+                     {assignedInspectors.length === 0 && (
+                        <div className="text-sm text-center text-muted-foreground p-4 border rounded-md">
+                            No personnel assigned. This is a general tool.
+                        </div>
+                    )}
                     {assignedInspectors.map(inspector => {
                         const avatarColor = getAvatarColor(inspector.name);
                         return (
@@ -278,7 +268,7 @@ export default function NewEquipmentPage() {
                     <PopoverTrigger asChild>
                         <Button variant="outline" className="w-full mt-2">
                             <PlusCircle className="mr-2 h-4 w-4" />
-                            Add Personnel
+                            Add/Remove Personnel
                         </Button>
                     </PopoverTrigger>
                     <PopoverContent className="p-0" align="start">
@@ -333,7 +323,7 @@ export default function NewEquipmentPage() {
                             <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> or drag and drop</p>
                             <p className="text-xs text-muted-foreground">PNG, JPG, GIF</p>
                         </div>
-                        <Input id="image-upload" type="file" className="hidden" multiple onChange={handleImageChange} accept="image/*" />
+                        <Input id="image-upload" type="file" className="hidden" multiple onChange={handleImageChange} accept="image/png, image/jpeg, image/gif" />
                     </label>
                 </div>
                  {images.length > 0 && (
@@ -363,7 +353,7 @@ export default function NewEquipmentPage() {
                             <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> or drag and drop</p>
                             <p className="text-xs text-muted-foreground">PDF, DOCX, XLSX</p>
                         </div>
-                        <Input id="document-upload" type="file" className="hidden" multiple onChange={(e) => handleFileChange(e, setDocuments)} />
+                        <Input id="document-upload" type="file" className="hidden" multiple onChange={(e) => handleFileChange(e, setDocuments)} accept=".pdf,.doc,.docx,.xls,.xlsx" />
                     </label>
                 </div>
                  {documents.length > 0 && (

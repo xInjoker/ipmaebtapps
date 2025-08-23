@@ -16,7 +16,7 @@ import { formatQualificationName, getDocumentStatus } from '@/lib/utils';
 import { HeaderCard } from '@/components/header-card';
 import { DashboardWidget } from '@/components/dashboard-widget';
 import { useEmployees } from '@/context/EmployeeContext';
-import { type Inspector } from '@/lib/inspectors';
+import { type Inspector, inspectorPositions, type InspectorDocument } from '@/lib/inspectors';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 
@@ -48,12 +48,12 @@ export default function InspectorsPage() {
   }, [branches]);
   
   const combinedPersonnel: CombinedPersonnel[] = useMemo(() => {
-    const inspectorPersonnel = inspectors.map(i => ({ ...i, type: 'Inspector' as const, branchId: i.branchId }));
-    const promotedEmployees = employees
-      .filter(e => e.isPromotedToInspector)
+    const inspectorPersonnel: CombinedPersonnel[] = inspectors.map(i => ({ ...i, type: 'Inspector' as const, branchId: i.branchId }));
+    const promotedEmployees: CombinedPersonnel[] = employees
+      .filter(e => e.isPromotedToInspector && e.id)
       .map(e => {
         let yearsOfExperience = 0;
-        if (e.contractStartDate) {
+        if (e.contractStartDate && !isNaN(new Date(e.contractStartDate).getTime())) {
             const startDate = new Date(e.contractStartDate);
             const today = new Date();
             yearsOfExperience = today.getFullYear() - startDate.getFullYear();
@@ -63,17 +63,17 @@ export default function InspectorsPage() {
             }
         }
         return {
-            id: e.id,
+            id: e.id!,
             name: e.name || 'Unknown',
             email: e.email || '',
             phone: e.phoneNumber || '',
-            position: e.position || 'Employee',
-            employmentStatus: 'Freelance', // All project-based are considered freelance here
+            position: 'Inspector',
+            employmentStatus: 'Organik' as Inspector['employmentStatus'],
             yearsOfExperience: yearsOfExperience > 0 ? yearsOfExperience : undefined,
             avatarUrl: '', // Employees don't have this
             cvUrl: e.cvUrl || '',
-            qualifications: e.qualifications || [],
-            otherDocuments: e.otherDocuments || [],
+            qualifications: (e.qualifications as InspectorDocument[]) || [],
+            otherDocuments: (e.otherDocuments as InspectorDocument[]) || [],
             branchId: e.workUnit || '',
             type: 'Employee' as const,
         };
@@ -211,7 +211,7 @@ export default function InspectorsPage() {
             </div>
         </CardContent>
       </Card>
-
+      
       {isLoading && combinedPersonnel.length === 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
           {[...Array(4)].map((_, i) => (

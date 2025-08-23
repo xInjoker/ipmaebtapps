@@ -43,6 +43,8 @@ import { useAuth } from '@/context/AuthContext';
 import { Separator } from '@/components/ui/separator';
 import { CurrencyInput } from '@/components/ui/currency-input';
 import Link from 'next/link';
+import { DateRangePicker } from './ui/date-picker';
+import { useProjects } from '@/context/ProjectContext';
 
 interface ProjectFormProps {
   project?: Project | null;
@@ -51,7 +53,8 @@ interface ProjectFormProps {
 }
 
 export function ProjectForm({ project, onSave, isLoading }: ProjectFormProps) {
-  const { user, isHqUser, branches } = useAuth();
+  const { user, isHqUser, branches, users, roles } = useAuth();
+  const { projects } = useProjects();
   const [formData, setFormData] = useState<Partial<Project>>({});
   
   const [contractFile, setContractFile] = useState<File | null>(null);
@@ -59,6 +62,12 @@ export function ProjectForm({ project, onSave, isLoading }: ProjectFormProps) {
   const [otherFiles, setOtherFiles] = useState<File[]>([]);
 
   const [date, setDate] = useState<DateRange | undefined>(undefined);
+
+  const projectManagers = useMemo(() => {
+    const projectManagerRole = roles.find(r => r.id === 'project-manager');
+    if (!projectManagerRole) return [];
+    return users.filter(u => u.roleId === projectManagerRole.id);
+  }, [users, roles]);
 
   useEffect(() => {
     if (project) {
@@ -76,8 +85,13 @@ export function ProjectForm({ project, onSave, isLoading }: ProjectFormProps) {
         if (!isHqUser && user) {
             setFormData(prev => ({...prev, contractExecutor: user.branchId}));
         }
+        if (user?.roleId === 'project-manager') {
+          setFormData(prev => ({...prev, projectManagerId: user.uid}));
+        } else {
+          setFormData(prev => ({...prev, projectManagerId: null}));
+        }
     }
-  }, [project, user, isHqUser]);
+  }, [project, user, isHqUser, roles]);
 
   const availableServices = useMemo(() => {
     if (!formData.subPortfolio) return [];
@@ -142,7 +156,7 @@ export function ProjectForm({ project, onSave, isLoading }: ProjectFormProps) {
 
   const removeExistingDocument = (docType: 'contract' | 'rab' | 'other', urlToRemove: string) => {
     setFormData(prev => {
-        if (!prev) return null;
+        if (!prev) return prev;
         if (docType === 'contract') return { ...prev, contractUrl: undefined };
         if (docType === 'rab') return { ...prev, rabUrl: undefined };
         if (docType === 'other') {
@@ -196,28 +210,28 @@ export function ProjectForm({ project, onSave, isLoading }: ProjectFormProps) {
             <div className="grid gap-6 md:grid-cols-2">
                 <div className="space-y-2">
                     <Label htmlFor="portfolio">Portfolio</Label>
-                    <Select value={formData.portfolio || ''} onValueChange={(value) => handleSelectChange('portfolio', value)}>
+                    <Select value={formData.portfolio || ''} onValueChange={(value: (typeof portfolios)[number]) => handleSelectChange('portfolio', value)}>
                         <SelectTrigger id="portfolio"><SelectValue placeholder="Select a portfolio" /></SelectTrigger>
                         <SelectContent>{portfolios.map((p) => (<SelectItem key={p} value={p}>{p}</SelectItem>))}</SelectContent>
                     </Select>
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="subPortfolio">Sub-Portfolio</Label>
-                    <Select value={formData.subPortfolio || ''} onValueChange={(value) => handleSelectChange('subPortfolio', value)}>
+                    <Select value={formData.subPortfolio || ''} onValueChange={(value: (typeof subPortfolios)[number]) => handleSelectChange('subPortfolio', value)}>
                         <SelectTrigger id="subPortfolio"><SelectValue placeholder="Select a sub-portfolio" /></SelectTrigger>
                         <SelectContent>{subPortfolios.map((sp) => (<SelectItem key={sp} value={sp}>{sp}</SelectItem>))}</SelectContent>
                     </Select>
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="serviceCode">Service Code</Label>
-                    <Select value={formData.serviceCode || ''} onValueChange={(value) => handleSelectChange('serviceCode', value)} disabled={!formData.subPortfolio}>
+                    <Select value={formData.serviceCode || ''} onValueChange={(value: string) => handleSelectChange('serviceCode', value)} disabled={!formData.subPortfolio}>
                         <SelectTrigger id="serviceCode"><SelectValue placeholder="Select a service code" /></SelectTrigger>
                         <SelectContent>{availableServices.map((s) => (<SelectItem key={s.code} value={s.code}>{s.code}</SelectItem>))}</SelectContent>
                     </Select>
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="serviceName">Service Name</Label>
-                    <Select value={formData.serviceName || ''} onValueChange={(value) => handleSelectChange('serviceName', value)} disabled={!formData.subPortfolio}>
+                    <Select value={formData.serviceName || ''} onValueChange={(value: string) => handleSelectChange('serviceName', value)} disabled={!formData.subPortfolio}>
                         <SelectTrigger id="serviceName"><SelectValue placeholder="Select a service name" /></SelectTrigger>
                         <SelectContent>{availableServices.map((s) => (<SelectItem key={s.name} value={s.name}>{s.name}</SelectItem>))}</SelectContent>
                     </Select>
@@ -243,6 +257,16 @@ export function ProjectForm({ project, onSave, isLoading }: ProjectFormProps) {
                     <Label htmlFor="client">Client</Label>
                     <Input id="client" value={formData.client || ''} onChange={handleInputChange} placeholder="Client name" />
                 </div>
+                <div className="space-y-2">
+                    <Label htmlFor="projectManager">Project Manager</Label>
+                    <Select value={formData.projectManagerId || 'unassigned'} onValueChange={(value) => handleSelectChange('projectManagerId', value === 'unassigned' ? null : value)}>
+                        <SelectTrigger id="projectManager"><SelectValue placeholder="Assign a Project Manager" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="unassigned">Unassigned</SelectItem>
+                          {projectManagers.map((pm) => (<SelectItem key={pm.uid} value={pm.uid}>{pm.name}</SelectItem>))}
+                        </SelectContent>
+                    </Select>
+                </div>
                 <div className="space-y-2 md:col-span-2">
                     <Label htmlFor="name">Contract Title</Label>
                     <Textarea id="name" value={formData.name || ''} onChange={handleInputChange} placeholder="Enter the full contract title" rows={3} />
@@ -262,18 +286,8 @@ export function ProjectForm({ project, onSave, isLoading }: ProjectFormProps) {
             <Separator />
             <div className="grid gap-6 md:grid-cols-2">
                 <div className="space-y-2">
-                <Label htmlFor="period">Period</Label>
-                <Popover>
-                    <PopoverTrigger asChild>
-                    <Button id="period" variant={"outline"} className={cn("w-full justify-start text-left font-normal", !date && "text-muted-foreground")}>
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {date?.from ? (date.to ? (<>{format(date.from, "LLL dd, y")} - {format(date.to, "LLL dd, y")}</>) : (format(date.from, "LLL dd, y"))) : (<span>Pick a date range</span>)}
-                    </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar initialFocus mode="range" defaultMonth={date?.from} selected={date} onSelect={setDate} numberOfMonths={2} />
-                    </PopoverContent>
-                </Popover>
+                    <Label htmlFor="period">Period</Label>
+                    <DateRangePicker value={date} onChange={setDate} />
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor="duration">Duration</Label>
@@ -302,7 +316,7 @@ export function ProjectForm({ project, onSave, isLoading }: ProjectFormProps) {
                                 <Upload className="w-8 h-8 mb-3 text-muted-foreground" />
                                 <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span></p>
                             </div>
-                            <Input id="contract-upload" type="file" className="hidden" onChange={(e) => handleFileChange(setContractFile, e)} />
+                            <Input id="contract-upload" type="file" className="hidden" accept=".pdf,.doc,.docx" onChange={(e) => handleFileChange(setContractFile, e)} />
                         </label>
                     </div>
                     {contractFile && (
@@ -326,7 +340,7 @@ export function ProjectForm({ project, onSave, isLoading }: ProjectFormProps) {
                                 <Upload className="w-8 h-8 mb-3 text-muted-foreground" />
                                 <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span></p>
                             </div>
-                            <Input id="rab-upload" type="file" className="hidden" onChange={(e) => handleFileChange(setRabFile, e)} />
+                            <Input id="rab-upload" type="file" className="hidden" accept=".pdf,.xls,.xlsx" onChange={(e) => handleFileChange(setRabFile, e)} />
                         </label>
                     </div>
                     {rabFile && (

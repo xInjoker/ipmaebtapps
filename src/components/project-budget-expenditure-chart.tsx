@@ -11,13 +11,13 @@ import {
   ChartLegend,
   ChartLegendContent,
 } from '@/components/ui/chart';
-import { useMemo } from 'react';
-import type { Project } from '@/lib/data';
+import { useMemo, memo } from 'react';
+import type { Project, ExpenditureItem } from '@/lib/projects';
 import { formatCurrency, formatCurrencyCompact } from '@/lib/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 
 type ProjectBudgetExpenditureChartProps = {
-  project: Project;
+  project: Project | null;
 };
 
 const chartConfig: ChartConfig = {
@@ -31,14 +31,14 @@ const chartConfig: ChartConfig = {
   },
 };
 
-export function ProjectBudgetExpenditureChart({ project }: ProjectBudgetExpenditureChartProps) {
+export const ProjectBudgetExpenditureChart = memo(function ProjectBudgetExpenditureChart({ project }: ProjectBudgetExpenditureChartProps) {
   const chartData = useMemo(() => {
     if (!project) return [];
     
     const costs = project.costs || [];
     const budgets = project.budgets || {};
     
-    const spentByCategory = costs.reduce((acc, item) => {
+    const spentByCategory = costs.reduce((acc: Record<string, number>, item: ExpenditureItem) => {
         if (item.status === 'Approved') {
             acc[item.category] = (acc[item.category] || 0) + item.amount;
         }
@@ -46,7 +46,7 @@ export function ProjectBudgetExpenditureChart({ project }: ProjectBudgetExpendit
     }, {} as { [category: string]: number });
 
     return Object.entries(budgets)
-      .filter(([, budgetValue]) => budgetValue > 0)
+      .filter(([, budgetValue]) => (budgetValue ?? 0) > 0)
       .map(([category, budgetValue]) => ({
         name: category,
         budget: budgetValue,
@@ -90,4 +90,4 @@ export function ProjectBudgetExpenditureChart({ project }: ProjectBudgetExpendit
         </CardContent>
     </Card>
   );
-}
+});

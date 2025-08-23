@@ -2,7 +2,7 @@
 "use client"
 
 import * as React from "react"
-import { Pie, PieChart, Cell, Sector } from 'recharts';
+import { Pie, PieChart, Cell, Sector, PieProps } from 'recharts';
 import {
   ChartContainer,
   ChartTooltip,
@@ -13,21 +13,31 @@ import {
 } from '@/components/ui/chart';
 import { useMemo, useState } from 'react';
 import type { Project } from '@/lib/projects';
-import { formatCurrency, formatCurrencyCompact } from "@/lib/utils";
+import { formatCurrencyCompact } from "@/lib/utils";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 
 type ProjectCostPieChartProps = {
-  project: Project;
+  project: Project | null;
 };
+
+interface ChartProps extends PieProps {
+  cx: number;
+  cy: number;
+  innerRadius: number;
+  outerRadius: number;
+  startAngle: number;
+  endAngle: number;
+  fill: string;
+  payload: { name: string; value: number };
+}
 
 const chartConfig = {
   'PT dan PTT': { label: 'PT dan PTT', color: 'hsl(var(--chart-1))' },
   'PTT Project': { label: 'PTT Project', color: 'hsl(var(--chart-2))' },
-  'Tenaga Ahli dan Labour Supply': { label: 'Tenaga Ahli & LS', color: 'hsl(var(--chart-3))' },
+  'Tenaga Ahli dan Labour Supply': { label: 'Tenaga Ahli & LS', color: 'hsl(var(--indigo))' },
   'Perjalanan Dinas': { label: 'Perjalanan Dinas', color: 'hsl(var(--chart-4))' },
   'Operasional': { label: 'Operasional', color: 'hsl(var(--chart-5))' },
-  'Fasilitas dan Interen': { label: 'Fasilitas & Interen', color: 'hsl(var(--chart-1))' },
+  'Fasilitas dan Interen': { label: 'Fasilitas & Interen', color: 'hsl(var(--info))' },
   'Amortisasi': { label: 'Amortisasi', color: 'hsl(var(--chart-2))' },
   'Kantor dan Diklat': { label: 'Kantor & Diklat', color: 'hsl(var(--chart-3))' },
   'Promosi': { label: 'Promosi', color: 'hsl(var(--chart-4))' },
@@ -68,29 +78,20 @@ const renderActiveShape = (props: any, totalValue: number) => {
     );
 };
 
-export function ProjectCostPieChart({ project }: ProjectCostPieChartProps) {
+export const ProjectCostPieChart = React.memo(function ProjectCostPieChart({ project }: ProjectCostPieChartProps) {
   const [activeIndex, setActiveIndex] = useState(0);
-  const [selectedYear, setSelectedYear] = useState('all');
 
   const onPieEnter = React.useCallback(
-    (_: any, index: number) => {
+    (_: unknown, index: number) => {
       setActiveIndex(index);
     },
     [setActiveIndex]
   );
   
-  const availableYears = useMemo(() => {
-    if (!project) return ['all'];
-    const years = new Set((project.costs || []).map(i => i.period.split(' ')[1]).filter(Boolean));
-    return ['all', ...Array.from(years).sort((a, b) => Number(b) - Number(a))];
-  }, [project]);
-
   const { chartData, totalCost } = useMemo(() => {
     if (!project) return { chartData: [], totalCost: 0 };
     
-    const filteredCosts = selectedYear === 'all'
-        ? (project.costs || [])
-        : (project.costs || []).filter(exp => exp.period.endsWith(selectedYear));
+    const filteredCosts = project.costs || [];
 
     const costByCategory = filteredCosts
       .filter(exp => exp.status === 'Approved')
@@ -108,22 +109,16 @@ export function ProjectCostPieChart({ project }: ProjectCostPieChartProps) {
     }));
     
     return { chartData: data, totalCost: total };
-  }, [project, selectedYear]);
+  }, [project]);
 
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader>
         <div>
             <CardTitle>Cost Realization</CardTitle>
             <CardDescription>A pie chart breakdown of all project costs by category.</CardDescription>
         </div>
-         <Select value={selectedYear} onValueChange={setSelectedYear}>
-          <SelectTrigger className="w-[120px]"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            {availableYears.map(year => <SelectItem key={year} value={year}>{year}</SelectItem>)}
-          </SelectContent>
-        </Select>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="h-[400px] w-full">
@@ -138,7 +133,7 @@ export function ProjectCostPieChart({ project }: ProjectCostPieChartProps) {
                     />
                     <Pie
                       activeIndex={activeIndex}
-                      activeShape={(props) => renderActiveShape(props, totalCost)}
+                      activeShape={(props: any) => renderActiveShape(props, totalCost)}
                       onMouseEnter={onPieEnter}
                       data={chartData}
                       dataKey="value"
@@ -168,4 +163,4 @@ export function ProjectCostPieChart({ project }: ProjectCostPieChartProps) {
       </CardContent>
     </Card>
   );
-}
+});

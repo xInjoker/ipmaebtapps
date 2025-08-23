@@ -1,10 +1,10 @@
 
+
 'use client';
 
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -16,308 +16,403 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-  ChartConfig,
-} from '@/components/ui/chart';
-import { Bar, BarChart, CartesianGrid, XAxis, Pie, PieChart, Cell } from 'recharts';
-import { TrendingUp, CircleDollarSign, ListTodo, Receipt, Wrench, ClipboardEdit, Plane, FileText, GanttChart, Clock } from 'lucide-react';
 import { useMemo } from 'react';
 import { useProjects } from '@/context/ProjectContext';
 import { useAuth } from '@/context/AuthContext';
 import { useTenders } from '@/context/TenderContext';
-import { formatCurrency, formatCurrencyMillions } from '@/lib/utils';
+import { formatCurrencyCompact } from '@/lib/utils';
 import { HeaderCard } from '@/components/header-card';
 import { DashboardWidget } from '@/components/dashboard-widget';
 import Link from 'next/link';
+import { type TenderStatus } from '@/lib/tenders';
+import { Briefcase, CheckCircle, CircleDollarSign, Clock, ListTodo, TrendingDown, TrendingUp, Users2, Wrench, XCircle, BadgeCheck, FileText, Layers, Plane, Percent } from 'lucide-react';
+import { useInspectors } from '@/context/InspectorContext';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { TenderSummaryChart } from '@/components/tender-summary-chart';
+import { TenderBranchChart } from '@/components/tender-branch-chart';
+import { CumulativeCostPieChart } from '@/components/cumulative-cost-pie-chart';
+import { format } from 'date-fns';
+import { useEquipment } from '@/context/EquipmentContext';
+import { TenderCountChart } from '@/components/tender-count-chart';
+import { type Inspector, type InspectorDocument } from '@/lib/inspectors';
+import { useEmployees } from '@/context/EmployeeContext';
+import { InspectorCountByBranchChart } from '@/components/inspector-count-by-branch-chart';
+import { InspectorCertificateStatusChart } from '@/components/inspector-certificate-status-chart';
+import { EquipmentStatusChart } from '@/components/equipment-status-chart';
+import { EquipmentByTypeChart } from '@/components/equipment-by-type-chart';
+import { EquipmentCalibrationByBranchChart } from '@/components/equipment-calibration-by-branch-chart';
+import { CumulativeIncomePieChart } from '@/components/cumulative-income-pie-chart';
+import { InspectorQualificationChart } from '@/components/inspector-qualification-chart';
+import { InspectorQualificationHeatmap } from '@/components/inspector-qualification-heatmap';
 
+type CombinedPersonnel = Inspector & { type: 'Inspector' | 'Employee' };
 
-const chartConfig: ChartConfig = {
-  invoiced: {
-    label: 'Invoiced',
-    color: 'hsl(var(--chart-1))',
-  },
-  paid: {
-    label: 'Paid',
-    color: 'hsl(var(--chart-2))',
-  },
-};
-
-const upcomingTasks = [
-  { task: 'Prepare Q3 Financial Report', dueDate: '2024-07-15', status: 'In Progress' },
-  { task: 'Client Meeting for Project Alpha', dueDate: '2024-07-10', status: 'Pending' },
-  { task: 'Submit Invoice #INV-007', dueDate: '2024-07-12', status: 'Pending' },
-  { task: 'Finalize Milestone 2 Deliverables', dueDate: '2024-07-20', status: 'Todo' },
-];
 
 export default function DashboardPage() {
+  const { user, branches } = useAuth();
   const { projects, getProjectStats } = useProjects();
-  const { user, isHqUser, branches } = useAuth();
-  const { widgetData: tenderWidgets } = useTenders();
+  const { tenders } = useTenders();
+  const { inspectorStats } = useInspectors();
+  const { equipmentList } = useEquipment();
+  const { employees } = useEmployees();
 
-  const visibleProjects = useMemo(() => {
-    if (!user) return [];
-    if (user.roleId === 'project-admin') {
-      return projects.filter(p => user.assignedProjectIds?.includes(p.id));
-    }
-    if (isHqUser) return projects;
-    return projects.filter(p => p.branchId === user.branchId);
-  }, [projects, user, isHqUser]);
-
-  const projectStats = useMemo(() => getProjectStats(visibleProjects), [visibleProjects, getProjectStats]);
-
-  const monthlyInvoicingData = useMemo(() => {
-    if (!visibleProjects) return [];
-
-    const dataByMonth: { [key: string]: { month: string; invoiced: number; paid: number } } = {};
-    const monthOrder: { [key:string]: number } = {
-      'January': 1, 'February': 2, 'March': 3, 'April': 4, 'May': 5, 'June': 6,
-      'July': 7, 'August': 8, 'September': 9, 'October': 10, 'November': 11, 'December': 12
-    };
-
-    visibleProjects.forEach(project => {
-        project.invoices.forEach(invoice => {
-            const [month, year] = invoice.period.split(' ');
-            if (!month || !year || !monthOrder[month]) return;
-
-            const sortKey = `${year}-${String(monthOrder[month]).padStart(2, '0')}`;
-
-            if (!dataByMonth[sortKey]) {
-                dataByMonth[sortKey] = { month: `${month.slice(0, 3)} '${year.slice(2)}`, invoiced: 0, paid: 0 };
+  // --- Combined Personnel for Inspector Tab ---
+  const combinedPersonnel: CombinedPersonnel[] = useMemo(() => {
+    const inspectorsFromDb: CombinedPersonnel[] = inspectorStats.inspectors.map(i => ({ ...i, type: 'Inspector' as const, branchId: i.branchId }));
+    const promotedEmployees: CombinedPersonnel[] = employees
+      .filter(e => e.isPromotedToInspector && e.id)
+      .map(e => {
+        let yearsOfExperience = 0;
+        if (e.contractStartDate && !isNaN(new Date(e.contractStartDate).getTime())) {
+            const startDate = new Date(e.contractStartDate);
+            const today = new Date();
+            yearsOfExperience = today.getFullYear() - startDate.getFullYear();
+            const m = today.getMonth() - startDate.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < startDate.getDate())) {
+                yearsOfExperience--;
             }
+        }
+        return {
+            id: e.id!,
+            name: e.name || 'Unknown',
+            email: e.email || '',
+            phone: e.phoneNumber || '',
+            position: 'Inspector',
+            employmentStatus: 'Organik' as Inspector['employmentStatus'],
+            yearsOfExperience: yearsOfExperience > 0 ? yearsOfExperience : undefined,
+            avatarUrl: '',
+            cvUrl: e.cvUrl || '',
+            qualifications: (e.qualifications as InspectorDocument[]) || [],
+            otherDocuments: (e.otherDocuments as InspectorDocument[]) || [],
+            branchId: e.workUnit || '',
+            type: 'Employee' as const,
+        };
+      });
+    return [...inspectorsFromDb, ...promotedEmployees];
+  }, [inspectorStats.inspectors, employees]);
 
-            if (invoice.status === 'Invoiced' || invoice.status === 'Paid') {
-                dataByMonth[sortKey].invoiced += invoice.value;
-            }
-
-            if (invoice.status === 'Paid') {
-                dataByMonth[sortKey].paid += invoice.value;
-            }
-        });
-    });
-
-    return Object.keys(dataByMonth)
-        .sort()
-        .map(key => dataByMonth[key]);
-
-  }, [visibleProjects]);
-
-
-  const { welcomeDescription, projectWidgets, otherUserWidgets } = useMemo(() => {
-    let desc = `Here's an overview of the company's performance.`;
-    if (!isHqUser && user) {
-        const branchName = branches.find(b => b.id === user.branchId)?.name || 'your branch';
-        desc = `Here's an overview of activities for ${branchName}.`;
-    } else if (user?.roleId === 'project-admin') {
-        desc = `Here's an overview of your ${user.assignedProjectIds?.length || 0} assigned projects.`;
-    }
+  // --- Tender Segment Calculations ---
+  const tenderStats = useMemo(() => {
+    const currentYear = new Date().getFullYear();
+    const tendersToProcess = tenders.filter(t => new Date(t.submissionDate).getFullYear() === currentYear);
     
-    const pWidgets = [
-      {
-        title: 'Total Project Value',
-        value: formatCurrencyMillions(projectStats.totalProjectValue),
-        description: `Across ${visibleProjects.length} projects`,
-        icon: CircleDollarSign,
+    const initialStats = { count: 0, value: 0 };
+    const statusMetrics = tendersToProcess.reduce((acc, tender) => {
+        const status = tender.status;
+        if (!acc[status]) {
+            acc[status] = { count: 0, value: 0 };
+        }
+        acc[status].count += 1;
+        const value = tender.bidPrice || tender.ownerEstimatePrice || 0;
+        acc[status].value += value;
+        return acc;
+    }, {} as Record<TenderStatus, { count: number; value: number }>);
+
+    const awardedCount = statusMetrics['Awarded']?.count || 0;
+    const lostCount = statusMetrics['Lost']?.count || 0;
+    const totalDecided = awardedCount + lostCount;
+    const winRate = totalDecided > 0 ? (awardedCount / totalDecided) * 100 : 0;
+    
+    const tendersToWatch = tendersToProcess.filter(t => {
+      const subDate = new Date(t.submissionDate);
+      const today = new Date();
+      const nextWeek = new Date();
+      nextWeek.setDate(today.getDate() + 7);
+      return subDate >= today && subDate <= nextWeek;
+    }).length;
+
+    const topAwarded = tendersToProcess
+        .filter(t => t.status === 'Awarded')
+        .sort((a, b) => new Date(b.submissionDate).getTime() - new Date(a.submissionDate).getTime())
+        .slice(0, 5);
+
+    return {
+        inProgressValue: ['Aanwijzing', 'Bidding', 'Evaluation', 'Prequalification'].reduce((sum, s) => sum + (statusMetrics[s as TenderStatus]?.value || 0), 0),
+        winRate,
+        awardedValueYTD: statusMetrics['Awarded']?.value || 0,
+        tendersToWatch,
+        topUpcoming: tendersToProcess.filter(t => new Date(t.submissionDate) >= new Date()).sort((a,b) => new Date(a.submissionDate).getTime() - new Date(b.submissionDate).getTime()).slice(0,5),
+        topAwarded,
+        ytdTenders: tendersToProcess,
+    };
+  }, [tenders]);
+  
+  const tenderWidgets = useMemo(() => {
+      return [
+        {
+          title: 'Tender Value In Progress',
+          value: `${formatCurrencyCompact(tenderStats.inProgressValue)}`,
+          description: 'For active tenders this year',
+          icon: Clock,
+          iconColor: 'text-amber-500',
+          shapeColor: 'text-amber-500/10',
+        },
+        {
+          title: 'Win Rate (YTD)',
+          value: `${tenderStats.winRate.toFixed(1)}%`,
+          description: 'Of all decided tenders',
+          icon: TrendingUp,
+          iconColor: 'text-green-500',
+          shapeColor: 'text-green-500/10',
+        },
+        {
+          title: 'Awarded Value (YTD)',
+          value: `${formatCurrencyCompact(tenderStats.awardedValueYTD)}`,
+          description: 'Won this year',
+          icon: CircleDollarSign,
+          iconColor: 'text-blue-500',
+          shapeColor: 'text-blue-500/10',
+        },
+        {
+          title: 'Tenders to Watch',
+          value: `${tenderStats.tendersToWatch}`,
+          description: 'Due in the next 7 days',
+          icon: ListTodo,
+          iconColor: 'text-rose-500',
+          shapeColor: 'text-rose-500/10',
+        },
+      ];
+  }, [tenderStats]);
+
+
+  // --- Project Segment Calculations (YTD) ---
+  const projectsYTD = useMemo(() => {
+    const currentYear = new Date().getFullYear().toString();
+    return projects.map(p => ({
+        ...p,
+        invoices: (p.invoices || []).filter(i => i.period.endsWith(currentYear)),
+        costs: (p.costs || []).filter(c => c.period.endsWith(currentYear)),
+    }));
+  }, [projects]);
+  
+  const projectStats = useMemo(() => {
+    const stats = getProjectStats(projectsYTD);
+    const atRiskCount = projects.filter(p => {
+        const projectStats = getProjectStats([p]);
+        if (projectStats.totalCost === 0) return false;
+        
+        const earnedValue = p.value * ((projectStats.totalPaid + projectStats.totalInvoiced) / p.value);
+        const cpi = earnedValue / projectStats.totalCost;
+        return cpi < 1;
+    }).length;
+
+    const totalPAD = projectsYTD
+      .flatMap(p => p.invoices || [])
+      .filter(i => i.status === 'PAD')
+      .reduce((sum, i) => sum + i.value, 0);
+
+    return {
+      ...stats,
+      totalPAD,
+      outstandingCash: stats.totalInvoiced,
+      atRiskCount,
+      lowestMarginProjects: projects.map(p => {
+          const s = getProjectStats([p]);
+          const margin = s.totalIncome > 0 ? ((s.totalIncome - s.totalCost) / s.totalIncome) * 100 : 0;
+          return { name: p.name, id: p.id, margin: margin, contractExecutor: p.contractExecutor };
+      }).filter(p => p.margin < 10).sort((a, b) => a.margin - b.margin).slice(0, 5),
+    };
+  }, [projects, projectsYTD, getProjectStats]);
+  
+  const overallProfit = projectStats.totalIncome - projectStats.totalCost;
+  const overallProfitPercentage = projectStats.totalIncome > 0 ? (overallProfit / projectStats.totalIncome) * 100 : 0;
+  const profitLossDescription = overallProfit >= 0
+    ? `Currently profitable by ${overallProfitPercentage.toFixed(1)}%`
+    : `Currently at a loss by ${Math.abs(overallProfitPercentage).toFixed(1)}%`;
+  const padPercentage = projectStats.totalIncome > 0 ? (projectStats.totalPAD / projectStats.totalIncome) * 100 : 0;
+
+
+  // --- Inspector Segment Calculations ---
+  const inspectorWidgetData = useMemo(() => [
+    { title: 'Total Certified Inspectors', value: `${inspectorStats.total}`, description: 'inspectors in the database', icon: Users2, iconColor: 'text-blue-500', shapeColor: 'text-blue-500/10' },
+    { title: 'Total Valid Certificates', value: `${inspectorStats.validCerts}`, description: 'certificates are currently valid', icon: CheckCircle, iconColor: 'text-green-500', shapeColor: 'text-green-500/10' },
+    { title: 'Expiring Certificates', value: `${inspectorStats.expiringSoon}`, description: 'inspectors with certs expiring soon', icon: Clock, iconColor: 'text-amber-500', shapeColor: 'text-amber-500/10' },
+    { title: 'Expired Certificates', value: `${inspectorStats.expired}`, description: 'inspectors with expired certs', icon: XCircle, iconColor: 'text-rose-500', shapeColor: 'text-rose-500/10' },
+  ], [inspectorStats]);
+
+  // --- Equipment Segment Calculations ---
+  const equipmentStats = useMemo(() => {
+    const total = equipmentList.length;
+    const normal = equipmentList.filter(e => e.status === 'Normal').length;
+    
+    let validCerts = 0;
+    let expiredCerts = 0;
+
+    equipmentList.forEach(e => {
+        if (e.calibrationDueDate) {
+            const dueDate = new Date(e.calibrationDueDate);
+            const today = new Date();
+            const timeDiff = dueDate.getTime() - today.getTime();
+            const daysLeft = Math.ceil(timeDiff / (1000 * 3600 * 24));
+            
+            if (daysLeft < 0) {
+                expiredCerts++;
+            } else {
+                validCerts++;
+            }
+        }
+    });
+    return { total, normal, validCerts, expiredCerts };
+  }, [equipmentList]);
+
+  const equipmentWidgetData = useMemo(() => [
+    {
+        title: 'Total Equipment',
+        value: `${equipmentStats.total}`,
+        description: 'items in inventory',
+        icon: Wrench,
         iconColor: 'text-blue-500',
         shapeColor: 'text-blue-500/10',
-      },
-      {
-        title: 'Invoice Progress',
-        value: formatCurrencyMillions(projectStats.totalPaid),
-        description: 'Total invoices paid to date',
-        icon: TrendingUp,
+    },
+    {
+        title: 'Normal Status',
+        value: `${equipmentStats.normal}`,
+        description: 'equipment are operational',
+        icon: CheckCircle,
         iconColor: 'text-green-500',
         shapeColor: 'text-green-500/10',
-      },
-      {
-        title: 'Upcoming Tasks',
-        value: `${upcomingTasks.length} Tasks`,
-        description: 'Due within the next 30 days',
-        icon: ListTodo,
+    },
+    {
+        title: 'Valid Calibrations',
+        value: `${equipmentStats.validCerts}`,
+        description: 'equipment with valid calibration',
+        icon: BadgeCheck,
         iconColor: 'text-amber-500',
         shapeColor: 'text-amber-500/10',
-      },
-      {
-        title: 'Project Cost',
-        value: formatCurrencyMillions(projectStats.totalCost),
-        description: 'Total cost across all projects',
-        icon: Receipt,
+    },
+    {
+        title: 'Expired Calibrations',
+        value: `${equipmentStats.expiredCerts}`,
+        description: 'items require calibration',
+        icon: XCircle,
         iconColor: 'text-rose-500',
         shapeColor: 'text-rose-500/10',
-      },
-    ];
-
-     const oWidgets = [
-      { href: '/reports', title: 'Reporting', description: 'Create and manage NDT reports', icon: ClipboardEdit, iconColor: 'text-blue-500', shapeColor: 'text-blue-500/10' },
-      { href: '/equipment', title: 'Equipment', description: 'View and track equipment status', icon: Wrench, iconColor: 'text-green-500', shapeColor: 'text-green-500/10' },
-      { href: '/trips', title: 'Business Trips', description: 'Request and monitor trip approvals', icon: Plane, iconColor: 'text-amber-500', shapeColor: 'text-amber-500/10' },
-      { href: '/tenders', title: 'Tenders', description: 'Monitor all ongoing and past tenders', icon: FileText, iconColor: 'text-rose-500', shapeColor: 'text-rose-500/10' },
-    ];
-
-    return { welcomeDescription: desc, projectWidgets: pWidgets, otherUserWidgets: oWidgets };
-  }, [user, isHqUser, branches, projectStats, visibleProjects.length]);
-
-
-  const costBreakdownData = useMemo(() => {
-    const allCosts = visibleProjects.flatMap(p => p.costs.filter(e => e.status === 'Approved'));
-    
-    const costByCategory = allCosts.reduce((acc, item) => {
-        acc[item.category] = (acc[item.category] || 0) + item.amount;
-        return acc;
-    }, {} as { [category: string]: number });
-
-    const chartColors = [
-        'hsl(var(--chart-1))',
-        'hsl(var(--chart-2))',
-        'hsl(var(--chart-3))',
-        'hsl(var(--chart-4))',
-        'hsl(var(--chart-5))',
-    ];
-    let colorIndex = 0;
-    return Object.entries(costByCategory).map(([name, value]) => {
-        const color = chartColors[colorIndex % chartColors.length];
-        colorIndex++;
-        return { name, value, color };
-    });
-  }, [visibleProjects]);
-
-  const renderWidgets = () => {
-    const roleId = user?.roleId;
-
-    if (roleId === 'super-admin' || roleId === 'project-manager' || roleId === 'project-admin') {
-      return projectWidgets.map((widget, index) => <DashboardWidget key={index} {...widget} />);
-    }
-
-    if (roleId === 'tender-admin') {
-      return tenderWidgets.map((widget, index) => <DashboardWidget key={index} {...widget} />);
-    }
-
-    // Default widgets for other roles (Inspectors, Staff, etc.)
-    return otherUserWidgets.map((widget, index) => (
-      <Link key={index} href={widget.href} className="hover:shadow-lg transition-shadow rounded-lg">
-        <DashboardWidget title={widget.title} description={widget.description} icon={widget.icon} iconColor={widget.iconColor} shapeColor={widget.shapeColor} />
-      </Link>
-    ));
-  };
-
+    },
+  ], [equipmentStats]);
 
   return (
     <div className="space-y-6">
       <HeaderCard
         title={`Welcome, ${user?.name}`}
-        description={welcomeDescription}
+        description="Here's a comprehensive overview of your business operations."
       />
-
-      {user?.status === 'Pending Approval' ? (
-        <Card className="text-center py-12">
-            <CardHeader>
-                <GanttChart className="mx-auto h-12 w-12 text-primary" />
-                <CardTitle className="text-2xl font-headline mt-4">
-                Account Pending Approval
-                </CardTitle>
-                <CardDescription>
-                Your account is currently waiting for an administrator's approval.
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <p className="text-sm text-muted-foreground">
-                    You have limited access to the application. Please check back later.
-                </p>
-            </CardContent>
-        </Card>
-      ) : (
-        <>
+      
+      <Tabs defaultValue="tenders" className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="tenders">Tenders</TabsTrigger>
+            <TabsTrigger value="projects">Projects</TabsTrigger>
+            <TabsTrigger value="inspectors">Inspectors</TabsTrigger>
+            <TabsTrigger value="equipment">Equipment</TabsTrigger>
+        </TabsList>
+        
+        {/* Tender Tab */}
+        <TabsContent value="tenders" className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                {renderWidgets()}
+                {tenderWidgets.map((widget, index) => <DashboardWidget key={index} {...widget} />)}
             </div>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-                <Card className="lg:col-span-4">
-                <CardHeader>
-                    <CardTitle className="font-headline">Monthly Invoicing</CardTitle>
-                    <CardDescription>
-                    A summary of invoices created and paid each month.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent className="pl-2">
-                    <ChartContainer config={chartConfig} className="h-[300px] w-full">
-                    <BarChart data={monthlyInvoicingData} accessibilityLayer>
-                        <CartesianGrid vertical={false} />
-                        <XAxis
-                        dataKey="month"
-                        tickLine={false}
-                        tickMargin={10}
-                        axisLine={false}
-                        tickFormatter={(value) => value.slice(0, 3)}
-                        />
-                        <ChartTooltip
-                        cursor={false}
-                        content={<ChartTooltipContent 
-                            indicator="dot"
-                            valueFormatter={formatCurrency}
-                        />}
-                        />
-                        <Bar dataKey="invoiced" fill="var(--color-invoiced)" radius={4} />
-                        <Bar dataKey="paid" fill="var(--color-paid)" radius={4} />
-                    </BarChart>
-                    </ChartContainer>
-                </CardContent>
-                </Card>
-                <Card className="lg:col-span-3">
-                <CardHeader>
-                    <CardTitle className="font-headline">Cost Realization Breakdown</CardTitle>
-                    <CardDescription>Breakdown of all project costs by category.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <ChartContainer config={{}} className="h-[300px] w-full">
-                        <PieChart>
-                            <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
-                            <Pie data={costBreakdownData} dataKey="value" nameKey="name" innerRadius={80} outerRadius={120} startAngle={90} endAngle={450}>
-                                {costBreakdownData.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={entry.color} />
+             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <TenderSummaryChart tenders={tenderStats.ytdTenders} />
+                <TenderCountChart tenders={tenderStats.ytdTenders} />
+                <TenderBranchChart tenders={tenderStats.ytdTenders} branches={branches} />
+                 <Card>
+                    <CardHeader><CardTitle>Top 5 Upcoming Tenders</CardTitle></CardHeader>
+                    <CardContent>
+                        <Table>
+                            <TableHeader><TableRow><TableHead>Title</TableHead><TableHead>Client</TableHead><TableHead>Submission Date</TableHead></TableRow></TableHeader>
+                            <TableBody>
+                                {tenderStats.topUpcoming.map(t => (
+                                    <TableRow key={t.id}><TableCell className="font-medium"><Link href={`/tenders/${t.id}`} className="hover:underline">{t.title}</Link></TableCell><TableCell>{t.client}</TableCell><TableCell>{format(new Date(t.submissionDate), 'PPP')}</TableCell></TableRow>
                                 ))}
-                            </Pie>
-                        </PieChart>
-                    </ChartContainer>
-                </CardContent>
+                                {tenderStats.topUpcoming.length === 0 && <TableRow><TableCell colSpan={3} className="text-center">No upcoming tenders.</TableCell></TableRow>}
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader><CardTitle>Top 5 Recent Awarded Tenders</CardTitle></CardHeader>
+                    <CardContent>
+                        <Table>
+                            <TableHeader><TableRow><TableHead>Title</TableHead><TableHead>Client</TableHead><TableHead>Awarded Date</TableHead></TableRow></TableHeader>
+                            <TableBody>
+                                {tenderStats.topAwarded.map(t => (
+                                    <TableRow key={t.id}><TableCell className="font-medium"><Link href={`/tenders/${t.id}`} className="hover:underline">{t.title}</Link></TableCell><TableCell>{t.client}</TableCell><TableCell>{format(new Date(t.submissionDate), 'PPP')}</TableCell></TableRow>
+                                ))}
+                                {tenderStats.topAwarded.length === 0 && <TableRow><TableCell colSpan={3} className="text-center">No recent awarded tenders.</TableCell></TableRow>}
+                            </TableBody>
+                        </Table>
+                    </CardContent>
                 </Card>
             </div>
-            <Card>
-                <CardHeader>
-                <CardTitle className="font-headline">Upcoming Tasks</CardTitle>
-                <CardDescription>
-                    A list of important tasks and deadlines.
-                </CardDescription>
-                </CardHeader>
-                <CardContent>
-                <Table>
-                    <TableHeader>
-                    <TableRow>
-                        <TableHead>Task</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead className="text-right">Due Date</TableHead>
-                    </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                    {upcomingTasks.map((task) => (
-                        <TableRow key={task.task}>
-                        <TableCell className="font-medium">{task.task}</TableCell>
-                        <TableCell>
-                            <Badge variant={task.status === 'In Progress' ? 'default' : 'secondary'}>
-                            {task.status}
-                            </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">{task.dueDate}</TableCell>
-                        </TableRow>
-                    ))}
-                    </TableBody>
-                </Table>
-                </CardContent>
-            </Card>
-        </>
-      )}
+        </TabsContent>
+
+        {/* Project Tab */}
+        <TabsContent value="projects" className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                 <DashboardWidget 
+                    title="Overall Profit/Loss (YTD)" 
+                    value={formatCurrencyCompact(overallProfit)} 
+                    description={profitLossDescription}
+                    icon={overallProfit >= 0 ? TrendingUp : TrendingDown} 
+                    iconColor={overallProfit >= 0 ? 'text-green-500' : 'text-rose-500'} 
+                    shapeColor={overallProfit >= 0 ? 'text-green-500/10' : 'text-rose-500/10'}
+                />
+                <DashboardWidget title="Outstanding Cash (YTD)" value={formatCurrencyCompact(projectStats.outstandingCash)} description="Value of invoice" icon={CircleDollarSign} iconColor="text-amber-500" shapeColor="text-amber-500/10" />
+                <DashboardWidget title="Total PAD" value={formatCurrencyCompact(projectStats.totalPAD)} description={`${padPercentage.toFixed(1)}% of total income`} icon={Briefcase} iconColor="text-blue-500" shapeColor="text-blue-500/10" />
+                <DashboardWidget title="Projects at Risk" value={`${projectStats.atRiskCount}`} description="Projects with CPI < 1" icon={XCircle} iconColor="text-rose-500" shapeColor="text-rose-500/10" />
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <CumulativeIncomePieChart projects={projectsYTD} />
+                <CumulativeCostPieChart projects={projectsYTD} />
+                <Card className="lg:col-span-2">
+                    <CardHeader><CardTitle>Projects with Lowest Profit Margin</CardTitle></CardHeader>
+                    <CardContent>
+                        <Table>
+                             <TableHeader><TableRow><TableHead>Project</TableHead><TableHead>Branch Executor</TableHead><TableHead className="text-right">Current Margin</TableHead></TableRow></TableHeader>
+                             <TableBody>
+                                {projectStats.lowestMarginProjects.map(p => (
+                                    <TableRow key={p.id}>
+                                        <TableCell className="font-medium"><Link href={`/projects/${p.id}`} className="hover:underline">{p.name}</Link></TableCell>
+                                        <TableCell>{p.contractExecutor}</TableCell>
+                                        <TableCell className="text-right font-mono">{p.margin.toFixed(2)}%</TableCell>
+                                    </TableRow>
+                                ))}
+                                {projectStats.lowestMarginProjects.length === 0 && <TableRow><TableCell colSpan={3} className="text-center">No projects with low profit margin.</TableCell></TableRow>}
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                </Card>
+            </div>
+        </TabsContent>
+        
+        {/* Inspector Tab */}
+        <TabsContent value="inspectors" className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                {inspectorWidgetData.map((widget, index) => <DashboardWidget key={index} {...widget} />)}
+            </div>
+             <div className="grid grid-cols-1 gap-6">
+                <InspectorQualificationHeatmap inspectors={combinedPersonnel} branches={branches} />
+            </div>
+             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <InspectorCountByBranchChart inspectors={combinedPersonnel} branches={branches} />
+                <InspectorCertificateStatusChart inspectors={combinedPersonnel} />
+                <InspectorQualificationChart inspectors={combinedPersonnel} />
+            </div>
+        </TabsContent>
+
+        {/* Equipment Tab */}
+        <TabsContent value="equipment" className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                {equipmentWidgetData.map((widget, index) => <DashboardWidget key={index} {...widget} />)}
+            </div>
+            <div className="grid grid-cols-1 gap-6">
+                <EquipmentCalibrationByBranchChart equipment={equipmentList} branches={branches} />
+            </div>
+             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <EquipmentByTypeChart equipment={equipmentList} />
+                <EquipmentStatusChart equipment={equipmentList} />
+            </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

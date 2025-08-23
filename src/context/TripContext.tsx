@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useCallback, useMemo, useEffect } from 'react';
@@ -35,6 +36,11 @@ export function TripProvider({ children }: { children: ReactNode }) {
         return;
     };
 
+    if (projects.length === 0) {
+        setIsLoading(true);
+        return;
+    }
+
     const fetchTrips = async () => {
       setIsLoading(true);
       try {
@@ -48,7 +54,7 @@ export function TripProvider({ children }: { children: ReactNode }) {
       }
     };
     fetchTrips();
-  }, [user, isInitializing]);
+  }, [user, isInitializing, projects]);
 
   const addTrip = useCallback(async (item: TripRequest) => {
     await setDoc(doc(db, 'trips', item.id), item);
@@ -70,8 +76,10 @@ export function TripProvider({ children }: { children: ReactNode }) {
   }, [trips]);
   
   const getPendingTripApprovalsForUser = useCallback((userId: string) => {
+    if (!projects || projects.length === 0) return [];
+    
     return trips.filter(trip => {
-      if (trip.status !== 'Pending') return false;
+      if (trip.status !== 'Pending' || !trip.project) return false;
 
       const project = projects.find(p => p.name === trip.project);
       if (!project?.tripApprovalWorkflow || project.tripApprovalWorkflow.length === 0) return false;

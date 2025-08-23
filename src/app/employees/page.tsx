@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
@@ -8,6 +9,7 @@ import {
   Card,
   CardContent,
   CardHeader,
+  CardFooter,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -46,7 +48,7 @@ import {
   Eye,
   Search,
   X,
-  Users as UsersIcon,
+  Users,
   UserCheck,
   UserX,
   Clock,
@@ -58,9 +60,6 @@ import { EmployeeImportDialog } from '@/components/employee-import-dialog';
 import { EmployeeExportDialog } from '@/components/employee-export-dialog';
 import { type Employee, employeeFieldLabels, employmentStatuses } from '@/lib/employees';
 import { useToast } from '@/hooks/use-toast';
-import * as XLSX from 'xlsx';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
 import { useAuth } from '@/context/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
@@ -106,6 +105,8 @@ export default function EmployeesPage() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [branchFilter, setBranchFilter] = useState('all');
   const [projectFilter, setProjectFilter] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   
   useEffect(() => {
     if (user && !isHqUser && !initialFilterSet.current) {
@@ -139,6 +140,21 @@ export default function EmployeesPage() {
     });
   }, [employees, searchTerm, statusFilter, branchFilter, projectFilter, isHqUser, user]);
   
+  const paginatedEmployees = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredEmployees.slice(startIndex, endIndex);
+  }, [filteredEmployees, currentPage]);
+
+  const totalPages = useMemo(() => {
+    return Math.ceil(filteredEmployees.length / itemsPerPage);
+  }, [filteredEmployees]);
+  
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter, branchFilter, projectFilter]);
+
+
   const dashboardStats = useMemo(() => {
     const statusCounts = filteredEmployees.reduce((acc, emp) => {
       if (emp.employmentStatus) {
@@ -160,7 +176,7 @@ export default function EmployeesPage() {
       title: 'Total Employees',
       value: `${dashboardStats.total}`,
       description: 'employees in the system',
-      icon: UsersIcon,
+      icon: Users,
       iconColor: 'text-blue-500',
       shapeColor: 'text-blue-500/10',
     },
@@ -191,6 +207,7 @@ export default function EmployeesPage() {
   ], [dashboardStats]);
 
   const projectsForFilter = useMemo(() => {
+    if (!projects || projects.length === 0) return [];
     if (branchFilter === 'all') {
       return projects;
     }
@@ -220,11 +237,11 @@ export default function EmployeesPage() {
     setEmployeeToDelete(null);
   }, [employeeToDelete, deleteEmployee, toast]);
 
-  const handleExport = useCallback((format: 'excel' | 'pdf') => {
+  const handleExport = useCallback(async (format: 'excel' | 'pdf') => {
     const dataToExport = filteredEmployees.map((emp) => {
       const selectedData: Partial<Employee> = {};
       exportFields.forEach((field) => {
-        selectedData[field] = emp[field];
+        (selectedData as any)[field] = emp[field];
       });
       return selectedData;
     });
@@ -233,10 +250,11 @@ export default function EmployeesPage() {
       (field) => employeeFieldLabels[field] || field
     );
     const body = dataToExport.map((row) =>
-      exportFields.map((field) => row[field] ?? '')
+      exportFields.map((field) => (row as any)[field] ?? '')
     );
 
     if (format === 'excel') {
+      const XLSX = await import('xlsx');
       const worksheet = XLSX.utils.json_to_sheet(dataToExport, {
         header: exportFields,
       });
@@ -245,8 +263,10 @@ export default function EmployeesPage() {
       XLSX.utils.book_append_sheet(workbook, worksheet, 'Employees');
       XLSX.writeFile(workbook, 'employees.xlsx');
     } else {
+      const { default: jsPDF } = await import('jspdf');
+      const { default: autoTable } = await import('jspdf-autotable');
       const doc = new jsPDF({ orientation: 'landscape' });
-      (doc as any).autoTable({
+      autoTable(doc, {
         head: [headers],
         body: body,
       });
@@ -437,8 +457,8 @@ export default function EmployeesPage() {
                         </TableCell>
                       </TableRow>
                     ))
-                  ) : filteredEmployees.length > 0 ? (
-                    filteredEmployees.map((employee) => {
+                  ) : paginatedEmployees.length > 0 ? (
+                    paginatedEmployees.map((employee) => {
                         return (
                       <TableRow key={employee.id}>
                         <TableCell className="font-medium">
@@ -519,6 +539,31 @@ export default function EmployeesPage() {
               </Table>
             </div>
           </CardContent>
+          {totalPages > 1 && (
+            <CardFooter className="flex items-center justify-between border-t pt-4">
+                <span className="text-sm text-muted-foreground">
+                    Page {currentPage} of {totalPages}
+                </span>
+                <div className="flex items-center gap-2">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                        disabled={currentPage === 1}
+                    >
+                        Previous
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                        disabled={currentPage === totalPages}
+                    >
+                        Next
+                    </Button>
+                </div>
+            </CardFooter>
+          )}
         </Card>
       </div>
       <EmployeeImportDialog

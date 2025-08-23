@@ -5,18 +5,17 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { useTenders, type Tender } from '@/context/TenderContext';
-import { tenderStatuses, regionalOptions, serviceOptions, type TenderStatus, type Regional, lostCauseOptions, type LostCause } from '@/lib/tenders';
+import { useTenders } from '@/context/TenderContext';
+import { type Tender, tenderStatuses, regionalOptions, serviceOptions, type TenderStatus, type Regional, lostCauseOptions, type LostCause } from '@/lib/tenders';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { ArrowLeft, Calendar as CalendarIcon, Loader2, Save, ChevronsUpDown, Check, Upload, File as FileIcon, X, ChevronDownIcon } from 'lucide-react';
+import { ArrowLeft, Loader2, Save, ChevronsUpDown, Check, Upload, File as FileIcon, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { Textarea } from '@/components/ui/textarea';
@@ -25,6 +24,7 @@ import { portfolios, subPortfolios, servicesBySubPortfolio } from '@/lib/project
 import { CurrencyInput } from '@/components/ui/currency-input';
 import { Separator } from '@/components/ui/separator';
 import { getFileNameFromDataUrl } from '@/lib/utils';
+import { DatePicker } from '@/components/ui/date-picker';
 
 
 export default function EditTenderPage() {
@@ -117,8 +117,12 @@ export default function EditTenderPage() {
             await updateTender(tender.id, updatedTenderData as any);
             toast({ title: 'Tender Updated', description: `Successfully updated tender ${tender.tenderNumber}.` });
             router.push(`/tenders/${tender.id}`);
-        } catch (error) {
-            toast({ variant: 'destructive', title: 'Update Failed', description: 'Could not save tender changes.' });
+        } catch (error: unknown) {
+            if(error instanceof Error) {
+                toast({ variant: 'destructive', title: 'Update Failed', description: error.message });
+            } else {
+                toast({ variant: 'destructive', title: 'Update Failed', description: 'Could not save tender changes.' });
+            }
         } finally {
             setIsSaving(false);
         }
@@ -260,27 +264,10 @@ export default function EditTenderPage() {
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="submissionDate">Submission Date</Label>
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <Button
-                                        variant="outline"
-                                        id="date"
-                                        className="w-full justify-between font-normal"
-                                        >
-                                        {tender.submissionDate ? new Date(tender.submissionDate).toLocaleDateString() : "Select date"}
-                                        <ChevronDownIcon />
-                                        </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto overflow-hidden p-0" align="start">
-                                        <Calendar
-                                        mode="single"
-                                        selected={tender.submissionDate as any}
-                                        onSelect={(date: any) =>
-                                            setTender({ ...tender, submissionDate: date as any })
-                                        }
-                                        />
-                                    </PopoverContent>
-                                </Popover>
+                                <DatePicker 
+                                    value={tender.submissionDate ? new Date(tender.submissionDate) : undefined} 
+                                    onChange={(date) => setTender({ ...tender, submissionDate: date as any })} 
+                                />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="personInCharge">Person In Charge (PIC)</Label>
@@ -347,11 +334,11 @@ export default function EditTenderPage() {
                         <div className="grid gap-6 md:grid-cols-2">
                             <div className="space-y-2">
                                 <Label htmlFor="ownerEstimatePrice">Owner Estimate Price (IDR)</Label>
-                                <CurrencyInput id="ownerEstimatePrice" value={tender.ownerEstimatePrice || 0} onValueChange={value => setTender({ ...tender, ownerEstimatePrice: value })} />
+                                <CurrencyInput id="ownerEstimatePrice" value={tender.ownerEstimatePrice || 0} onValueChange={(value: number) => setTender({ ...tender, ownerEstimatePrice: value })} />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="bidPrice">Bid Price (IDR)</Label>
-                                <CurrencyInput id="bidPrice" value={tender.bidPrice} onValueChange={value => setTender({ ...tender, bidPrice: value })} />
+                                <CurrencyInput id="bidPrice" value={tender.bidPrice} onValueChange={(value: number) => setTender({ ...tender, bidPrice: value })} />
                             </div>
                         </div>
                     </div>
@@ -410,4 +397,3 @@ export default function EditTenderPage() {
         </div>
     );
 }
-    

@@ -8,11 +8,10 @@ import {
   ChartTooltipContent,
   ChartConfig,
 } from '@/components/ui/chart';
-import { useMemo, useState } from 'react';
+import { useMemo, memo } from 'react';
 import type { Project } from '@/lib/projects';
 import { formatCurrencyCompact } from '@/lib/utils';
 import { parse, format as formatDate } from 'date-fns';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 
 
@@ -26,13 +25,7 @@ const chartConfig: ChartConfig = {
   },
 };
 
-export function CumulativeProfitChart({ projects }: CumulativeProfitChartProps) {
-  const [selectedYear, setSelectedYear] = useState('all');
-
-  const availableYears = useMemo(() => {
-    const years = new Set(projects.flatMap(p => [...(p.invoices || []), ...(p.costs || [])].map(i => i.period.split(' ')[1])).filter(Boolean));
-    return ['all', ...Array.from(years).sort((a,b) => Number(b) - Number(a))];
-  }, [projects]);
+export const CumulativeProfitChart = memo(function CumulativeProfitChart({ projects }: CumulativeProfitChartProps) {
   
   const chartData = useMemo(() => {
     const monthlyData: Record<string, { month: string, income: number, cost: number }> = {};
@@ -42,7 +35,7 @@ export function CumulativeProfitChart({ projects }: CumulativeProfitChartProps) 
         (project.invoices || []).forEach(invoice => {
             if (['Paid', 'Invoiced', 'PAD', 'Re-invoiced'].includes(invoice.status)) {
                 const [month, year] = invoice.period.split(' ');
-                if (!month || !year || (selectedYear !== 'all' && selectedYear !== year)) return;
+                if (!month || !year) return;
                 try {
                     const date = parse(`${month} 1, ${year}`, 'MMMM d, yyyy', new Date());
                     const monthKey = formatDate(date, 'MMM yy');
@@ -60,7 +53,7 @@ export function CumulativeProfitChart({ projects }: CumulativeProfitChartProps) 
         (project.costs || []).forEach(exp => {
             if (exp.status === 'Approved') {
                 const [month, year] = exp.period.split(' ');
-                if(!month || !year || (selectedYear !== 'all' && selectedYear !== year)) return;
+                if(!month || !year) return;
                 try {
                     const date = parse(`${month} 1, ${year}`, 'MMMM d, yyyy', new Date());
                     const monthKey = formatDate(date, 'MMM yy');
@@ -90,22 +83,16 @@ export function CumulativeProfitChart({ projects }: CumulativeProfitChartProps) 
         }
     });
 
-    return sortedData.slice(-12);
-  }, [projects, selectedYear]);
+    return sortedData;
+  }, [projects]);
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader>
         <div>
             <CardTitle>Cumulative Monthly Profit</CardTitle>
             <CardDescription>Aggregated income vs. cost across all projects.</CardDescription>
         </div>
-        <Select value={selectedYear} onValueChange={setSelectedYear}>
-            <SelectTrigger className="w-[120px]"><SelectValue /></SelectTrigger>
-            <SelectContent>
-                {availableYears.map(year => <SelectItem key={year} value={year}>{year}</SelectItem>)}
-            </SelectContent>
-        </Select>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="h-[400px] w-full">
@@ -140,4 +127,4 @@ export function CumulativeProfitChart({ projects }: CumulativeProfitChartProps) 
       </CardContent>
     </Card>
   );
-}
+});

@@ -36,6 +36,8 @@ import {
   FileText,
   Download,
   Eye,
+  Search,
+  X,
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
@@ -49,7 +51,7 @@ import { useProjects } from '@/context/ProjectContext';
 import { ProjectMonthlyRecapChart } from '@/components/project-monthly-recap-chart';
 import { ProjectInvoicingTab } from '@/components/project-invoicing-tab';
 import { ProjectCostTab } from '@/components/project-cost-tab';
-import { formatCurrency, formatCurrencyMillions, getFileNameFromDataUrl } from '@/lib/utils';
+import { formatCurrency, formatCurrencyCompact, getFileNameFromDataUrl } from '@/lib/utils';
 import { ProjectBudgetExpenditureChart } from '@/components/project-budget-expenditure-chart';
 import { ProjectServiceOrderChart } from '@/components/project-service-order-chart';
 import { ApprovalWorkflowManager } from '@/components/project-approval-workflow';
@@ -59,13 +61,13 @@ import { ProjectCostPieChart } from '@/components/project-cost-pie-chart';
 import { ProjectIncomePieChart } from '@/components/project-income-pie-chart';
 import { ProjectServiceOrderTab } from '@/components/project-service-order-tab';
 import { ProjectProfitChart } from '@/components/project-profit-chart';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
-import html2canvas from 'html2canvas';
 import { DashboardWidget } from '@/components/dashboard-widget';
 import { format } from 'date-fns';
 import { ProjectAiSummary } from '@/components/project-ai-summary';
 import { DocumentViewerDialog } from '@/components/document-viewer-dialog';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import jsPDF from 'jspdf';
 
 
 // Extend jsPDF with autoTable
@@ -78,15 +80,24 @@ type DocumentToView = {
     name: string;
 }
 
+const months = [
+    'January', 'February', 'March', 'April', 'May', 'June', 
+    'July', 'August', 'September', 'October', 'November', 'December'
+];
+
 
 export default function ProjectDetailsPage() {
   const params = useParams();
   const projectId = params.id as string;
   const { getProjectById, updateProject, projects, getProjectStats } = useProjects();
-  const { users, userHasPermission } = useAuth();
+  const { users, userHasPermission, branches } = useAuth();
   
   const [project, setProject] = useState<Project | null>(null);
   const [documentToView, setDocumentToView] = useState<DocumentToView | null>(null);
+  
+  const [yearFilter, setYearFilter] = useState('all');
+  const [monthFilter, setMonthFilter] = useState('all');
+
   const chartRefs = {
     incomePie: useRef<HTMLDivElement>(null),
     costPie: useRef<HTMLDivElement>(null),
@@ -111,6 +122,33 @@ export default function ProjectDetailsPage() {
     }
   }, [project, updateProject]);
   
+   const availableYears = useMemo(() => {
+    if (!project) return [];
+    const years = new Set([...(project.invoices || []), ...(project.costs || [])].map(i => i.period.split(' ')[1]).filter(Boolean));
+    return ['all', ...Array.from(years).sort((a, b) => Number(b) - Number(a))];
+  }, [project]);
+  
+  const filteredProject = useMemo(() => {
+    if (!project) return null;
+    if (yearFilter === 'all' && monthFilter === 'all') return project;
+
+    return {
+      ...project,
+      invoices: (project.invoices || []).filter(invoice => {
+          const [month, year] = invoice.period.split(' ');
+          const yearMatch = yearFilter === 'all' || year === yearFilter;
+          const monthMatch = monthFilter === 'all' || month === monthFilter;
+          return yearMatch && monthMatch;
+      }),
+      costs: (project.costs || []).filter(cost => {
+          const [month, year] = cost.period.split(' ');
+          const yearMatch = yearFilter === 'all' || year === yearFilter;
+          const monthMatch = monthFilter === 'all' || month === monthFilter;
+          return yearMatch && monthMatch;
+      }),
+    };
+  }, [project, yearFilter, monthFilter]);
+
   const {
     totalCost,
     totalInvoiced,
@@ -121,7 +159,7 @@ export default function ProjectDetailsPage() {
     totalBudget,
     profit,
   } = useMemo(() => {
-    if (!project) {
+    if (!filteredProject) {
       return {
         totalCost: 0,
         totalInvoiced: 0,
@@ -134,20 +172,21 @@ export default function ProjectDetailsPage() {
       };
     }
 
-    const stats = getProjectStats([project]);
-    const calculatedProgress = project.value > 0 ? ((stats.totalPaid + stats.totalInvoiced) / project.value) * 100 : 0;
+    const stats = getProjectStats([filteredProject]);
+    const originalProjectValue = project?.value || 0;
+    const calculatedProgress = originalProjectValue > 0 ? ((stats.totalPaid + stats.totalInvoiced) / originalProjectValue) * 100 : 0;
     
     return {
       totalCost: stats.totalCost,
       totalInvoiced: stats.totalInvoiced,
       totalPaid: stats.totalPaid,
       totalIncome: stats.totalIncome,
-      totalServiceOrderValue: (project.serviceOrders || []).reduce((acc, so) => acc + so.value, 0),
+      totalServiceOrderValue: (filteredProject.serviceOrders || []).reduce((acc, so) => acc + so.value, 0),
       progress: Math.round(calculatedProgress),
-      totalBudget: Object.values(project.budgets || {}).reduce((sum, val) => sum + val, 0),
+      totalBudget: Object.values(filteredProject.budgets || {}).reduce((sum, val) => sum + val, 0),
       profit: stats.totalIncome - stats.totalCost,
     };
-  }, [project, getProjectStats]);
+  }, [filteredProject, getProjectStats, project]);
 
   const summaryWidgets = useMemo(() => {
     const budgetUtilization = totalBudget > 0 ? (totalCost / totalBudget) * 100 : 0;
@@ -169,7 +208,7 @@ export default function ProjectDetailsPage() {
       {
         title: 'Budget Utilization',
         value: `${budgetUtilization.toFixed(1)}%`,
-        description: `Spent ${formatCurrencyMillions(totalCost)} of ${formatCurrencyMillions(totalBudget)}`,
+        description: `Spent ${formatCurrencyCompact(totalCost)} of ${formatCurrencyCompact(totalBudget)}`,
         icon: Percent,
         iconColor: 'text-blue-500',
         shapeColor: 'text-blue-500/10',
@@ -177,7 +216,7 @@ export default function ProjectDetailsPage() {
       {
         title: 'Invoice Payment Rate',
         value: `${totalSubmittedInvoices > 0 ? ((totalPaid / totalSubmittedInvoices) * 100).toFixed(1) : 0}%`,
-        description: `${formatCurrencyMillions(totalPaid)} paid`,
+        description: `${formatCurrencyCompact(totalPaid)} paid`,
         icon: CircleDollarSign,
         iconColor: 'text-amber-500',
         shapeColor: 'text-amber-500/10',
@@ -187,7 +226,11 @@ export default function ProjectDetailsPage() {
 
   const handlePrint = useCallback(async () => {
     if (!project) return;
-    const doc = new jsPDF('p', 'mm', 'a4') as jsPDFWithAutoTable;
+    const { default: jsPDF } = await import('jspdf');
+    const { default: autoTable } = await import('jspdf-autotable');
+    const { default: html2canvas } = await import('html2canvas');
+
+    const doc = new jsPDF('p', 'mm', 'a4');
     const pageMargin = 15;
     const pageHeight = doc.internal.pageSize.getHeight();
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -206,7 +249,7 @@ export default function ProjectDetailsPage() {
     
     addPageHeader('Project Summary Report');
 
-    doc.autoTable({
+    autoTable(doc, {
         startY: finalY,
         head: [['Project Details', '']],
         body: [
@@ -273,7 +316,7 @@ export default function ProjectDetailsPage() {
     if((project.serviceOrders || []).length > 0) {
         doc.addPage();
         addPageHeader('Service Order Details');
-        doc.autoTable({
+        autoTable(doc, {
             startY: finalY,
             head: [['SO Number', 'Description', 'Date', 'Value']],
             body: project.serviceOrders.map(so => [so.soNumber, so.description, so.date, formatCurrency(so.value)]),
@@ -288,7 +331,7 @@ export default function ProjectDetailsPage() {
         } else {
            finalY += 10;
         }
-        doc.autoTable({
+        autoTable(doc, {
             startY: finalY,
             head: [['SO Number', 'Description', 'Period', 'Status', 'Value']],
             body: project.invoices.map(inv => [inv.soNumber, inv.description, inv.period, inv.status, formatCurrency(inv.value)]),
@@ -303,7 +346,7 @@ export default function ProjectDetailsPage() {
         } else {
            finalY += 10;
         }
-        doc.autoTable({
+        autoTable(doc, {
             startY: finalY,
             head: [['Category', 'Description', 'Period', 'Amount']],
             body: project.costs.map(cost => [cost.category, cost.description, cost.period, formatCurrency(cost.amount)]),
@@ -315,7 +358,7 @@ export default function ProjectDetailsPage() {
   }, [project, chartRefs, progress, totalPaid, totalServiceOrderValue]);
 
   const monthlyRecapData = useMemo(() => {
-    if (!project) return [];
+    if (!filteredProject) return [];
   
     const dataMap: { 
         [key: string]: { 
@@ -341,7 +384,7 @@ export default function ProjectDetailsPage() {
       return { sortKey, displayMonth };
     };
   
-    (project.invoices || []).forEach(invoice => {
+    (filteredProject.invoices || []).forEach(invoice => {
       const periodInfo = processPeriod(invoice.period);
       if (!periodInfo) return;
       const { sortKey, displayMonth } = periodInfo;
@@ -361,7 +404,7 @@ export default function ProjectDetailsPage() {
       }
     });
   
-    (project.costs || []).forEach(exp => {
+    (filteredProject.costs || []).forEach(exp => {
       if (exp.status !== 'Approved') return;
       
       const periodInfo = processPeriod(exp.period);
@@ -378,7 +421,7 @@ export default function ProjectDetailsPage() {
       .sort()
       .map(key => dataMap[key]);
   
-  }, [project]);
+  }, [filteredProject]);
 
   const handleWorkflowChange = useCallback((type: 'trip' | 'report', newWorkflow: ApprovalStage[]) => {
     if (project) {
@@ -400,7 +443,7 @@ export default function ProjectDetailsPage() {
   };
 
 
-  if (!project) {
+  if (!project || !filteredProject) {
     return (
       <Card>
         <CardHeader>
@@ -454,7 +497,7 @@ export default function ProjectDetailsPage() {
                 transform="translate(100 100)"
             />
         </svg>
-        <CardHeader className="flex flex-row items-center justify-between gap-4 z-10 relative">
+        <CardHeader className="flex flex-row items-center justify-between gap-4 z-10 relative py-8">
           <div className="flex items-center gap-4">
             <Button asChild variant="secondary" size="icon">
               <Link href="/projects?tab=list">
@@ -463,7 +506,7 @@ export default function ProjectDetailsPage() {
               </Link>
             </Button>
             <div className="space-y-1.5">
-                <CardTitle className="font-headline">{project.name}</CardTitle>
+                <CardTitle className="font-headline text-xl">{project.name}</CardTitle>
                 <CardDescription className="text-primary-foreground/90">{project.description}</CardDescription>
             </div>
           </div>
@@ -506,7 +549,7 @@ export default function ProjectDetailsPage() {
                     </div>
                     <div>
                         <p className="text-sm text-muted-foreground">Contract Executor</p>
-                        <p className="font-medium">{project.contractExecutor}</p>
+                        <p className="font-medium">{branches.find(b => b.id === project.contractExecutor)?.name || project.contractExecutor}</p>
                     </div>
                     </div>
                     <div className="flex items-center gap-4">
@@ -595,33 +638,60 @@ export default function ProjectDetailsPage() {
         </Card>
       
       <Tabs defaultValue="summary-charts" className="w-full mt-6">
-        <TabsList className="grid w-full grid-cols-6">
-          <TabsTrigger value="summary-charts">
-            <BarChartHorizontal className="mr-2 h-4 w-4" />
-            Summary
-          </TabsTrigger>
-          <TabsTrigger value="documents">
-            <FileText className="mr-2 h-4 w-4" />
-            Documents
-          </TabsTrigger>
-          <TabsTrigger value="service-orders">
-            <ClipboardList className="mr-2 h-4 w-4" />
-            Service Order
-          </TabsTrigger>
-          <TabsTrigger value="invoices">
-            <Receipt className="mr-2 h-4 w-4" />
-            Invoicing
-          </TabsTrigger>
-          <TabsTrigger value="cost">
-            <Wallet className="mr-2 h-4 w-4" />
-            Cost
-          </TabsTrigger>
-          <TabsTrigger value="approval-settings">
-            <UserCog className="mr-2 h-4 w-4" />
-            Approval
-          </TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6">
+            <TabsTrigger value="summary-charts">
+                <BarChartHorizontal className="h-5 w-5 md:mr-2" />
+                <span className="hidden md:inline">Summary</span>
+            </TabsTrigger>
+            <TabsTrigger value="documents">
+                <FileText className="h-5 w-5 md:mr-2" />
+                <span className="hidden md:inline">Documents</span>
+            </TabsTrigger>
+            <TabsTrigger value="service-orders">
+                <ClipboardList className="h-5 w-5 md:mr-2" />
+                <span className="hidden md:inline">Service Order</span>
+            </TabsTrigger>
+            <TabsTrigger value="invoices">
+                <Receipt className="h-5 w-5 md:mr-2" />
+                <span className="hidden md:inline">Invoicing</span>
+            </TabsTrigger>
+            <TabsTrigger value="cost">
+                <Wallet className="h-5 w-5 md:mr-2" />
+                <span className="hidden md:inline">Cost</span>
+            </TabsTrigger>
+            <TabsTrigger value="approval-settings">
+                <UserCog className="h-5 w-5 md:mr-2" />
+                <span className="hidden md:inline">Approval</span>
+            </TabsTrigger>
         </TabsList>
         <TabsContent value="summary-charts" className="space-y-6">
+             <Card>
+                <CardContent className="p-4">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <Label>Filter by:</Label>
+                        <Select value={yearFilter} onValueChange={setYearFilter}>
+                            <SelectTrigger className="w-full sm:w-[120px]">
+                                <SelectValue placeholder="Filter by year" />
+                            </SelectTrigger>
+                            <SelectContent>
+                            {availableYears.map(year => <SelectItem key={year} value={year}>{year === 'all' ? 'All Years' : year}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                        <Select value={monthFilter} onValueChange={setMonthFilter}>
+                            <SelectTrigger className="w-full sm:w-[140px]">
+                                <SelectValue placeholder="Filter by month" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All Months</SelectItem>
+                                {months.map(month => <SelectItem key={month} value={month}>{month}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                        <Button variant="ghost" size="icon" onClick={() => { setYearFilter('all'); setMonthFilter('all'); }}>
+                            <X className="h-4 w-4" />
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {summaryWidgets.map((widget, index) => (
                 <DashboardWidget key={index} {...widget} />
@@ -643,10 +713,10 @@ export default function ProjectDetailsPage() {
               <Separator />
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
                   <div ref={chartRefs.profit}>
-                      <ProjectProfitChart project={project} />
+                      <ProjectProfitChart project={filteredProject} />
                   </div>
                   <ProjectAiSummary
-                      project={project}
+                      project={filteredProject}
                       totalCost={totalCost}
                       totalIncome={totalIncome}
                       progress={progress}
@@ -659,7 +729,7 @@ export default function ProjectDetailsPage() {
               <Separator />
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
                   <div ref={chartRefs.incomePie}>
-                      <ProjectIncomePieChart project={project} />
+                      <ProjectIncomePieChart project={filteredProject} />
                   </div>
                   <div ref={chartRefs.so}>
                       <ProjectServiceOrderChart project={project} />
@@ -672,10 +742,10 @@ export default function ProjectDetailsPage() {
               <Separator />
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
                   <div ref={chartRefs.costPie}>
-                      <ProjectCostPieChart project={project} />
+                      <ProjectCostPieChart project={filteredProject} />
                   </div>
                   <div ref={chartRefs.budget}>
-                      <ProjectBudgetExpenditureChart project={project} />
+                      <ProjectBudgetExpenditureChart project={filteredProject} />
                   </div>
               </div>
             </div>

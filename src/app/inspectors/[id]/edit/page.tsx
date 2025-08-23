@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -12,13 +13,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Save, Upload, File as FileIcon, X, Calendar as CalendarIcon } from 'lucide-react';
+import { ArrowLeft, Save, Upload, File as FileIcon, X, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
+import { DatePicker } from '@/components/ui/date-picker';
 
 type NewUploadableDocument = {
   file: File;
@@ -37,6 +36,7 @@ export default function EditInspectorPage() {
   const [newCvFile, setNewCvFile] = useState<File | null>(null);
   const [newQualifications, setNewQualifications] = useState<NewUploadableDocument[]>([]);
   const [newOtherDocs, setNewOtherDocs] = useState<NewUploadableDocument[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (inspectorId) {
@@ -74,14 +74,14 @@ export default function EditInspectorPage() {
   const handleExistingDocDateChange = useCallback((field: 'qualifications' | 'otherDocuments', index: number, date?: Date) => {
     if (!inspector) return;
     const updatedDocs = [...inspector[field]];
-    updatedDocs[index].expirationDate = date ? format(date, 'yyyy-MM-dd') : undefined;
+    updatedDocs[index].expirationDate = date ? date.toISOString().split('T')[0] : undefined;
     setInspector({ ...inspector, [field]: updatedDocs });
   }, [inspector]);
   
   const handleNewDocDateChange = useCallback((setter: React.Dispatch<React.SetStateAction<NewUploadableDocument[]>>, index: number, date?: Date) => {
     setter(prev => {
         const newDocs = [...prev];
-        newDocs[index].expirationDate = date ? format(date, 'yyyy-MM-dd') : undefined;
+        newDocs[index].expirationDate = date ? date.toISOString().split('T')[0] : undefined;
         return newDocs;
     });
   }, []);
@@ -103,19 +103,29 @@ export default function EditInspectorPage() {
       });
       return;
     }
+    setIsSaving(true);
+    try {
+        await updateInspector(inspector.id, inspector, {
+          newCvFile: newCvFile,
+          newQualifications: newQualifications,
+          newOtherDocs: newOtherDocs,
+        });
+        
+        toast({
+            title: 'Inspector Updated',
+            description: `Successfully updated ${inspector.name}.`,
+        });
 
-    await updateInspector(inspector.id, inspector, {
-      newCvFile: newCvFile,
-      newQualifications: newQualifications,
-      newOtherDocs: newOtherDocs,
-    });
-    
-    toast({
-        title: 'Inspector Updated',
-        description: `Successfully updated ${inspector.name}.`,
-    });
-
-    router.push(`/inspectors/${inspector.id}`);
+        router.push(`/inspectors/${inspector.id}`);
+    } catch (error) {
+        toast({
+            variant: 'destructive',
+            title: 'Update Failed',
+            description: 'Could not save changes to inspector.',
+        });
+    } finally {
+        setIsSaving(false);
+    }
   }, [inspector, newCvFile, newQualifications, newOtherDocs, router, toast, updateInspector]);
 
   if (!inspector) {
@@ -167,7 +177,7 @@ export default function EditInspectorPage() {
             </div>
             <div className="space-y-2">
                 <Label htmlFor="employmentStatus">Employment Status</Label>
-                <Select value={inspector.employmentStatus} onValueChange={(value: Inspector['employmentStatus']) => setInspector(inspector ? {...inspector, employmentStatus: value} : null)}>
+                <Select value={inspector.employmentStatus} onValueChange={(value: any) => setInspector(inspector ? {...inspector, employmentStatus: value} : null)}>
                     <SelectTrigger id="employmentStatus"><SelectValue placeholder="Select status" /></SelectTrigger>
                     <SelectContent>
                         {employmentStatuses.map(status => <SelectItem key={status} value={status}>{status}</SelectItem>)}
@@ -233,17 +243,13 @@ export default function EditInspectorPage() {
                                 <FileIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                                 <span className="text-sm truncate">{doc.name}</span>
                             </div>
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                    <Button variant={"outline"} className={cn("w-[240px] justify-start text-left font-normal", !doc.expirationDate && "text-muted-foreground")}>
-                                        <CalendarIcon className="mr-2 h-4 w-4" />
-                                        {doc.expirationDate ? format(new Date(doc.expirationDate), "PPP") : <span>Expiry date (optional)</span>}
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0">
-                                    <Calendar mode="single" selected={doc.expirationDate ? new Date(doc.expirationDate) : undefined} onSelect={(date) => handleExistingDocDateChange('qualifications', index, date)} initialFocus />
-                                </PopoverContent>
-                            </Popover>
+                            <div className="w-[240px]">
+                                <DatePicker
+                                    value={doc.expirationDate ? new Date(doc.expirationDate) : undefined}
+                                    onChange={(date) => handleExistingDocDateChange('qualifications', index, date)}
+                                    placeholder="Expiry date (optional)"
+                                />
+                            </div>
                             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeExistingFile('qualifications', doc.url)}>
                                 <X className="h-4 w-4" />
                             </Button>
@@ -255,17 +261,13 @@ export default function EditInspectorPage() {
                                 <FileIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                                 <span className="text-sm truncate">{doc.file.name}</span>
                             </div>
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                    <Button variant={"outline"} className={cn("w-[240px] justify-start text-left font-normal", !doc.expirationDate && "text-muted-foreground")}>
-                                        <CalendarIcon className="mr-2 h-4 w-4" />
-                                        {doc.expirationDate ? format(new Date(doc.expirationDate), "PPP") : <span>Expiry date (optional)</span>}
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0">
-                                    <Calendar mode="single" selected={doc.expirationDate ? new Date(doc.expirationDate) : undefined} onSelect={(date) => handleNewDocDateChange(setNewQualifications, index, date)} initialFocus />
-                                </PopoverContent>
-                            </Popover>
+                            <div className="w-[240px]">
+                                <DatePicker
+                                    value={doc.expirationDate ? new Date(doc.expirationDate) : undefined}
+                                    onChange={(date) => handleNewDocDateChange(setNewQualifications, index, date)}
+                                    placeholder="Expiry date (optional)"
+                                />
+                            </div>
                             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeNewFile(setNewQualifications, index)}>
                                 <X className="h-4 w-4" />
                             </Button>
@@ -292,17 +294,13 @@ export default function EditInspectorPage() {
                                 <FileIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                                 <span className="text-sm truncate">{doc.name}</span>
                             </div>
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                    <Button variant={"outline"} className={cn("w-[240px] justify-start text-left font-normal", !doc.expirationDate && "text-muted-foreground")}>
-                                        <CalendarIcon className="mr-2 h-4 w-4" />
-                                        {doc.expirationDate ? format(new Date(doc.expirationDate), "PPP") : <span>Expiry date (optional)</span>}
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0">
-                                    <Calendar mode="single" selected={doc.expirationDate ? new Date(doc.expirationDate) : undefined} onSelect={(date) => handleExistingDocDateChange('otherDocuments', index, date)} initialFocus />
-                                </PopoverContent>
-                            </Popover>
+                             <div className="w-[240px]">
+                                <DatePicker
+                                    value={doc.expirationDate ? new Date(doc.expirationDate) : undefined}
+                                    onChange={(date) => handleExistingDocDateChange('otherDocuments', index, date)}
+                                    placeholder="Expiry date (optional)"
+                                />
+                            </div>
                             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeExistingFile('otherDocuments', doc.url)}>
                                 <X className="h-4 w-4" />
                             </Button>
@@ -314,17 +312,13 @@ export default function EditInspectorPage() {
                                 <FileIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                                 <span className="text-sm truncate">{doc.file.name}</span>
                             </div>
-                             <Popover>
-                                <PopoverTrigger asChild>
-                                    <Button variant={"outline"} className={cn("w-[240px] justify-start text-left font-normal", !doc.expirationDate && "text-muted-foreground")}>
-                                        <CalendarIcon className="mr-2 h-4 w-4" />
-                                        {doc.expirationDate ? format(new Date(doc.expirationDate), "PPP") : <span>Expiry date (optional)</span>}
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0">
-                                    <Calendar mode="single" selected={doc.expirationDate ? new Date(doc.expirationDate) : undefined} onSelect={(date) => handleNewDocDateChange(setNewOtherDocs, index, date)} initialFocus />
-                                </PopoverContent>
-                            </Popover>
+                            <div className="w-[240px]">
+                                <DatePicker
+                                    value={doc.expirationDate ? new Date(doc.expirationDate) : undefined}
+                                    onChange={(date) => handleNewDocDateChange(setNewOtherDocs, index, date)}
+                                    placeholder="Expiry date (optional)"
+                                />
+                            </div>
                             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeNewFile(setNewOtherDocs, index)}>
                                 <X className="h-4 w-4" />
                             </Button>
@@ -346,8 +340,8 @@ export default function EditInspectorPage() {
             <Button variant="outline" asChild>
                 <Link href={`/inspectors/${inspector.id}`}>Cancel</Link>
             </Button>
-            <Button onClick={handleSave}>
-                <Save className="mr-2 h-4 w-4" />
+            <Button onClick={handleSave} disabled={isSaving}>
+                {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                 Save Changes
             </Button>
         </CardFooter>
@@ -355,3 +349,4 @@ export default function EditInspectorPage() {
     </div>
   );
 }
+

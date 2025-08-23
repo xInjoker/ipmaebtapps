@@ -1,42 +1,11 @@
 
-
-export type ServiceOrderItem = {
-  id: string;
-  soNumber: string;
-  description: string;
-  date: string;
-  value: number;
-};
-
-export type InvoiceItem = {
-  id: string;
-  soNumber: string;
-  serviceCategory: string;
-  description: string;
-  status: 'Paid' | 'Invoiced' | 'Cancel' | 'Re-invoiced' | 'PAD' | 'Document Preparation';
-  period: string;
-  value: number;
-  originalValue?: number;
-  adjustmentReason?: string;
-};
-
-export type ExpenditureItem = {
-  id: string;
-  category: string;
-  coa: string;
-  description: string;
-  period: string;
-  amount: number;
-  status: 'Approved' | 'Pending' | 'Rejected';
-};
-
-export const portfolios = ['AEBT', 'others'] as const;
-export const subPortfolios = ['IAPPM', 'EBT'] as const;
-
 export type Service = {
   code: string;
   name: string;
 };
+
+export const portfolios = ['AEBT', 'others'] as const;
+export const subPortfolios = ['IAPPM', 'EBT'] as const;
 
 export const servicesBySubPortfolio: Record<(typeof subPortfolios)[number], Service[]> = {
   'IAPPM': [
@@ -52,47 +21,79 @@ export const servicesBySubPortfolio: Record<(typeof subPortfolios)[number], Serv
     { code: 'AEB-1B', name: 'EBT Service B (Placeholder)' },
     { code: 'AEB-1C', name: 'EBT Service C (Placeholder)' },
   ],
+}
+
+
+export type ProjectDocument = {
+  name: string;
+  url: string;
 };
 
 export type ApprovalStage = {
   stage: number;
   roleName: string;
-  approverId: string | null;
+  approverId: string;
 };
 
-export type ProjectDocument = {
-    name: string;
-    url: string;
+export type ServiceOrderItem = {
+    id: string;
+    soNumber: string;
+    description: string;
+    date: string; // YYYY-MM-DD
+    value: number;
+};
+
+export type InvoiceItem = {
+    id: string;
+    soNumber: string;
+    serviceCategory: string;
+    description: string;
+    status: 'Document Preparation' | 'PAD' | 'Invoiced' | 'Paid' | 'Re-invoiced' | 'Cancel';
+    period: string; // "Month Year" e.g., "January 2024"
+    value: number;
+    originalValue?: number; // For PAD adjustments
+    adjustmentReason?: string;
+};
+
+export type ExpenditureItem = {
+  id: string;
+  category: string;
+  coa: string;
+  description: string;
+  period: string;
+  amount: number;
+  status: 'Approved' | 'Pending' | 'Rejected';
 };
 
 export type Project = {
-  id: string; 
+  id: string;
+  name: string;
+  description: string;
+  client: string;
+  contractExecutor: string; // Branch ID
   contractNumber: string;
   rabNumber: string;
-  name: string;
-  client: string;
-  description: string;
-  value: number;
   period: string;
   duration: string;
-  contractStartDate?: string; // 'YYYY-MM-DD'
-  contractEndDate?: string; // 'YYYY-MM-DD'
+  contractStartDate: string; // 'YYYY-MM-DD'
+  contractEndDate: string; // 'YYYY-MM-DD'
+  value: number;
+  branchId?: string; // Branch ID
   serviceOrders: ServiceOrderItem[];
   invoices: InvoiceItem[];
-  budgets: { [category: string]: number };
+  budgets: Record<string, number>;
   costs: ExpenditureItem[];
-  branchId: string;
-  contractExecutor: string;
   portfolio?: (typeof portfolios)[number];
   subPortfolio?: (typeof subPortfolios)[number];
   serviceCode?: string;
   serviceName?: string;
   tripApprovalWorkflow: ApprovalStage[];
   reportApprovalWorkflow: ApprovalStage[];
+  projectManagerId?: string | null;
   contractUrl?: string;
   rabUrl?: string;
   otherDocumentUrls?: ProjectDocument[];
 };
 
-
-export const initialProjects: Project[] = [];
+// This data is now only used for one-time database seeding.
+export const initialProjects: Omit<Project, 'id'>[] = [];

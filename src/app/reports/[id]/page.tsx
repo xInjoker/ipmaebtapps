@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
@@ -6,7 +7,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import NextImage from 'next/image';
 import { useReports } from '@/context/ReportContext';
-import { type ReportItem, type ReportDetails, RadiographicFinding, PenetrantTestReportDetails, MagneticParticleTestReportDetails, UltrasonicTestReportDetails, RadiographicTestReportDetails, FlashReportDetails, OtherReportDetails } from '@/lib/reports';
+import { type ReportItem, type ReportDetails, RadiographicFinding, PenetrantTestReportDetails, MagneticParticleTestReportDetails, UltrasonicTestReportDetails, RadiographicTestReportDetails, FlashReportDetails, InspectionReportDetails } from '@/lib/reports';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -16,8 +17,7 @@ import { format } from 'date-fns';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
-import type { UserOptions, CellHookData } from 'jspdf-autotable';
+import autoTable, { type UserOptions, type HookData } from 'jspdf-autotable';
 import { useAuth } from '@/context/AuthContext';
 import { formatCurrency, getFileNameFromDataUrl } from '@/lib/utils';
 import { DocumentViewerDialog } from '@/components/document-viewer-dialog';
@@ -416,62 +416,99 @@ export default function ReportDetailsPage() {
             ["Service Order", (details as any).soNumber || 'N/A', "Job Location", report.jobLocation],
             ["Date of Test", (details as any).dateOfTest ? format(new Date((details as any).dateOfTest), 'PPP') : 'N/A', "Project Executor", (details as any).projectExecutor || 'N/A'],
         ];
-        doc.autoTable({ startY: finalY, body: generalInfo, theme: 'plain', styles: { fontSize: 9 } });
+        autoTable(doc, { startY: finalY, body: generalInfo, theme: 'plain', styles: { fontSize: 9 } });
         finalY = (doc as any).lastAutoTable.finalY + 5;
     
         if (details.jobType === 'Penetrant Test') {
-            doc.autoTable({
+            const ptDetails = details as PenetrantTestReportDetails;
+            const testDetailsBody = [
+                ['Procedure No.', ptDetails.procedureNo], ['Acceptance Criteria', ptDetails.acceptanceCriteria],
+                ['Visual Inspection', ptDetails.visualInspection], ['Surface Condition', ptDetails.surfaceCondition],
+                ['Examination Stage', ptDetails.examinationStage], ['Material', ptDetails.material],
+                ['Welding Process', ptDetails.weldingProcess], ['Drawing Number', ptDetails.drawingNumber],
+                ['Test Extent', ptDetails.testExtent], ['Test Temperature', ptDetails.testTemperature],
+                ['Test Equipment', ptDetails.testEquipment],
+            ];
+            autoTable(doc, {
                 head: [['Test Details']],
-                body: [
-                    ['Procedure No.', details.procedureNo], ['Acceptance Criteria', details.acceptanceCriteria],
-                    ['Test Equipment', details.testEquipment], ['Material', details.material],
-                ],
+                body: testDetailsBody.map(([label, value]) => [label, value || 'N/A']),
                 startY: finalY, theme: 'striped', headStyles: { fillColor: [22, 163, 74] }, styles: { fontSize: 9 },
             });
             finalY = (doc as any).lastAutoTable.finalY;
     
-            doc.autoTable({
+            autoTable(doc, {
                 head: [['Item', 'Type', 'Brand', 'Batch No.']],
                 body: [
-                    ['Penetrant', details.penetrantType, details.penetrantBrand, details.penetrantBatch],
-                    ['Remover', details.removerType, details.removerBrand, details.removerBatch],
-                    ['Developer', details.developerType, details.developerBrand, details.developerBatch],
+                    ['Penetrant', ptDetails.penetrantType, ptDetails.penetrantBrand, ptDetails.penetrantBatch],
+                    ['Remover', ptDetails.removerType, ptDetails.removerBrand, ptDetails.removerBatch],
+                    ['Developer', ptDetails.developerType, ptDetails.developerBrand, ptDetails.developerBatch],
                 ],
-                startY: finalY, theme: 'grid', styles: { fontSize: 9 },
+                startY: finalY + 2, theme: 'grid', styles: { fontSize: 9 },
             });
             finalY = (doc as any).lastAutoTable.finalY;
     
-            doc.autoTable({
+            autoTable(doc, {
                 head: [['Subject ID', 'Joint No.', 'Weld/Part ID', 'Linear Ind.', 'Round Ind.', 'Result']],
-                body: details.testResults.map(r => [r.subjectIdentification, r.jointNo, r.weldId, r.linearIndication, r.roundIndication, r.result]),
+                body: ptDetails.testResults.map(r => [r.subjectIdentification, r.jointNo, r.weldId, r.linearIndication, r.roundIndication, r.result]),
                 startY: finalY + 5, theme: 'grid', headStyles: { fillColor: [41, 128, 185] }, styles: { fontSize: 9 },
             });
             finalY = (doc as any).lastAutoTable.finalY;
+            
+             if (ptDetails.testResults.some(r => r.imageUrls && r.imageUrls.length > 0)) {
+                if (finalY > 200) { doc.addPage(); finalY = 20; }
+                doc.text('Evidence Images:', pageMargin, finalY + 10);
+                finalY += 15;
+
+                for (const result of ptDetails.testResults) {
+                    if (result.imageUrls && result.imageUrls.length > 0) {
+                        for (const url of result.imageUrls) {
+                            try {
+                                const response = await fetch(url);
+                                const blob = await response.blob();
+                                const reader = new FileReader();
+                                const dataUrl = await new Promise<string>((resolve) => {
+                                    reader.onloadend = () => resolve(reader.result as string);
+                                    reader.readAsDataURL(blob);
+                                });
+                                
+                                if (finalY > 220) { doc.addPage(); finalY = 20; }
+                                doc.text(`Joint: ${result.jointNo}, Weld: ${result.weldId}`, pageMargin, finalY);
+                                finalY += 5;
+                                doc.addImage(dataUrl, 'JPEG', pageMargin, finalY, 60, 45);
+                                finalY += 50;
+
+                            } catch (e) { console.error("Error adding image to PDF", e); }
+                        }
+                    }
+                }
+            }
         }
 
         // Logic for other test types would go here...
     
         const signatureTableBody = report.approvalHistory.map(action => {
             const approver = users.find(u => u.name === action.actorName);
-            const signatureContent = approver?.signatureUrl ? { image: approver.signatureUrl, width: 30, height: 10 } : { content: '', styles: { minCellHeight: 12 } };
+            const signatureContent = approver?.signatureUrl 
+                ? { image: approver.signatureUrl, width: 30, height: 10 } 
+                : { content: '', styles: { minCellHeight: 12 as const } };
             return [
-                { content: `${action.actorRole}\n${action.actorName}`, styles: { halign: 'center', fontSize: 8 } },
-                { ...signatureContent, styles: { ...(signatureContent.styles || {}), halign: 'center' } },
-                { content: `Date: ${format(new Date(action.timestamp), 'dd-MMM-yyyy')}`, styles: { halign: 'center', fontSize: 8 } }
+                { content: `${action.actorRole}\n${action.actorName}`, styles: { halign: 'center' as const, fontSize: 8 } },
+                { ...signatureContent, styles: { ...(signatureContent.styles || {}), halign: 'center' as const } },
+                { content: `Date: ${format(new Date(action.timestamp), 'dd-MMM-yyyy')}`, styles: { halign: 'center' as const, fontSize: 8 } }
             ];
         });
 
         const startYForSignature = finalY + 15 > pageHeight - 50 ? 20 : finalY + 15;
         if (finalY + 15 > pageHeight - 50) doc.addPage();
         
-        doc.autoTable({
+        autoTable(doc, {
             head: [['Role', 'Signature', 'Date']],
             body: signatureTableBody,
             startY: startYForSignature,
             theme: 'grid',
             styles: { fontSize: 9, cellPadding: 2, valign: 'middle' },
-            didDrawPage: (data: CellHookData) => {
-                const pageCount = doc.internal.getNumberOfPages();
+            didDrawPage: (data: HookData) => {
+                const pageCount = doc.getNumberOfPages();
                 doc.setFontSize(8);
                 doc.text(`Page ${data.pageNumber} of ${pageCount}`, pageWidth - pageMargin, pageHeight - 10, { align: 'right' });
             },
@@ -506,9 +543,13 @@ export default function ReportDetailsPage() {
         const ReportComponents = reportTypeMap[details.jobType];
         if (!ReportComponents) return null;
         const ResultsView = (ReportComponents as any).ResultsView;
+        const DetailsCard = (ReportComponents as any).DetailsCard;
+
+        if (!DetailsCard) return null;
+
         return (
             <>
-                <ReportComponents.DetailsCard details={details} setDocumentToView={setDocumentToView} report={report} />
+                <DetailsCard details={details} setDocumentToView={setDocumentToView} report={report} />
                 {ResultsView && <ResultsView details={details} />}
             </>
         );

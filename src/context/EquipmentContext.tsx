@@ -3,9 +3,9 @@
 
 import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useCallback, useMemo, useEffect } from 'react';
 import { type EquipmentItem, type EquipmentDocument } from '@/lib/equipment';
-import { getFirestore, collection, getDocs, setDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { getFirestore, collection, getDocs, setDoc, doc, updateDoc, deleteDoc, getDoc } from 'firebase/firestore';
 import { app } from '@/lib/firebase';
-import { uploadFile } from '@/lib/storage';
+import { uploadFile, deleteFileByUrl } from '@/lib/storage';
 import { useAuth } from './AuthContext';
 
 const db = getFirestore(app);
@@ -99,8 +99,26 @@ export function EquipmentProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const deleteEquipment = useCallback(async (id: string) => {
-    await deleteDoc(doc(db, 'equipment', id));
-    setEquipmentList(prev => prev.filter(item => item.id !== id));
+    const equipmentDocRef = doc(db, 'equipment', id);
+    try {
+        const docSnap = await getDoc(equipmentDocRef);
+        if (docSnap.exists()) {
+            const equipmentData = docSnap.data() as EquipmentItem;
+            const urlsToDelete = [
+                ...(equipmentData.imageUrls || []),
+                ...(equipmentData.documentUrls || []).map(doc => doc.url)
+            ];
+            
+            if (urlsToDelete.length > 0) {
+                await Promise.all(urlsToDelete.map(url => deleteFileByUrl(url)));
+            }
+        }
+
+        await deleteDoc(equipmentDocRef);
+        setEquipmentList(prev => prev.filter(item => item.id !== id));
+    } catch (error) {
+        console.error("Error deleting equipment:", error);
+    }
   }, []);
   
   const getEquipmentById = useCallback((id: string) => {

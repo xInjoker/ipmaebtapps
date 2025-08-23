@@ -2,7 +2,7 @@
 "use client"
 
 import * as React from "react"
-import { Pie, PieChart, Cell, Sector } from 'recharts';
+import { Pie, PieChart, Cell, Sector, PieProps } from 'recharts';
 import {
   ChartContainer,
   ChartTooltip,
@@ -12,14 +12,24 @@ import {
   ChartConfig,
 } from '@/components/ui/chart';
 import { useMemo, useState } from 'react';
-import type { Project, InvoiceItem } from '@/lib/projects';
-import { formatCurrency, formatCurrencyCompact } from "@/lib/utils";
+import type { Project } from '@/lib/projects';
+import { formatCurrencyCompact } from "@/lib/utils";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 
 type ProjectIncomePieChartProps = {
-  project: Project;
+  project: Project | null;
 };
+
+interface ChartProps extends PieProps {
+  cx: number;
+  cy: number;
+  innerRadius: number;
+  outerRadius: number;
+  startAngle: number;
+  endAngle: number;
+  fill: string;
+  payload: { name: string; value: number };
+}
 
 const chartConfig = {
   Paid: {
@@ -38,6 +48,10 @@ const chartConfig = {
     label: 'PAD',
     color: 'hsl(var(--chart-4))'
   },
+  Cancel: {
+      label: 'Cancelled',
+      color: 'hsl(var(--destructive))',
+  }
 } satisfies ChartConfig;
 
 const renderActiveShape = (props: any, totalValue: number) => {
@@ -73,33 +87,24 @@ const renderActiveShape = (props: any, totalValue: number) => {
     );
 };
 
-export function ProjectIncomePieChart({ project }: ProjectIncomePieChartProps) {
+export const ProjectIncomePieChart = React.memo(function ProjectIncomePieChart({ project }: ProjectIncomePieChartProps) {
   const [activeIndex, setActiveIndex] = useState(0);
-  const [selectedYear, setSelectedYear] = useState('all');
 
   const onPieEnter = React.useCallback(
-    (_: any, index: number) => {
+    (_: unknown, index: number) => {
       setActiveIndex(index);
     },
     [setActiveIndex]
   );
   
-  const availableYears = useMemo(() => {
-    if (!project) return ['all'];
-    const years = new Set((project.invoices || []).map(i => i.period.split(' ')[1]).filter(Boolean));
-    return ['all', ...Array.from(years).sort((a, b) => Number(b) - Number(a))];
-  }, [project]);
-  
   const { chartData, totalValue } = useMemo(() => {
     if (!project) return { chartData: [], totalValue: 0 };
     
-    const filteredInvoices = selectedYear === 'all' 
-        ? (project.invoices || [])
-        : (project.invoices || []).filter(inv => inv.period.endsWith(selectedYear));
+    const filteredInvoices = project.invoices || [];
 
     const valueByStatus = filteredInvoices.reduce((acc, invoice) => {
         const status = invoice.status;
-        if (status === 'Paid' || status === 'Invoiced' || status === 'Re-invoiced' || status === 'PAD') {
+        if (status) {
             acc[status] = (acc[status] || 0) + invoice.value;
         }
         return acc;
@@ -113,10 +118,12 @@ export function ProjectIncomePieChart({ project }: ProjectIncomePieChartProps) {
       }))
       .filter(d => d.value > 0);
 
-    const total = data.reduce((sum, item) => sum + item.value, 0);
+    const total = data
+        .filter(d => d.name !== 'Cancel')
+        .reduce((sum, item) => sum + item.value, 0);
     
     return { chartData: data, totalValue: total };
-  }, [project, selectedYear]);
+  }, [project]);
 
   return (
     <Card>
@@ -125,16 +132,10 @@ export function ProjectIncomePieChart({ project }: ProjectIncomePieChartProps) {
             <CardTitle>Income Realization</CardTitle>
             <CardDescription>A breakdown of income based on invoice status.</CardDescription>
         </div>
-        <Select value={selectedYear} onValueChange={setSelectedYear}>
-          <SelectTrigger className="w-[120px]"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            {availableYears.map(year => <SelectItem key={year} value={year}>{year}</SelectItem>)}
-          </SelectContent>
-        </Select>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="h-[400px] w-full">
-            {totalValue > 0 ? (
+            {totalValue > 0 || chartData.some(d => d.name === 'Cancel') ? (
                 <PieChart>
                     <ChartTooltip
                       cursor={false}
@@ -145,7 +146,7 @@ export function ProjectIncomePieChart({ project }: ProjectIncomePieChartProps) {
                     />
                     <Pie
                       activeIndex={activeIndex}
-                      activeShape={(props) => renderActiveShape(props, totalValue)}
+                      activeShape={(props: any) => renderActiveShape(props, totalValue)}
                       onMouseEnter={onPieEnter}
                       data={chartData}
                       dataKey="value"
@@ -175,4 +176,4 @@ export function ProjectIncomePieChart({ project }: ProjectIncomePieChartProps) {
       </CardContent>
     </Card>
   );
-}
+});

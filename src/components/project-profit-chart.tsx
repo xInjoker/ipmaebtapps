@@ -8,16 +8,15 @@ import {
   ChartTooltipContent,
   ChartConfig,
 } from '@/components/ui/chart';
-import { useMemo, useState } from 'react';
+import { useMemo, memo } from 'react';
 import type { Project } from '@/lib/projects';
 import { formatCurrencyCompact } from '@/lib/utils';
 import { parse, format as formatDate } from 'date-fns';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 
 
 type ProjectProfitChartProps = {
-  project: Project;
+  project: Project | null;
 };
 
 const chartConfig: ChartConfig = {
@@ -26,14 +25,7 @@ const chartConfig: ChartConfig = {
   },
 };
 
-export function ProjectProfitChart({ project }: ProjectProfitChartProps) {
-  const [selectedYear, setSelectedYear] = useState('all');
-
-  const availableYears = useMemo(() => {
-    if (!project) return ['all'];
-    const years = new Set([...(project.invoices || []), ...(project.costs || [])].map(i => i.period.split(' ')[1]).filter(Boolean));
-    return ['all', ...Array.from(years).sort((a,b) => Number(b) - Number(a))];
-  }, [project]);
+export const ProjectProfitChart = memo(function ProjectProfitChart({ project }: ProjectProfitChartProps) {
   
   const chartData = useMemo(() => {
     if (!project) return [];
@@ -43,7 +35,7 @@ export function ProjectProfitChart({ project }: ProjectProfitChartProps) {
     const processPeriod = (period: string, value: number, type: 'income' | 'cost') => {
         if(!period) return;
         const [month, year] = period.split(' ');
-        if(!month || !year || (selectedYear !== 'all' && selectedYear !== year)) return;
+        if(!month || !year) return;
         try {
             const date = parse(`${month} 1, ${year}`, 'MMMM d, yyyy', new Date());
             const monthKey = formatDate(date, 'MMM yy');
@@ -83,22 +75,16 @@ export function ProjectProfitChart({ project }: ProjectProfitChartProps) {
         }
     });
 
-    return sortedData.slice(-12);
-  }, [project, selectedYear]);
+    return sortedData;
+  }, [project]);
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader>
         <div>
             <CardTitle>Monthly Profit</CardTitle>
             <CardDescription>Realized income vs. cost for each month.</CardDescription>
         </div>
-        <Select value={selectedYear} onValueChange={setSelectedYear}>
-            <SelectTrigger className="w-[120px]"><SelectValue /></SelectTrigger>
-            <SelectContent>
-                {availableYears.map(year => <SelectItem key={year} value={year}>{year}</SelectItem>)}
-            </SelectContent>
-        </Select>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="h-[400px] w-full">
@@ -133,4 +119,4 @@ export function ProjectProfitChart({ project }: ProjectProfitChartProps) {
       </CardContent>
     </Card>
   );
-}
+});

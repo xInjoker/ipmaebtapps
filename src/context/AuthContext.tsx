@@ -24,7 +24,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { getFirestore, collection, doc, getDocs, setDoc, updateDoc, onSnapshot, deleteDoc, Unsubscribe, getDoc } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, type User as FirebaseUser, EmailAuthProvider, reauthenticateWithCredential, updatePassword as firebaseUpdatePassword } from 'firebase/auth';
-import { app } from '@/lib/firebase'; 
+import { app } from '@/lib/firebase';
 import { uploadFile } from '@/lib/storage';
 
 
@@ -37,7 +37,7 @@ const checkUserPermission = (
   roles: Role[],
   permission: Permission
 ): boolean => {
-  if (!user) return false;
+  if (!user || !roles || roles.length === 0) return false;
   const userRole = roles.find((r) => r.id === user.roleId);
   if (!userRole) return false;
   if (userRole.id === 'super-admin') return true;
@@ -79,66 +79,52 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
   
   useEffect(() => {
-    // Public collections can be fetched immediately, as rules allow it.
-    const unsubBranches = onSnapshot(collection(db, "branches"), (snapshot) => {
-        const branchesData = snapshot.docs.map(doc => doc.data() as Branch);
-        setBranches(branchesData.length > 0 ? branchesData : initialBranches);
-    }, (error) => {
-        console.error("Failed to fetch branches:", error);
-        setBranches(initialBranches);
-    });
+    const fetchInitialData = async () => {
+        try {
+            const rolesSnapshot = await getDocs(collection(db, "roles"));
+            const rolesData = rolesSnapshot.docs.map(doc => doc.data() as Role);
+            setRoles(rolesData.length > 0 ? rolesData : initialRoles);
 
-    const unsubRoles = onSnapshot(collection(db, "roles"), (snapshot) => {
-        const rolesData = snapshot.docs.map(doc => doc.data() as Role);
-        setRoles(rolesData.length > 0 ? rolesData : initialRoles);
-    }, (error) => {
-        console.error("Failed to fetch roles:", error);
-        setRoles(initialRoles);
-    });
-    
-    return () => {
-      unsubBranches();
-      unsubRoles();
+            const branchesSnapshot = await getDocs(collection(db, "branches"));
+            const branchesData = branchesSnapshot.docs.map(doc => doc.data() as Branch);
+            setBranches(branchesData.length > 0 ? branchesData : initialBranches);
+        } catch (error) {
+            console.error("Failed to fetch initial roles/branches:", error);
+            setRoles(initialRoles);
+            setBranches(initialBranches);
+        }
     };
+    
+    fetchInitialData();
   }, []);
 
   useEffect(() => {
-    let userUnsub: Unsubscribe | null = null;
-    let usersUnsub: Unsubscribe | null = null;
-    
-    const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
-        if (userUnsub) userUnsub();
-        if (usersUnsub) usersUnsub();
+    let userUnsub: Unsubscribe | undefined;
+    let usersUnsub: Unsubscribe | undefined;
+
+    const authUnsub = onAuthStateChanged(auth, (firebaseUser) => {
+        userUnsub?.();
+        usersUnsub?.();
 
         if (firebaseUser) {
             const userDocRef = doc(db, 'users', firebaseUser.uid);
-            
-            userUnsub = onSnapshot(userDocRef, (docSnap) => {
-                if (docSnap.exists()) {
-                    const userData = docSnap.data() as User;
-                    setUser(userData);
-                    
-                    if (checkUserPermission(userData, roles, 'manage-users')) {
-                         usersUnsub = onSnapshot(collection(db, "users"), (snapshot) => {
-                            const usersData = snapshot.docs.map(doc => doc.data() as User);
-                            setUsers(usersData);
-                        }, (error) => {
-                             console.error("Failed to fetch all users:", error);
-                        });
-                    } else {
-                        setUsers([userData]); 
-                    }
-                    setIsInitializing(false);
+            userUnsub = onSnapshot(userDocRef, (userDoc) => {
+                if (userDoc.exists()) {
+                    setUser(userDoc.data() as User);
                 } else {
-                    console.warn("User document not found in Firestore. Logging out.");
-                    signOut(auth);
-                    setIsInitializing(false);
+                     signOut(auth);
                 }
-            }, (error) => {
-                console.error("Error listening to user document:", error);
+                // We know the auth state now, so we can stop initializing.
+                setIsInitializing(false);
+            }, () => {
                 signOut(auth);
                 setIsInitializing(false);
             });
+            
+            usersUnsub = onSnapshot(collection(db, 'users'), (snapshot) => {
+                setUsers(snapshot.docs.map(d => d.data() as User));
+            });
+
         } else {
             setUser(null);
             setUsers([]);
@@ -147,22 +133,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     return () => {
-        unsubscribeAuth();
-        if (userUnsub) userUnsub();
-        if (usersUnsub) usersUnsub();
+        authUnsub();
+        userUnsub?.();
+        usersUnsub?.();
     };
-  }, [roles]);
+}, []);
 
   const login = useCallback(async (email: string, pass: string) => {
     try {
         await signInWithEmailAndPassword(auth, email, pass);
         router.push('/');
-    } catch (error: any) {
+    } catch (error: unknown) {
         toast({
             variant: 'destructive',
             title: 'Login Failed',
             description: 'Invalid email or password.',
         });
+         if (error instanceof Error) {
+            console.error("Login failed:", {
+                error: error.message,
+                email: email,
+                timestamp: new Date().toISOString(),
+            });
+        }
     }
   }, [router, toast]);
 
@@ -190,12 +183,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await setDoc(doc(db, "users", firebaseUser.uid), newUserProfile);
         router.push('/');
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         let description = 'An unknown error occurred.';
-        if (error.code === 'auth/email-already-in-use') {
-            description = 'This email is already registered. Please log in.';
-        } else if (error.code === 'auth/weak-password') {
-            description = 'The password is too weak. Please use at least 6 characters.';
+        if (error instanceof Error) {
+           if ('code' in error) {
+                const firebaseError = error as { code: string };
+                if (firebaseError.code === 'auth/email-already-in-use') {
+                    description = 'This email is already registered. Please log in.';
+                } else if (firebaseError.code === 'auth/weak-password') {
+                    description = 'The password is too weak. Please use at least 6 characters.';
+                }
+           }
         }
         toast({ variant: 'destructive', title: 'Registration Failed', description });
     }
@@ -205,7 +203,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
         await signOut(auth);
         router.push('/login');
-    } catch (error) {
+    } catch (error: unknown) {
         toast({ variant: 'destructive', title: 'Logout Failed', description: 'There was an issue signing out.' });
     }
   }, [router, toast]);
@@ -222,7 +220,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const signatureUrl = await uploadFile(newSignatureFile, `signatures/${uid}/${newSignatureFile.name}`);
         updateData.signatureUrl = signatureUrl;
     } else if (data.signatureUrl === '') {
-        // Handle removal of signature
         updateData.signatureUrl = '';
     }
 
@@ -243,10 +240,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
         await reauthenticateWithCredential(firebaseUser, credential);
         await firebaseUpdatePassword(firebaseUser, newPass);
-    } catch (error: any) {
-        console.error("Password update failed:", error);
-        if (error.code === 'auth/wrong-password') {
-            throw new Error("The current password you entered is incorrect.");
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            console.error("Password update failed:", {
+                error: error.message,
+                timestamp: new Date().toISOString(),
+                userId: firebaseUser.uid,
+            });
+            if ('code' in error && (error as {code: string}).code === 'auth/wrong-password') {
+                throw new Error("The current password you entered is incorrect.");
+            }
         }
         throw new Error("Failed to update password. Please try again later.");
     }
@@ -262,7 +265,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
     try {
         await setDoc(newRoleRef, newRole);
-    } catch (error) {
+    } catch (error: unknown) {
         toast({ variant: 'destructive', title: 'Error', description: 'Could not add new role.' });
     }
   }, [toast]);
@@ -270,7 +273,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const updateRole = useCallback(async (roleId: string, roleData: { name: string; permissions: Permission[] }) => {
     try {
         await updateDoc(doc(db, 'roles', roleId), roleData);
-    } catch (error) {
+    } catch (error: unknown) {
         toast({ variant: 'destructive', title: 'Error', description: 'Could not update role.' });
     }
   }, [toast]);
@@ -282,7 +285,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     try {
         await deleteDoc(doc(db, 'roles', roleId));
-    } catch(error) {
+    } catch(error: unknown) {
         toast({ variant: 'destructive', title: 'Error', description: 'Could not delete role.' });
     }
   }, [toast, users]);
@@ -302,7 +305,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     updateUser, updatePassword, addRole, updateRole, deleteRole,
     userHasPermission, isHqUser, isInitializing, login, register, logout,
   }), [
-    isAuthenticated, user, users, roles, branches,
+    isAuthenticated, user, users, roles, branches, permissions,
     updateUser, updatePassword, addRole, updateRole, deleteRole, 
     userHasPermission, isHqUser, isInitializing, login, register, logout
   ]);

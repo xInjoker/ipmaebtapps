@@ -2,7 +2,7 @@
 "use client"
 
 import * as React from "react"
-import { Pie, PieChart, Cell, Sector } from 'recharts';
+import { Pie, PieChart, Cell, Sector, PieProps } from 'recharts';
 import {
   ChartContainer,
   ChartTooltip,
@@ -15,7 +15,6 @@ import { useMemo, useState } from 'react';
 import type { Tender, TenderStatus } from '@/lib/tenders';
 import { tenderStatuses } from "@/lib/tenders";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 
 type TenderCountChartProps = {
   tenders: Tender[];
@@ -39,24 +38,24 @@ const chartConfig: ChartConfig = {
   },
   Awarded: {
     label: 'Awarded',
+    color: 'hsl(var(--success))',
+  },
+  Prequalification: {
+    label: 'Prequalification',
     color: 'hsl(var(--chart-4))',
   },
   Lost: {
     label: 'Lost',
-    color: 'hsl(var(--chart-5))',
+    color: 'hsl(var(--destructive))',
   },
   Cancelled: {
     label: 'Cancelled',
-    color: 'hsl(var(--destructive))',
-  },
-   Prequalification: {
-    label: 'Prequalification',
-    color: 'hsl(var(--secondary-foreground))',
+    color: 'hsl(var(--muted))',
   },
 };
 
 const renderActiveShape = (props: any, totalTenders: number) => {
-    const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
+    const { cx = 0, cy = 0, innerRadius = 0, outerRadius = 0, startAngle, endAngle, fill } = props;
     return (
         <g>
             <text x={cx} y={cy - 10} dy={8} textAnchor="middle" fill="hsl(var(--foreground))" className="text-2xl font-bold">
@@ -88,23 +87,13 @@ const renderActiveShape = (props: any, totalTenders: number) => {
 };
 
 
-export function TenderCountChart({ tenders }: TenderCountChartProps) {
+export const TenderCountChart = React.memo(function TenderCountChart({ tenders }: TenderCountChartProps) {
   const [activeIndex, setActiveIndex] = React.useState(0);
-  const [selectedYear, setSelectedYear] = useState('all');
-
-  const availableYears = useMemo(() => {
-    const years = new Set(tenders.map(t => new Date(t.submissionDate).getFullYear().toString()));
-    return ['all', ...Array.from(years).sort((a,b) => Number(b) - Number(a))];
-  }, [tenders]);
 
   const chartData = useMemo(() => {
     if (!tenders) return [];
     
-    const filteredTenders = selectedYear === 'all' 
-        ? tenders 
-        : tenders.filter(t => new Date(t.submissionDate).getFullYear().toString() === selectedYear);
-
-    const statusCounts = filteredTenders.reduce((acc, tender) => {
+    const statusCounts = tenders.reduce((acc, tender) => {
       acc[tender.status] = (acc[tender.status] || 0) + 1;
       return acc;
     }, {} as Record<TenderStatus, number>);
@@ -114,29 +103,23 @@ export function TenderCountChart({ tenders }: TenderCountChartProps) {
       count: statusCounts[status] || 0,
       fill: `var(--color-${status})`,
     })).filter(d => d.count > 0);
-  }, [tenders, selectedYear]);
+  }, [tenders]);
 
   const totalTenders = useMemo(() => {
     return chartData.reduce((acc, curr) => acc + curr.count, 0);
   }, [chartData]);
   
-  const onPieEnter = (_: any, index: number) => {
+  const onPieEnter = (_: unknown, index: number) => {
     setActiveIndex(index);
   };
 
   return (
     <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader>
             <div>
                 <CardTitle>Tender Count Summary by Status</CardTitle>
                 <CardDescription>A summary of tender counts for each status.</CardDescription>
             </div>
-            <Select value={selectedYear} onValueChange={setSelectedYear}>
-                <SelectTrigger className="w-[120px]"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                    {availableYears.map(year => <SelectItem key={year} value={year}>{year}</SelectItem>)}
-                </SelectContent>
-            </Select>
         </CardHeader>
         <CardContent>
             <ChartContainer config={chartConfig} className="h-[400px] w-full">
@@ -147,7 +130,7 @@ export function TenderCountChart({ tenders }: TenderCountChartProps) {
                 />
                 <Pie
                 activeIndex={activeIndex}
-                activeShape={(props) => renderActiveShape(props, totalTenders)}
+                activeShape={(props: any) => renderActiveShape(props, totalTenders)}
                 data={chartData}
                 dataKey="count"
                 nameKey="status"
@@ -172,4 +155,4 @@ export function TenderCountChart({ tenders }: TenderCountChartProps) {
         </CardContent>
     </Card>
   );
-}
+});

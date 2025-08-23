@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
@@ -7,6 +8,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -70,6 +72,8 @@ export default function TripsPage() {
   const { toast } = useToast();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<TripRequest | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const filteredTrips = useMemo(() => {
     if (!user) return [];
@@ -77,8 +81,18 @@ export default function TripsPage() {
     if (user.roleId === 'super-admin') {
       return trips;
     }
-    return trips.filter(trip => trip.employeeId === user.id);
+    return trips.filter(trip => trip.employeeId === user.uid);
   }, [trips, user]);
+  
+  const paginatedTrips = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredTrips.slice(startIndex, endIndex);
+  }, [filteredTrips, currentPage]);
+
+  const totalPages = useMemo(() => {
+    return Math.ceil(filteredTrips.length / itemsPerPage);
+  }, [filteredTrips]);
 
   const dashboardStats = useMemo(() => {
     if (!user) return { totalTrips: 0, approved: 0, pending: 0, rejected: 0 };
@@ -183,8 +197,8 @@ export default function TripsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredTrips.length > 0 ? (
-                  filteredTrips.map((trip) => (
+                {paginatedTrips.length > 0 ? (
+                  paginatedTrips.map((trip) => (
                     <TableRow key={trip.id}>
                       <TableCell className="font-medium">
                         {trip.employeeName}
@@ -246,6 +260,31 @@ export default function TripsPage() {
             </Table>
           </div>
         </CardContent>
+        {totalPages > 1 && (
+            <CardFooter className="flex items-center justify-between border-t pt-4">
+                <span className="text-sm text-muted-foreground">
+                    Page {currentPage} of {totalPages}
+                </span>
+                <div className="flex items-center gap-2">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                        disabled={currentPage === 1}
+                    >
+                        Previous
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                        disabled={currentPage === totalPages}
+                    >
+                        Next
+                    </Button>
+                </div>
+            </CardFooter>
+          )}
       </Card>
     </div>
      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>

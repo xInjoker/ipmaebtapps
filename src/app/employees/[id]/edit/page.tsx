@@ -6,8 +6,9 @@ import { useRouter, useParams } from 'next/navigation';
 import { useEmployees } from '@/context/EmployeeContext';
 import { useToast } from '@/hooks/use-toast';
 import { type Employee } from '@/lib/employees';
-import { EmployeeForm } from '@/components/employee-form';
+import { EmployeeForm, type EmployeeFormData } from '@/components/employee-form';
 import { useEffect, useState, useCallback } from 'react';
+import { format } from 'date-fns';
 
 type NewUploadableDocument = {
   file: File;
@@ -41,13 +42,21 @@ export default function EditEmployeePage() {
   }, [employeeId, getEmployeeById, router, toast]);
 
   const handleSave = useCallback(async (
-    data: Employee,
+    data: EmployeeFormData,
     newDocs: { newCvFile: File | null, newQualifications: NewUploadableDocument[], newOtherDocs: NewUploadableDocument[] }
     ) => {
     if (employee) {
       setIsSaving(true);
       try {
-        await updateEmployee(employee.id, data, newDocs);
+        const updatedData = {
+          ...employee,
+          ...data,
+          reportingManagerId: data.reportingManagerId || undefined,
+          dateOfBirth: data.dateOfBirth ? format(data.dateOfBirth, 'yyyy-MM-dd') : undefined,
+          contractStartDate: data.contractStartDate ? format(data.contractStartDate, 'yyyy-MM-dd') : undefined,
+          contractEndDate: data.contractEndDate ? format(data.contractEndDate, 'yyyy-MM-dd') : undefined,
+        };
+        await updateEmployee(employee.id, updatedData, newDocs);
         toast({ title: 'Employee Updated', description: `${data.name}'s details have been updated.` });
         router.push('/employees');
       } catch (error) {

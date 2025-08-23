@@ -3,10 +3,13 @@
 
 import * as React from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import { DayPicker } from "react-day-picker"
+import { DayPicker, DropdownProps } from "react-day-picker"
+import "react-day-picker/dist/style.css";
 
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./select"
+import { ScrollArea } from "./scroll-area"
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>
 
@@ -18,20 +21,19 @@ function Calendar({
 }: CalendarProps) {
   return (
     <DayPicker
-      captionLayout="dropdown-nav"
-      fromYear={new Date().getFullYear() - 100}
-      toYear={new Date().getFullYear() + 50}
       showOutsideDays={showOutsideDays}
       className={cn("p-3", className)}
       classNames={{
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
+        month: "space-y-4",
         caption: "flex justify-center pt-1 relative items-center",
-        caption_label: "text-sm font-medium",
-        caption_dropdowns: "flex justify-center gap-1",
+        caption_label: cn(props.captionLayout?.includes('dropdown') && "hidden"),
+        caption_dropdowns: "flex justify-center gap-2",
         nav: "space-x-1 flex items-center",
         nav_button: cn(
           buttonVariants({ variant: "outline" }),
-          "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
+          "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
+          props.captionLayout?.includes('dropdown') && 'hidden'
         ),
         nav_button_previous: "absolute left-1",
         nav_button_next: "absolute right-1",
@@ -60,6 +62,40 @@ function Calendar({
       components={{
         IconLeft: ({ ...props }) => <ChevronLeft className="h-4 w-4" />,
         IconRight: ({ ...props }) => <ChevronRight className="h-4 w-4" />,
+         Dropdown: ({ value, onChange, children }: DropdownProps) => {
+          const options = React.Children.toArray(children) as React.ReactElement<React.HTMLProps<HTMLOptionElement>>[];
+          const selected = options.find((child) => child.props.value === value);
+          const handleChange = (value: string) => {
+            const changeEvent = {
+              target: { value },
+            } as React.ChangeEvent<HTMLSelectElement>;
+            onChange?.(changeEvent);
+          };
+          return (
+            <Select
+              value={value?.toString()}
+              onValueChange={(value) => {
+                handleChange(value);
+              }}
+            >
+              <SelectTrigger className="w-auto h-auto p-1.5 text-sm font-medium">
+                <SelectValue>{selected?.props?.children}</SelectValue>
+              </SelectTrigger>
+              <SelectContent position="popper">
+                 <ScrollArea className="h-48">
+                  {options.map((option, id: number) => (
+                    <SelectItem
+                      key={`${option.props.value}-${id}`}
+                      value={option.props.value?.toString() ?? ""}
+                    >
+                      {option.props.children}
+                    </SelectItem>
+                  ))}
+                </ScrollArea>
+              </SelectContent>
+            </Select>
+          );
+        },
       }}
       {...props}
     />

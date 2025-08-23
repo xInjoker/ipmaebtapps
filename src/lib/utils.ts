@@ -1,8 +1,10 @@
 
+
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 import { isPast, differenceInDays } from "date-fns";
 import type { TenderStatus } from "./tenders";
+import type { BadgeProps } from "@/components/ui/badge";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -52,26 +54,21 @@ export function formatCurrency(value: number) {
 }
 
 export function formatCurrencyMillions(value: number): string {
-  if (Math.abs(value) >= 10000000) { // Threshold for conversion
-    const millions = value / 1000000;
-    const formattedMillions = new Intl.NumberFormat('id-ID', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(millions);
-    return `Rp ${formattedMillions} jt`;
-  }
-  return formatCurrency(value);
+    return formatCurrencyCompact(value);
 }
 
 export function formatCurrencyCompact(value: number) {
+    if (Math.abs(value) >= 1_000_000_000_000) {
+        return `Rp ${(value / 1_000_000_000_000).toFixed(1)} T`;
+    }
     if (Math.abs(value) >= 1_000_000_000) {
-        return `Rp ${(value / 1_000_000_000).toFixed(1).replace(/\.0$/, '')} M`;
+        return `Rp ${(value / 1_000_000_000).toFixed(1)} M`;
     }
     if (Math.abs(value) >= 1_000_000) {
-        return `Rp ${(value / 1_000_000).toFixed(1).replace(/\.0$/, '')} Jt`;
+        return `Rp ${(value / 1_000_000).toFixed(1)} Jt`;
     }
     if (Math.abs(value) >= 1_000) {
-        return `Rp ${(value / 1_000).toFixed(1).replace(/\.0$/, '')} rb`;
+        return `Rp ${(value / 1_000).toFixed(1)} rb`;
     }
     return `Rp ${value}`;
 }
@@ -136,14 +133,125 @@ export const getDocumentStatus = (dueDateString?: string): DocumentStatus => {
     return { text: 'Valid', variant: 'green' as const };
 };
 
-export function formatQualificationName(name: string) {
-    if (!name) return 'Untitled';
+const QUALIFICATION_MAP: Record<string, { keywords: string[], levels?: string[], abbreviation: string }> = {
+    // === Conventional NDT ===
+    'UT Level II': { keywords: ['ut', 'ultrasonic', 'ultrasonic testing', 'ultrasonik'], levels: ['level 2', 'level ii', 'lvl 2', 'lvl ii'], abbreviation: 'UT Lvl 2' },
+    'RT Level II': { keywords: ['rt', 'radiographic', 'radiographic testing', 'radiografi'], levels: ['level 2', 'level ii', 'lvl 2', 'lvl ii'], abbreviation: 'RT Lvl 2' },
+    'MT Level II': { keywords: ['mt', 'magnetic particle'], levels: ['level 2', 'level ii', 'lvl 2', 'lvl ii'], abbreviation: 'MT Lvl 2' },
+    'PT Level II': { keywords: ['pt', 'penetrant'], levels: ['level 2', 'level ii', 'lvl 2', 'lvl ii'], abbreviation: 'PT Lvl 2' },
+    'VT Level II': { keywords: ['vt', 'visual'], levels: ['level 2', 'level ii', 'lvl 2', 'lvl ii'], abbreviation: 'VT Lvl 2' },
+    'LT Level II (Leak Testing)': { keywords: ['lt', 'leak testing'], levels: ['level 2', 'level ii', 'lvl 2', 'lvl ii'], abbreviation: 'LT Lvl 2' },
+    'UT Level I': { keywords: ['ut', 'ultrasonic', 'ultrasonic testing', 'ultrasonik'], levels: ['level 1', 'level i', 'lvl 1', 'lvl i'], abbreviation: 'UT Lvl 1' },
+    'RT Level I': { keywords: ['rt', 'radiographic', 'radiographic testing', 'radiografi'], levels: ['level 1', 'level i', 'lvl 1', 'lvl i'], abbreviation: 'RT Lvl 1' },
+    'MT Level I': { keywords: ['mt', 'magnetic particle'], levels: ['level 1', 'level i', 'lvl 1', 'lvl i'], abbreviation: 'MT Lvl 1' },
+    'PT Level I': { keywords: ['pt', 'penetrant'], levels: ['level 1', 'level i', 'lvl 1', 'lvl i'], abbreviation: 'PT Lvl 1' },
+    'VT Level I': { keywords: ['vt', 'visual'], levels: ['level 1', 'level i', 'lvl 1', 'lvl i'], abbreviation: 'VT Lvl 1' },
+    
+    // === Advanced NDT ===
+    'PAUT Level II': { keywords: ['paut', 'phased array'], levels: ['level 2', 'level ii', 'lvl 2', 'lvl ii'], abbreviation: 'PAUT' },
+    'TOFD Level II': { keywords: ['tofd', 'time of flight diffraction'], levels: ['level 2', 'level ii', 'lvl 2', 'lvl ii'], abbreviation: 'TOFD' },
+    'LRUT Level II': { keywords: ['lrut', 'long range ut', 'guided wave', 'gwt'], levels: ['level 2', 'level ii', 'lvl 2', 'lvl ii'], abbreviation: 'LRUT' },
+    'ECT Level II': { keywords: ['ect', 'eddy current'], levels: ['level 2', 'level ii', 'lvl 2', 'lvl ii'], abbreviation: 'ECT' },
+    'AE Level II': { keywords: ['ae', 'acoustic emission'], levels: ['level 2', 'level ii', 'lvl 2', 'lvl ii'], abbreviation: 'AE' },
+    'ACFM Level II': { keywords: ['acfm', 'alternating current field measurement'], levels: ['level 2', 'level ii', 'lvl 2', 'lvl ii'], abbreviation: 'ACFM' },
+    'PEC Level II': { keywords: ['pec', 'pulsed eddy current'], levels: ['level 2', 'level ii', 'lvl 2', 'lvl ii'], abbreviation: 'PEC' },
+    'SRUT': { keywords: ['srut', 'short range ut'], levels: [], abbreviation: 'SRUT' },
+    'MFL': { keywords: ['mfl', 'magnetic flux leakage'], levels: [], abbreviation: 'MFL' },
+    'IRIS': { keywords: ['iris', 'internal rotating inspection system'], levels: [], abbreviation: 'IRIS' },
+    'CRT (Computed Radiography)': { keywords: ['crt', 'computed radiography'], levels: [], abbreviation: 'CRT' },
+    'DRT (Digital Radiography)': { keywords: ['drt', 'digital radiography'], levels: [], abbreviation: 'DRT' },
+
+    // === MIGAS Certifications (KPDM) ===
+    'MIGAS Operator Radiografi (OR)': { keywords: ['operator radiografi', 'petugas radiografi', 'or migas'], levels: [], abbreviation: 'OR' },
+    'MIGAS Ahli Interpretasi Film (AIF/RFI)': { keywords: ['aif', 'rfi', 'ahli interpretasi film', 'radiographic film interpreter'], levels: [], abbreviation: 'AIF/RFI' },
+    'MIGAS Inspektur Las (WI)': { keywords: ['inspektur las', 'wi migas', 'welding inspector'], levels: [], abbreviation: 'WI MIGAS' },
+    'MIGAS Inspektur Bejana Tekan': { keywords: ['inspektur bejana tekan', 'pressure vessel inspector migas'], levels: [], abbreviation: 'Insp. Bejana Tekan' },
+    'MIGAS Inspektur Tangki Penimbun': { keywords: ['inspektur tangki', 'tank inspector migas', 'inspektur tangki penimbun'], levels: [], abbreviation: 'Insp. Tangki' },
+    'MIGAS Inspektur Pipa Penyalur': { keywords: ['inspektur pipa', 'pipeline inspector migas', 'inspektur instalasi pipa penyalur', 'inspektur instalasi minyak dan gas bumi'], levels: [], abbreviation: 'Insp. Pipa Penyalur' },
+    'MIGAS Inspektur Katup Pengaman': { keywords: ['inspektur katup pengaman', 'safety valve inspector', 'PSV','Pressure Safety Valve'], levels: [], abbreviation: 'Insp. Katup Pengaman' },
+    'MIGAS Inspektur Pesawat Angkat': { keywords: ['inspektur pesawat angkat', 'lifting equipment inspector'], levels: [], abbreviation: 'Insp. Pesawat Angkat' },
+    'MIGAS Inspektur Peralatan Putar': { keywords: ['inspektur peralatan putar', 'rotating equipment inspector'], levels: [], abbreviation: 'Insp. Peralatan Putar' },
+    'MIGAS Inspektur Peralatan Listrik': { keywords: ['inspektur peralatan listrik', 'electrical inspector migas'], levels: [], abbreviation: 'Insp. Peralatan Listrik' },
+    'MIGAS Inspektur Platform': { keywords: ['inspektur platform migas', 'offshore platform inspector'], levels: [], abbreviation: 'Insp. Platform' },
+    'MIGAS Inspektur Rig': { keywords: ['inspektur rig', 'rig inspector'], levels: [], abbreviation: 'Insp. Rig' },
+    'MIGAS Inspektur Alat Bantu Angkat': { keywords: ['inspektur alat bantu angkat', 'lifting gear inspector', 'iaba'], levels: [], abbreviation: 'Insp. Alat Bantu Angkat' },
+    'BAPETEN Petugas Proteksi Radiasi (PPR)': { keywords: ['ppr', 'petugas proteksi radiasi', 'radiation protection officer'], levels: [], abbreviation: 'PPR' },
+    'K3 Migas': { keywords: ['k3 migas', 'ahli k3', 'safety officer'], levels: [], abbreviation: 'K3 Migas' },
+
+    // === Welding & Plant Inspection - International ===
+    'AWS CWI': { keywords: ['cwi', 'certified welding inspector', 'aws'], levels: [], abbreviation: 'AWS CWI' },
+    'API 510 - Pressure Vessel': { keywords: ['api 510', 'pressure vessel inspector'], levels: [], abbreviation: 'API 510' },
+    'API 570 - Piping': { keywords: ['api 570', 'piping inspector'], levels: [], abbreviation: 'API 570' },
+    'API 653 - Storage Tank': { keywords: ['api 653', 'aboveground storage tank', 'tank inspector'], levels: [], abbreviation: 'API 653' },
+    'CSWIP 3.1': { keywords: ['cswip 3.1', 'cswip 31'], levels: [], abbreviation: 'CSWIP 3.1' },
+
+    // === Coating & Painting Inspection ===
+    'AMPP (NACE) CIP Level 1': { keywords: ['nace 1', 'ampp 1', 'cip 1', 'coating inspector 1'], levels: [], abbreviation: 'CIP Lvl 1' },
+    'AMPP (NACE) CIP Level 2': { keywords: ['nace 2', 'ampp 2', 'cip 2', 'coating inspector 2'], levels: [], abbreviation: 'CIP Lvl 2' },
+    'AMPP (NACE) CIP Level 3': { keywords: ['nace 3', 'ampp 3', 'cip 3', 'peer review'], levels: [], abbreviation: 'CIP Lvl 3' },
+    'BGAS-CSWIP Painting Inspector Gr. 2': { keywords: ['bgas grade 2', 'bgas gr 2', 'painting inspector grade 2'], levels: [], abbreviation: 'BGAS Gr. 2' },
+    'BGAS-CSWIP Painting Inspector Gr. 1': { keywords: ['bgas grade 1', 'bgas gr 1', 'site coatings'], levels: [], abbreviation: 'BGAS Gr. 1' },
+
+    // === Rope Access ===
+    'IRATA Level 1': { keywords: ['irata 1'], levels: [], abbreviation: 'IRATA Lvl 1' },
+    'IRATA Level 2': { keywords: ['irata 2'], levels: [], abbreviation: 'IRATA Lvl 2' },
+    'IRATA Level 3': { keywords: ['irata 3'], levels: [], abbreviation: 'IRATA Lvl 3' },
+    'SPRAT Level 1': { keywords: ['sprat 1'], levels: [], abbreviation: 'SPRAT Lvl 1' },
+    'SPRAT Level 2': { keywords: ['sprat 2'], levels: [], abbreviation: 'SPRAT Lvl 2' },
+    'SPRAT Level 3': { keywords: ['sprat 3'], levels: [], abbreviation: 'SPRAT Lvl 3' },
+    
+    // === NDT Level III & Management ===
+    'ASNT NDT Level III': { keywords: ['asnt level iii', 'asnt level 3', 'level 3', 'level iii'], levels: [], abbreviation: 'ASNT Lvl 3' },
+    'PMP (Project Management Professional)': { keywords: ['pmp', 'project management professional'], levels: [], abbreviation: 'PMP' },
+};
+
+
+export function formatQualificationName(name: string): string {
+    if (!name) return 'Other';
+    
+    const cleanedName = name
+        .toLowerCase()
+        .replace(/\.pdf$|\.jpg$|\.png$|\.jpeg$/i, '')
+        .replace(/[_-]/g, ' ');
+
+    for (const standardName in QUALIFICATION_MAP) {
+        const { keywords, levels, abbreviation } = QUALIFICATION_MAP[standardName as keyof typeof QUALIFICATION_MAP];
+        const hasKeyword = keywords.some(kw => cleanedName.includes(kw));
+
+        if (hasKeyword) {
+            // If levels are defined, check for a level match
+            if (levels && levels.length > 0) {
+                const hasLevel = levels.some(lvl => cleanedName.includes(lvl));
+                if (hasLevel) {
+                    return abbreviation; // Exact keyword and level match
+                }
+            // If no levels are defined, a keyword match is sufficient
+            } else {
+                 return abbreviation;
+            }
+        }
+    }
+    
+    // Broader secondary check for leveled qualifications where the level might be implied
+    for (const standardName in QUALIFICATION_MAP) {
+        const { keywords, levels, abbreviation } = QUALIFICATION_MAP[standardName as keyof typeof QUALIFICATION_MAP];
+        const hasKeyword = keywords.some(kw => cleanedName.includes(kw));
+        
+        if (hasKeyword && levels && levels.length > 0) {
+             const hasLevel = levels.some(lvl => cleanedName.includes(lvl));
+             if (!hasLevel) {
+                 return abbreviation;
+             }
+        }
+    }
+
+
     return name
-        .replace(/\.pdf$|\.jpg$|\.png$/i, '') // Remove common extensions
-        .replace(/[_-]/g, ' ') // Replace underscores/hyphens with spaces
-        .replace(/level/i, 'Lvl') // Abbreviate "Level"
+        .replace(/\.pdf$|\.jpg$|\.png$|\.jpeg$/i, '')
+        .replace(/[_-]/g, ' ')
         .trim();
 }
+
 
 export function formatDocumentName(name?: string) {
     if (!name) return 'Untitled Document';
@@ -166,20 +274,33 @@ export function getTenderStatusVariant(status: TenderStatus) {
     }
 };
 
-export function fileToBase64(file: File): Promise<string | ArrayBuffer | null> {
+export function getCostCategoryVariant(category: string): BadgeProps['variant'] {
+    switch (category) {
+        case 'PT dan PTT':
+        case 'PTT Project':
+            return 'blue';
+        case 'Tenaga Ahli dan Labour Supply':
+            return 'indigo';
+        case 'Perjalanan Dinas':
+            return 'yellow';
+        case 'Operasional':
+            return 'green';
+        case 'Promosi':
+            return 'info';
+        case 'Fasilitas dan Interen':
+        case 'Amortisasi':
+        case 'Kantor dan Diklat':
+        case 'Umum':
+        case 'Other':
+        default:
+            return 'secondary';
+    }
+}
+
+export function fileToBase64(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
-        if (!(file instanceof File)) {
-            // It's not a file, resolve with null to avoid errors.
-            resolve(null);
-            return;
-        }
         const reader = new FileReader();
-        reader.onload = () => {
-            const encoded = reader.result as string;
-            // The result is in the format: "data:<mime_type>;base64,<encoded_data>"
-            // For previewing, this format is sufficient. The name can be stored separately.
-            resolve(encoded);
-        };
+        reader.onload = () => resolve(reader.result as string);
         reader.onerror = error => reject(error);
         reader.readAsDataURL(file);
     });
@@ -220,3 +341,11 @@ export function getFileNameFromDataUrl(dataUrl: string): string | null {
     }
     return 'document';
 }
+
+
+
+
+
+
+
+    

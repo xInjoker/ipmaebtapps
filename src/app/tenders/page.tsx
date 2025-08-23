@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
@@ -9,6 +8,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -54,7 +54,7 @@ import { format, formatDistanceToNow } from 'date-fns';
 import { useAuth } from '@/context/AuthContext';
 import { Calendar } from '@/components/ui/calendar';
 import { isSameDay, isWithinInterval, startOfDay, addDays } from 'date-fns';
-import { getTenderStatusVariant, formatCurrencyMillions } from '@/lib/utils';
+import { getTenderStatusVariant, formatCurrencyCompact } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -89,12 +89,20 @@ export default function TendersPage() {
   const [branchFilter, setBranchFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState<TenderStatus | 'all'>('all');
   const [regionFilter, setRegionFilter] = useState('all');
+  const [yearFilter, setYearFilter] = useState('all');
   const [isCustomizeExportOpen, setIsCustomizeExportOpen] = useState(false);
   const [exportFields, setExportFields] = useState<(keyof Tender)[]>([
-    'tenderNumber', 'title', 'client', 'status', 'submissionDate', 'bidPrice'
+    'tenderNumber', 'title', 'client', 'status', 'submissionDate', 'bidPrice', 'id',
   ]);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<Tender | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  
+  const availableYears = useMemo(() => {
+    const years = new Set(tenders.map(t => new Date(t.submissionDate).getFullYear().toString()));
+    return ['all', ...Array.from(years).sort((a, b) => Number(b) - Number(a))];
+  }, [tenders]);
   
   useEffect(() => {
     if (user && !isHqUser && !initialFilterSet.current) {
@@ -131,6 +139,8 @@ export default function TendersPage() {
         const regionMatch = regionFilter === 'all' || tender.regional === regionFilter;
         const branchMatch = branchFilter === 'all' || tender.branchId === branchFilter;
         const statusMatch = statusFilter === 'all' || tender.status === statusFilter;
+        const yearMatch = yearFilter === 'all' || new Date(tender.submissionDate).getFullYear().toString() === yearFilter;
+
 
         // Non-HQ users should only see tenders from their branch/region
         if (!isHqUser && user) {
@@ -138,15 +148,34 @@ export default function TendersPage() {
             if (tender.regional !== userBranch?.region) return false;
         }
 
-        return searchMatch && regionMatch && branchMatch && statusMatch;
+        return searchMatch && regionMatch && branchMatch && statusMatch && yearMatch;
     });
-  }, [tenders, searchTerm, branchFilter, statusFilter, regionFilter, user, isHqUser, branches]);
+  }, [tenders, searchTerm, branchFilter, statusFilter, regionFilter, yearFilter, user, isHqUser, branches]);
+  
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, branchFilter, statusFilter, regionFilter, yearFilter]);
 
+
+  const paginatedTenders = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredTenders.slice(startIndex, endIndex);
+  }, [filteredTenders, currentPage, itemsPerPage]);
+
+  const totalPages = useMemo(() => {
+    return Math.ceil(filteredTenders.length / itemsPerPage);
+  }, [filteredTenders, itemsPerPage]);
+
+  const branchMap = useMemo(() => {
+    return branches.reduce((acc, branch) => {
+      acc[branch.id] = branch.name;
+      return acc;
+    }, {} as Record<string, string>);
+  }, [branches]);
+  
   const tenderStats = useMemo(() => {
-    const initialStats = {
-      count: 0,
-      value: 0,
-    };
+    const initialStats = { count: 0, value: 0 };
   
     const statusMetrics = filteredTenders.reduce((acc, tender) => {
       const status = tender.status;
@@ -154,7 +183,8 @@ export default function TendersPage() {
         acc[status] = { count: 0, value: 0 };
       }
       acc[status].count += 1;
-      acc[status].value += tender.bidPrice;
+      const value = tender.bidPrice || tender.ownerEstimatePrice || 0;
+      acc[status].value += value;
       return acc;
     }, {} as Record<TenderStatus, { count: number; value: number }>);
   
@@ -169,22 +199,30 @@ export default function TendersPage() {
         return acc;
       }, { count: 0, value: 0 });
     };
+
+    const awardedCount = statusMetrics['Awarded']?.count || 0;
+    const lostCount = statusMetrics['Lost']?.count || 0;
+    const totalDecided = awardedCount + lostCount;
+    const winRate = totalDecided > 0 ? (awardedCount / totalDecided) * 100 : 0;
   
     return {
       totalTenders: {
         count: filteredTenders.length,
-        value: filteredTenders.reduce((sum, t) => sum + t.bidPrice, 0),
+        value: filteredTenders.reduce((sum, t) => sum + (t.bidPrice || t.ownerEstimatePrice || 0), 0),
       },
       inProgress: getAggregatedStats(inProgressStatuses),
       awarded: statusMetrics['Awarded'] || initialStats,
       lostOrCancelled: getAggregatedStats(lostCancelledStatuses),
+      winRate,
     };
   }, [filteredTenders]);
 
-  const widgetData = useMemo(() => [
+  const widgetData = useMemo(() => {
+    if (!tenderStats) return [];
+    return [
     {
       title: 'Total Tenders',
-      value: `${formatCurrencyMillions(tenderStats.totalTenders.value)}`,
+      value: `${formatCurrencyCompact(tenderStats.totalTenders.value)}`,
       description: `${tenderStats.totalTenders.count} total tenders`,
       icon: Users,
       iconColor: 'text-blue-500',
@@ -192,7 +230,7 @@ export default function TendersPage() {
     },
     {
       title: 'In Progress',
-      value: `${formatCurrencyMillions(tenderStats.inProgress.value)}`,
+      value: `${formatCurrencyCompact(tenderStats.inProgress.value)}`,
       description: `${tenderStats.inProgress.count} active tenders`,
       icon: Clock,
       iconColor: 'text-amber-500',
@@ -200,29 +238,22 @@ export default function TendersPage() {
     },
     {
       title: 'Awarded',
-      value: `${formatCurrencyMillions(tenderStats.awarded.value)}`,
-      description: `${tenderStats.awarded.count} won tenders`,
+      value: `${formatCurrencyCompact(tenderStats.awarded.value)}`,
+      description: `${tenderStats.awarded.count} won tenders (Winrate: ${tenderStats.winRate.toFixed(1)}%)`,
       icon: CheckCircle,
       iconColor: 'text-green-500',
       shapeColor: 'text-green-500/10',
     },
     {
       title: 'Lost / Cancelled',
-      value: `${formatCurrencyMillions(tenderStats.lostOrCancelled.value)}`,
+      value: `${formatCurrencyCompact(tenderStats.lostOrCancelled.value)}`,
       description: `${tenderStats.lostOrCancelled.count} lost or cancelled`,
       icon: XCircle,
       iconColor: 'text-rose-500',
       shapeColor: 'text-rose-500/10',
     },
-  ], [tenderStats]);
+  ]}, [tenderStats]);
 
-
-  const branchMap = useMemo(() => {
-    return branches.reduce((acc, branch) => {
-      acc[branch.id] = branch.name;
-      return acc;
-    }, {} as Record<string, string>);
-  }, [branches]);
 
   const submissionDates = useMemo(() => {
     return filteredTenders.map((tender) => new Date(tender.submissionDate));
@@ -258,6 +289,7 @@ export default function TendersPage() {
   const handleClearFilters = useCallback(() => {
     setSearchTerm('');
     setStatusFilter('all');
+    setYearFilter('all');
     if (isHqUser) {
         setRegionFilter('all');
         setBranchFilter('all');
@@ -283,29 +315,22 @@ export default function TendersPage() {
 
   const handleExport = useCallback(() => {
     const dataToExport = filteredTenders.map((tender) => {
-      const selectedData: Partial<Tender> = {};
-      exportFields.forEach((field) => {
-        if (field === 'branchId') {
-            (selectedData as any)['Branch'] = branchMap[tender.branchId || ''] || 'N/A';
-        } else {
-            selectedData[field] = tender[field];
-        }
-      });
-      return selectedData;
+        const selectedData: Record<string, any> = {};
+        exportFields.forEach((field) => {
+            if (field === 'branchId' && tender.branchId) {
+                selectedData['Branch'] = branchMap[tender.branchId] || 'N/A';
+            } else if (tender[field as keyof Tender] !== undefined) {
+                selectedData[tenderFieldLabels[field] || field] = tender[field as keyof Tender];
+            }
+        });
+        return selectedData;
     });
 
-    const headers = exportFields.map(
-      (field) => (field === 'branchId' ? 'Branch' : tenderFieldLabels[field]) || field
-    );
-
-    const worksheet = XLSX.utils.json_to_sheet(dataToExport, {
-      header: exportFields.map(f => f === 'branchId' ? 'Branch' : f),
-    });
-    XLSX.utils.sheet_add_aoa(worksheet, [headers], { origin: 'A1' });
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Tenders');
     XLSX.writeFile(workbook, 'tenders.xlsx');
-  }, [filteredTenders, exportFields, branchMap]);
+}, [filteredTenders, exportFields, branchMap]);
 
 
   return (
@@ -383,6 +408,16 @@ export default function TendersPage() {
                         {availableBranches.map(branch => <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>)}
                     </SelectContent>
                 </Select>
+                <Select value={yearFilter} onValueChange={setYearFilter}>
+                  <SelectTrigger className="w-full sm:w-[120px]">
+                    <SelectValue placeholder="Filter by year" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableYears.map(year => (
+                      <SelectItem key={year} value={year}>{year === 'all' ? 'All Years' : year}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
                     <SelectTrigger className="w-full sm:w-[180px]">
                         <SelectValue placeholder="Filter by status" />
@@ -418,7 +453,7 @@ export default function TendersPage() {
                 <CardHeader>
                     <CardTitle>Tender List</CardTitle>
                     <CardDescription>
-                    Showing {filteredTenders.length} of {tenders.length} tenders.
+                    Showing {paginatedTenders.length} of {filteredTenders.length} tenders.
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="p-0">
@@ -426,18 +461,18 @@ export default function TendersPage() {
                     <Table>
                         <TableHeader>
                         <TableRow>
-                            <TableHead>Tender Number</TableHead>
+                            <TableHead className="w-[15%]">Tender Number</TableHead>
                             <TableHead>Title</TableHead>
                             <TableHead>Client</TableHead>
-                            <TableHead>Branch</TableHead>
+                            <TableHead className="w-[180px]">Branch</TableHead>
                             <TableHead>Submission Date</TableHead>
                             <TableHead>Status</TableHead>
                             <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                         </TableHeader>
                         <TableBody>
-                        {filteredTenders.length > 0 ? (
-                            filteredTenders.map((tender) => (
+                        {paginatedTenders.length > 0 ? (
+                            paginatedTenders.map((tender) => (
                             <TableRow key={tender.id}>
                                 <TableCell className="font-medium">
                                      <Link href={`/tenders/${tender.id}`} className="hover:underline">
@@ -524,6 +559,31 @@ export default function TendersPage() {
                     </Table>
                     </div>
                 </CardContent>
+                {totalPages > 1 && (
+                    <CardFooter className="flex items-center justify-between border-t pt-4">
+                        <span className="text-sm text-muted-foreground">
+                            Page {currentPage} of {totalPages}
+                        </span>
+                        <div className="flex items-center gap-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                        >
+                            Previous
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                            disabled={currentPage === totalPages}
+                        >
+                            Next
+                        </Button>
+                        </div>
+                    </CardFooter>
+                )}
             </Card>
         </TabsContent>
         <TabsContent value="calendar">
@@ -602,6 +662,9 @@ export default function TendersPage() {
                     </CardHeader>
                     <CardContent className="flex justify-center">
                     <Calendar
+                        captionLayout="dropdown"
+                        fromYear={new Date().getFullYear() - 5}
+                        toYear={new Date().getFullYear() + 5}
                         mode="single"
                         selected={selectedDate}
                         onSelect={handleDateSelect}

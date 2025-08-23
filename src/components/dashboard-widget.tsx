@@ -43,10 +43,10 @@ export const DashboardWidget = React.memo(function DashboardWidget({
         {value ? (
            <>
             <div className="text-xl font-bold font-headline sm:text-lg md:text-xl lg:text-2xl mt-1">{value}</div>
-            <p className="text-xs text-muted-foreground">{description}</p>
+            <p className={cn("text-xs font-bold", iconColor)}>{description}</p>
           </>
         ) : (
-          <p className={cn("text-sm text-muted-foreground", iconColor)}>
+          <p className="text-sm text-muted-foreground">
             {description}
           </p>
         )}

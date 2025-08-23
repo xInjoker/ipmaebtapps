@@ -5,23 +5,20 @@
 import { useState, useMemo, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, PlusCircle, FileDown, Calendar as CalendarIcon } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, FileDown } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
 import { Badge } from '@/components/ui/badge';
 import type { Project, ServiceOrderItem } from '@/lib/projects';
-import { formatCurrency, cn } from '@/lib/utils';
+import { formatCurrency } from '@/lib/utils';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/context/AuthContext';
 import { CurrencyInput } from './ui/currency-input';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
+import { DatePicker } from './ui/date-picker';
 
 type ProjectServiceOrderTabProps = {
     project: Project;
@@ -155,29 +152,12 @@ export function ProjectServiceOrderTab({ project, setProjects }: ProjectServiceO
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="date" className="text-right">Date</Label>
-                 <Popover modal={false}>
-                    <PopoverTrigger asChild>
-                        <Button
-                            id="date"
-                            variant={"outline"}
-                            className={cn(
-                                "col-span-3 justify-start text-left font-normal",
-                                !state.date && "text-muted-foreground"
-                            )}
-                        >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {state.date ? format(state.date, "PPP") : <span>Pick a date</span>}
-                        </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                            mode="single"
-                            selected={state.date}
-                            onSelect={(date) => setter({...state, date: date})}
-                            initialFocus
-                        />
-                    </PopoverContent>
-                </Popover>
+                <div className="col-span-3">
+                    <DatePicker 
+                        value={state.date}
+                        onChange={(date) => setter({...state, date: date})}
+                    />
+                </div>
             </div>
             <div className="grid grid-cols-4 items-start gap-4">
                 <Label htmlFor="description" className="text-right pt-2">Description</Label>
@@ -185,7 +165,7 @@ export function ProjectServiceOrderTab({ project, setProjects }: ProjectServiceO
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="value" className="text-right">Value (IDR)</Label>
-                <CurrencyInput id="value" value={state.value || 0} onValueChange={(value) => setter({ ...state, value })} className="col-span-3" />
+                <CurrencyInput id="value" value={state.value || 0} onValueChange={(value: number) => setter({ ...state, value })} className="col-span-3" />
             </div>
         </div>
     ), []);

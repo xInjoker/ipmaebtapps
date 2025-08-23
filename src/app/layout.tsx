@@ -3,7 +3,7 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { Providers } from '@/components/providers';
 import { AppWrapper } from '@/components/AppWrapper';
-import { Inter } from 'next/font/google';
+import { Inter, Space_Grotesk } from 'next/font/google';
 import { cn } from '@/lib/utils';
 
 export const metadata: Metadata = {
@@ -16,6 +16,11 @@ const fontBody = Inter({
   variable: '--font-body',
 });
 
+const fontHeadline = Space_Grotesk({
+  subsets: ['latin'],
+  variable: '--font-headline',
+});
+
 
 export default function RootLayout({
   children,
@@ -24,7 +29,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={cn("font-body antialiased bg-background text-foreground", fontBody.variable)}>
+      <body className={cn("font-body antialiased bg-background text-foreground", fontBody.variable, fontHeadline.variable)}>
         <Providers>
           <AppWrapper>{children}</AppWrapper>
           <Toaster />

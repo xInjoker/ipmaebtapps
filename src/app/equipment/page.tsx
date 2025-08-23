@@ -42,6 +42,8 @@ export default function EquipmentPage() {
   const [branchFilter, setBranchFilter] = useState('all');
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<EquipmentItem | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
   
   const [dashboardStats, setDashboardStats] = useState<DashboardStats>({
     total: 0,
@@ -92,6 +94,20 @@ export default function EquipmentPage() {
     });
     setDashboardStats({ total, normal, validCerts, expiredCerts });
   }, [filteredEquipment]);
+  
+  const paginatedEquipment = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredEquipment.slice(startIndex, endIndex);
+  }, [filteredEquipment, currentPage]);
+
+  const totalPages = useMemo(() => {
+    return Math.ceil(filteredEquipment.length / itemsPerPage);
+  }, [filteredEquipment]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter, typeFilter, branchFilter]);
   
   const widgetData = [
     {
@@ -223,9 +239,9 @@ export default function EquipmentPage() {
         </CardContent>
       </Card>
       
-       {isLoading && equipmentList.length === 0 ? (
-         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-           {[...Array(6)].map((_, i) => (
+       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+         {isLoading && paginatedEquipment.length === 0 ? (
+           [...Array(6)].map((_, i) => (
              <Card key={i}>
                <CardHeader>
                  <Skeleton className="h-5 w-3/4" />
@@ -244,22 +260,47 @@ export default function EquipmentPage() {
                  <Skeleton className="h-6 w-1/3" />
                </CardFooter>
              </Card>
-           ))}
-         </div>
-       ) : filteredEquipment.length > 0 ? (
-         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {filteredEquipment.map((item) => (
+           ))
+         ) : paginatedEquipment.length > 0 ? (
+          paginatedEquipment.map((item) => (
               <EquipmentCard key={item.id} item={item} branchMap={branchMap} onDelete={() => handleDeleteRequest(item)} />
-          ))}
-        </div>
+          ))
        ) : (
-        <Card>
+        <Card className="col-span-full">
             <CardContent className="flex flex-col items-center justify-center py-20 text-center">
                 <h3 className="text-lg font-semibold text-muted-foreground">No Equipment Found</h3>
                 <p className="text-sm text-muted-foreground">Try adjusting your search or filter criteria.</p>
             </CardContent>
         </Card>
        )}
+        </div>
+        {totalPages > 1 && (
+            <Card>
+                <CardFooter className="flex items-center justify-between pt-6">
+                    <span className="text-sm text-muted-foreground">
+                        Page {currentPage} of {totalPages}
+                    </span>
+                    <div className="flex items-center gap-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                        >
+                            Previous
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                            disabled={currentPage === totalPages}
+                        >
+                            Next
+                        </Button>
+                    </div>
+                </CardFooter>
+            </Card>
+        )}
     </div>
      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>

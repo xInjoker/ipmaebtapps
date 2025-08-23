@@ -1,22 +1,20 @@
 
-
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useTenders, type Tender } from '@/context/TenderContext';
-import { tenderStatuses, regionalOptions, serviceOptions, type TenderStatus, type Regional, lostCauseOptions, type LostCause } from '@/lib/tenders';
+import { useTenders } from '@/context/TenderContext';
+import { type Tender, tenderStatuses, regionalOptions, serviceOptions, type TenderStatus, type Regional, lostCauseOptions, type LostCause } from '@/lib/tenders';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { ArrowLeft, Calendar as CalendarIcon, Loader2, Save, ChevronsUpDown, Check, Upload, File as FileIcon, X, ChevronDownIcon } from 'lucide-react';
+import { ArrowLeft, Loader2, Save, ChevronsUpDown, Check, Upload, File as FileIcon, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { Textarea } from '@/components/ui/textarea';
@@ -24,6 +22,8 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { portfolios, subPortfolios, servicesBySubPortfolio } from '@/lib/projects';
 import { CurrencyInput } from '@/components/ui/currency-input';
 import { Separator } from '@/components/ui/separator';
+import { DatePicker } from '@/components/ui/date-picker';
+
 
 export default function NewTenderPage() {
     const router = useRouter();
@@ -35,23 +35,23 @@ export default function NewTenderPage() {
     const [isServicesPopoverOpen, setIsServicesPopoverOpen] = useState(false);
     const [documents, setDocuments] = useState<File[]>([]);
 
-    const [newTender, setNewTender] = useState({
+    const [newTender, setNewTender] = useState<Partial<Omit<Tender, 'id' | 'documentUrls' | 'submissionDate'>> & { submissionDate?: Date }>({
         tenderNumber: '',
         title: '',
         client: '',
         principal: '',
         description: '',
         services: '',
-        status: '' as TenderStatus | '',
-        lostCause: '' as LostCause | '',
-        submissionDate: undefined as Date | undefined,
+        status: undefined,
+        lostCause: undefined,
+        submissionDate: undefined,
         bidPrice: 0,
         ownerEstimatePrice: 0,
         personInCharge: '',
         branchId: '',
-        regional: '' as Regional | '',
-        subPortfolio: '' as (typeof subPortfolios)[number] | '',
-        portfolio: '' as (typeof portfolios)[number] | '',
+        regional: undefined,
+        subPortfolio: undefined,
+        portfolio: undefined,
         serviceCode: '',
         serviceName: '',
     });
@@ -81,11 +81,11 @@ export default function NewTenderPage() {
     }, []);
 
     const handleSave = useCallback(async () => {
-        if (!newTender.tenderNumber || !newTender.title || !newTender.client || !newTender.status || !newTender.submissionDate) {
+        if (!newTender.tenderNumber || !newTender.title || !newTender.status || !newTender.submissionDate) {
             toast({
                 variant: 'destructive',
                 title: 'Missing Information',
-                description: 'Please fill out all required fields.',
+                description: 'Please fill out Tender Number, Title, Status, and Submission Date.',
             });
             return;
         }
@@ -94,15 +94,19 @@ export default function NewTenderPage() {
             const newTenderData = {
                 ...newTender,
                 submissionDate: format(newTender.submissionDate, 'yyyy-MM-dd'),
-                documents,
+                documents: documents,
                 lostCause: newTender.status === 'Lost' ? newTender.lostCause : undefined,
             };
 
             await addTender(newTenderData as any);
             toast({ title: 'Tender Added', description: `Successfully added tender ${newTender.tenderNumber}.` });
-            setTimeout(() => router.push('/tenders'), 500);
+            router.push('/tenders');
         } catch (error) {
-            toast({ variant: 'destructive', title: 'Save Failed', description: 'Could not add the new tender.' });
+            if (error instanceof Error) {
+                toast({ variant: 'destructive', title: 'Save Failed', description: error.message });
+            } else {
+                toast({ variant: 'destructive', title: 'Save Failed', description: 'Could not add the new tender.' });
+            }
         } finally {
             setIsSaving(false);
         }
@@ -198,11 +202,11 @@ export default function NewTenderPage() {
                         <Separator />
                         <div className="grid gap-6 md:grid-cols-2">
                             <div className="space-y-2">
-                                <Label htmlFor="tenderNumber">Tender Number</Label>
+                                <Label htmlFor="tenderNumber">Tender Number <span className="text-destructive">*</span></Label>
                                 <Input id="tenderNumber" value={newTender.tenderNumber} onChange={e => setNewTender({ ...newTender, tenderNumber: e.target.value })} />
                             </div>
                              <div className="space-y-2 md:col-span-2">
-                                <Label htmlFor="title">Tender Title</Label>
+                                <Label htmlFor="title">Tender Title <span className="text-destructive">*</span></Label>
                                 <Textarea id="title" value={newTender.title} onChange={(e) => setNewTender({ ...newTender, title: e.target.value })} />
                             </div>
                             <div className="space-y-2">
@@ -220,7 +224,7 @@ export default function NewTenderPage() {
                         <Separator />
                         <div className="grid gap-6 md:grid-cols-2">
                             <div className="space-y-2">
-                                <Label htmlFor="status">Status</Label>
+                                <Label htmlFor="status">Status <span className="text-destructive">*</span></Label>
                                 <Select value={newTender.status} onValueChange={(value: TenderStatus) => setNewTender({ ...newTender, status: value })}>
                                     <SelectTrigger id="status"><SelectValue placeholder="Select status" /></SelectTrigger>
                                     <SelectContent>
@@ -238,28 +242,11 @@ export default function NewTenderPage() {
                                 </Select>
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="submissionDate">Submission Date</Label>
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <Button
-                                        variant="outline"
-                                        id="date"
-                                        className="w-full justify-between font-normal"
-                                        >
-                                        {newTender.submissionDate ? newTender.submissionDate.toLocaleDateString() : "Select date"}
-                                        <ChevronDownIcon />
-                                        </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto overflow-hidden p-0" align="start">
-                                        <Calendar
-                                        mode="single"
-                                        selected={newTender.submissionDate}
-                                        onSelect={(date) =>
-                                            setNewTender({ ...newTender, submissionDate: date })
-                                        }
-                                        />
-                                    </PopoverContent>
-                                </Popover>
+                                <Label htmlFor="submissionDate">Submission Date <span className="text-destructive">*</span></Label>
+                                <DatePicker 
+                                    value={newTender.submissionDate} 
+                                    onChange={(date) => setNewTender({ ...newTender, submissionDate: date })} 
+                                />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="personInCharge">Person In Charge (PIC)</Label>
@@ -301,7 +288,7 @@ export default function NewTenderPage() {
                                                             <Check
                                                                 className={cn(
                                                                     "mr-2 h-4 w-4",
-                                                                    newTender.services.toLowerCase() === option.toLowerCase() ? "opacity-100" : "opacity-0"
+                                                                    newTender.services?.toLowerCase() === option.toLowerCase() ? "opacity-100" : "opacity-0"
                                                                 )}
                                                             />
                                                             {option}
@@ -326,11 +313,11 @@ export default function NewTenderPage() {
                         <div className="grid gap-6 md:grid-cols-2">
                             <div className="space-y-2">
                                 <Label htmlFor="ownerEstimatePrice">Owner Estimate Price (IDR)</Label>
-                                <CurrencyInput id="ownerEstimatePrice" value={newTender.ownerEstimatePrice} onValueChange={(value) => setNewTender({ ...newTender, ownerEstimatePrice: value })} />
+                                <CurrencyInput id="ownerEstimatePrice" value={newTender.ownerEstimatePrice || 0} onValueChange={(value: number) => setNewTender({ ...newTender, ownerEstimatePrice: value })} />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="bidPrice">Bid Price (IDR)</Label>
-                                <CurrencyInput id="bidPrice" value={newTender.bidPrice} onValueChange={(value) => setNewTender({ ...newTender, bidPrice: value })} />
+                                <CurrencyInput id="bidPrice" value={newTender.bidPrice || 0} onValueChange={(value: number) => setNewTender({ ...newTender, bidPrice: value })} />
                             </div>
                         </div>
                     </div>

@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Cell } from 'recharts';
@@ -10,14 +11,12 @@ import {
   ChartLegend,
   ChartLegendContent,
 } from '@/components/ui/chart';
-import { useMemo, useState } from 'react';
+import { useMemo, memo } from 'react';
 import type { Tender, TenderStatus } from '@/lib/tenders';
 import type { Branch } from '@/lib/users';
-import { formatCurrencyCompact, formatCurrencyMillions } from '@/lib/utils';
+import { formatCurrency, formatCurrencyCompact, formatCurrencyMillions } from '@/lib/utils';
 import { tenderStatuses } from '@/lib/tenders';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-
 
 type TenderBranchChartProps = {
   tenders: Tender[];
@@ -42,80 +41,69 @@ const chartConfig: ChartConfig = {
   },
   Awarded: {
     label: 'Awarded',
+    color: 'hsl(var(--success))',
+  },
+  Prequalification: {
+    label: 'Prequalification',
     color: 'hsl(var(--chart-4))',
   },
   Lost: {
     label: 'Lost',
-    color: 'hsl(var(--chart-5))',
+    color: 'hsl(var(--destructive))',
   },
   Cancelled: {
     label: 'Cancelled',
-    color: 'hsl(var(--destructive))',
-  },
-   Prequalification: {
-    label: 'Prequalification',
-    color: 'hsl(var(--secondary-foreground))',
+    color: 'hsl(var(--muted))',
   },
 } satisfies ChartConfig;
 
 
-export function TenderBranchChart({ tenders, branches }: TenderBranchChartProps) {
-  const [selectedYear, setSelectedYear] = useState('all');
-
-  const availableYears = useMemo(() => {
-    const years = new Set(tenders.map(t => new Date(t.submissionDate).getFullYear().toString()));
-    return ['all', ...Array.from(years).sort((a,b) => Number(b) - Number(a))];
-  }, [tenders]);
+export const TenderBranchChart = memo(function TenderBranchChart({ tenders, branches }: TenderBranchChartProps) {
 
   const chartData = useMemo(() => {
     if (!tenders) return [];
     
-    const filteredTenders = selectedYear === 'all' 
-        ? tenders 
-        : tenders.filter(t => new Date(t.submissionDate).getFullYear().toString() === selectedYear);
+    const branchMap = new Map(branches.map(b => [b.id, b.name]));
 
-    const valueByBranchAndStatus = filteredTenders.reduce((acc, tender) => {
-        if (tender.branchId) {
-            if (!acc[tender.branchId]) {
-                acc[tender.branchId] = { total: 0 };
+    const valueByBranchAndStatus = tenders.reduce((acc, tender) => {
+        const branchId = tender.branchId;
+        if (branchId) {
+            if (!acc[branchId]) {
+                 acc[branchId] = tenderStatuses.reduce((statusAcc, status) => {
+                    statusAcc[status] = 0;
+                    return statusAcc;
+                }, { total: 0 } as Record<TenderStatus | 'total', number>);
             }
-            acc[tender.branchId][tender.status] = (acc[tender.branchId][tender.status] || 0) + tender.bidPrice;
-            acc[tender.branchId].total += tender.bidPrice;
+            const tenderValue = tender.bidPrice || tender.ownerEstimatePrice || 0;
+            acc[branchId][tender.status] = (acc[branchId][tender.status] || 0) + tenderValue;
+            acc[branchId].total += tenderValue;
         }
         return acc;
     }, {} as Record<string, Record<TenderStatus | 'total', number>>);
-
-    return branches
-        .map(branch => {
-            const branchData = valueByBranchAndStatus[branch.id];
-            if (!branchData || branchData.total === 0) {
-                return null;
-            }
+    
+    return Object.entries(valueByBranchAndStatus)
+        .map(([branchId, data]) => {
+            if (data.total === 0) return null;
+            const branchName = branchMap.get(branchId) || branchId;
             return {
-                name: branch.name.replace('Cabang ', ''),
-                ...branchData
+                name: branchName.replace('Cabang ', ''),
+                ...data,
             };
         })
         .filter((item): item is NonNullable<typeof item> => item !== null)
         .sort((a, b) => (b?.total ?? 0) - (a?.total ?? 0));
-  }, [tenders, branches, selectedYear]);
+  }, [tenders, branches]);
 
   return (
      <Card className="lg:col-span-2">
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader>
             <div>
                 <CardTitle>Tender Value by Branch</CardTitle>
-                <CardDescription>A summary of total tender bid value for each branch.</CardDescription>
+                <CardDescription>A summary of total tender value for each branch.</CardDescription>
             </div>
-            <Select value={selectedYear} onValueChange={setSelectedYear}>
-                <SelectTrigger className="w-[120px]"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                    {availableYears.map(year => <SelectItem key={year} value={year}>{year}</SelectItem>)}
-                </SelectContent>
-            </Select>
         </CardHeader>
         <CardContent>
-            <ChartContainer config={chartConfig} className="h-[400px] w-full">
+            <ChartContainer config={chartConfig} className="h-[600px] w-full">
             <BarChart 
                 data={chartData} 
                 layout="vertical"
@@ -131,7 +119,7 @@ export function TenderBranchChart({ tenders, branches }: TenderBranchChartProps)
                 tickLine={false}
                 tickMargin={10}
                 axisLine={false}
-                width={80}
+                width={120}
                 />
                 <XAxis
                     type="number"
@@ -159,4 +147,4 @@ export function TenderBranchChart({ tenders, branches }: TenderBranchChartProps)
         </CardContent>
     </Card>
   );
-}
+});

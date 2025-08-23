@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview An AI agent for analyzing project data.
@@ -10,10 +9,30 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import type { Project } from '@/lib/projects';
 
-// We can't pass the full Project type directly due to potential complexities.
-// We define a simpler schema for the AI prompt.
+// Define schemas for cost and invoice items
+const CostItemSchema = z.object({
+  category: z.string(),
+  budgetedAmount: z.number(),
+  actualAmount: z.number(),
+  forecastedAmount: z.number().optional(),
+});
+
+const InvoiceItemSchema = z.object({
+  status: z.string().transform((val) => {
+    // Normalize different status variations
+    if (val.toLowerCase().includes('document') || val.toLowerCase().includes('doc prep')) {
+      return 'Doc Prep';
+    }
+    if (val === 'PAD') return 'PAD';
+    if (val.toLowerCase().includes('invoiced')) return 'Invoiced';
+    if (val.toLowerCase().includes('paid')) return 'Paid';
+    return val;
+  }),
+  amount: z.number(),
+  daysOutstanding: z.number().optional(),
+});
+
 const ProjectAnalysisInputSchema = z.object({
     name: z.string(),
     description: z.string(),
@@ -22,55 +41,154 @@ const ProjectAnalysisInputSchema = z.object({
     totalIncome: z.number(),
     progress: z.number(),
     duration: z.string(),
+    invoices: z.array(InvoiceItemSchema).optional(),
+    costs: z.array(CostItemSchema).optional(),
 });
 export type ProjectAnalysisInput = z.infer<typeof ProjectAnalysisInputSchema>;
 
 const ProjectAnalysisOutputSchema = z.object({
-  summary: z.string().describe('A brief, one-paragraph summary of the project\'s current status.'),
-  highlights: z.array(z.string()).describe('Three to four key positive highlights or achievements.'),
-  recommendations: z.array(z.string()).describe('Three to four actionable recommendations or areas of concern.'),
+  executiveSummary: z.string().describe('One-paragraph high-level overview of financial health'),
+  coreMetrics: z.object({
+    cpi: z.number().describe('Cost Performance Index'),
+    eac: z.number().describe('Estimated Cost at Completion'),
+    profitForecast: z.number().describe('Projected final profit/loss'),
+    currentMargin: z.number().describe('Current gross profit margin'),
+    projectedMargin: z.number().describe('Projected final gross profit margin'),
+  }),
+  cashFlowAnalysis: z.string().describe('Cash conversion cycle and working capital assessment'),
+  riskAssessment: z.array(z.object({
+    risk: z.string(),
+    impact: z.enum(['High', 'Medium', 'Low']),
+    likelihood: z.enum(['High', 'Medium', 'Low']),
+    mitigation: z.string().optional(),
+  })),
+  recommendations: z.array(z.string()).describe('3-4 strategic actionable recommendations'),
 });
 export type ProjectAnalysisOutput = z.infer<typeof ProjectAnalysisOutputSchema>;
 
 export async function analyzeProject(input: ProjectAnalysisInput): Promise<ProjectAnalysisOutput> {
-  return projectAnalysisFlow(input);
+  // Calculate financial metrics
+  const earnedValue = input.totalIncome; // Paid + Invoiced + PAD
+  const actualCost = input.totalCost;
+  
+  const cpi = earnedValue / actualCost;
+  const eac = input.value / cpi;
+  const profitForecast = input.value - eac;
+  const currentMargin = (input.totalIncome - input.totalCost) / input.totalIncome;
+  const projectedMargin = (input.value - eac) / input.value;
+  
+  // Format the metrics for display
+  const formattedMetrics = {
+    cpi: parseFloat(cpi.toFixed(3)),
+    eac: parseFloat(eac.toFixed(2)),
+    profitForecast: parseFloat(profitForecast.toFixed(2)),
+    currentMargin: parseFloat((currentMargin * 100).toFixed(2)),
+    projectedMargin: parseFloat((projectedMargin * 100).toFixed(2))
+  };
+  
+  // Create the prompt with pre-calculated metrics
+  const promptText = `Role: You are an expert Senior Financial Analyst and Project Controller. Your specialization is in conducting deep-dive financial health assessments for complex projects, focusing on profitability, cash flow management, and risk mitigation. You provide data-driven, actionable insights in a clear, professional report format.
+
+Primary Objective: Conduct a comprehensive financial and operational analysis of the provided project data. Your goal is to identify key financial risks and opportunities, assess the project's overall health, and provide prioritized, strategic recommendations to senior management to ensure maximum profitability and project success.
+
+**Part 1: Executive Financial Summary**
+- Provide a high-level overview (one paragraph) of the project's financial health, covering key metrics, immediate concerns, and overall profitability outlook.
+
+**Part 2: Core Financial Metrics & Profitability Analysis**
+- **Cost Performance Index (CPI):** ${formattedMetrics.cpi} (Earned Value / Actual Cost). For Earned Value, we used Paid + Invoiced + PAD (Total Realized Income). A CPI > 1 indicates cost efficiency.
+- **Estimated Cost at Completion (EAC):** Rp ${formattedMetrics.eac.toLocaleString('id-ID')} (Total Contract Value / CPI). This forecasts the total cost based on current performance.
+- **Profit / Loss Forecast:** Rp ${formattedMetrics.profitForecast.toLocaleString('id-ID')} (Total Contract Value - EAC).
+- **Gross Profit Margin Analysis:** Current margin is ${formattedMetrics.currentMargin}% and projected final margin is ${formattedMetrics.projectedMargin}%.
+
+**Part 3: Cash Flow & Working Capital Analysis**
+- **Cash Conversion Cycle:** Analyze the time gap between when costs are incurred and when payment is received.
+- **Cash Flow Bottlenecks:** Identify potential bottlenecks in the invoicing pipeline.
+- **Working Capital Assessment:** Assess if the project is self-funding or requires significant working capital.
+
+**Part 4: Risk Assessment & Budget Variance**
+- **Budget vs. Actuals:** Analyze cost performance and identify potential variances.
+- **Financial Risks:** Identify the top 3 financial risks to the project with Impact/Likelihood assessment.
+
+**Part 5: Strategic Recommendations**
+- Provide 3-4 concrete, actionable strategic recommendations.
+
+**Project Data:**
+- Project Name: ${input.name}
+- Description: ${input.description}
+- Total Contract Value: Rp ${input.value.toLocaleString('id-ID')}
+- Total Realized Cost: Rp ${input.totalCost.toLocaleString('id-ID')}
+- Total Realized Income: Rp ${input.totalIncome.toLocaleString('id-ID')}
+- Overall Progress: ${input.progress}%
+- Duration: ${input.duration}
+
+${input.invoices ? `**Invoice Data:**
+\`\`\`json
+${JSON.stringify(input.invoices, null, 2)}
+\`\`\`` : '**Note:** No detailed invoice data provided. Base your cash flow analysis on available metrics.'}
+
+${input.costs ? `**Cost Data:**
+\`\`\`json
+${JSON.stringify(input.costs, null, 2)}
+\`\`\`` : '**Note:** No detailed cost data provided. Base your budget variance analysis on available metrics.'}
+
+**Formatting Requirements:**
+- All financial figures must be formatted as Indonesian Rupiah currency (e.g., Rp 1.500.000.000)
+- Present analysis in clear sections
+- Be concise and professional`;
+
+  try {
+    // Use the AI to generate the analysis
+    const response = await ai.generate({
+      prompt: promptText,
+      output: { schema: ProjectAnalysisOutputSchema },
+    });
+    
+    // Ensure the response includes the calculated metrics
+    const aiResponse = response.output as ProjectAnalysisOutput;
+    
+    // Merge the AI response with our calculated metrics
+    const result = {
+      ...aiResponse,
+      coreMetrics: {
+        ...aiResponse.coreMetrics,
+        // Ensure our calculated metrics are included
+        cpi: formattedMetrics.cpi,
+        eac: formattedMetrics.eac,
+        profitForecast: formattedMetrics.profitForecast,
+        currentMargin: formattedMetrics.currentMargin,
+        projectedMargin: formattedMetrics.projectedMargin
+      }
+    };
+    
+    return result;
+  } catch (error) {
+    console.error('Error generating AI analysis:', error);
+    
+    // Fallback response if AI generation fails
+    return {
+      executiveSummary: 'Unable to generate analysis due to an error.',
+      coreMetrics: {
+        cpi: formattedMetrics.cpi,
+        eac: formattedMetrics.eac,
+        profitForecast: formattedMetrics.profitForecast,
+        currentMargin: formattedMetrics.currentMargin,
+        projectedMargin: formattedMetrics.projectedMargin
+      },
+      cashFlowAnalysis: 'Unable to generate cash flow analysis due to an error.',
+      riskAssessment: [],
+      recommendations: ['Please try again later.']
+    };
+  }
 }
 
-const prompt = ai.definePrompt({
-  name: 'projectAnalysisPrompt',
-  input: { schema: ProjectAnalysisInputSchema },
-  output: { schema: ProjectAnalysisOutputSchema },
-  prompt: `You are an expert project financial analyst. Analyze the following project data and provide a concise summary, key highlights, and actionable recommendations.
-
-Your analysis must mention the distribution of income and the top 3 highest cost categories, but should not be limited to only these aspects.
-
-Project Name: {{{name}}}
-Description: {{{description}}}
-Total Contract Value: {{{value}}}
-Total Realized Cost: {{{totalCost}}}
-Total Realized Income (Paid + Invoiced): {{{totalIncome}}}
-Overall Progress: {{{progress}}}%
-Duration: {{{duration}}}
-
-Based on this data, provide:
-1.  A brief, insightful summary (one paragraph) that includes income distribution and top cost categories.
-2.  3-4 key highlights (e.g., "Profit margin is strong", "Under budget so far").
-3.  3-4 actionable recommendations or concerns (e.g., "Cost overrun in operational category", "Accelerate invoicing for completed work").
-
-Be concise and professional. IMPORTANT: When you mention any financial figures in your response, format them as currency (e.g., Rp 1.500.000.000).
-`,
-});
-
+// Simple flow definition without complex transformations
 const projectAnalysisFlow = ai.defineFlow(
   {
     name: 'projectAnalysisFlow',
     inputSchema: ProjectAnalysisInputSchema,
     outputSchema: ProjectAnalysisOutputSchema,
   },
-  async input => {
-    const { output } = await prompt(input);
-    return output!;
+  async (input) => {
+    return analyzeProject(input);
   }
 );
-
-

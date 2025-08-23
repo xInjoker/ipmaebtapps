@@ -10,7 +10,7 @@ import {
   ChartLegend,
   ChartLegendContent,
 } from '@/components/ui/chart';
-import { useMemo } from 'react';
+import { useMemo, memo } from 'react';
 import type { Project } from '@/lib/projects';
 import { formatCurrency, formatCurrencyCompact } from '@/lib/utils';
 import { cn } from '@/lib/utils';
@@ -35,7 +35,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
-      <div className="rounded-lg border bg-background p-2 shadow-sm text-sm">
+      <div className="min-w-[12rem] rounded-lg border bg-background p-2 shadow-sm text-sm">
         <p className="font-bold">{label}</p>
         <p className="text-muted-foreground">Total SO Value: {formatCurrency(data.total)}</p>
         <div className="mt-2 space-y-1">
@@ -55,7 +55,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 
-export function ProjectServiceOrderChart({ project }: ProjectServiceOrderChartProps) {
+export const ProjectServiceOrderChart = memo(function ProjectServiceOrderChart({ project }: ProjectServiceOrderChartProps) {
   const chartData = useMemo(() => {
     if (!project) return [];
     
@@ -123,4 +123,4 @@ export function ProjectServiceOrderChart({ project }: ProjectServiceOrderChartPr
       </CardContent>
     </Card>
   );
-}
+});

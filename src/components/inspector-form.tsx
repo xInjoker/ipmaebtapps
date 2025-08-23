@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -103,9 +104,10 @@ export function InspectorForm({ inspector, onSave, isLoading }: InspectorFormPro
       ...formData,
       position: formData.position as Inspector['position'],
       employmentStatus: formData.employmentStatus as Inspector['employmentStatus'],
-    }, { cvFile, qualifications, otherDocuments });
+      avatarUrl: inspector?.avatarUrl || '', // Pass existing or empty avatarUrl
+    }, { cvFile, qualifications, otherDocuments: otherDocs });
 
-  }, [formData, cvFile, qualifications, otherDocs, onSave, toast]);
+  }, [formData, cvFile, qualifications, otherDocs, onSave, toast, inspector]);
   
   return (
     <div className="space-y-6">
@@ -152,7 +154,7 @@ export function InspectorForm({ inspector, onSave, isLoading }: InspectorFormPro
             </div>
              <div className="space-y-2">
                 <Label htmlFor="employmentStatus">Employment Status</Label>
-                <Select value={formData.employmentStatus} onValueChange={(value: Inspector['employmentStatus']) => setFormData({...formData, employmentStatus: value})}>
+                <Select value={formData.employmentStatus} onValueChange={(value) => setFormData({...formData, employmentStatus: value as Inspector['employmentStatus']})}>
                     <SelectTrigger id="employmentStatus"><SelectValue placeholder="Select status" /></SelectTrigger>
                     <SelectContent>
                         {employmentStatuses.map(status => <SelectItem key={status} value={status}>{status}</SelectItem>)}
@@ -294,4 +296,3 @@ export function InspectorForm({ inspector, onSave, isLoading }: InspectorFormPro
     </div>
   );
 }
-

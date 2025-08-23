@@ -1,10 +1,11 @@
 
+
 'use client';
 
 import * as React from 'react';
-import { Input, type InputProps } from '@/components/ui/input';
+import { Input } from '@/components/ui/input';
 
-interface CurrencyInputProps extends Omit<InputProps, 'onChange' | 'value'> {
+interface CurrencyInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'value'> {
   value: number;
   onValueChange: (value: number) => void;
 }

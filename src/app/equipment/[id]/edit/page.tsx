@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -21,14 +22,70 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { ArrowLeft, Calendar as CalendarIcon, Loader2, Save, Upload, File as FileIcon, X, PlusCircle } from 'lucide-react';
+import { ArrowLeft, Loader2, Save, Upload, File as FileIcon, X, PlusCircle, GripVertical } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn, getAvatarColor, getInitials, fileToBase64 } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { useInspectors } from '@/context/InspectorContext';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { DatePicker } from '@/components/ui/date-picker';
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  useSortable,
+  rectSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+
+type ImageItem = {
+    id: string;
+    url: string;
+    file?: File;
+    type: 'existing' | 'new';
+};
+
+const SortableImage = ({ image, onRemove }: { image: ImageItem; onRemove: () => void }) => {
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: image.id });
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        zIndex: isDragging ? 10 : 'auto',
+        opacity: isDragging ? 0.7 : 1,
+    };
+
+    return (
+        <div ref={setNodeRef} style={style} className="relative group aspect-square">
+            <div className="aspect-square w-full overflow-hidden rounded-md border bg-muted">
+                <Image
+                    src={image.url}
+                    alt={`Equipment image`}
+                    width={100}
+                    height={100}
+                    className="h-full w-full object-cover"
+                    data-ai-hint="equipment"
+                />
+            </div>
+            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <Button variant="destructive" size="icon" className="h-8 w-8 absolute top-1 right-1 z-10" onClick={onRemove}>
+                    <X className="h-4 w-4" />
+                </Button>
+                <div {...attributes} {...listeners} className="absolute inset-0 flex items-center justify-center cursor-grab active:cursor-grabbing">
+                    <GripVertical className="h-6 w-6 text-white" />
+                </div>
+            </div>
+            {image.file && <p className="text-xs text-muted-foreground truncate mt-1">{image.file.name}</p>}
+        </div>
+    );
+};
 
 
 export default function EditEquipmentPage() {
@@ -41,10 +98,13 @@ export default function EditEquipmentPage() {
   const { toast } = useToast();
   
   const [equipment, setEquipment] = useState<EquipmentItem | null>(null);
-  const [newImages, setNewImages] = useState<{file: File, url: string}[]>([]);
+  const [images, setImages] = useState<ImageItem[]>([]);
   const [newDocuments, setNewDocuments] = useState<File[]>([]);
   const [isPersonnelPopoverOpen, setIsPersonnelPopoverOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  
+  const sensors = useSensors(useSensor(PointerSensor));
+
 
   useEffect(() => {
     if (equipmentId) {
@@ -56,6 +116,12 @@ export default function EditEquipmentPage() {
             documentUrls: item.documentUrls || [],
             assignedPersonnelIds: item.assignedPersonnelIds || [],
         });
+        const existingImages: ImageItem[] = (item.imageUrls || []).map((url, index) => ({
+            id: `existing-${url}-${index}`,
+            url,
+            type: 'existing',
+        }));
+        setImages(existingImages);
       } else {
         toast({
             variant: 'destructive',
@@ -84,37 +150,30 @@ export default function EditEquipmentPage() {
       return inspectors.filter(inspector => !(equipment.assignedPersonnelIds || []).includes(inspector.id));
   }, [equipment, inspectors]);
   
-  const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>, setter: React.Dispatch<React.SetStateAction<File[]>>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, setter: React.Dispatch<React.SetStateAction<File[]>>) => {
     if (e.target.files) {
         const files = Array.from(e.target.files);
         setter(prev => [...prev, ...files]);
     }
-  }, []);
+  };
   
   const handleImageChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
         const files = Array.from(e.target.files);
         const filePromises = files.map(async file => ({
-            file,
+            id: `new-${file.name}-${Date.now()}`,
             url: await fileToBase64(file) as string,
+            file,
+            type: 'new' as const,
         }));
-        const newFiles = await Promise.all(filePromises);
-        setNewImages(prev => [...prev, ...newFiles]);
+        const newImageItems = await Promise.all(filePromises);
+        setImages(prev => [...prev, ...newImageItems]);
     }
   }, []);
 
-  const removeNewImage = useCallback((index: number) => {
-    setNewImages(prev => prev.filter((_, i) => i !== index));
+  const removeImage = useCallback((idToRemove: string) => {
+    setImages(prev => prev.filter(img => img.id !== idToRemove));
   }, []);
-  
-  const removeExistingImage = useCallback((url: string) => {
-    if (equipment) {
-      setEquipment({
-        ...equipment,
-        imageUrls: (equipment.imageUrls || []).filter(u => u !== url),
-      });
-    }
-  }, [equipment]);
 
   const removeNewDocument = useCallback((index: number) => {
     setNewDocuments(prev => prev.filter((_, i) => i !== index));
@@ -142,6 +201,18 @@ export default function EditEquipmentPage() {
     setEquipment({...equipment, assignedPersonnelIds: newAssigned});
   }, [equipment]);
 
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (active.id !== over?.id) {
+      setImages((items) => {
+        const oldIndex = items.findIndex(item => item.id === active.id);
+        const newIndex = items.findIndex(item => item.id === over!.id);
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  }, []);
+
   const handleSave = useCallback(async () => {
     if (!equipment) return;
     if (!equipment.name || !equipment.serialNumber || !equipment.type || !equipment.owningBranchId || !equipment.calibrationDueDate) {
@@ -154,8 +225,13 @@ export default function EditEquipmentPage() {
     }
     setIsSaving(true);
     try {
-        await updateEquipment(equipment.id, equipment, {
-            newImages: newImages.map(i => i.file),
+        const existingImageUrls = images.filter(img => img.type === 'existing').map(img => img.url);
+        const newImageFiles = images.filter(img => img.type === 'new').map(img => img.file!);
+
+        const updatedData = { ...equipment, imageUrls: existingImageUrls };
+
+        await updateEquipment(equipment.id, updatedData, {
+            newImages: newImageFiles,
             newDocuments: newDocuments,
         });
         
@@ -165,12 +241,16 @@ export default function EditEquipmentPage() {
         });
 
         router.push(`/equipment/${equipment.id}`);
-    } catch (error) {
-        toast({ variant: 'destructive', title: 'Update Failed', description: 'Could not save equipment changes.'});
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            toast({ variant: 'destructive', title: 'Update Failed', description: error.message });
+        } else {
+            toast({ variant: 'destructive', title: 'Update Failed', description: 'Could not save equipment changes.'});
+        }
     } finally {
         setIsSaving(false);
     }
-  }, [equipment, newImages, newDocuments, router, toast, updateEquipment]);
+  }, [equipment, images, newDocuments, router, toast, updateEquipment]);
 
   if (!equipment) {
     return (
@@ -232,29 +312,10 @@ export default function EditEquipmentPage() {
             </div>
             <div className="space-y-2">
                 <Label htmlFor="calibrationDate">Calibration Due Date</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                      <Button
-                          id="calibrationDate"
-                          variant={"outline"}
-                          className={cn(
-                              "w-full justify-start text-left font-normal",
-                              !calibrationDate && "text-muted-foreground"
-                          )}
-                      >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {calibrationDate ? format(calibrationDate, "PPP") : <span>Pick a date</span>}
-                      </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                      <Calendar
-                          mode="single"
-                          selected={calibrationDate}
-                          onSelect={(date) => setEquipment(equipment ? {...equipment, calibrationDueDate: date ? format(date, 'yyyy-MM-dd') : ''} : null)}
-                          initialFocus
-                      />
-                  </PopoverContent>
-                </Popover>
+                <DatePicker 
+                    value={calibrationDate} 
+                    onChange={(date) => setEquipment(equipment ? {...equipment, calibrationDueDate: date ? format(date, 'yyyy-MM-dd') : ''} : null)} 
+                />
             </div>
             <div className="space-y-2">
                 <Label htmlFor="status">Status</Label>
@@ -266,8 +327,13 @@ export default function EditEquipmentPage() {
                 </Select>
             </div>
              <div className="space-y-2 md:col-span-2">
-                <Label>Authorized Personnel</Label>
+                <Label>Authorized Personnel (Optional)</Label>
                 <div className="space-y-2">
+                    {assignedInspectors.length === 0 && (
+                        <div className="text-sm text-center text-muted-foreground p-4 border rounded-md">
+                            No personnel assigned. This is a general tool.
+                        </div>
+                    )}
                     {assignedInspectors.map(inspector => {
                         const avatarColor = getAvatarColor(inspector.name);
                         return (
@@ -301,7 +367,7 @@ export default function EditEquipmentPage() {
                     <PopoverTrigger asChild>
                         <Button variant="outline" className="w-full mt-2">
                             <PlusCircle className="mr-2 h-4 w-4" />
-                            Add Personnel
+                            Add/Remove Personnel
                         </Button>
                     </PopoverTrigger>
                     <PopoverContent className="p-0" align="start">
@@ -349,47 +415,15 @@ export default function EditEquipmentPage() {
             </div>
             <div className="space-y-2 md:col-span-2">
                 <Label>Equipment Images</Label>
-                 <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                    {(equipment.imageUrls || []).map((url, index) => (
-                      url && <div key={`existing-${index}`} className="relative group">
-                        <div className="aspect-square w-full overflow-hidden rounded-md border bg-muted">
-                           <Image
-                                src={url || 'https://placehold.co/100x100.png'}
-                                alt={`${equipment.name} image ${index + 1}`}
-                                width={100}
-                                height={100}
-                                className="h-full w-full object-cover"
-                                data-ai-hint="equipment"
-                            />
+                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                    <SortableContext items={images.map(img => img.id)} strategy={rectSortingStrategy}>
+                        <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                            {images.map((image) => (
+                                <SortableImage key={image.id} image={image} onRemove={() => removeImage(image.id)} />
+                            ))}
                         </div>
-                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Button variant="destructive" size="icon" className="h-8 w-8" onClick={() => removeExistingImage(url)}>
-                                <X className="h-4 w-4" />
-                            </Button>
-                        </div>
-                      </div>
-                    ))}
-                    {newImages.map(({ file, url }, index) => (
-                      <div key={`new-${index}`} className="relative group">
-                        <div className="aspect-square w-full overflow-hidden rounded-md border bg-muted">
-                           <Image
-                                src={url}
-                                alt={`New equipment image preview ${index + 1}`}
-                                width={100}
-                                height={100}
-                                className="h-full w-full object-cover"
-                                data-ai-hint="equipment"
-                            />
-                        </div>
-                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Button variant="destructive" size="icon" className="h-8 w-8" onClick={() => removeNewImage(index)}>
-                                <X className="h-4 w-4" />
-                            </Button>
-                        </div>
-                        <p className="text-xs text-muted-foreground truncate mt-1">{file.name}</p>
-                      </div>
-                    ))}
-                  </div>
+                    </SortableContext>
+                </DndContext>
                 <div className="flex items-center justify-center w-full mt-4">
                     <label htmlFor="image-upload" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-card hover:bg-muted">
                         <div className="flex flex-col items-center justify-center pt-5 pb-6">

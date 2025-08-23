@@ -1,4 +1,4 @@
-# Firebase Studio
+npm install react-day-picker@latest# Firebase Studio
 
 This is a NextJS starter in Firebase Studio.
 

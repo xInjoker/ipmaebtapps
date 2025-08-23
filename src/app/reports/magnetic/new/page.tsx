@@ -13,17 +13,15 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { Calendar as CalendarIcon } from 'lucide-react';
 import { useProjects } from '@/context/ProjectContext';
 import { useAuth } from '@/context/AuthContext';
 import { type ReportItem, type MagneticParticleTestReportDetails, type MagneticTestResult } from '@/lib/reports';
 import { Badge } from '@/components/ui/badge';
 import { useReports } from '@/context/ReportContext';
 import { useToast } from '@/hooks/use-toast';
+import { DatePicker } from '@/components/ui/date-picker';
 
 const steps = [
     { id: '01', name: 'General Info' },
@@ -149,8 +147,7 @@ export default function MagneticTestPage() {
             toast({ variant: 'destructive', title: 'Incomplete Result', description: 'Please enter at least a Subject ID, Joint No. and Weld/Part ID.' });
             return;
         }
-        const newResultWithUrls = { ...newTestResult, imageUrls: newTestResult.images.map(file => URL.createObjectURL(file)) };
-        setFormData(prev => ({ ...prev, testResults: [...prev.testResults, newResultWithUrls] }));
+        setFormData(prev => ({ ...prev, testResults: [...prev.testResults, newTestResult] }));
         setNewTestResult({ subjectIdentification: '', jointNo: '', weldId: '', indicationDetails: 'No Relevant Indication', result: 'Accept', images: [] });
     };
 
@@ -204,7 +201,7 @@ export default function MagneticTestPage() {
             creationDate: format(new Date(), 'yyyy-MM-dd'),
             approvalHistory: [{ actorName: user.name, actorRole: roles.find(r => r.id === user.roleId)?.name || 'N/A', status: 'Submitted', timestamp: new Date().toISOString(), comments: 'Report created.' }],
         };
-        addReport(newReport);
+        addReport(newReport as any);
         toast({ title: 'Report Submitted', description: `Report ${formData.reportNumber} has been successfully submitted.` });
         router.push('/reports/magnetic');
     };
@@ -277,7 +274,7 @@ export default function MagneticTestPage() {
                                 )}
                             </div>
                             <div className="space-y-2"><Label htmlFor="projectExecutor">Project Executor</Label><Input id="projectExecutor" value={formData.projectExecutor} onChange={handleInputChange} disabled={!!formData.project && formData.project !== 'Non Project'} /></div>
-                            <div className="space-y-2"><Label htmlFor="dateOfTest">Date of Test</Label><Popover><PopoverTrigger asChild><Button id="dateOfTest" variant={"outline"} className={cn("w-full justify-start text-left font-normal", !formData.dateOfTest && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{formData.dateOfTest ? format(formData.dateOfTest, "PPP") : <span>Pick a date</span>}</Button></PopoverTrigger><PopoverContent className="w-auto p-0"><Calendar mode="single" selected={formData.dateOfTest} onSelect={handleDateChange} initialFocus /></PopoverContent></Popover></div>
+                            <div className="space-y-2"><Label htmlFor="dateOfTest">Date of Test</Label><DatePicker value={formData.dateOfTest} onChange={handleDateChange} /></div>
                             <div className="space-y-2"><Label htmlFor="lineType">Line Type</Label><Input id="lineType" value={formData.lineType} onChange={handleInputChange} placeholder="e.g. Pipeline, Structural Weld" /></div>
                             <div className="space-y-2"><Label htmlFor="jobLocation">Job Location</Label><Input id="jobLocation" value={formData.jobLocation} onChange={handleInputChange} placeholder="e.g. Workshop or Site Name" /></div>
                             <div className="space-y-2"><Label htmlFor="reportNumber">Report Number</Label><Input id="reportNumber" value={formData.reportNumber} onChange={handleInputChange} disabled={!!formData.project && formData.project !== 'Non Project'} /></div>

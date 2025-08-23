@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -20,7 +21,7 @@ import { useProjects } from '@/context/ProjectContext';
 import { cn } from '@/lib/utils';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
-import type { UserOptions, CellHookData } from 'jspdf-autotable';
+import type { UserOptions } from 'jspdf-autotable';
 import { useNotifications } from '@/context/NotificationContext';
 import type { TripApprovalAction } from '@/lib/trips';
 
@@ -206,7 +207,7 @@ export default function TripSummaryPage() {
         });
 
         doc.save(`TripRequest-${trip.id}.pdf`);
-    }, [trip, mealItems, transportItems, totalAllowance, users]);
+    }, [trip, mealItems, transportItems, totalAllowance]);
 
     if (!trip) {
         return (
@@ -386,5 +387,3 @@ export default function TripSummaryPage() {
         </div>
     );
 }
-
-    

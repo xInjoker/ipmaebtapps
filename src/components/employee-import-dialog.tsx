@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { type Employee } from '@/lib/employees';
-import * as XLSX from 'xlsx';
+import { useToast } from '@/hooks/use-toast';
 
 interface EmployeeImportDialogProps {
   isOpen: boolean;
@@ -69,6 +69,7 @@ function excelDateToYMD(serial: number) {
 
 export function EmployeeImportDialog({ isOpen, onOpenChange, onImport }: EmployeeImportDialogProps) {
   const [file, setFile] = useState<File | null>(null);
+  const { toast } = useToast();
 
   const handleFileChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
@@ -76,37 +77,46 @@ export function EmployeeImportDialog({ isOpen, onOpenChange, onImport }: Employe
     }
   }, []);
 
-  const handleImport = useCallback(() => {
+  const handleImport = useCallback(async () => {
     if (!file) return;
 
+    const XLSX = await import('xlsx');
     const reader = new FileReader();
     reader.onload = (e) => {
-      const data = e.target?.result;
-      const workbook = XLSX.read(data, { type: 'binary' });
-      const sheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[sheetName];
-      const json: any[] = XLSX.utils.sheet_to_json(worksheet);
+      try {
+        const data = e.target?.result;
+        const workbook = XLSX.read(data, { type: 'binary' });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const json: any[] = XLSX.utils.sheet_to_json(worksheet);
 
-      const employees: Omit<Employee, 'id'>[] = json.map(row => {
-        const employee: Partial<Employee> = {};
-        for (const header in row) {
-          const mappedKey = headerMapping[header.toUpperCase().trim()];
-          if (mappedKey) {
-            let value = row[header];
-            // Check for date fields and convert if they are Excel serial numbers
-            if (['dateOfBirth', 'contractStartDate', 'contractEndDate'].includes(mappedKey) && typeof value === 'number') {
-                value = excelDateToYMD(value);
+        const employees: Omit<Employee, 'id'>[] = json.map(row => {
+          const employee: Partial<Employee> = {};
+          for (const header in row) {
+            const mappedKey = headerMapping[header.toUpperCase().trim()];
+            if (mappedKey) {
+              let value = row[header];
+              // Check for date fields and convert if they are Excel serial numbers
+              if (['dateOfBirth', 'contractStartDate', 'contractEndDate'].includes(mappedKey) && typeof value === 'number') {
+                  value = excelDateToYMD(value);
+              }
+              (employee as any)[mappedKey] = value;
             }
-            (employee as any)[mappedKey] = value;
           }
+          return employee as Omit<Employee, 'id'>;
+        });
+        onImport(employees);
+        onOpenChange(false);
+      } catch (error) {
+        if (error instanceof Error) {
+            toast({ variant: 'destructive', title: 'Import Failed', description: error.message });
+        } else {
+            toast({ variant: 'destructive', title: 'Import Failed', description: 'An unknown error occurred during import.' });
         }
-        return employee as Omit<Employee, 'id'>;
-      });
-      onImport(employees);
-      onOpenChange(false);
+      }
     };
     reader.readAsBinaryString(file);
-  }, [file, onImport, onOpenChange]);
+  }, [file, onImport, onOpenChange, toast]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -119,7 +129,7 @@ export function EmployeeImportDialog({ isOpen, onOpenChange, onImport }: Employe
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <Label htmlFor="file-upload">Excel File</Label>
-          <Input id="file-upload" type="file" onChange={handleFileChange} accept=".xlsx" />
+          <Input id="file-upload" type="file" onChange={handleFileChange} accept=".xlsx, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" />
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>

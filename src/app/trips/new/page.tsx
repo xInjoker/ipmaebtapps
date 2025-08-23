@@ -13,16 +13,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { ArrowLeft, Calendar as CalendarIcon, Send, ChevronsUpDown, Check } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, Send, ChevronsUpDown, Check } from 'lucide-react';
 import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { DateRange } from 'react-day-picker';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { useProjects } from '@/context/ProjectContext';
 import { useEmployees } from '@/context/EmployeeContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DateRangePicker } from '@/components/ui/date-picker';
+import { cn } from '@/lib/utils';
 
 export default function NewTripPage() {
   const router = useRouter();
@@ -212,42 +212,7 @@ export default function NewTripPage() {
             </div>
             <div className="space-y-2">
                 <Label htmlFor="dates">Trip Dates</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                      <Button
-                          id="dates"
-                          variant={"outline"}
-                          className={cn(
-                              "w-full justify-start text-left font-normal",
-                              !date && "text-muted-foreground"
-                          )}
-                      >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                           {date?.from ? (
-                            date.to ? (
-                                <>
-                                    {format(date.from, "LLL dd, y")} -{" "}
-                                    {format(date.to, "LLL dd, y")}
-                                </>
-                            ) : (
-                                format(date.from, "LLL dd, y")
-                            )
-                            ) : (
-                            <span>Pick a date range</span>
-                           )}
-                      </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                          initialFocus
-                          mode="range"
-                          defaultMonth={date?.from}
-                          selected={date}
-                          onSelect={setDate}
-                          numberOfMonths={2}
-                      />
-                  </PopoverContent>
-                </Popover>
+                <DateRangePicker value={date} onChange={setDate} />
             </div>
             <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="purpose">Purpose of Trip</Label>

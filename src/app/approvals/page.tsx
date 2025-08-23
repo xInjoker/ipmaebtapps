@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
-import { type TripRequest } from '@/lib/trips';
+import { type TripRequest, type TripApprovalAction, type TripStatus } from '@/lib/trips';
 import { type ReportItem, type ReportStatus, type ApprovalAction, type RadiographicTestReportDetails, type MagneticParticleTestReportDetails, type PenetrantTestReportDetails, type UltrasonicTestReportDetails } from '@/lib/reports';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
@@ -23,6 +23,11 @@ import { useProjects } from '@/context/ProjectContext';
 import { useNotifications } from '@/context/NotificationContext';
 
 type ApprovalItem = (TripRequest | ReportItem) & { type: 'trip' | 'report' };
+
+// Type guard to check if an item is a ReportItem
+function isReportItem(item: ApprovalItem): item is ReportItem & { type: 'report' } {
+  return item.type === 'report';
+}
 
 export default function ApprovalsPage() {
     const { user, users } = useAuth();
@@ -48,7 +53,7 @@ export default function ApprovalsPage() {
 
 
     const reportResultSummary = useMemo(() => {
-        if (!selectedItem || selectedItem.type !== 'report' || !selectedItem.details) return null;
+        if (!selectedItem || !isReportItem(selectedItem) || !selectedItem.details) return null;
 
         const details = selectedItem.details;
         let total = 0;
@@ -91,29 +96,30 @@ export default function ApprovalsPage() {
         if (!selectedItem || !user) return;
     
         if (selectedItem.type === 'trip') {
-            const project = projects.find(p => p.name === selectedItem.project);
+            const tripItem = selectedItem as TripRequest;
+            const project = projects.find(p => p.name === tripItem.project);
             const workflow = project?.tripApprovalWorkflow || [];
-            const currentApprovalCount = selectedItem.approvalHistory.filter(h => h.status === 'Approved').length;
+            const currentApprovalCount = tripItem.approvalHistory.filter(h => h.status === 'Approved').length;
             const isFinalApproval = currentApprovalCount + 1 >= workflow.length;
             
-            const newStatus = action === 'reject' ? 'Rejected' : (isFinalApproval ? 'Approved' : 'Pending');
-            const newHistory: ApprovalAction = { actorName: user.name, actorRole: 'Approver', status: newStatus, comments: comments, timestamp: new Date().toISOString() };
+            const newStatus: TripStatus = action === 'reject' ? 'Rejected' : (isFinalApproval ? 'Approved' : 'Pending');
+            const newHistory: TripApprovalAction = { actorId: user.uid, actorName: user.name, status: newStatus, comments: comments, timestamp: new Date().toISOString() };
             
-            const updatedTrip = { ...selectedItem, status: newStatus, approvalHistory: [...selectedItem.approvalHistory, newHistory] };
-            updateTrip(selectedItem.id, updatedTrip as TripRequest);
+            const updatedTrip = { ...tripItem, status: newStatus, approvalHistory: [...tripItem.approvalHistory, newHistory] };
+            updateTrip(tripItem.id, updatedTrip);
 
             // Notify requester
-            const requester = users.find(u => u.uid === selectedItem.employeeId);
+            const requester = users.find(u => u.uid === tripItem.employeeId);
             if(requester) {
                 addNotification({
                     userId: requester.uid,
                     title: `Trip Request ${newStatus}`,
-                    description: `Your trip to ${selectedItem.destination} has been ${newStatus}.`,
-                    link: `/trips/${selectedItem.id}/summary`,
+                    description: `Your trip to ${tripItem.destination} has been ${newStatus}.`,
+                    link: `/trips/${tripItem.id}/summary`,
                 });
             }
 
-        } else if (selectedItem.type === 'report') {
+        } else if (isReportItem(selectedItem) && selectedItem.details) {
             const project = projects.find(p => p.name === selectedItem.details?.project);
             const workflow = project?.reportApprovalWorkflow || [];
             const currentApprovalCount = selectedItem.approvalHistory.filter(h => h.status === 'Reviewed' || h.status === 'Approved').length;
@@ -131,15 +137,17 @@ export default function ApprovalsPage() {
             updateReport(selectedItem.id, updatedReport);
 
             // Notify requester
-            const creatorName = selectedItem.approvalHistory[0]?.actorName;
-            const requester = users.find(u => u.name === creatorName);
-            if(requester) {
-                addNotification({
-                    userId: requester.uid,
-                    title: `Report ${newStatus}`,
-                    description: `Your report ${selectedItem.reportNumber} has been ${newStatus}.`,
-                    link: `/reports/${selectedItem.id}`,
-                });
+            const creator = selectedItem.approvalHistory?.[0];
+            if (creator) {
+                const requester = users.find(u => u.name === creator.actorName);
+                if(requester) {
+                    addNotification({
+                        userId: requester.uid,
+                        title: `Report ${newStatus}`,
+                        description: `Your report ${selectedItem.reportNumber} has been ${newStatus}.`,
+                        link: `/reports/${selectedItem.id}`,
+                    });
+                }
             }
         }
 
@@ -180,7 +188,7 @@ export default function ApprovalsPage() {
                                             <TableCell className="font-medium">{item.employeeName}</TableCell>
                                             <TableCell>{item.destination}</TableCell>
                                             <TableCell>{format(new Date(item.startDate), 'PPP')} - {format(new Date(item.endDate), 'PPP')}</TableCell>
-                                            <TableCell>{item.project}</TableCell>
+                                            <TableCell>{(item as TripRequest).project}</TableCell>
                                             <TableCell className="text-right">
                                                 <Button size="sm" onClick={() => handleActionClick(item)}>Review</Button>
                                             </TableCell>
@@ -214,8 +222,8 @@ export default function ApprovalsPage() {
                                         <TableRow key={item.id}>
                                             <TableCell className="font-medium">{item.reportNumber}</TableCell>
                                             <TableCell>{item.jobType}</TableCell>
-                                            <TableCell>{item.details?.project}</TableCell>
-                                            <TableCell>{item.approvalHistory[0].actorName}</TableCell>
+                                            <TableCell>{isReportItem(item) ? item.details?.project : 'N/A'}</TableCell>
+                                            <TableCell>{item.approvalHistory[0]?.actorName || 'N/A'}</TableCell>
                                             <TableCell className="text-right">
                                                 <Button size="sm" onClick={() => handleActionClick(item)}>Review</Button>
                                             </TableCell>
@@ -249,18 +257,19 @@ export default function ApprovalsPage() {
                             <CardContent className="text-sm space-y-2">
                                 {selectedItem.type === 'trip' && (
                                     <>
-                                        <p><span className="font-semibold w-24 inline-block">Requester:</span> {selectedItem.employeeName}</p>
-                                        <p><span className="font-semibold w-24 inline-block">Destination:</span> {selectedItem.destination}</p>
-                                        <p><span className="font-semibold w-24 inline-block">Dates:</span> {format(new Date(selectedItem.startDate), 'PPP')} to {format(new Date(selectedItem.endDate), 'PPP')}</p>
-                                        <p><span className="font-semibold w-24 inline-block">Purpose:</span> {selectedItem.purpose}</p>
+                                        <p><span className="font-semibold w-24 inline-block">Requester:</span> {(selectedItem as TripRequest).employeeName}</p>
+                                        <p><span className="font-semibold w-24 inline-block">Destination:</span> {(selectedItem as TripRequest).destination}</p>
+                                        <p><span className="font-semibold w-24 inline-block">Dates:</span> {format(new Date((selectedItem as TripRequest).startDate), 'PPP')} to {format(new Date((selectedItem as TripRequest).endDate), 'PPP')}</p>
+                                        <p><span className="font-semibold w-24 inline-block">Project:</span> {(selectedItem as TripRequest).project}</p>
+                                        <p><span className="font-semibold w-24 inline-block">Purpose:</span> {(selectedItem as TripRequest).purpose}</p>
                                     </>
                                 )}
-                                {selectedItem.type === 'report' && (
+                                {isReportItem(selectedItem) && (
                                     <>
                                         <p><span className="font-semibold w-28 inline-block">Report No:</span> {selectedItem.reportNumber}</p>
                                         <p><span className="font-semibold w-28 inline-block">Job Type:</span> {selectedItem.jobType}</p>
                                         <p><span className="font-semibold w-28 inline-block">Project:</span> {selectedItem.details?.project}</p>
-                                        <p><span className="font-semibold w-28 inline-block">Created By:</span> {selectedItem.approvalHistory[0].actorName}</p>
+                                        <p><span className="font-semibold w-28 inline-block">Created By:</span> {selectedItem.approvalHistory[0]?.actorName}</p>
                                         {reportResultSummary && (
                                             <>
                                                 <Separator className="my-3"/>

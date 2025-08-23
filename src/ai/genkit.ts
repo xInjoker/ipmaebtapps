@@ -1,37 +1,25 @@
-
-import { genkit, Plugin } from 'genkit';
+import { genkit } from 'genkit';
 import { googleAI } from '@genkit-ai/googleai';
-// import { firebase } from '@genkit-ai/firebase';
-import { googleCloud } from '@genkit-ai/google-cloud';
 
 // Import flows so that they are registered with Genkit.
-// import * as projectAnalysisFlow from '@/ai/flows/project-analysis-flow';
+import * as projectAnalysisFlow from '@/ai/flows/project-analysis-flow';
 
-const plugins: Plugin[] = [googleAI()];
+const plugins = [googleAI()];
 
-/*
-if (process.env.NODE_ENV === 'production') {
-  // In production, Firebase and Google Cloud plugins are needed.
-  plugins.push(
-    firebase({
-      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID
-    }),
-    googleCloud()
-  );
-} else {
-  // For local development
-  plugins.push(
-    firebase({
-      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-      emulators: {
-        firestore: process.env.FIRESTORE_EMULATOR_HOST 
-          ? { host: process.env.FIRESTORE_EMULATOR_HOST } 
-          : undefined
-      }
-    })
-  );
+// Configure Google Cloud options
+const gcpOptions = {
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+};
+
+// Add emulator configuration for development if needed
+if (process.env.NODE_ENV !== 'production' && process.env.FIRESTORE_EMULATOR_HOST) {
+  Object.assign(gcpOptions, {
+    firestore: {
+      host: process.env.FIRESTORE_EMULATOR_HOST,
+      ssl: false
+    }
+  });
 }
-*/
 
 export const ai = genkit({
   plugins,

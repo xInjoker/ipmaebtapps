@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useEffect, useState, useMemo, useCallback } from 'react';
@@ -362,6 +361,12 @@ export default function UserManagementPage() {
                       const userBranch = branches.find(
                         (b) => b.id === managedUser.branchId
                       );
+
+                      if (!userRole) {
+                        console.warn(`User ${managedUser.uid} has an invalid roleId: ${managedUser.roleId}. Skipping render.`);
+                        return null;
+                      }
+
                       const avatarColor = getAvatarColor(managedUser.name);
                       return (
                         <TableRow key={managedUser.uid}>
@@ -438,7 +443,7 @@ export default function UserManagementPage() {
                             </Select>
                           </TableCell>
                           <TableCell>
-                            {userRole?.id === 'project-admin' ? (
+                            {userRole.id === 'project-admin' || userRole.id === 'project-manager' ? (
                                 <div className="flex items-center gap-2">
                                     <Badge variant="secondary">{managedUser.assignedProjectIds?.length || 0} projects</Badge>
                                     <Button variant="outline" size="sm" onClick={() => setAssignmentUser(managedUser)}>

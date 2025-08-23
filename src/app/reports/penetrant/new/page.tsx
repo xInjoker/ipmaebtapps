@@ -15,10 +15,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { Calendar as CalendarIcon } from 'lucide-react';
 import { useProjects } from '@/context/ProjectContext';
 import { useAuth } from '@/context/AuthContext';
 import { type ReportItem, type PenetrantTestReportDetails, acceptanceCriteriaOptions, ptProcedureNoOptions, type ApprovalAction } from '@/lib/reports';
@@ -33,6 +31,7 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command';
+import { DatePicker } from '@/components/ui/date-picker';
 
 
 const steps = [
@@ -203,14 +202,9 @@ export default function PenetrantTestPage() {
             return;
         }
 
-        const newResultWithUrls = {
-            ...newTestResult,
-            imageUrls: newTestResult.images.map(file => URL.createObjectURL(file)),
-        };
-
         setFormData(prev => ({
             ...prev,
-            testResults: [...prev.testResults, newResultWithUrls]
+            testResults: [...prev.testResults, newTestResult]
         }));
 
         setNewTestResult({ subjectIdentification: '', jointNo: '', weldId: '', diameter: '', thickness: '', linearIndication: '', roundIndication: '', result: 'Accept', images: [] });
@@ -295,14 +289,14 @@ export default function PenetrantTestPage() {
             })),
         };
 
-        const newReport: Omit<ReportItem, 'id'> = {
+        const newReport: Omit<ReportItem, 'id' | 'details'> & { details: { testResults: any[] } } = {
             reportNumber: formData.reportNumber,
             jobLocation: formData.jobLocation,
             lineType: formData.lineType,
             jobType: 'Penetrant Test',
             qtyJoint: formData.testResults.length,
             status: 'Submitted',
-            details: reportDetails,
+            details: { ...reportDetails, testResults: formData.testResults }, // Pass full results with Files
             creationDate: format(new Date(), 'yyyy-MM-dd'),
             approvalHistory: user ? [
               {
@@ -315,7 +309,7 @@ export default function PenetrantTestPage() {
             ] : [],
         };
     
-        addReport(newReport);
+        addReport(newReport as any);
     
         toast({
             title: 'Report Submitted',
@@ -429,24 +423,14 @@ export default function PenetrantTestPage() {
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="dateOfTest">Date of Test</Label>
-                        <Popover>
-                            <PopoverTrigger asChild>
-                                <Button
-                                    id="dateOfTest"
-                                    variant={"outline"}
-                                    className={cn(
-                                        "w-full justify-start text-left font-normal",
-                                        !formData.dateOfTest && "text-muted-foreground"
-                                    )}
-                                >
-                                    <CalendarIcon className="mr-2 h-4 w-4" />
-                                    {formData.dateOfTest ? format(formData.dateOfTest, "PPP") : <span>Pick a date</span>}
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0">
-                                <Calendar mode="single" selected={formData.dateOfTest} onSelect={handleDateChange} initialFocus />
-                            </PopoverContent>
-                        </Popover>
+                         <DatePicker 
+                            value={formData.dateOfTest} 
+                            onChange={handleDateChange} 
+                            calendarProps={{
+                                fromYear: 1960,
+                                toYear: new Date().getFullYear(),
+                            }}
+                        />
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="lineType">Line Type</Label>
@@ -910,14 +894,14 @@ export default function PenetrantTestPage() {
             <div>
                 {currentStep > 0 && (
                      <Button variant="outline" onClick={prev}>
-                        <ChevronLeft className="h-4 w-4 mr-2" /> Previous
+                        <ChevronLeft className="mr-2 h-4 w-4" /> Previous
                     </Button>
                 )}
             </div>
             <div>
                  {currentStep < steps.length - 1 && (
                     <Button onClick={next}>
-                        Next <ChevronRight className="h-4 w-4 ml-2" />
+                        Next <ChevronRight className="ml-2 h-4 w-4" />
                     </Button>
                 )}
                  {currentStep === steps.length - 1 && (
@@ -931,3 +915,4 @@ export default function PenetrantTestPage() {
     </div>
   );
 }
+

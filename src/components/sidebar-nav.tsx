@@ -85,11 +85,6 @@ export function SidebarNav() {
       label: 'Projects',
       icon: Briefcase,
       permission: 'manage-projects',
-      subItems: visibleProjects.map((project) => ({
-        href: `/projects/${project.id}`,
-        label: project.contractNumber,
-      })),
-      isCollapsible: true,
     },
     {
       href: '/trips',

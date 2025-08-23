@@ -6,8 +6,9 @@ import { useRouter } from 'next/navigation';
 import { useEmployees } from '@/context/EmployeeContext';
 import { useToast } from '@/hooks/use-toast';
 import { type Employee } from '@/lib/employees';
-import { EmployeeForm } from '@/components/employee-form';
+import { EmployeeForm, type EmployeeFormData } from '@/components/employee-form';
 import { useCallback, useState } from 'react';
+import { format } from 'date-fns';
 
 type NewUploadableDocument = {
   file: File;
@@ -21,20 +22,31 @@ export default function NewEmployeePage() {
   const [isSaving, setIsSaving] = useState(false);
 
   const handleSave = useCallback(async (
-    data: Omit<Employee, 'id'>, // Data from form won't have an ID
+    data: EmployeeFormData,
     newDocs: { newCvFile: File | null, newQualifications: NewUploadableDocument[], newOtherDocs: NewUploadableDocument[] }
   ) => {
     setIsSaving(true);
     try {
-        await addEmployee(data, newDocs);
+        const employeeData = {
+          ...data,
+          reportingManagerId: data.reportingManagerId || undefined,
+          dateOfBirth: data.dateOfBirth ? format(data.dateOfBirth, 'yyyy-MM-dd') : undefined,
+          contractStartDate: data.contractStartDate ? format(data.contractStartDate, 'yyyy-MM-dd') : undefined,
+          contractEndDate: data.contractEndDate ? format(data.contractEndDate, 'yyyy-MM-dd') : undefined,
+        };
+        await addEmployee(employeeData, newDocs);
         toast({ title: 'Employee Added', description: `${data.name} has been added to the system.` });
-        setTimeout(() => router.push('/employees'), 500);
+        router.push('/employees');
     } catch (error) {
-        toast({ variant: 'destructive', title: 'Save Failed', description: 'Could not add the new employee.' });
+        if (error instanceof Error) {
+          toast({ variant: 'destructive', title: 'Save Failed', description: error.message });
+        } else {
+          toast({ variant: 'destructive', title: 'Save Failed', description: 'Could not add the new employee.' });
+        }
     } finally {
         setIsSaving(false);
     }
   }, [addEmployee, router, toast]);
 
-  return <EmployeeForm onSave={handleSave as any} isLoading={isSaving} />;
+  return <EmployeeForm onSave={handleSave} isLoading={isSaving} />;
 }

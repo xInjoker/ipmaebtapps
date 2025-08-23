@@ -30,7 +30,7 @@ export type Tender = {
   lostCause?: LostCause;
 };
 
-export const tenderStatuses: TenderStatus[] = ['Aanwijzing', 'Bidding', 'Evaluation', 'Awarded', 'Lost', 'Cancelled', 'Prequalification'];
+export const tenderStatuses: TenderStatus[] = ['Prequalification', 'Aanwijzing', 'Bidding', 'Evaluation', 'Awarded', 'Lost', 'Cancelled'];
 export const regionalOptions: Regional[] = ['Kantor Pusat', 'Regional Barat', 'Regional Timur'];
 export const subPortfolioOptions: (typeof subPortfolios)[number][] = [...subPortfolios];
 export const serviceOptions: string[] = ['NDT Services', 'Professional Services', 'Certification Services'];
@@ -61,4 +61,3 @@ export const tenderFieldLabels: Record<keyof Tender, string> = {
 
 // This data is now only used for one-time database seeding.
 export const initialTenders: Omit<Tender, 'id'>[] = [];
-

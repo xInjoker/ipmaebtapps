@@ -15,10 +15,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { Calendar as CalendarIcon } from 'lucide-react';
 import { useProjects } from '@/context/ProjectContext';
 import { useAuth } from '@/context/AuthContext';
 import { type ReportItem, type RadiographicTestReportDetails, type RadiographicFinding, rtFilmLocationOptions, rtWeldIndicationOptions, rtTechniqueOptions, rtPenetrameterOptions, acceptanceCriteriaOptions, rtProcedureNoOptions } from '@/lib/reports';
@@ -28,6 +26,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
+import { DatePicker } from '@/components/ui/date-picker';
 
 const steps = [
     { id: '01', name: 'General Info' },
@@ -310,7 +309,7 @@ export default function RadiographicTestPage() {
             creationDate: format(new Date(), 'yyyy-MM-dd'),
             approvalHistory: [{ actorName: user.name, actorRole: roles.find(r => r.id === user.roleId)?.name || 'N/A', status: 'Submitted', timestamp: new Date().toISOString(), comments: 'Report created.' }],
         };
-        addReport(newReport);
+        addReport(newReport as any);
         toast({ title: 'Report Submitted', description: `Report ${formData.reportNumber} has been successfully submitted.` });
         router.push('/reports/radiographic');
     };
@@ -390,7 +389,7 @@ export default function RadiographicTestPage() {
                                 )}
                             </div>
                             <div className="space-y-2"><Label htmlFor="projectExecutor">Project Executor</Label><Input id="projectExecutor" value={formData.projectExecutor} onChange={handleInputChange} disabled={!!formData.project && formData.project !== 'Non Project'} /></div>
-                            <div className="space-y-2"><Label htmlFor="dateOfTest">Date of Test</Label><Popover><PopoverTrigger asChild><Button id="dateOfTest" variant={"outline"} className={cn("w-full justify-start text-left font-normal", !formData.dateOfTest && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{formData.dateOfTest ? format(formData.dateOfTest, "PPP") : <span>Pick a date</span>}</Button></PopoverTrigger><PopoverContent className="w-auto p-0"><Calendar mode="single" selected={formData.dateOfTest} onSelect={(date) => handleDateChange(date, 'dateOfTest')} initialFocus /></PopoverContent></Popover></div>
+                            <div className="space-y-2"><Label htmlFor="dateOfTest">Date of Test</Label><DatePicker value={formData.dateOfTest} onChange={(date) => handleDateChange(date, 'dateOfTest')} /></div>
                             <div className="space-y-2"><Label htmlFor="lineType">Line Type</Label><Input id="lineType" value={formData.lineType} onChange={handleInputChange} placeholder="e.g. Pipeline, Structural Weld" /></div>
                             <div className="space-y-2"><Label htmlFor="jobLocation">Job Location</Label><Input id="jobLocation" value={formData.jobLocation} onChange={handleInputChange} placeholder="e.g. Workshop or Site Name" /></div>
                             <div className="space-y-2"><Label htmlFor="reportNumber">Report Number</Label><Input id="reportNumber" value={formData.reportNumber} onChange={handleInputChange} disabled={!!formData.project && formData.project !== 'Non Project'} /></div>
@@ -465,7 +464,7 @@ export default function RadiographicTestPage() {
                             <div className="space-y-2"><Label htmlFor="density">Density</Label><Input id="density" value={formData.density} onChange={handleInputChange} placeholder="e.g. 2.0-4.0"/></div>
                             <div className="space-y-2"><Label htmlFor="cameraSerialNumber">Camera Serial Number</Label><Input id="cameraSerialNumber" value={formData.cameraSerialNumber} onChange={handleInputChange}/></div>
                             <div className="space-y-2"><Label htmlFor="surveyMeterSerialNumber">Survey Meter Serial Number</Label><Input id="surveyMeterSerialNumber" value={formData.surveyMeterSerialNumber} onChange={handleInputChange}/></div>
-                            <div className="space-y-2"><Label htmlFor="surveyMeterCertExpDate">Survey Meter Expiry Date</Label><Popover><PopoverTrigger asChild><Button id="surveyMeterCertExpDate" variant={"outline"} className={cn("w-full justify-start text-left font-normal", !formData.surveyMeterCertExpDate && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{formData.surveyMeterCertExpDate ? format(formData.surveyMeterCertExpDate, "PPP") : <span>Pick a date</span>}</Button></PopoverTrigger><PopoverContent className="w-auto p-0"><Calendar mode="single" selected={formData.surveyMeterCertExpDate} onSelect={(date) => handleDateChange(date, 'surveyMeterCertExpDate')} initialFocus /></PopoverContent></Popover></div>
+                            <div className="space-y-2"><Label htmlFor="surveyMeterCertExpDate">Survey Meter Expiry Date</Label><DatePicker value={formData.surveyMeterCertExpDate} onChange={(date) => handleDateChange(date, 'surveyMeterCertExpDate')} /></div>
                         </div>
                     )}
                     {currentStep === 2 && (

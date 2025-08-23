@@ -1,13 +1,14 @@
 
+
 'use client';
 
 import { createContext, useState, useContext, ReactNode, Dispatch, SetStateAction, useCallback, useMemo, useEffect } from 'react';
 import { type Employee, initialEmployees } from '@/lib/employees';
 import type { InspectorDocument } from '@/lib/inspectors';
 import { fileToBase64 } from '@/lib/utils';
-import { getFirestore, collection, getDocs, setDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { getFirestore, collection, getDocs, setDoc, doc, updateDoc, deleteDoc, getDoc } from 'firebase/firestore';
 import { app } from '@/lib/firebase';
-import { uploadFile } from '@/lib/storage';
+import { uploadFile, deleteFileByUrl } from '@/lib/storage';
 import { useAuth } from './AuthContext';
 
 
@@ -50,7 +51,7 @@ export function EmployeeProvider({ children }: { children: ReactNode }) {
       } catch (error) {
         console.error("Error fetching employees from Firestore: ", error);
         // Fallback to initial data on error
-        setEmployees(initialEmployees.map((e, i) => ({ ...e, id: `EMP-${i + 1}` })));
+        setEmployees([]);
       } finally {
         setIsLoading(false);
       }
@@ -82,12 +83,17 @@ export function EmployeeProvider({ children }: { children: ReactNode }) {
         }))
     );
 
-    const newItem: Employee = { ...item, id: newId, cvUrl, qualifications, otherDocuments } as Employee;
+    const newItem: Employee = { 
+        ...item, 
+        id: newId, 
+        reportingManagerId: item.reportingManagerId || undefined,
+        cvUrl, 
+        qualifications, 
+        otherDocuments 
+    } as Employee;
     
     // Sanitize object before sending to Firestore
-    const sanitizedItem = JSON.parse(JSON.stringify(newItem, (key, value) => 
-        value === undefined ? null : value
-    ));
+    const sanitizedItem = JSON.parse(JSON.stringify(newItem));
 
     await setDoc(doc(db, 'employees', newId), sanitizedItem);
     setEmployees(prev => [...prev, sanitizedItem]);
@@ -137,8 +143,26 @@ export function EmployeeProvider({ children }: { children: ReactNode }) {
   }, []);
   
   const deleteEmployee = useCallback(async (id: string) => {
-    await deleteDoc(doc(db, 'employees', id));
-    setEmployees(prev => prev.filter(e => e.id !== id));
+    const employeeDocRef = doc(db, 'employees', id);
+    try {
+        const docSnap = await getDoc(employeeDocRef);
+        if (docSnap.exists()) {
+            const employeeData = docSnap.data() as Employee;
+            const urlsToDelete: string[] = [];
+            if (employeeData.cvUrl) urlsToDelete.push(employeeData.cvUrl);
+            (employeeData.qualifications || []).forEach(d => urlsToDelete.push(d.url));
+            (employeeData.otherDocuments || []).forEach(d => urlsToDelete.push(d.url));
+
+            if (urlsToDelete.length > 0) {
+                await Promise.all(urlsToDelete.map(url => deleteFileByUrl(url)));
+            }
+        }
+        
+        await deleteDoc(employeeDocRef);
+        setEmployees(prev => prev.filter(e => e.id !== id));
+    } catch (error) {
+        console.error("Error deleting employee:", error);
+    }
   }, []);
   
   const getEmployeeById = useCallback((id: string) => {

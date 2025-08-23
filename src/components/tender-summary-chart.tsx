@@ -8,11 +8,11 @@ import {
   ChartTooltipContent,
   ChartConfig,
 } from '@/components/ui/chart';
-import { useMemo, useState } from 'react';
+import { useMemo, memo } from 'react';
 import type { Tender, TenderStatus } from '@/lib/tenders';
 import { formatCurrencyCompact, formatCurrencyMillions } from '@/lib/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './ui/select';
+import { tenderStatuses } from '@/lib/tenders';
 
 
 type TenderSummaryChartProps = {
@@ -37,62 +37,47 @@ const chartConfig: ChartConfig = {
   },
   Awarded: {
     label: 'Awarded',
+    color: 'hsl(var(--success))',
+  },
+  Prequalification: {
+    label: 'Prequalification',
     color: 'hsl(var(--chart-4))',
   },
   Lost: {
     label: 'Lost',
-    color: 'hsl(var(--chart-5))',
+    color: 'hsl(var(--destructive))',
   },
   Cancelled: {
     label: 'Cancelled',
-    color: 'hsl(var(--destructive))',
-  },
-   Prequalification: {
-    label: 'Prequalification',
-    color: 'hsl(var(--secondary-foreground))',
+    color: 'hsl(var(--muted))',
   },
 };
 
 
-export function TenderSummaryChart({ tenders }: TenderSummaryChartProps) {
-  const [selectedYear, setSelectedYear] = useState('all');
-
-  const availableYears = useMemo(() => {
-    const years = new Set(tenders.map(t => new Date(t.submissionDate).getFullYear().toString()));
-    return ['all', ...Array.from(years).sort((a,b) => Number(b) - Number(a))];
-  }, [tenders]);
+export const TenderSummaryChart = memo(function TenderSummaryChart({ tenders }: TenderSummaryChartProps) {
   
   const chartData = useMemo(() => {
     if (!tenders) return [];
     
-    const filteredTenders = selectedYear === 'all' 
-        ? tenders 
-        : tenders.filter(t => new Date(t.submissionDate).getFullYear().toString() === selectedYear);
-
-    const statusValues = filteredTenders.reduce((acc, tender) => {
-      acc[tender.status] = (acc[tender.status] || 0) + tender.bidPrice;
+    const statusValues = tenders.reduce((acc, tender) => {
+      const value = tender.bidPrice || tender.ownerEstimatePrice || 0;
+      acc[tender.status] = (acc[tender.status] || 0) + value;
       return acc;
     }, {} as Record<TenderStatus, number>);
 
-    return Object.entries(statusValues).map(([status, value]) => ({
+    return tenderStatuses.map((status) => ({
         status,
-        value,
-    }));
-  }, [tenders, selectedYear]);
+        value: statusValues[status] || 0,
+    })).filter(item => item.value > 0);
+  }, [tenders]);
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader>
         <div>
           <CardTitle>Tender Value Summary by Status</CardTitle>
           <CardDescription>A summary of total tender value for each status.</CardDescription>
         </div>
-        <Select value={selectedYear} onValueChange={setSelectedYear}>
-          <SelectTrigger className="w-[120px]"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            {availableYears.map(year => <SelectItem key={year} value={year}>{year}</SelectItem>)}
-          </SelectContent>
-        </Select>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="h-[400px] w-full">
@@ -127,4 +112,4 @@ export function TenderSummaryChart({ tenders }: TenderSummaryChartProps) {
       </CardContent>
     </Card>
   );
-}
+});

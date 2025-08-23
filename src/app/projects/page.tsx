@@ -23,7 +23,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { PlusCircle, CircleDollarSign, Wallet, TrendingUp, Landmark, Search, X, BarChartBig, List, TrendingDown, Trash2 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
-import { cn, formatCurrency, formatCurrencyMillions } from '@/lib/utils';
+import { cn, formatCurrency, formatCurrencyCompact } from '@/lib/utils';
 import { useProjects } from '@/context/ProjectContext';
 import { useAuth } from '@/context/AuthContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -40,6 +40,11 @@ import { useToast } from '@/hooks/use-toast';
 import type { Project } from '@/lib/projects';
 
 
+const months = [
+    'January', 'February', 'March', 'April', 'May', 'June', 
+    'July', 'August', 'September', 'October', 'November', 'December'
+];
+
 export default function ProjectsPage() {
   const { projects, getProjectStats, deleteProject } = useProjects();
   const { user, isHqUser, branches, userHasPermission } = useAuth();
@@ -49,10 +54,20 @@ export default function ProjectsPage() {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [branchFilter, setBranchFilter] = useState('all');
+  const [yearFilter, setYearFilter] = useState('all');
+  const [monthFilter, setMonthFilter] = useState('all');
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<Project | null>(null);
   
   const defaultTab = searchParams.get('tab') || 'summary';
+
+  const availableYears = useMemo(() => {
+    const years = new Set(projects.flatMap(p => 
+        [...(p.invoices || []), ...(p.costs || [])].map(i => i.period.split(' ')[1])
+    ).filter(Boolean));
+    return ['all', ...Array.from(years).sort((a, b) => Number(b) - Number(a))];
+  }, [projects]);
+
 
   useEffect(() => {
     if (user && !isHqUser && !initialFilterSet.current) {
@@ -66,6 +81,8 @@ export default function ProjectsPage() {
 
     if (user?.roleId === 'project-admin') {
         projectsToFilter = projects.filter(p => user.assignedProjectIds?.includes(p.id));
+    } else if (user?.roleId === 'project-manager') {
+        projectsToFilter = projects.filter(p => p.projectManagerId === user.uid || (user.assignedProjectIds || []).includes(p.id));
     } else if (!isHqUser && user) {
         projectsToFilter = projects.filter(p => p.branchId === user?.branchId);
     }
@@ -82,15 +99,36 @@ export default function ProjectsPage() {
     });
   }, [projects, user, isHqUser, searchTerm, branchFilter]);
 
-  const { totalProjectValue, totalCost, totalIncome } = getProjectStats(visibleProjects);
+  const filteredProjects = useMemo(() => {
+    if (yearFilter === 'all' && monthFilter === 'all') return visibleProjects;
+
+    return visibleProjects.map(project => ({
+      ...project,
+      invoices: (project.invoices || []).filter(invoice => {
+          const [month, year] = invoice.period.split(' ');
+          const yearMatch = yearFilter === 'all' || year === yearFilter;
+          const monthMatch = monthFilter === 'all' || month === monthFilter;
+          return yearMatch && monthMatch;
+      }),
+      costs: (project.costs || []).filter(cost => {
+          const [month, year] = cost.period.split(' ');
+          const yearMatch = yearFilter === 'all' || year === yearFilter;
+          const monthMatch = monthFilter === 'all' || month === monthFilter;
+          return yearMatch && monthMatch;
+      }),
+    }));
+  }, [visibleProjects, yearFilter, monthFilter]);
+
+
+  const { totalProjectValue, totalCost, totalIncome } = getProjectStats(filteredProjects);
   const profit = totalIncome - totalCost;
 
   const totalBudget = useMemo(() => {
-    return visibleProjects.reduce((acc, project) => {
+    return filteredProjects.reduce((acc, project) => {
         const projectBudget = Object.values(project.budgets || {}).reduce((sum, val) => sum + val, 0);
         return acc + projectBudget;
     }, 0);
-  }, [visibleProjects]);
+  }, [filteredProjects]);
 
   const widgetData = useMemo(() => {
     const profitPercentage = totalIncome > 0 ? (profit / totalIncome) * 100 : 0;
@@ -101,15 +139,15 @@ export default function ProjectsPage() {
     return [
       {
         title: 'Total Project Value',
-        value: formatCurrencyMillions(totalProjectValue),
-        description: `Across ${visibleProjects.length} projects`,
+        value: formatCurrencyCompact(totalProjectValue),
+        description: `Across ${filteredProjects.length} projects`,
         icon: CircleDollarSign,
         iconColor: 'text-blue-500',
         shapeColor: 'text-blue-500/10',
       },
       {
         title: 'Total Income',
-        value: formatCurrencyMillions(totalIncome),
+        value: formatCurrencyCompact(totalIncome),
         description: totalProjectValue > 0
           ? `${((totalIncome / totalProjectValue) * 100).toFixed(1)}% of total project value`
           : 'Total income generated to date',
@@ -119,7 +157,7 @@ export default function ProjectsPage() {
       },
       {
         title: 'Total Cost',
-        value: formatCurrencyMillions(totalCost),
+        value: formatCurrencyCompact(totalCost),
         description: totalBudget > 0
           ? `${((totalCost / totalBudget) * 100).toFixed(1)}% of budget used`
           : 'Total costs realized across all projects',
@@ -129,17 +167,19 @@ export default function ProjectsPage() {
       },
       {
         title: 'Profit / Loss',
-        value: formatCurrencyMillions(profit),
+        value: formatCurrencyCompact(profit),
         description: profitDescription,
         icon: profit >= 0 ? TrendingUp : TrendingDown,
         iconColor: profit >= 0 ? 'text-green-500' : 'text-rose-500',
         shapeColor: profit >= 0 ? 'text-green-500/10' : 'text-rose-500/10',
       },
     ];
-  }, [totalProjectValue, totalIncome, totalCost, totalBudget, profit, visibleProjects.length]);
+  }, [totalProjectValue, totalIncome, totalCost, totalBudget, profit, filteredProjects.length]);
 
   const handleClearFilters = useCallback(() => {
     setSearchTerm('');
+    setYearFilter('all');
+    setMonthFilter('all');
     if (isHqUser) {
         setBranchFilter('all');
     }
@@ -163,7 +203,7 @@ export default function ProjectsPage() {
   };
 
   const monthlyRecapData = useMemo(() => {
-    if (!visibleProjects) return [];
+    if (!filteredProjects) return [];
   
     const dataMap: { 
         [key: string]: { 
@@ -189,7 +229,7 @@ export default function ProjectsPage() {
       return { sortKey, displayMonth };
     };
     
-    visibleProjects.forEach(project => {
+    filteredProjects.forEach(project => {
         const projectInvoices = project.invoices || [];
         const projectCosts = project.costs || [];
     
@@ -231,7 +271,7 @@ export default function ProjectsPage() {
       .sort()
       .map(key => dataMap[key]);
   
-  }, [visibleProjects]);
+  }, [filteredProjects]);
 
 
   return (
@@ -279,6 +319,23 @@ export default function ProjectsPage() {
                             {branches.map(branch => <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>)}
                         </SelectContent>
                     </Select>
+                    <Select value={yearFilter} onValueChange={setYearFilter}>
+                        <SelectTrigger className="w-full sm:w-[120px]">
+                            <SelectValue placeholder="Filter by year" />
+                        </SelectTrigger>
+                        <SelectContent>
+                           {availableYears.map(year => <SelectItem key={year} value={year}>{year === 'all' ? 'All Years' : year}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                    <Select value={monthFilter} onValueChange={setMonthFilter}>
+                        <SelectTrigger className="w-full sm:w-[140px]">
+                            <SelectValue placeholder="Filter by month" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Months</SelectItem>
+                            {months.map(month => <SelectItem key={month} value={month}>{month}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
                     <Button variant="ghost" onClick={handleClearFilters} className="w-full sm:w-auto">
                         <X className="mr-2 h-4 w-4" /> Clear
                     </Button>
@@ -297,10 +354,10 @@ export default function ProjectsPage() {
                 <ProjectMonthlyRecapChart data={monthlyRecapData} />
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-                <CumulativeIncomePieChart projects={visibleProjects} />
-                <CumulativeCostPieChart projects={visibleProjects} />
-                <CumulativeProfitChart projects={visibleProjects} />
-                <ProjectBranchChart projects={visibleProjects} branches={branches} />
+                <CumulativeIncomePieChart projects={filteredProjects} />
+                <CumulativeCostPieChart projects={filteredProjects} />
+                <CumulativeProfitChart projects={filteredProjects} />
+                <ProjectBranchChart projects={filteredProjects} branches={branches} />
             </div>
         </TabsContent>
         <TabsContent value="list">
@@ -311,7 +368,7 @@ export default function ProjectsPage() {
                     const progress = project.value > 0 ? Math.round(((totalPaid + totalInvoiced) / project.value) * 100) : 0;
                     return (
                     <Card key={project.id} className="flex flex-col">
-                        <CardHeader className="relative overflow-hidden bg-gradient-to-br from-primary to-primary/80 text-primary-foreground rounded-t-lg flex flex-col justify-center h-28">
+                        <CardHeader className="relative overflow-hidden bg-gradient-to-br from-primary to-primary/80 text-primary-foreground rounded-t-lg flex flex-col justify-center h-28 py-4">
                             <svg
                                 className="absolute top-0 left-0 w-full h-full text-primary"
                                 fill="currentColor"
@@ -322,7 +379,7 @@ export default function ProjectsPage() {
                                 <path d="M0 15 C 20 25, 40 -5, 60 15 S 80 -5, 100 15 V 0 H 0 Z" />
                             </svg>
                             <div className="relative z-10">
-                                <CardTitle className="font-headline line-clamp-2">{project.name}</CardTitle>
+                                <CardTitle className="font-headline text-lg line-clamp-2">{project.name}</CardTitle>
                             </div>
                         </CardHeader>
                         <CardContent className="flex-grow pt-6 space-y-4">

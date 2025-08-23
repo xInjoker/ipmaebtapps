@@ -5,9 +5,9 @@ import { createContext, useState, useContext, ReactNode, Dispatch, SetStateActio
 import { type Inspector, type InspectorDocument } from '@/lib/inspectors';
 import { getDocumentStatus, fileToBase64 } from '@/lib/utils';
 import { Users2, BadgeCheck, Clock, XCircle } from 'lucide-react';
-import { getFirestore, collection, getDocs, setDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { getFirestore, collection, getDocs, setDoc, doc, updateDoc, deleteDoc, getDoc } from 'firebase/firestore';
 import { app } from '@/lib/firebase';
-import { uploadFile } from '@/lib/storage';
+import { uploadFile, deleteFileByUrl } from '@/lib/storage';
 import { useAuth } from './AuthContext';
 
 const db = getFirestore(app);
@@ -17,6 +17,7 @@ type InspectorStats = {
     validCerts: number;
     expiringSoon: number;
     expired: number;
+    inspectors: Inspector[];
 };
 
 type InspectorContextType = {
@@ -129,8 +130,26 @@ export function InspectorProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const deleteInspector = useCallback(async (id: string) => {
-    await deleteDoc(doc(db, 'inspectors', id));
-    setInspectors(prev => prev.filter(item => item.id !== id));
+    const inspectorDocRef = doc(db, 'inspectors', id);
+    try {
+        const docSnap = await getDoc(inspectorDocRef);
+        if (docSnap.exists()) {
+            const inspectorData = docSnap.data() as Inspector;
+            const urlsToDelete: string[] = [];
+            if (inspectorData.cvUrl) urlsToDelete.push(inspectorData.cvUrl);
+            (inspectorData.qualifications || []).forEach(d => urlsToDelete.push(d.url));
+            (inspectorData.otherDocuments || []).forEach(d => urlsToDelete.push(d.url));
+            
+            if (urlsToDelete.length > 0) {
+                await Promise.all(urlsToDelete.map(url => deleteFileByUrl(url)));
+            }
+        }
+
+        await deleteDoc(inspectorDocRef);
+        setInspectors(prev => prev.filter(item => item.id !== id));
+    } catch (error) {
+        console.error("Error deleting inspector:", error);
+    }
   }, []);
   
   const getInspectorById = useCallback((id:string) => {
@@ -149,6 +168,11 @@ export function InspectorProvider({ children }: { children: ReactNode }) {
         let hasExpired = false;
 
         allDocs.forEach(doc => {
+            if (!doc.expirationDate) {
+              validCerts++;
+              return;
+            }
+
             const status = getDocumentStatus(doc.expirationDate);
             if (status.variant !== 'destructive') {
                 validCerts++;
@@ -172,7 +196,8 @@ export function InspectorProvider({ children }: { children: ReactNode }) {
         total, 
         validCerts,
         expiringSoon: inspectorHasExpiringCert.size,
-        expired: inspectorHasExpiredCert.size
+        expired: inspectorHasExpiredCert.size,
+        inspectors: inspectors
     };
   }, [inspectors]);
 

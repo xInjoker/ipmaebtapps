@@ -2,10 +2,10 @@
 
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, PlusCircle, FileDown, Info } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, FileDown, Info, Search, X, ArrowUpDown } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter as UiTableFooter } from '@/components/ui/table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuPortal } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -14,17 +14,22 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import type { Project, InvoiceItem, ServiceOrderItem } from '@/lib/data';
+import type { Project, InvoiceItem, ServiceOrderItem } from '@/lib/projects';
 import { formatCurrency } from '@/lib/utils';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/context/AuthContext';
 import { CurrencyInput } from './ui/currency-input';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
+import { DatePicker } from './ui/date-picker';
+import { parse } from 'date-fns';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/context/AuthContext';
+
 
 type ProjectInvoicingTabProps = {
     project: Project;
     setProjects: (updateFn: (project: Project) => Project) => void;
 };
+
+type SortKey = keyof InvoiceItem | 'id';
 
 export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTabProps) {
     const [isAddInvoiceDialogOpen, setIsAddInvoiceDialogOpen] = useState(false);
@@ -34,7 +39,16 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
     
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [itemToEdit, setItemToEdit] = useState<(Omit<InvoiceItem, 'date'> & { periodMonth?: string, periodYear?: string }) | null>(null);
+    
+    // Filter states
+    const [statusFilter, setStatusFilter] = useState('all');
+    const [periodFilter, setPeriodFilter] = useState('all');
+    const [searchTerm, setSearchTerm] = useState('');
 
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
+    
+    const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: 'ascending' | 'descending' } | null>(null);
 
     const { toast } = useToast();
     const { userHasPermission, user } = useAuth();
@@ -57,8 +71,76 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
         value: 0,
     });
     
+    const availablePeriods = useMemo(() => {
+        if (!project.invoices) return [];
+        const periods = new Set(project.invoices.map(inv => inv.period));
+        return ['all', ...Array.from(periods)];
+    }, [project.invoices]);
+    
+    const sortedAndFilteredInvoices = useMemo(() => {
+        let filtered = (project.invoices || []).filter(invoice => {
+            const statusMatch = statusFilter === 'all' || invoice.status === statusFilter;
+            const periodMatch = periodFilter === 'all' || invoice.period === periodFilter;
+            const searchMatch = searchTerm.toLowerCase() === '' || 
+                                invoice.description.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                                invoice.soNumber.toLowerCase().includes(searchTerm.toLowerCase());
+            return statusMatch && periodMatch && searchMatch;
+        });
+
+        if (sortConfig !== null) {
+            filtered.sort((a, b) => {
+                const key = sortConfig.key;
+                let aValue = a[key as keyof InvoiceItem];
+                let bValue = b[key as keyof InvoiceItem];
+
+                if (key === 'period') {
+                    try {
+                        const dateA = parse(a.period, 'MMMM yyyy', new Date());
+                        const dateB = parse(b.period, 'MMMM yyyy', new Date());
+                        if (dateA > dateB) return sortConfig.direction === 'ascending' ? 1 : -1;
+                        if (dateA < dateB) return sortConfig.direction === 'ascending' ? -1 : 1;
+                        return 0;
+                    } catch {
+                        return 0;
+                    }
+                }
+                
+                if (typeof aValue === 'string' && typeof bValue === 'string') {
+                    return sortConfig.direction === 'ascending' 
+                        ? aValue.localeCompare(bValue) 
+                        : bValue.localeCompare(aValue);
+                } else {
+                     if ((aValue ?? 0) < (bValue ?? 0)) {
+                        return sortConfig.direction === 'ascending' ? -1 : 1;
+                    }
+                    if ((aValue ?? 0) > (bValue ?? 0)) {
+                        return sortConfig.direction === 'ascending' ? 1 : -1;
+                    }
+                    return 0;
+                }
+            });
+        }
+
+        return filtered;
+    }, [project.invoices, statusFilter, periodFilter, searchTerm, sortConfig]);
+
+    const paginatedInvoices = useMemo(() => {
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        return sortedAndFilteredInvoices.slice(startIndex, endIndex);
+    }, [sortedAndFilteredInvoices, currentPage]);
+
+    const totalPages = useMemo(() => {
+        return Math.ceil(sortedAndFilteredInvoices.length / itemsPerPage);
+    }, [sortedAndFilteredInvoices]);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [statusFilter, periodFilter, searchTerm, sortConfig]);
+
+
     const invoicedAmountsBySO = useMemo(() => {
-        return project.invoices
+        return (project.invoices || [])
             .filter(invoice => invoice.status !== 'Cancel')
             .reduce((acc, invoice) => {
                 if (invoice.soNumber) {
@@ -72,6 +154,19 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
     const serviceOrderMap = useMemo(() => {
         return new Map(project.serviceOrders.map(so => [so.soNumber, so]));
     }, [project.serviceOrders]);
+    
+    const requestSort = (key: SortKey) => {
+        let direction: 'ascending' | 'descending' = 'ascending';
+        if (sortConfig && sortConfig.key === key && sortConfig.direction === 'ascending') {
+            direction = 'descending';
+        }
+        setSortConfig({ key, direction });
+    };
+
+    const getSortIndicator = (key: SortKey) => {
+        if (sortConfig?.key !== key) return null;
+        return sortConfig.direction === 'ascending' ? '▲' : '▼';
+    };
 
 
     const handleAddInvoice = useCallback(() => {
@@ -94,10 +189,10 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
         }
     }, [newInvoice, project, setProjects, toast]);
     
-    const handleStatusUpdate = useCallback((invoiceId: string, newStatus: 'PAD' | 'Invoiced') => {
+    const handleStatusUpdate = useCallback((invoiceId: string, newStatus: InvoiceItem['status']) => {
         setProjects(p => ({ 
             ...p, 
-            invoices: p.invoices.map(inv => 
+            invoices: (p.invoices || []).map(inv => 
                 inv.id === invoiceId ? { ...inv, status: newStatus } : inv
             ) 
         }));
@@ -137,7 +232,7 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
             };
         }
 
-        setProjects(p => ({ ...p, invoices: p.invoices.map(inv => inv.id === invoiceToAdjust.id ? updatedInvoice : inv) }));
+        setProjects(p => ({ ...p, invoices: (p.invoices || []).map(inv => inv.id === invoiceToAdjust.id ? updatedInvoice : inv) }));
         setDialogState(null);
         setInvoiceToAdjust(null);
         toast({ title: 'Invoice Updated', description: `The invoice has been successfully ${dialogState === 'finalize' ? 'adjusted' : 'cancelled'}.` });
@@ -198,7 +293,8 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
         setProjects(p => ({ ...p, invoices: (p.invoices || []).map(item => item.id === updatedItemData.id ? updatedItemData : item) }));
         setIsEditDialogOpen(false);
         setItemToEdit(null);
-    }, [itemToEdit, setProjects]);
+        toast({ title: "Invoice Updated", description: "The invoice details have been saved." });
+    }, [itemToEdit, setProjects, toast]);
 
 
     const dialogForm = useCallback((
@@ -252,7 +348,7 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="value" className="text-right">Value (IDR)</Label>
-                 <CurrencyInput id="value" value={state.value} onValueChange={(value) => setter({ ...state, value })} className="col-span-3" />
+                 <CurrencyInput id="value" value={state.value} onValueChange={(value: number) => setter({ ...state, value })} className="col-span-3" />
             </div>
         </div>
     ), [project.serviceOrders]);
@@ -261,57 +357,101 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
     return (
         <>
             <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                    <div className="space-y-1.5">
-                        <CardTitle>Invoicing Progress</CardTitle>
-                        <CardDescription>A detailed breakdown of all invoices for this project.</CardDescription>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <Button variant="outline" onClick={handleExportInvoices}>
-                            <FileDown className="mr-2 h-4 w-4" />
-                            Export
-                        </Button>
-                        <Dialog open={isAddInvoiceDialogOpen} onOpenChange={setIsAddInvoiceDialogOpen}>
-                            <DialogTrigger asChild>
-                                <Button>
-                                    <PlusCircle className="mr-2 h-4 w-4" />
-                                    Add Invoice
-                                </Button>
-                            </DialogTrigger>
-                            <DialogContent className="sm:max-w-lg">
-                                <DialogHeader>
-                                    <DialogTitle>Add New Invoice</DialogTitle>
-                                    <DialogDescription>Fill in the details for the new invoice.</DialogDescription>
-                                </DialogHeader>
-                                {dialogForm(false, newInvoice, setNewInvoice)}
-                                {addSoDetails.warning && (
-                                    <div className="text-sm font-medium text-destructive text-center">{addSoDetails.warning}</div>
-                                )}
-                                <DialogFooter>
-                                    <Button onClick={handleAddInvoice}>Add Invoice</Button>
-                                </DialogFooter>
-                            </DialogContent>
-                        </Dialog>
+                <CardHeader>
+                    <div className="flex flex-wrap items-center justify-between gap-4">
+                        <div className="space-y-1.5 flex-grow">
+                            <CardTitle>Invoicing Progress</CardTitle>
+                            <CardDescription>A detailed breakdown of all invoices for this project.</CardDescription>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Button variant="outline" onClick={handleExportInvoices}>
+                                <FileDown className="mr-2 h-4 w-4" />
+                                Export
+                            </Button>
+                            <Dialog open={isAddInvoiceDialogOpen} onOpenChange={setIsAddInvoiceDialogOpen}>
+                                <DialogTrigger asChild>
+                                    <Button>
+                                        <PlusCircle className="mr-2 h-4 w-4" />
+                                        Add Invoice
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-lg">
+                                    <DialogHeader>
+                                        <DialogTitle>Add New Invoice</DialogTitle>
+                                        <DialogDescription>Fill in the details for the new invoice.</DialogDescription>
+                                    </DialogHeader>
+                                    {dialogForm(false, newInvoice, setNewInvoice)}
+                                    {addSoDetails.warning && (
+                                        <div className="text-sm font-medium text-destructive text-center">{addSoDetails.warning}</div>
+                                    )}
+                                    <DialogFooter>
+                                        <Button onClick={handleAddInvoice}>Add Invoice</Button>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
+                        </div>
                     </div>
                 </CardHeader>
                 <CardContent>
+                    <div className="flex flex-col sm:flex-row gap-2 mb-4 p-4 bg-muted/50 rounded-lg">
+                        <div className="relative flex-1">
+                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                placeholder="Search by SO or description..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="pl-8 w-full"
+                            />
+                        </div>
+                        <Select value={statusFilter} onValueChange={setStatusFilter}>
+                            <SelectTrigger className="w-full sm:w-[200px]"><SelectValue placeholder="Filter by status..." /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All Statuses</SelectItem>
+                                <SelectItem value="Document Preparation">Document Preparation</SelectItem>
+                                <SelectItem value="PAD">PAD</SelectItem>
+                                <SelectItem value="Invoiced">Invoiced</SelectItem>
+                                <SelectItem value="Paid">Paid</SelectItem>
+                                <SelectItem value="Re-invoiced">Re-invoiced</SelectItem>
+                                <SelectItem value="Cancel">Cancel</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <Select value={periodFilter} onValueChange={setPeriodFilter}>
+                            <SelectTrigger className="w-full sm:w-[200px]"><SelectValue placeholder="Filter by period..." /></SelectTrigger>
+                            <SelectContent>
+                                {availablePeriods.map(p => <SelectItem key={p} value={p}>{p === 'all' ? 'All Periods' : p}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                        <Button variant="ghost" size="icon" onClick={() => { setSearchTerm(''); setStatusFilter('all'); setPeriodFilter('all'); }}><X className="h-4 w-4" /></Button>
+                    </div>
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>ID</TableHead>
-                                <TableHead>SO Number</TableHead>
-                                <TableHead>Description</TableHead>
-                                <TableHead>Period</TableHead>
-                                <TableHead className="text-right">Value</TableHead>
-                                <TableHead>Status</TableHead>
+                                <TableHead>
+                                    <Button variant="ghost" onClick={() => requestSort('soNumber')}>SO Number {getSortIndicator('soNumber')}</Button>
+                                </TableHead>
+                                <TableHead>
+                                    <Button variant="ghost" onClick={() => requestSort('serviceCategory')}>Category {getSortIndicator('serviceCategory')}</Button>
+                                </TableHead>
+                                <TableHead>
+                                    <Button variant="ghost" onClick={() => requestSort('description')}>Description {getSortIndicator('description')}</Button>
+                                </TableHead>
+                                <TableHead>
+                                    <Button variant="ghost" onClick={() => requestSort('period')}>Period {getSortIndicator('period')}</Button>
+                                </TableHead>
+                                <TableHead className="text-right">
+                                    <Button variant="ghost" onClick={() => requestSort('value')}>Value {getSortIndicator('value')}</Button>
+                                </TableHead>
+                                <TableHead>
+                                    <Button variant="ghost" onClick={() => requestSort('status')}>Status {getSortIndicator('status')}</Button>
+                                </TableHead>
                                 <TableHead className="text-right">Action</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {project.invoices?.map((invoice) => (
+                            {paginatedInvoices.map((invoice) => (
                                 <TableRow key={invoice.id}>
-                                    <TableCell>{invoice.id}</TableCell>
                                     <TableCell className="font-medium">{invoice.soNumber}</TableCell>
+                                    <TableCell>{invoice.serviceCategory}</TableCell>
                                     <TableCell>{invoice.description}</TableCell>
                                     <TableCell>{invoice.period}</TableCell>
                                     <TableCell className="text-right">
@@ -341,33 +481,72 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
                                                 <Button variant="ghost" className="h-8 w-8 p-0"><span className="sr-only">Open menu</span><MoreHorizontal className="h-4 w-4" /></Button>
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
-                                                {invoice.status === 'PAD' && <DropdownMenuItem onSelect={() => handleAdjustmentClick(invoice, 'finalize')}>Finalize/Adjust Invoice</DropdownMenuItem>}
-                                                {invoice.status === 'Document Preparation' && (
-                                                    <DropdownMenuSub>
-                                                        <DropdownMenuSubTrigger>Update Status</DropdownMenuSubTrigger>
-                                                        <DropdownMenuPortal>
-                                                            <DropdownMenuSubContent>
-                                                                <DropdownMenuItem onSelect={() => handleStatusUpdate(invoice.id, 'PAD')}>To PAD</DropdownMenuItem>
-                                                                <DropdownMenuItem onSelect={() => handleStatusUpdate(invoice.id, 'Invoiced')}>To Invoice</DropdownMenuItem>
-                                                            </DropdownMenuSubContent>
-                                                        </DropdownMenuPortal>
-                                                    </DropdownMenuSub>
+                                                {invoice.status === 'Paid' && user?.roleId === 'super-admin' && (
+                                                    <DropdownMenuItem onSelect={() => handleEditClick(invoice)}>Edit (Admin)</DropdownMenuItem>
                                                 )}
-                                                {invoice.status !== 'Cancel' && <DropdownMenuItem onSelect={() => handleAdjustmentClick(invoice, 'cancel')} className="text-destructive">Cancel Invoice</DropdownMenuItem>}
-                                                {user?.roleId === 'super-admin' && <DropdownMenuItem onSelect={() => handleEditClick(invoice)}>Edit (Admin)</DropdownMenuItem>}
+
+                                                {invoice.status === 'Cancel' && user?.roleId === 'super-admin' && (
+                                                    <DropdownMenuItem onSelect={() => handleEditClick(invoice)}>Edit (Admin)</DropdownMenuItem>
+                                                )}
+                                                
+                                                {invoice.status === 'PAD' && (
+                                                    <>
+                                                        <DropdownMenuItem onSelect={() => handleAdjustmentClick(invoice, 'finalize')}>Finalize/Adjust Invoice</DropdownMenuItem>
+                                                        <DropdownMenuItem onSelect={() => handleEditClick(invoice)}>Edit</DropdownMenuItem>
+                                                    </>
+                                                )}
+                                                
+                                                {invoice.status === 'Document Preparation' && (
+                                                    <>
+                                                         <DropdownMenuItem onSelect={() => handleEditClick(invoice)}>Edit</DropdownMenuItem>
+                                                        <DropdownMenuItem onSelect={() => handleStatusUpdate(invoice.id, 'PAD')}>Mark as PAD</DropdownMenuItem>
+                                                    </>
+                                                )}
+                                                
+                                                {(invoice.status === 'Invoiced' || invoice.status === 'Re-invoiced') && (
+                                                    <>
+                                                        <DropdownMenuItem onSelect={() => handleStatusUpdate(invoice.id, 'Paid')}>Mark as Paid</DropdownMenuItem>
+                                                        <DropdownMenuItem onSelect={() => handleAdjustmentClick(invoice, 'cancel')} className="text-destructive">Cancel Invoice</DropdownMenuItem>
+                                                    </>
+                                                )}
                                             </DropdownMenuContent>
                                         </DropdownMenu>
                                     </TableCell>
                                 </TableRow>
                             ))}
-                            {!project.invoices?.length && (
+                            {sortedAndFilteredInvoices.length === 0 && (
                                 <TableRow>
-                                    <TableCell colSpan={8} className="text-center">No invoices found.</TableCell>
+                                    <TableCell colSpan={8} className="text-center h-24">No invoices found for the selected filters.</TableCell>
                                 </TableRow>
                             )}
                         </TableBody>
                     </Table>
                 </CardContent>
+                 {totalPages > 1 && (
+                    <CardFooter className="flex items-center justify-between border-t pt-4">
+                        <span className="text-sm text-muted-foreground">
+                            Page {currentPage} of {totalPages}
+                        </span>
+                        <div className="flex items-center gap-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                disabled={currentPage === 1}
+                            >
+                                Previous
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                disabled={currentPage === totalPages}
+                            >
+                                Next
+                            </Button>
+                        </div>
+                    </CardFooter>
+                )}
             </Card>
 
             <Dialog open={!!dialogState} onOpenChange={(open) => { if (!open) setDialogState(null); }}>
@@ -386,7 +565,7 @@ export function ProjectInvoicingTab({ project, setProjects }: ProjectInvoicingTa
                                 {dialogState === 'finalize' && (
                                     <div className="grid grid-cols-4 items-center gap-4">
                                         <Label htmlFor="finalValue" className="text-right">Final Value (IDR)</Label>
-                                        <CurrencyInput id="finalValue" value={adjustmentData.finalValue} onValueChange={(value) => setAdjustmentData(d => ({ ...d, finalValue: value }))} className="col-span-3" />
+                                        <CurrencyInput id="finalValue" value={adjustmentData.finalValue} onValueChange={(value: number) => setAdjustmentData(d => ({ ...d, finalValue: value }))} className="col-span-3" />
                                     </div>
                                 )}
                                 <div className="grid grid-cols-4 items-start gap-4">

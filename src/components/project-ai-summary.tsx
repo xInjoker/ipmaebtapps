@@ -10,7 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import type { Project } from '@/lib/projects';
 
 type ProjectAiSummaryProps = {
-  project: Project;
+  project: Project | null;
   totalCost: number;
   totalIncome: number;
   progress: number;
@@ -22,31 +22,38 @@ export function ProjectAiSummary({ project, totalCost, totalIncome, progress }: 
   const { toast } = useToast();
 
   const handleGenerateAnalysis = useCallback(async () => {
-    // Feature is disabled for now. Do nothing.
-    // setIsLoading(true);
-    // setAnalysis(null);
-    // const analysisInput: ProjectAnalysisInput = {
-    //   name: project.name,
-    //   description: project.description,
-    //   value: project.value,
-    //   totalCost,
-    //   totalIncome,
-    //   progress,
-    //   duration: project.duration,
-    // };
-    // try {
-    //   const result = await analyzeProject(analysisInput);
-    //   setAnalysis(result);
-    // } catch (error) {
-    //   console.error("Failed to generate project analysis:", error);
-    //   toast({
-    //     variant: 'destructive',
-    //     title: 'Analysis Failed',
-    //     description: 'Could not generate the AI summary. Please try again.',
-    //   });
-    // } finally {
-    //   setIsLoading(false);
-    // }
+    if (!project) return;
+    
+    setIsLoading(true);
+    setAnalysis(null);
+    const analysisInput: ProjectAnalysisInput = {
+      name: project.name,
+      description: project.description,
+      value: project.value,
+      totalCost,
+      totalIncome,
+      progress,
+      duration: project.duration,
+      invoices: (project.invoices || []).map(i => ({ status: i.status, amount: i.value })),
+      costs: (project.costs || []).map(c => ({
+        category: c.category,
+        budgetedAmount: project.budgets?.[c.category] || 0,
+        actualAmount: c.amount,
+      })),
+    };
+    try {
+      const result = await analyzeProject(analysisInput);
+      setAnalysis(result);
+    } catch (error) {
+      console.error("Failed to generate project analysis:", error);
+      toast({
+        variant: 'destructive',
+        title: 'Analysis Failed',
+        description: 'Could not generate the AI summary. Please try again.',
+      });
+    } finally {
+      setIsLoading(false);
+    }
   }, [project, totalCost, totalIncome, progress, toast]);
   
   const renderContent = () => {
@@ -62,20 +69,35 @@ export function ProjectAiSummary({ project, totalCost, totalIncome, progress }: 
 
     if (analysis) {
       return (
-        <div className="space-y-4">
-          <div>
-            <h4 className="font-semibold text-base mb-2">Summary</h4>
-            <p className="text-sm text-muted-foreground">{analysis.summary}</p>
+        <div className="space-y-4 text-sm">
+           <div>
+            <h4 className="font-semibold text-base mb-2">Executive Summary</h4>
+            <p className="text-muted-foreground">{analysis.executiveSummary}</p>
           </div>
+
           <div>
-            <h4 className="font-semibold text-base mb-2 flex items-center gap-2"><CircleCheck className="h-5 w-5 text-green-500" /> Highlights</h4>
-            <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
-              {analysis.highlights.map((item, index) => <li key={index}>{item}</li>)}
+            <h4 className="font-semibold text-base mb-2">Core Metrics</h4>
+            <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+              <li>Cost Performance Index (CPI): <span className="font-mono">{analysis.coreMetrics.cpi.toFixed(2)}</span></li>
+              <li>Est. at Completion (EAC): <span className="font-mono">{analysis.coreMetrics.eac.toLocaleString('id-ID', { style: 'currency', currency: 'IDR' })}</span></li>
+              <li>Profit Forecast: <span className="font-mono">{analysis.coreMetrics.profitForecast.toLocaleString('id-ID', { style: 'currency', currency: 'IDR' })}</span></li>
+               <li>Current Margin: <span className="font-mono">{analysis.coreMetrics.currentMargin.toFixed(2)}%</span></li>
+              <li>Projected Margin: <span className="font-mono">{analysis.coreMetrics.projectedMargin.toFixed(2)}%</span></li>
+            </ul>
+          </div>
+           <div>
+            <h4 className="font-semibold text-base mb-2">Cash Flow Analysis</h4>
+            <p className="text-muted-foreground">{analysis.cashFlowAnalysis}</p>
+          </div>
+           <div>
+            <h4 className="font-semibold text-base mb-2 flex items-center gap-2"><AlertTriangle className="h-5 w-5 text-destructive" /> Risk Assessment</h4>
+            <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                {analysis.riskAssessment.map((item, index) => <li key={index}><strong>{item.risk}</strong> (Impact: {item.impact}, Likelihood: {item.likelihood}) {item.mitigation && `- Mitigation: ${item.mitigation}`}</li>)}
             </ul>
           </div>
           <div>
             <h4 className="font-semibold text-base mb-2 flex items-center gap-2"><Lightbulb className="h-5 w-5 text-amber-500"/> Recommendations</h4>
-            <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+            <ul className="list-disc list-inside space-y-1 text-muted-foreground">
               {analysis.recommendations.map((item, index) => <li key={index}>{item}</li>)}
             </ul>
           </div>
@@ -104,7 +126,7 @@ export function ProjectAiSummary({ project, totalCost, totalIncome, progress }: 
         <CardTitle>AI Summary & Analysis</CardTitle>
         <CardDescription>Automated insights based on project data.</CardDescription>
       </CardHeader>
-      <CardContent className="h-[400px] overflow-y-auto">
+      <CardContent className="h-[400px] overflow-y-auto p-4">
         {renderContent()}
       </CardContent>
     </Card>
