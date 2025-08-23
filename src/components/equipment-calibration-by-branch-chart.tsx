@@ -2,12 +2,6 @@
 "use client"
 
 import * as React from "react"
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-  ChartConfig,
-} from '@/components/ui/chart';
 import { useMemo } from 'react';
 import type { EquipmentItem, EquipmentType } from '@/lib/equipment';
 import { equipmentTypes } from '@/lib/equipment';
@@ -17,23 +11,27 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./ui/table";
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 import { cn } from "@/lib/utils";
+import { CheckCircle, Clock, XCircle } from 'lucide-react';
 
 type EquipmentCalibrationByBranchChartProps = {
   equipment: EquipmentItem[];
   branches: Branch[];
 };
 
+type HeatmapCellData = {
+  valid: number;
+  expiring: number;
+  expired: number;
+};
+
 type HeatmapData = {
   type: EquipmentType;
-  [branchId: string]: {
-    count: number;
-    status: 'green' | 'yellow' | 'red';
-  } | string;
+  [branchId: string]: HeatmapCellData | string;
 };
 
 export const EquipmentCalibrationByBranchChart = React.memo(function EquipmentCalibrationByBranchChart({ equipment, branches }: EquipmentCalibrationByBranchChartProps) {
   const { heatmapData, relevantBranches } = useMemo(() => {
-    const data: Record<string, { [branchId: string]: { count: number; statuses: ('green' | 'yellow' | 'destructive')[] } }> = {};
+    const data: Record<string, { [branchId: string]: HeatmapCellData }> = {};
     const branchSet = new Set<string>();
 
     equipment.forEach(item => {
@@ -46,13 +44,17 @@ export const EquipmentCalibrationByBranchChart = React.memo(function EquipmentCa
             data[type] = {};
         }
         if (!data[type][item.owningBranchId]) {
-            data[type][item.owningBranchId] = { count: 0, statuses: [] };
+            data[type][item.owningBranchId] = { valid: 0, expiring: 0, expired: 0 };
         }
 
-        data[type][item.owningBranchId].count++;
-        
         const status = getCalibrationStatus(new Date(item.calibrationDueDate));
-        data[type][item.owningBranchId].statuses.push(status.variant);
+        if (status.variant === 'destructive') {
+            data[type][item.owningBranchId].expired++;
+        } else if (status.variant === 'yellow') {
+            data[type][item.owningBranchId].expiring++;
+        } else {
+            data[type][item.owningBranchId].valid++;
+        }
     });
 
     const finalBranches = branches.filter(b => branchSet.has(b.id));
@@ -62,33 +64,14 @@ export const EquipmentCalibrationByBranchChart = React.memo(function EquipmentCa
         finalBranches.forEach(branch => {
             const cellData = data[type]?.[branch.id];
             if (cellData) {
-                let finalStatus: 'green' | 'yellow' | 'red' = 'green';
-                if (cellData.statuses.includes('destructive')) {
-                    finalStatus = 'red';
-                } else if (cellData.statuses.includes('yellow')) {
-                    finalStatus = 'yellow';
-                }
-                row[branch.id] = {
-                    count: cellData.count,
-                    status: finalStatus,
-                };
+                row[branch.id] = cellData;
             }
         });
         return row;
-    }).filter(row => Object.keys(row).length > 1); // Only include rows that have at least one piece of equipment
+    }).filter(row => Object.keys(row).length > 1);
 
     return { heatmapData: finalData, relevantBranches: finalBranches };
   }, [equipment, branches]);
-
-  const getStatusColor = (status: 'green' | 'yellow' | 'red' | undefined) => {
-    switch (status) {
-        case 'green': return 'bg-green-500/80';
-        case 'yellow': return 'bg-yellow-500/80';
-        case 'red': return 'bg-red-500/80';
-        default: return 'bg-muted/30';
-    }
-  };
-
 
   return (
     <Card className="col-span-full">
@@ -114,20 +97,36 @@ export const EquipmentCalibrationByBranchChart = React.memo(function EquipmentCa
                 <TableRow key={row.type}>
                   <TableCell className="sticky left-0 bg-background z-10 font-medium">{row.type}</TableCell>
                   {relevantBranches.map(branch => {
-                    const cell = row[branch.id];
-                    if (typeof cell === 'object' && cell !== null) {
+                    const cell = row[branch.id] as HeatmapCellData | undefined;
+                    if (cell) {
+                        const total = cell.valid + cell.expiring + cell.expired;
+                        if (total === 0) {
+                             return <TableCell key={branch.id} className="text-center p-1"><div className="w-full h-10 bg-muted/30 rounded-md"></div></TableCell>;
+                        }
                       return (
                         <TableCell key={branch.id} className="text-center p-1">
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                 <div className={cn("flex items-center justify-center w-full h-10 rounded-md text-white font-bold text-lg", getStatusColor(cell.status))}>
-                                    {cell.count > 0 ? cell.count : ''}
+                                 <div className="flex items-center justify-center w-full h-10 rounded-md gap-1.5 sm:gap-2">
+                                    <span className={cn("flex items-center gap-1 font-bold", cell.valid > 0 ? "text-green-600" : "text-gray-400")}>
+                                        <CheckCircle className="h-4 w-4"/> {cell.valid}
+                                    </span>
+                                    <span className={cn("flex items-center gap-1 font-bold", cell.expiring > 0 ? "text-yellow-600" : "text-gray-400")}>
+                                        <Clock className="h-4 w-4"/> {cell.expiring}
+                                    </span>
+                                     <span className={cn("flex items-center gap-1 font-bold", cell.expired > 0 ? "text-red-600" : "text-gray-400")}>
+                                        <XCircle className="h-4 w-4"/> {cell.expired}
+                                    </span>
                                 </div>
                               </TooltipTrigger>
                               <TooltipContent>
-                                <p>{cell.count} equipment item(s)</p>
-                                <p>Status: <span className="capitalize font-semibold">{cell.status === 'red' ? 'Expired' : cell.status === 'yellow' ? 'Expiring Soon' : 'Valid'}</span></p>
+                                <p className="font-bold">{branch.name}</p>
+                                <p>Total Equipment: {total}</p>
+                                <Separator className="my-1"/>
+                                <p>Valid: {cell.valid}</p>
+                                <p>Expiring Soon: {cell.expiring}</p>
+                                <p>Expired: {cell.expired}</p>
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
