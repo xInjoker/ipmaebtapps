@@ -584,7 +584,17 @@ export default function PenetrantTestPage() {
                     </div>
                      <div className="space-y-2">
                         <Label htmlFor="weldingProcess">Welding Process</Label>
-                        <Input id="weldingProcess" value={formData.weldingProcess} onChange={handleInputChange} />
+                         <Select value={formData.weldingProcess} onValueChange={(value) => handleSelectChange('weldingProcess', value)}>
+                            <SelectTrigger><SelectValue placeholder="Select process" /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="SMAW">SMAW</SelectItem>
+                                <SelectItem value="GTAW">GTAW</SelectItem>
+                                <SelectItem value="GMAW">GMAW</SelectItem>
+                                <SelectItem value="FCAW">FCAW</SelectItem>
+                                <SelectItem value="SAW">SAW</SelectItem>
+                                <SelectItem value="Other">Other</SelectItem>
+                            </SelectContent>
+                        </Select>
                     </div>
                      <div className="space-y-2">
                         <Label htmlFor="drawingNumber">Drawing Number</Label>
@@ -915,4 +925,5 @@ export default function PenetrantTestPage() {
     </div>
   );
 }
+
 
