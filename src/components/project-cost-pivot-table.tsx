@@ -98,7 +98,7 @@ export function ProjectCostPivotTable({ project }: ProjectCostPivotTableProps) {
             </CardDescription>
         </CardHeader>
         <CardContent>
-            <div className="overflow-x-auto rounded-md border w-full max-w-[calc(100vw-2rem)] md:max-w-full">
+            <div className="overflow-x-auto rounded-md border w-full">
                 <Table>
                     <TableHeader>
                         <TableRow>
