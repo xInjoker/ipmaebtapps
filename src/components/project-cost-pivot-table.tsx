@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useMemo } from 'react';
@@ -7,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFoo
 import type { Project, ExpenditureItem } from '@/lib/projects';
 import { formatCurrency } from '@/lib/utils';
 import { parse, format, getYear } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 type ProjectCostPivotTableProps = {
   project: Project | null;
@@ -89,9 +91,16 @@ export function ProjectCostPivotTable({ project }: ProjectCostPivotTableProps) {
     return new Intl.NumberFormat('id-ID').format(value);
   }
 
+  const getRemainingColor = (remaining: number, budget: number) => {
+    if (budget === 0) return 'text-muted-foreground';
+    if (remaining < 0) return 'text-red-500';
+    if ((remaining / budget) < 0.2) return 'text-yellow-500';
+    return 'text-green-500';
+  };
+
   return (
-    <div>
-        <div className="overflow-x-auto rounded-md border w-full">
+    <div className="relative w-full">
+        <div className="w-full overflow-x-auto rounded-md border">
             <Table>
                 <TableHeader>
                     <TableRow>
@@ -102,22 +111,22 @@ export function ProjectCostPivotTable({ project }: ProjectCostPivotTableProps) {
                                 <TableHead key={period} className="text-right min-w-[120px]">{format(parse(period, 'MMMM yyyy', new Date()), 'MMM yy')}</TableHead>
                             ))
                         ))}
-                            <TableHead className="text-right font-bold min-w-[150px]">Grand Total</TableHead>
-                            <TableHead className="text-right font-bold min-w-[150px]">Remaining</TableHead>
+                            <TableHead className="sticky right-[150px] bg-background z-20 text-right font-bold min-w-[150px]">Grand Total</TableHead>
+                            <TableHead className="sticky right-0 bg-background z-20 text-right font-bold min-w-[150px]">Remaining</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
                     {pivotData.map((row) => (
                         <TableRow key={row.category}>
                             <TableCell className="sticky left-0 bg-background z-10 font-medium">{row.category}</TableCell>
-                            <TableCell className="sticky left-[200px] bg-background z-10 text-right">{formatCurrency(row.budget, false)}</TableCell>
+                            <TableCell className="sticky left-[200px] bg-background z-10 text-right">{formatNumber(row.budget)}</TableCell>
                             {years.map(year => (
                                 periods.filter(p => p.endsWith(year.toString())).map(period => (
                                     <TableCell key={period} className="text-right">{formatNumber(row.costsByPeriod[period] || 0)}</TableCell>
                                 ))
                             ))}
-                            <TableCell className="text-right font-semibold">{formatCurrency(row.totalCost, false)}</TableCell>
-                            <TableCell className="text-right font-semibold">{formatCurrency(row.remaining, false)}</TableCell>
+                            <TableCell className="sticky right-[150px] bg-background z-10 text-right font-semibold">{formatNumber(row.totalCost)}</TableCell>
+                            <TableCell className={cn("sticky right-0 bg-background z-10 text-right font-semibold", getRemainingColor(row.remaining, row.budget))}>{formatNumber(row.remaining)}</TableCell>
                         </TableRow>
                     ))}
                 </TableBody>
@@ -130,8 +139,8 @@ export function ProjectCostPivotTable({ project }: ProjectCostPivotTableProps) {
                                 <TableCell key={period} className="text-right font-bold">{formatCurrency(grandTotals.costs[period] || 0)}</TableCell>
                             ))
                         ))}
-                        <TableCell className="text-right font-bold">{formatCurrency(grandTotals.total)}</TableCell>
-                        <TableCell className="text-right font-bold">{formatCurrency(grandTotals.remaining)}</TableCell>
+                        <TableCell className="sticky right-[150px] bg-background z-10 text-right font-bold">{formatCurrency(grandTotals.total)}</TableCell>
+                        <TableCell className="sticky right-0 bg-background z-10 text-right font-bold">{formatCurrency(grandTotals.remaining)}</TableCell>
                     </TableRow>
                 </TableFooter>
             </Table>
