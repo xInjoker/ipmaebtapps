@@ -98,7 +98,7 @@ export function ProjectCostPivotTable({ project }: ProjectCostPivotTableProps) {
             </CardDescription>
         </CardHeader>
         <CardContent>
-            <div className="overflow-x-auto rounded-md border w-full">
+            <div className="overflow-x-auto rounded-md border w-full max-w-[calc(100vw-2rem-150px)] md:max-w-[calc(100vw-4rem-150px)] lg:max-w-[calc(100vw-20rem-200px)]">
                 <Table>
                     <TableHeader>
                         <TableRow>
@@ -117,14 +117,14 @@ export function ProjectCostPivotTable({ project }: ProjectCostPivotTableProps) {
                         {pivotData.map((row) => (
                             <TableRow key={row.category}>
                                 <TableCell className="sticky left-0 bg-background z-10 font-medium">{row.category}</TableCell>
-                                <TableCell className="sticky left-[200px] bg-background z-10 text-right">{formatNumber(row.budget)}</TableCell>
+                                <TableCell className="sticky left-[200px] bg-background z-10 text-right">{formatCurrency(row.budget, false)}</TableCell>
                                 {years.map(year => (
                                     periods.filter(p => p.endsWith(year.toString())).map(period => (
                                         <TableCell key={period} className="text-right">{formatNumber(row.costsByPeriod[period] || 0)}</TableCell>
                                     ))
                                 ))}
-                                <TableCell className="text-right font-semibold">{formatNumber(row.totalCost)}</TableCell>
-                                <TableCell className="text-right font-semibold">{formatNumber(row.remaining)}</TableCell>
+                                <TableCell className="text-right font-semibold">{formatCurrency(row.totalCost, false)}</TableCell>
+                                <TableCell className="text-right font-semibold">{formatCurrency(row.remaining, false)}</TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
