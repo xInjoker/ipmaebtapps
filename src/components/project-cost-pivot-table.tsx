@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import type { Project, ExpenditureItem } from '@/lib/projects';
 import { formatCurrency } from '@/lib/utils';
-import { parse, format, getYear } from 'date-fns';
+import { parse, format, getYear, isValid } from 'date-fns';
 import { cn } from '@/lib/utils';
 
 type ProjectCostPivotTableProps = {
@@ -35,6 +35,7 @@ export function ProjectCostPivotTable({ project }: ProjectCostPivotTableProps) {
       try {
         const dateA = parse(a, 'MMMM yyyy', new Date());
         const dateB = parse(b, 'MMMM yyyy', new Date());
+        if (!isValid(dateA) || !isValid(dateB)) return 0;
         return dateA.getTime() - dateB.getTime();
       } catch {
         return 0;
@@ -73,18 +74,30 @@ export function ProjectCostPivotTable({ project }: ProjectCostPivotTableProps) {
         
         Object.entries(row.costsByPeriod).forEach(([period, cost]) => {
             grandTotals.costs[period] = (grandTotals.costs[period] || 0) + cost;
-            const year = getYear(parse(period, 'MMMM yyyy', new Date()));
-            if (!yearlySubtotals[year]) {
-                yearlySubtotals[year] = {};
-            }
-            yearlySubtotals[year][row.category] = (yearlySubtotals[year][row.category] || 0) + cost;
+            try {
+              const date = parse(period, 'MMMM yyyy', new Date());
+              if (isValid(date)) {
+                const year = getYear(date);
+                if (!yearlySubtotals[year]) {
+                    yearlySubtotals[year] = {};
+                }
+                yearlySubtotals[year][row.category] = (yearlySubtotals[year][row.category] || 0) + cost;
+              }
+            } catch {}
         });
     });
 
     return { periods: uniquePeriods, yearlySubtotals, grandTotals, pivotData: data };
   }, [project]);
 
-  const years = [...new Set(periods.map(p => getYear(parse(p, 'MMMM yyyy', new Date()))))].sort();
+  const years = [...new Set(periods.map(p => {
+    try {
+      const date = parse(p, 'MMMM yyyy', new Date());
+      return isValid(date) ? getYear(date) : null;
+    } catch {
+      return null;
+    }
+  }).filter(y => y !== null))].sort() as number[];
 
   const formatNumber = (value: number) => {
     if (value === 0) return '-';
@@ -97,54 +110,67 @@ export function ProjectCostPivotTable({ project }: ProjectCostPivotTableProps) {
     if ((remaining / budget) < 0.2) return 'text-yellow-500';
     return 'text-green-500';
   };
+  
+  const parseAndFormatPeriod = (period: string) => {
+    try {
+      const date = parse(period, 'MMMM yyyy', new Date());
+      if (isValid(date)) {
+        return format(date, 'MMM yy');
+      }
+      return period; // Return original string if invalid
+    } catch {
+      return period;
+    }
+  }
 
   return (
-    <div className="relative w-full">
-        <div className="w-full overflow-x-auto rounded-md border">
-            <Table>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead className="sticky left-0 bg-background z-20 font-semibold min-w-[200px]">Category</TableHead>
-                        <TableHead className="sticky left-[200px] bg-background z-20 text-right min-w-[150px]">Budget</TableHead>
-                        {years.map(year => (
-                            periods.filter(p => p.endsWith(year.toString())).map(period => (
-                                <TableHead key={period} className="text-right min-w-[120px]">{format(parse(period, 'MMMM yyyy', new Date()), 'MMM yy')}</TableHead>
-                            ))
-                        ))}
-                            <TableHead className="sticky right-[150px] bg-background z-20 text-right font-bold min-w-[150px]">Grand Total</TableHead>
-                            <TableHead className="sticky right-0 bg-background z-20 text-right font-bold min-w-[150px]">Remaining</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {pivotData.map((row) => (
-                        <TableRow key={row.category}>
-                            <TableCell className="sticky left-0 bg-background z-10 font-medium">{row.category}</TableCell>
-                            <TableCell className="sticky left-[200px] bg-background z-10 text-right">{formatNumber(row.budget)}</TableCell>
-                            {years.map(year => (
-                                periods.filter(p => p.endsWith(year.toString())).map(period => (
-                                    <TableCell key={period} className="text-right">{formatNumber(row.costsByPeriod[period] || 0)}</TableCell>
-                                ))
-                            ))}
-                            <TableCell className="sticky right-[150px] bg-background z-10 text-right font-semibold">{formatNumber(row.totalCost)}</TableCell>
-                            <TableCell className={cn("sticky right-0 bg-background z-10 text-right font-semibold", getRemainingColor(row.remaining, row.budget))}>{formatNumber(row.remaining)}</TableCell>
-                        </TableRow>
+    <div className="relative w-full overflow-x-auto rounded-md border">
+        <Table>
+            <TableHeader>
+                <TableRow>
+                    <TableHead className="sticky left-0 bg-background z-20 font-semibold min-w-[200px]">Category</TableHead>
+                    <TableHead className="sticky left-[200px] bg-background z-20 text-right min-w-[150px]">Budget</TableHead>
+                    {years.map(year => (
+                        periods.filter(p => p && p.endsWith(year.toString())).map(period => (
+                            <TableHead key={period} className="text-right min-w-[120px]">
+                              {parseAndFormatPeriod(period)}
+                            </TableHead>
+                        ))
                     ))}
-                </TableBody>
-                <TableFooter>
-                        <TableRow>
-                        <TableCell className="sticky left-0 bg-background z-10 font-bold">Total</TableCell>
-                        <TableCell className="sticky left-[200px] bg-background z-10 text-right font-bold">{formatCurrency(grandTotals.budget)}</TableCell>
-                            {years.map(year => (
-                            periods.filter(p => p.endsWith(year.toString())).map(period => (
-                                <TableCell key={period} className="text-right font-bold">{formatCurrency(grandTotals.costs[period] || 0)}</TableCell>
+                        <TableHead className="sticky right-[150px] bg-background z-20 text-right font-bold min-w-[150px]">Grand Total</TableHead>
+                        <TableHead className="sticky right-0 bg-background z-20 text-right font-bold min-w-[150px]">Remaining</TableHead>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                {pivotData.map((row) => (
+                    <TableRow key={row.category}>
+                        <TableCell className="sticky left-0 bg-background z-10 font-medium">{row.category}</TableCell>
+                        <TableCell className="sticky left-[200px] bg-background z-10 text-right">{formatNumber(row.budget)}</TableCell>
+                        {years.map(year => (
+                            periods.filter(p => p && p.endsWith(year.toString())).map(period => (
+                                <TableCell key={period} className="text-right">{formatNumber(row.costsByPeriod[period] || 0)}</TableCell>
                             ))
                         ))}
-                        <TableCell className="sticky right-[150px] bg-background z-10 text-right font-bold">{formatCurrency(grandTotals.total)}</TableCell>
-                        <TableCell className="sticky right-0 bg-background z-10 text-right font-bold">{formatCurrency(grandTotals.remaining)}</TableCell>
+                        <TableCell className="sticky right-[150px] bg-background z-10 text-right font-semibold">{formatNumber(row.totalCost)}</TableCell>
+                        <TableCell className={cn("sticky right-0 bg-background z-10 text-right font-semibold", getRemainingColor(row.remaining, row.budget))}>{formatNumber(row.remaining)}</TableCell>
                     </TableRow>
-                </TableFooter>
-            </Table>
-        </div>
+                ))}
+            </TableBody>
+            <TableFooter>
+                    <TableRow>
+                    <TableCell className="sticky left-0 bg-background z-10 font-bold">Total</TableCell>
+                    <TableCell className="sticky left-[200px] bg-background z-10 text-right font-bold">{formatCurrency(grandTotals.budget)}</TableCell>
+                        {years.map(year => (
+                        periods.filter(p => p && p.endsWith(year.toString())).map(period => (
+                            <TableCell key={period} className="text-right font-bold">{formatCurrency(grandTotals.costs[period] || 0)}</TableCell>
+                        ))
+                    ))}
+                    <TableCell className="sticky right-[150px] bg-background z-10 text-right font-bold">{formatCurrency(grandTotals.total)}</TableCell>
+                    <TableCell className="sticky right-0 bg-background z-10 text-right font-bold">{formatCurrency(grandTotals.remaining)}</TableCell>
+                </TableRow>
+            </TableFooter>
+        </Table>
     </div>
   );
 }
+
