@@ -741,16 +741,16 @@ export default function ProjectDetailsPage() {
             <div className="space-y-4">
               <h3 className="font-semibold text-lg">Cost & Budget Analysis</h3>
               <Separator />
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
-                  <div ref={chartRefs.costPie}>
+               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
+                  <div ref={chartRefs.costPie} className="lg:col-span-1">
                       <ProjectCostPieChart project={filteredProject} />
                   </div>
-                  <div ref={chartRefs.budget}>
+                  <div ref={chartRefs.budget} className="lg:col-span-1">
                       <ProjectBudgetExpenditureChart project={filteredProject} />
                   </div>
-              </div>
-               <div className="mt-6">
-                <ProjectCostPivotTable project={filteredProject} />
+                   <div className="lg:col-span-2">
+                    <ProjectCostPivotTable project={filteredProject} />
+                  </div>
               </div>
             </div>
         </TabsContent>
