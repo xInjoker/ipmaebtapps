@@ -68,6 +68,7 @@ import { DocumentViewerDialog } from '@/components/document-viewer-dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import jsPDF from 'jspdf';
+import { ProjectCostPivotTable } from '@/components/project-cost-pivot-table';
 
 
 // Extend jsPDF with autoTable
@@ -747,6 +748,9 @@ export default function ProjectDetailsPage() {
                   <div ref={chartRefs.budget}>
                       <ProjectBudgetExpenditureChart project={filteredProject} />
                   </div>
+              </div>
+               <div className="mt-6">
+                <ProjectCostPivotTable project={filteredProject} />
               </div>
             </div>
         </TabsContent>
