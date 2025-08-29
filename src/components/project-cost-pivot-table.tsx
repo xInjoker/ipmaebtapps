@@ -90,60 +90,52 @@ export function ProjectCostPivotTable({ project }: ProjectCostPivotTableProps) {
   }
 
   return (
-    <Card>
-        <CardHeader>
-            <CardTitle>Detailed Cost & Budget Pivot Table</CardTitle>
-            <CardDescription>
-                A detailed monthly breakdown of costs against the allocated budget for each category.
-            </CardDescription>
-        </CardHeader>
-        <CardContent>
-            <div className="overflow-x-auto rounded-md border w-full max-w-[calc(100vw-2rem-150px)] md:max-w-[calc(100vw-4rem-150px)] lg:max-w-[calc(100vw-20rem-200px)]">
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead className="sticky left-0 bg-background z-20 font-semibold min-w-[200px]">Category</TableHead>
-                            <TableHead className="sticky left-[200px] bg-background z-20 text-right min-w-[150px]">Budget</TableHead>
+    <div>
+        <div className="overflow-x-auto rounded-md border w-full">
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead className="sticky left-0 bg-background z-20 font-semibold min-w-[200px]">Category</TableHead>
+                        <TableHead className="sticky left-[200px] bg-background z-20 text-right min-w-[150px]">Budget</TableHead>
+                        {years.map(year => (
+                            periods.filter(p => p.endsWith(year.toString())).map(period => (
+                                <TableHead key={period} className="text-right min-w-[120px]">{format(parse(period, 'MMMM yyyy', new Date()), 'MMM yy')}</TableHead>
+                            ))
+                        ))}
+                            <TableHead className="text-right font-bold min-w-[150px]">Grand Total</TableHead>
+                            <TableHead className="text-right font-bold min-w-[150px]">Remaining</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {pivotData.map((row) => (
+                        <TableRow key={row.category}>
+                            <TableCell className="sticky left-0 bg-background z-10 font-medium">{row.category}</TableCell>
+                            <TableCell className="sticky left-[200px] bg-background z-10 text-right">{formatCurrency(row.budget, false)}</TableCell>
                             {years.map(year => (
                                 periods.filter(p => p.endsWith(year.toString())).map(period => (
-                                    <TableHead key={period} className="text-right min-w-[120px]">{format(parse(period, 'MMMM yyyy', new Date()), 'MMM yy')}</TableHead>
+                                    <TableCell key={period} className="text-right">{formatNumber(row.costsByPeriod[period] || 0)}</TableCell>
                                 ))
                             ))}
-                             <TableHead className="text-right font-bold min-w-[150px]">Grand Total</TableHead>
-                             <TableHead className="text-right font-bold min-w-[150px]">Remaining</TableHead>
+                            <TableCell className="text-right font-semibold">{formatCurrency(row.totalCost, false)}</TableCell>
+                            <TableCell className="text-right font-semibold">{formatCurrency(row.remaining, false)}</TableCell>
                         </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {pivotData.map((row) => (
-                            <TableRow key={row.category}>
-                                <TableCell className="sticky left-0 bg-background z-10 font-medium">{row.category}</TableCell>
-                                <TableCell className="sticky left-[200px] bg-background z-10 text-right">{formatCurrency(row.budget, false)}</TableCell>
-                                {years.map(year => (
-                                    periods.filter(p => p.endsWith(year.toString())).map(period => (
-                                        <TableCell key={period} className="text-right">{formatNumber(row.costsByPeriod[period] || 0)}</TableCell>
-                                    ))
-                                ))}
-                                <TableCell className="text-right font-semibold">{formatCurrency(row.totalCost, false)}</TableCell>
-                                <TableCell className="text-right font-semibold">{formatCurrency(row.remaining, false)}</TableCell>
-                            </TableRow>
+                    ))}
+                </TableBody>
+                <TableFooter>
+                        <TableRow>
+                        <TableCell className="sticky left-0 bg-background z-10 font-bold">Total</TableCell>
+                        <TableCell className="sticky left-[200px] bg-background z-10 text-right font-bold">{formatCurrency(grandTotals.budget)}</TableCell>
+                            {years.map(year => (
+                            periods.filter(p => p.endsWith(year.toString())).map(period => (
+                                <TableCell key={period} className="text-right font-bold">{formatCurrency(grandTotals.costs[period] || 0)}</TableCell>
+                            ))
                         ))}
-                    </TableBody>
-                    <TableFooter>
-                         <TableRow>
-                            <TableCell className="sticky left-0 bg-background z-10 font-bold">Total</TableCell>
-                            <TableCell className="sticky left-[200px] bg-background z-10 text-right font-bold">{formatCurrency(grandTotals.budget)}</TableCell>
-                             {years.map(year => (
-                                periods.filter(p => p.endsWith(year.toString())).map(period => (
-                                    <TableCell key={period} className="text-right font-bold">{formatCurrency(grandTotals.costs[period] || 0)}</TableCell>
-                                ))
-                            ))}
-                            <TableCell className="text-right font-bold">{formatCurrency(grandTotals.total)}</TableCell>
-                            <TableCell className="text-right font-bold">{formatCurrency(grandTotals.remaining)}</TableCell>
-                        </TableRow>
-                    </TableFooter>
-                </Table>
-            </div>
-        </CardContent>
-    </Card>
+                        <TableCell className="text-right font-bold">{formatCurrency(grandTotals.total)}</TableCell>
+                        <TableCell className="text-right font-bold">{formatCurrency(grandTotals.remaining)}</TableCell>
+                    </TableRow>
+                </TableFooter>
+            </Table>
+        </div>
+    </div>
   );
 }
