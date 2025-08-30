@@ -15,24 +15,18 @@ type ProjectIncomePivotTableProps = {
 
 type PivotData = {
   category: string;
-  soBudget: number;
   invoicesByPeriod: Record<string, number>;
   totalInvoiced: number;
-  remaining: number;
 };
 
 export function ProjectIncomePivotTable({ project }: ProjectIncomePivotTableProps) {
   const { periods, pivotData, grandTotals } = useMemo(() => {
     if (!project) {
-      return { periods: [], pivotData: [], grandTotals: { budget: 0, costs: {}, total: 0, remaining: 0 } };
+      return { periods: [], pivotData: [], grandTotals: { costs: {}, total: 0 } };
     }
 
     const allInvoices = (project.invoices || []).filter(inv => inv.status !== 'Cancel');
-    const allServiceOrders = project.serviceOrders || [];
     
-    // Create a map for easy SO lookup
-    const soMap = new Map(allServiceOrders.map(so => [so.soNumber, so.value]));
-
     // Get all unique service categories from invoices
     const categories = [...new Set(allInvoices.map(inv => inv.serviceCategory))];
 
@@ -50,10 +44,6 @@ export function ProjectIncomePivotTable({ project }: ProjectIncomePivotTableProp
     const data: PivotData[] = categories.map(category => {
       const invoicesForCategory = allInvoices.filter(inv => inv.serviceCategory === category);
       
-      // Get unique SO numbers for this category and sum their values for the budget
-      const relevantSoNumbers = [...new Set(invoicesForCategory.map(inv => inv.soNumber))];
-      const soBudget = relevantSoNumbers.reduce((sum, soNum) => sum + (soMap.get(soNum) || 0), 0);
-
       const invoicesByPeriod = uniquePeriods.reduce((acc, period) => {
         acc[period] = invoicesForCategory
           .filter(inv => inv.period === period)
@@ -62,20 +52,17 @@ export function ProjectIncomePivotTable({ project }: ProjectIncomePivotTableProp
       }, {} as Record<string, number>);
       
       const totalInvoiced = Object.values(invoicesByPeriod).reduce((sum, value) => sum + value, 0);
-      const remaining = soBudget - totalInvoiced;
-
-      return { category, soBudget, invoicesByPeriod, totalInvoiced, remaining };
+      
+      return { category, invoicesByPeriod, totalInvoiced };
     });
     
     const grandTotals = data.reduce((acc, row) => {
-        acc.budget += row.soBudget;
         acc.total += row.totalInvoiced;
-        acc.remaining += row.remaining;
         Object.entries(row.invoicesByPeriod).forEach(([period, value]) => {
             acc.costs[period] = (acc.costs[period] || 0) + value;
         });
         return acc;
-    }, { budget: 0, costs: {} as Record<string, number>, total: 0, remaining: 0 });
+    }, { costs: {} as Record<string, number>, total: 0 });
 
     return { periods: uniquePeriods, pivotData: data, grandTotals };
   }, [project]);
@@ -93,13 +80,6 @@ export function ProjectIncomePivotTable({ project }: ProjectIncomePivotTableProp
     if (value === 0) return '-';
     return new Intl.NumberFormat('id-ID').format(value);
   }
-
-  const getRemainingColor = (remaining: number, budget: number) => {
-    if (budget === 0 && remaining === 0) return 'text-muted-foreground';
-    if (remaining < 0) return 'text-yellow-500'; // Invoiced more than SO value
-    if (remaining === 0) return 'text-green-500';
-    return 'text-foreground';
-  };
   
   const parseAndFormatPeriod = (period: string) => {
     try {
@@ -131,7 +111,6 @@ export function ProjectIncomePivotTable({ project }: ProjectIncomePivotTableProp
                     <TableHeader>
                         <TableRow>
                             <TableHead className="sticky left-0 bg-background z-20 font-semibold min-w-[200px]">Service Category</TableHead>
-                            <TableHead className="sticky left-[200px] bg-background z-20 text-right min-w-[150px]">SO Budget</TableHead>
                             {years.map(year => (
                                 periods.filter(p => p && p.endsWith(year.toString())).map(period => (
                                     <TableHead key={period} className="text-right min-w-[120px]">
@@ -139,36 +118,31 @@ export function ProjectIncomePivotTable({ project }: ProjectIncomePivotTableProp
                                     </TableHead>
                                 ))
                             ))}
-                                <TableHead className="sticky right-[150px] bg-background z-20 text-right font-bold min-w-[150px]">Total Invoiced</TableHead>
-                                <TableHead className="sticky right-0 bg-background z-20 text-right font-bold min-w-[150px]">Remaining</TableHead>
+                                <TableHead className="sticky right-0 bg-background z-20 text-right font-bold min-w-[150px]">Total Invoiced</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {pivotData.map((row) => (
                             <TableRow key={row.category}>
                                 <TableCell className="sticky left-0 bg-background z-10 font-medium">{row.category}</TableCell>
-                                <TableCell className="sticky left-[200px] bg-background z-10 text-right">{formatNumber(row.soBudget)}</TableCell>
                                 {years.map(year => (
                                     periods.filter(p => p && p.endsWith(year.toString())).map(period => (
                                         <TableCell key={period} className="text-right">{formatNumber(row.invoicesByPeriod[period] || 0)}</TableCell>
                                     ))
                                 ))}
-                                <TableCell className="sticky right-[150px] bg-background z-10 text-right font-semibold">{formatNumber(row.totalInvoiced)}</TableCell>
-                                <TableCell className={cn("sticky right-0 bg-background z-10 text-right font-semibold", getRemainingColor(row.remaining, row.soBudget))}>{formatNumber(row.remaining)}</TableCell>
+                                <TableCell className="sticky right-0 bg-background z-10 text-right font-semibold">{formatNumber(row.totalInvoiced)}</TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
                      <TableFooter>
                             <TableRow>
                             <TableCell className="sticky left-0 bg-background z-10 font-bold">Total</TableCell>
-                            <TableCell className="sticky left-[200px] bg-background z-10 text-right font-bold">{formatCurrency(grandTotals.budget)}</TableCell>
                                 {years.map(year => (
                                 periods.filter(p => p && p.endsWith(year.toString())).map(period => (
                                     <TableCell key={period} className="text-right font-bold">{formatCurrency(grandTotals.costs[period] || 0)}</TableCell>
                                 ))
                             ))}
-                            <TableCell className="sticky right-[150px] bg-background z-10 text-right font-bold">{formatCurrency(grandTotals.total)}</TableCell>
-                            <TableCell className="sticky right-0 bg-background z-10 text-right font-bold">{formatCurrency(grandTotals.remaining)}</TableCell>
+                            <TableCell className="sticky right-0 bg-background z-10 text-right font-bold">{formatCurrency(grandTotals.total)}</TableCell>
                         </TableRow>
                     </TableFooter>
                 </Table>
