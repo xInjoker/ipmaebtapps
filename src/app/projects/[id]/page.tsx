@@ -69,6 +69,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import jsPDF from 'jspdf';
 import { ProjectCostPivotTable } from '@/components/project-cost-pivot-table';
+import { ProjectIncomePivotTable } from '@/components/project-income-pivot-table';
 
 
 // Extend jsPDF with autoTable
@@ -750,6 +751,9 @@ export default function ProjectDetailsPage() {
                   </div>
                    <div className="lg:col-span-2">
                     <ProjectCostPivotTable project={filteredProject} />
+                  </div>
+                  <div className="lg:col-span-2">
+                    <ProjectIncomePivotTable project={filteredProject} />
                   </div>
               </div>
             </div>
